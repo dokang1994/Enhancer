@@ -1,0 +1,46 @@
+# 06 - Planner
+
+## Codex Prompt
+
+Design the Planner after the Context Reader exists. The Planner must propose tasks from repository context, not from chat memory.
+
+## Goal
+
+The Planner turns project context into candidate next tasks.
+
+## Input
+
+- structured repository context
+- current task
+- roadmap
+- decision log
+- project state
+
+## Output
+
+Use a simple task proposal:
+
+```text
+title
+reason
+scope
+acceptanceCriteria
+outOfScope
+risk
+```
+
+## Rules
+
+- Planner proposes; it does not silently execute.
+- Human approval is required before implementation.
+- Proposals are not accepted decisions.
+- Accepted decisions must be written to `DECISION_LOG.md`.
+
+## Tests
+
+Cover:
+
+- proposes a next task from an open roadmap item
+- does not override current task
+- marks unknown information as risk
+- keeps proposal separate from accepted decision
