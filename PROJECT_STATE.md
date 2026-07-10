@@ -7,7 +7,8 @@
 ## Repository State
 
 - Git repository: initialized in `C:\enhancer`, but `git status` requires `safe.directory` configuration because the sandbox user differs from the repository owner.
-- Current branch: `master`
+- Current branch: `main`
+- Remote repository: `origin` -> `https://github.com/dokang1994/Enhancer.git`
 - Last commit: local bootstrap commit exists. Check the current hash with `git -c safe.directory=C:/enhancer log -1 --oneline`.
 - Product implementation: none yet
 - Tests: none yet
@@ -75,6 +76,8 @@ Architecture work also requires:
 Get-ChildItem -Force
 git status --short
 git -c safe.directory=C:/enhancer status --short
+git -c safe.directory=C:/enhancer branch -M main
+git -c safe.directory=C:/enhancer remote add origin https://github.com/dokang1994/Enhancer.git
 git -c safe.directory=C:/enhancer add .
 git -c safe.directory=C:/enhancer commit -m "docs: bootstrap enhancer project memory"
 gradle --version
@@ -85,5 +88,7 @@ gradle --version
 `git -c safe.directory=C:/enhancer status --short` succeeded.
 
 Initial local commit succeeded. Use `git -c safe.directory=C:/enhancer log -1 --oneline` for the current hash.
+
+GitHub remote `origin` is configured for `https://github.com/dokang1994/Enhancer.git`.
 
 `gradle --version` failed because Gradle is not installed or not available on PATH.

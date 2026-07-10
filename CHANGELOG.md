@@ -18,3 +18,4 @@
 - Added open source operating model and long-running Sprint-based project direction.
 - Added explicit ChatGPT session resume protocol and prompt.
 - Added Prompt Book sections for Codex, Claude, and GPT to chapter documents.
+- Renamed local branch to `main` and configured GitHub remote `origin`.

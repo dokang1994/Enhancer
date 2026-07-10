@@ -6,7 +6,11 @@
 
 ## Current Branch
 
-`master`
+`main`
+
+## Remote Repository
+
+`origin` -> `https://github.com/dokang1994/Enhancer.git`
 
 ## Last Commit
 
@@ -44,6 +48,7 @@ git -c safe.directory=C:/enhancer log -1 --oneline
 - The repository now contains enough documentation for Codex to implement sprint by sprint.
 - Initial local commit has been created.
 - The project direction is long-running open source quality, not one-chat completion.
+- GitHub remote repository has been configured.
 
 ## Next Task
 
@@ -86,7 +91,7 @@ Implement the Repository Context Reader described in `CURRENT_TASK.md`.
 - Git safe-directory configuration is needed for normal status checks in this sandbox.
 - Build system is not created yet.
 - No tests exist yet.
-- No remote repository is configured, so push has not been performed.
+- Push to GitHub is pending verification.
 
 ## Commands Verified
 
@@ -94,6 +99,8 @@ Implement the Repository Context Reader described in `CURRENT_TASK.md`.
 Get-ChildItem -Force
 git status --short
 git -c safe.directory=C:/enhancer status --short
+git -c safe.directory=C:/enhancer branch -M main
+git -c safe.directory=C:/enhancer remote add origin https://github.com/dokang1994/Enhancer.git
 git -c safe.directory=C:/enhancer add .
 git -c safe.directory=C:/enhancer commit -m "docs: bootstrap enhancer project memory"
 gradle --version
