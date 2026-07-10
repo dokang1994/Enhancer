@@ -381,3 +381,26 @@ Enhancer는 Cursor Clone이 아니다.
 Enhancer는 AI Development Operating System이다.
 
 모든 AI가 동일한 프로젝트를 동일한 방식으로 개발할 수 있도록 만드는 것이 최종 목표이다.
+
+최종 목표는 어떤 LLM(Codex, GPT, Claude, Gemini)이라도 같은 프로젝트를 같은 품질로 이어서 개발할 수 있게 하는 AI Development Operating System을 만드는 것이다.
+
+Cursor는 Enhancer의 정체성이 아니다.
+
+Cursor와 같은 개발 도구는 Enhancer 위에서 동작할 수 있는 Application 중 하나로 본다.
+
+Enhancer의 장기 구조는 다음을 포함한다.
+
+- Kernel
+- AI Rules
+- Prompt Engine
+- Context Engine
+- Planner
+- Task Queue
+- Memory
+- Tool Manager
+- Skill Manager
+- Plugin Manager
+- Agent Runtime
+- Extension
+- Dashboard
+- SDK

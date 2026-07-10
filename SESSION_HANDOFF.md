@@ -39,6 +39,8 @@ git -c safe.directory=C:/enhancer log -1 --oneline
 - Recorded the open source operating model: documents, code, ADRs, tests, examples, and prompts managed through Git.
 - Added explicit ChatGPT session resume protocol in `prompts/CHATGPT_SESSION_RESUME.md`.
 - Added Prompt Book sections to `docs/` chapters for Codex, Claude, and GPT.
+- Added RFC-style design track under `docs/rfcs/` from `RFC-0001` through `RFC-0012`.
+- Added six-month AI Development OS roadmap.
 
 ## Current State
 
@@ -52,6 +54,7 @@ git -c safe.directory=C:/enhancer log -1 --oneline
 - The project direction is long-running open source quality, not one-chat completion.
 - GitHub remote repository has been configured.
 - Push to `origin/main` has succeeded.
+- Long-term architecture now uses RFC references for AI behavior, prompt contract, context builder, planner, tools, skills, memory, multi-agent, OS model, plugin SDK, and self-improvement.
 
 ## Next Task
 
@@ -67,6 +70,7 @@ Implement the Repository Context Reader described in `CURRENT_TASK.md`.
 - `ROADMAP.md`
 - `ARCHITECTURE.md`
 - `docs/`
+- `docs/rfcs/`
 - `examples/`
 - `.ai/`
 - `prompts/SESSION_START.md`
@@ -88,6 +92,8 @@ Implement the Repository Context Reader described in `CURRENT_TASK.md`.
 - Enhancer should be managed like a real open source project with Sprint-based implementation and review.
 - New ChatGPT sessions require explicit document handoff because ChatGPT cannot automatically read the local repository.
 - Each major chapter document should end with Codex, Claude, and GPT prompt sections.
+- Major design areas are managed as RFCs under `docs/rfcs/`.
+- Enhancer's final goal is an AI Development Operating System that lets Codex, GPT, Claude, Gemini, and future agents continue the same project at the same quality from repository documents.
 
 ## Open Issues
 

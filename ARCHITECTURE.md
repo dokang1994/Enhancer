@@ -10,6 +10,8 @@ The accepted product direction is Self-hosting AI Development Operating System.
 
 Enhancer will evolve toward these major components:
 
+- Kernel: constitution, AI rules, scheduler, and core operating policies.
+- Prompt Engine: converts tasks into model-specific prompts.
 - Context Builder: reads repository documents and code context.
 - Memory: treats Git repository state as durable memory.
 - Planner: proposes next tasks from current project state.
@@ -19,7 +21,35 @@ Enhancer will evolve toward these major components:
 - Skill System: stores reusable agent workflows.
 - Agent Loop: coordinates context, planning, tool use, verification, and handoff.
 - MCP and Plugin System: integrates external capabilities.
+- Agent Runtime: supports single-agent and future multi-agent operation.
 - CLI, VSCode Extension, and Web Dashboard: user-facing control surfaces.
+- SDK: allows plugins such as Oracle, MyBatis, Spring, WebSquare, React, and Vue.
+
+## Operating System Model
+
+Enhancer is modeled as an AI Development Operating System:
+
+```text
+Kernel
+↓
+Scheduler
+↓
+Planner
+↓
+Memory
+↓
+Tool
+↓
+Skill
+↓
+Agent
+↓
+Plugin
+↓
+LLM
+```
+
+Cursor-like behavior is treated as an application-level capability on top of Enhancer, not the identity of Enhancer itself.
 
 ## Specification Architecture
 
@@ -37,6 +67,23 @@ Enhancer will evolve toward these major components:
 - `docs/09-Background-Agent.md`: background agent safety model
 - `docs/10-Roadmap.md`: 30-day self-hosting plan
 - `docs/11-Architecture.md`: expanded architecture guide
+
+## RFC Architecture
+
+Major design areas are tracked in `docs/rfcs/`.
+
+- `RFC-0001`: Constitution
+- `RFC-0002`: AI Behavior Specification
+- `RFC-0003`: Prompt Contract
+- `RFC-0004`: Context Builder
+- `RFC-0005`: Planner
+- `RFC-0006`: Tool Specification
+- `RFC-0007`: Skill Specification
+- `RFC-0008`: Memory Specification
+- `RFC-0009`: Multi Agent
+- `RFC-0010`: AI Operating System
+- `RFC-0011`: Plugin SDK
+- `RFC-0012`: Self Improvement
 
 ## First Architecture Slice
 

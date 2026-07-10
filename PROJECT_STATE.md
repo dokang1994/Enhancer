@@ -32,6 +32,8 @@
 - Open source operating model recorded in `CONSTITUTION.md`, `README.md`, `ROADMAP.md`, and `DECISION_LOG.md`.
 - Explicit ChatGPT session resume protocol created in `prompts/CHATGPT_SESSION_RESUME.md`.
 - `docs/` chapters now include Prompt Book sections for Codex, Claude, and GPT.
+- RFC-style design track created under `docs/rfcs/` from `RFC-0001` through `RFC-0012`.
+- Six-month AI Development OS roadmap recorded in `ROADMAP.md`.
 
 ## Not Implemented
 
@@ -57,6 +59,21 @@
 - `docs/09-Background-Agent.md`
 - `docs/10-Roadmap.md`
 - `docs/11-Architecture.md`
+
+## RFC Documents
+
+- `docs/rfcs/RFC-0001-Constitution.md`
+- `docs/rfcs/RFC-0002-AI-Behavior-Specification.md`
+- `docs/rfcs/RFC-0003-Prompt-Contract.md`
+- `docs/rfcs/RFC-0004-Context-Builder.md`
+- `docs/rfcs/RFC-0005-Planner.md`
+- `docs/rfcs/RFC-0006-Tool-Specification.md`
+- `docs/rfcs/RFC-0007-Skill-Specification.md`
+- `docs/rfcs/RFC-0008-Memory-Specification.md`
+- `docs/rfcs/RFC-0009-Multi-Agent.md`
+- `docs/rfcs/RFC-0010-AI-Operating-System.md`
+- `docs/rfcs/RFC-0011-Plugin-SDK.md`
+- `docs/rfcs/RFC-0012-Self-Improvement.md`
 
 ## Session Recovery
 

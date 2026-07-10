@@ -22,3 +22,5 @@
 - Pushed `main` to `origin/main`.
 - Documented the startup rule: always read `.ai/` before starting work.
 - Recorded the `.ai/` startup rule as an accepted decision.
+- Added RFC-style design track under `docs/rfcs/`.
+- Added six-month AI Development OS roadmap.

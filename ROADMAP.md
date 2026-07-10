@@ -14,6 +14,67 @@ Status: Accepted
 
 Enhancer will be operated as a real open source project with documents, code, ADRs, tests, examples, and shared prompts. Work proceeds by Sprint, not by one large implementation pass.
 
+## Six-Month Roadmap
+
+Status: Accepted
+
+### Phase 1: Month 1
+
+- Constitution
+- Architecture
+- Context
+- Agent Loop
+- Tool
+
+### Phase 2: Month 2
+
+- Planner
+- Skill
+- Memory
+- Prompt Engine
+
+### Phase 3: Month 3
+
+- MCP
+- Plugin
+- Git
+- Terminal
+
+### Phase 4: Month 4
+
+- VSCode Extension
+- CLI
+- Dashboard
+
+### Phase 5: Month 5
+
+- Multi Agent
+- Scheduler
+- Background Agent
+
+### Phase 6: Month 6
+
+- Self Improvement
+- Plugin SDK
+- Open Source Release
+
+## RFC Track
+
+Status: Accepted
+
+- `RFC-0001`: Constitution
+- `RFC-0002`: AI Behavior Specification
+- `RFC-0003`: Prompt Contract
+- `RFC-0004`: Context Builder
+- `RFC-0005`: Planner
+- `RFC-0006`: Tool Specification
+- `RFC-0007`: Skill Specification
+- `RFC-0008`: Memory Specification
+- `RFC-0009`: Multi Agent
+- `RFC-0010`: AI Operating System
+- `RFC-0011`: Plugin SDK
+- `RFC-0012`: Self Improvement
+
 ## Phase 0: Project Memory
 
 Status: Implemented

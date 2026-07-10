@@ -120,6 +120,25 @@ prompts/SESSION_CLOSE.md를 읽고 세션을 종료해라.
 
 또한 각 챕터 끝에는 `Prompt Book` 섹션을 두고 `Codex Prompt`, `Claude Prompt`, `GPT Prompt`를 분리해서 제공한다.
 
+## RFC Documents
+
+대형 설계 주제는 `docs/rfcs/` 아래 RFC 스타일로 관리한다.
+
+- `RFC-0001`: Constitution
+- `RFC-0002`: AI Behavior Specification
+- `RFC-0003`: Prompt Contract
+- `RFC-0004`: Context Builder
+- `RFC-0005`: Planner
+- `RFC-0006`: Tool Specification
+- `RFC-0007`: Skill Specification
+- `RFC-0008`: Memory Specification
+- `RFC-0009`: Multi Agent
+- `RFC-0010`: AI Operating System
+- `RFC-0011`: Plugin SDK
+- `RFC-0012`: Self Improvement
+
+RFC는 장기 설계 의도와 참조 관계를 보존하기 위한 문서이다.
+
 ## Shared Prompts
 
 - `prompts/coding-rules.md`: 구현 Agent 공통 규칙

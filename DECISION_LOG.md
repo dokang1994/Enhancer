@@ -2,6 +2,43 @@
 
 ## Accepted Decisions
 
+### 2026-07-10: Manage Major Designs As RFCs
+
+Status: Accepted Decision
+
+Decision:
+
+Enhancer will manage major design areas as RFC-style Markdown documents under `docs/rfcs/`, starting with RFC-0001 through RFC-0012.
+
+Rationale:
+
+The project is large enough that design topics need stable identifiers, reviewable history, and clear references. RFC-style documents make long-term architecture easier to maintain across multiple AI agents and sessions.
+
+Consequences:
+
+- Major architecture changes should add or update an RFC.
+- Accepted direction should still be summarized in `DECISION_LOG.md`.
+- RFC statuses distinguish Draft, Accepted, Implemented, and Superseded.
+- The initial RFC track covers Constitution, AI Behavior, Prompt Contract, Context Builder, Planner, Tool, Skill, Memory, Multi-Agent, AI Operating System, Plugin SDK, and Self Improvement.
+
+### 2026-07-10: Adopt Six-Month AI Development OS Roadmap
+
+Status: Accepted Decision
+
+Decision:
+
+Enhancer will use a six-month open-source roadmap that evolves from Constitution, Architecture, Context, Agent Loop, and Tool toward Planner, Skill, Memory, Prompt Engine, MCP, Plugin, Git, Terminal, VSCode Extension, CLI, Dashboard, Multi-Agent, Scheduler, Background Agent, Self Improvement, Plugin SDK, and Open Source Release.
+
+Rationale:
+
+The target is larger than a 30-day prototype. A six-month roadmap gives the project realistic phases while keeping the 30-day self-hosting milestone as the first checkpoint.
+
+Consequences:
+
+- The 30-day goal remains the first self-hosting milestone.
+- Long-term architecture is tracked separately from immediate implementation tasks.
+- Work remains Sprint-based and document-driven.
+
 ### 2026-07-10: Read `.ai/` Before Every AI Work Session
 
 Status: Accepted Decision
