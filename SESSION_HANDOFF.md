@@ -29,6 +29,8 @@ git -c safe.directory=C:/enhancer log -1 --oneline
 - Added the self-hosting vision and 30-day milestone.
 - Created required repository folders: `docs/`, `examples/`, `.ai/`, and `src/`.
 - Added AI-only operating documents under `.ai/`.
+- Documented the startup rule: always read `.ai/` before starting work.
+- Recorded the `.ai/` startup rule in `DECISION_LOG.md`.
 - Updated `CURRENT_TASK.md` to the first self-hosting implementation slice: Repository Context Reader.
 - Added Document Driven Development as the required operating process.
 - Added Codex-ready chapter specifications under `docs/`.
@@ -110,11 +112,12 @@ gradle --version
 ## Instructions For Next Agent
 
 1. Read `CONSTITUTION.md`.
-2. Read `AGENTS.md`.
-3. Read `ARCHITECTURE.md`.
-4. Read `PROJECT_STATE.md`.
-5. Read `CURRENT_TASK.md`.
-6. Read `SESSION_HANDOFF.md`.
-7. Do not assume past conversation memory is correct when it conflicts with these documents.
-8. Implement the Repository Context Reader from `CURRENT_TASK.md` if the user asks to begin coding.
-9. For a new ChatGPT session, provide the files listed in `prompts/CHATGPT_SESSION_RESUME.md`.
+2. Read `.ai/`.
+3. Read `AGENTS.md`.
+4. Read `ARCHITECTURE.md`.
+5. Read `PROJECT_STATE.md`.
+6. Read `CURRENT_TASK.md`.
+7. Read `SESSION_HANDOFF.md`.
+8. Do not assume past conversation memory is correct when it conflicts with these documents.
+9. Implement the Repository Context Reader from `CURRENT_TASK.md` if the user asks to begin coding.
+10. For a new ChatGPT session, provide the files listed in `prompts/CHATGPT_SESSION_RESUME.md`.

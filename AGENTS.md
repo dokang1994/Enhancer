@@ -8,6 +8,7 @@
 
 Before planning or editing, read these files in order:
 
+0. `.ai/`
 1. `CONSTITUTION.md`
 2. `AGENTS.md`
 3. `ARCHITECTURE.md`
@@ -32,6 +33,7 @@ When context conflicts, follow this order:
 
 ## Working Rules
 
+- Always read `.ai/` before starting work.
 - Do not guess when repository documents can answer the question.
 - Keep work small and scoped to `CURRENT_TASK.md`.
 - Treat Enhancer as a self-hosting AI Development Operating System, not a Cursor clone.

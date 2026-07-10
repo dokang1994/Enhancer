@@ -20,3 +20,5 @@
 - Added Prompt Book sections for Codex, Claude, and GPT to chapter documents.
 - Renamed local branch to `main` and configured GitHub remote `origin`.
 - Pushed `main` to `origin/main`.
+- Documented the startup rule: always read `.ai/` before starting work.
+- Recorded the `.ai/` startup rule as an accepted decision.

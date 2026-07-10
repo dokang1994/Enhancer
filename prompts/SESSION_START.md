@@ -4,8 +4,14 @@ Read and execute this prompt from the project root.
 
 ## Required Reading
 
-Read these files in order:
+Read `.ai/` first, then read these files in order:
 
+0. `.ai/constitution.md`
+0. `.ai/workflow.md`
+0. `.ai/coding_rules.md`
+0. `.ai/architecture.md`
+0. `.ai/prompt_rules.md`
+0. `.ai/memory.md`
 1. `CONSTITUTION.md`
 2. `AGENTS.md`
 3. `ARCHITECTURE.md`

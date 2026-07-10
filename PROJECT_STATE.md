@@ -22,6 +22,8 @@
 - Self-hosting project vision recorded in `CONSTITUTION.md`, `ROADMAP.md`, and `DECISION_LOG.md`.
 - Required repository structure created: `docs/`, `examples/`, `prompts/`, `.ai/`, and `src/`.
 - AI-only operating notes created under `.ai/`.
+- `.ai/` startup rule documented: always read `.ai/` before starting work.
+- `.ai/` startup rule recorded as an accepted decision in `DECISION_LOG.md`.
 - First self-hosting implementation task defined in `CURRENT_TASK.md`.
 - Document Driven Development workflow recorded in `CONSTITUTION.md`, `AGENTS.md`, `.ai/workflow.md`, `prompts/IMPLEMENT_TASK.md`, and `DECISION_LOG.md`.
 - Codex-ready chapter specifications created under `docs/`.
