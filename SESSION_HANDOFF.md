@@ -49,6 +49,7 @@ git -c safe.directory=C:/enhancer log -1 --oneline
 - Initial local commit has been created.
 - The project direction is long-running open source quality, not one-chat completion.
 - GitHub remote repository has been configured.
+- Push to `origin/main` has succeeded.
 
 ## Next Task
 
@@ -91,7 +92,6 @@ Implement the Repository Context Reader described in `CURRENT_TASK.md`.
 - Git safe-directory configuration is needed for normal status checks in this sandbox.
 - Build system is not created yet.
 - No tests exist yet.
-- Push to GitHub is pending verification.
 
 ## Commands Verified
 
@@ -103,6 +103,7 @@ git -c safe.directory=C:/enhancer branch -M main
 git -c safe.directory=C:/enhancer remote add origin https://github.com/dokang1994/Enhancer.git
 git -c safe.directory=C:/enhancer add .
 git -c safe.directory=C:/enhancer commit -m "docs: bootstrap enhancer project memory"
+git -c safe.directory=C:/enhancer push -u origin main
 gradle --version
 ```
 
