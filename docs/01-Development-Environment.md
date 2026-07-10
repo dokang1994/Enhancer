@@ -52,3 +52,17 @@ Create a minimal "Hello Agent" entry point only after the context reader task is
 - [ ] Git status works.
 - [ ] Tests can run.
 - [ ] Project documents are updated with actual environment state.
+
+## Prompt Book
+
+### Codex Prompt
+
+Inspect the local environment and project files. Do not install tools without approval. Create or update only the minimal build/environment files required by `CURRENT_TASK.md`, then document what was verified and what is missing.
+
+### Claude Prompt
+
+Review the environment plan for portability, missing prerequisites, and unsafe assumptions. Recommend changes that keep setup reproducible for Windows and future CI.
+
+### GPT Prompt
+
+Summarize the environment status for a new session. Explain what is installed, what is missing, and what Codex should do next.

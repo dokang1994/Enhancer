@@ -52,3 +52,17 @@ Cover:
 - Network tools
 - MCP tools
 - Background execution
+
+## Prompt Book
+
+### Codex Prompt
+
+Implement only the minimal Tool interface and supporting result model if this task is active. Do not implement real filesystem, terminal, Git, network, or MCP behavior unless explicitly selected.
+
+### Claude Prompt
+
+Review the Tool System boundary for safety, typed inputs/outputs, and future MCP compatibility. Identify over-abstraction or missing failure handling.
+
+### GPT Prompt
+
+Summarize the Tool System design and propose the safest first concrete tool to implement after the interface exists.

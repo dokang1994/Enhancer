@@ -33,3 +33,17 @@ McpToolResult
 - Custom MCP server implementation in the first MCP task
 - Authentication UI
 - Marketplace
+
+## Prompt Book
+
+### Codex Prompt
+
+Do not implement MCP until the local Tool System is stable. If MCP work is selected, build only an adapter boundary and tests around schema inspection and safe invocation.
+
+### Claude Prompt
+
+Review MCP integration for security, schema handling, approval gates, and consistency with the local Tool System.
+
+### GPT Prompt
+
+Explain how MCP fits into Enhancer's Tool System and identify prerequisites before implementation.

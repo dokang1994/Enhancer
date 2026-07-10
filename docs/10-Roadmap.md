@@ -64,3 +64,17 @@ Use this roadmap as implementation guidance, but treat `ROADMAP.md` as the canon
 ## Rule
 
 Do not move to a later phase if project documents and tests are stale.
+
+## Prompt Book
+
+### Codex Prompt
+
+Use this roadmap only as guidance. Treat `ROADMAP.md` and `CURRENT_TASK.md` as canonical. Implement the current task, then update roadmap state and session handoff.
+
+### Claude Prompt
+
+Review the roadmap for dependency order, unrealistic scope, and missing verification gates.
+
+### GPT Prompt
+
+Summarize current roadmap progress and propose the next sprint without skipping the active task.

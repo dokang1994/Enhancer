@@ -99,3 +99,17 @@ Enhancer must read its own repository documents and produce a structured project
 - [ ] Context reader tests pass.
 - [ ] Planner can propose next tasks.
 - [ ] Agent loop can execute a selected task with tools.
+
+## Prompt Book
+
+### Codex Prompt
+
+Read this document with `CONSTITUTION.md`, `AGENTS.md`, and `CURRENT_TASK.md`. Do not implement the whole platform. Identify the smallest next task that advances Enhancer toward self-hosting and update project documents after the work.
+
+### Claude Prompt
+
+Review this project overview as an architecture and product-scope document. Find unclear boundaries, missing decisions, and risks that should be recorded in `DECISION_LOG.md` before implementation.
+
+### GPT Prompt
+
+Use this document to explain the current Enhancer vision, scope, and next practical milestone. Separate Proposal, Accepted Decision, and Implemented state.

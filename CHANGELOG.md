@@ -16,3 +16,5 @@
 - Added Agent Loop, Tool, and Skill concept examples.
 - Created initial local Git commit for project memory bootstrap.
 - Added open source operating model and long-running Sprint-based project direction.
+- Added explicit ChatGPT session resume protocol and prompt.
+- Added Prompt Book sections for Codex, Claude, and GPT to chapter documents.

@@ -28,3 +28,17 @@ Background Agents handle long-running or scheduled project assistance.
 - autonomous production deployment
 - unattended destructive file changes
 - secret handling
+
+## Prompt Book
+
+### Codex Prompt
+
+Do not implement Background Agent behavior until planning and tool execution safety are in place. If selected, implement only read-only proposal generation first.
+
+### Claude Prompt
+
+Review Background Agent plans for unattended action risks, destructive command risks, and missing audit trails.
+
+### GPT Prompt
+
+Explain safe Background Agent use cases and list what must be true before enabling autonomous work.

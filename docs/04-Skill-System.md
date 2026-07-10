@@ -49,3 +49,17 @@ Cover:
 - missing skill file
 - skill priority
 - invalid skill metadata
+
+## Prompt Book
+
+### Codex Prompt
+
+Implement only repository-backed skill loading if `CURRENT_TASK.md` selects Skill System work. Skills must be explicit files and must not override `CONSTITUTION.md`.
+
+### Claude Prompt
+
+Review the Skill System for priority conflicts, hidden-memory risks, and unclear trigger rules. Recommend ADR updates for any policy decision.
+
+### GPT Prompt
+
+Explain how skills differ from tools and memory in Enhancer, then propose the smallest next Skill System task.

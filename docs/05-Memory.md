@@ -49,3 +49,17 @@ Cover:
 - missing document error
 - priority order preserved
 - empty document behavior
+
+## Prompt Book
+
+### Codex Prompt
+
+Implement the repository-backed memory slice selected in `CURRENT_TASK.md`. Start with Markdown documents only. Preserve path, order, and content, and add tests for missing required files.
+
+### Claude Prompt
+
+Review the memory design for source-of-truth conflicts, priority mistakes, token-limit risks, and premature RAG complexity.
+
+### GPT Prompt
+
+Summarize the memory policy and explain how a new AI session should recover project context from repository files.

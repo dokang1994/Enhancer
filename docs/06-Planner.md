@@ -44,3 +44,17 @@ Cover:
 - does not override current task
 - marks unknown information as risk
 - keeps proposal separate from accepted decision
+
+## Prompt Book
+
+### Codex Prompt
+
+Implement Planner behavior only after repository context reading exists. The Planner may propose tasks but must not execute them or convert proposals into accepted decisions.
+
+### Claude Prompt
+
+Review Planner output for scope creep, missing acceptance criteria, and confusion between Proposal, Accepted Decision, and Implemented.
+
+### GPT Prompt
+
+Given repository context, propose the next useful task with reason, scope, acceptance criteria, out-of-scope items, and risks.

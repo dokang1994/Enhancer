@@ -47,6 +47,25 @@ prompts/SESSION_START.md를 읽고 실행해라.
 아직 코드는 수정하지 마라.
 ```
 
+## Resume In A New ChatGPT Session
+
+새 ChatGPT 세션은 도원님 PC의 로컬 `Enhancer` 저장소를 자동으로 읽을 수 없다.
+
+따라서 새 세션을 시작할 때는 [prompts/CHATGPT_SESSION_RESUME.md](prompts/CHATGPT_SESSION_RESUME.md)를 사용한다.
+
+필수로 전달할 파일:
+
+- `CONSTITUTION.md`
+- `AGENTS.md`
+- `PROJECT_STATE.md`
+- `CURRENT_TASK.md`
+- `SESSION_HANDOFF.md`
+
+설계 작업 시 추가:
+
+- `ARCHITECTURE.md`
+- `DECISION_LOG.md`
+
 ## Close A Session
 
 작업을 종료하기 전에 다음 프롬프트를 사용한다.
@@ -89,6 +108,8 @@ prompts/SESSION_CLOSE.md를 읽고 세션을 종료해라.
 
 각 문서는 목표, 설계 기준, 구현 범위, 테스트 기준, Codex Prompt를 포함한다.
 
+또한 각 챕터 끝에는 `Prompt Book` 섹션을 두고 `Codex Prompt`, `Claude Prompt`, `GPT Prompt`를 분리해서 제공한다.
+
 ## Shared Prompts
 
 - `prompts/coding-rules.md`: 구현 Agent 공통 규칙
@@ -98,6 +119,7 @@ prompts/SESSION_CLOSE.md를 읽고 세션을 종료해라.
 - `prompts/IMPLEMENT_TASK.md`: 구현 절차
 - `prompts/REVIEW_TASK.md`: 리뷰 절차
 - `prompts/SESSION_CLOSE.md`: 세션 종료 절차
+- `prompts/CHATGPT_SESSION_RESUME.md`: 새 ChatGPT 세션 재개 절차
 
 ## Required Repository Structure
 

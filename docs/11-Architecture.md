@@ -81,3 +81,17 @@ MissingProjectDocumentException
 - No early DDD.
 - Tests must describe behavior.
 - Documents must explain decisions.
+
+## Prompt Book
+
+### Codex Prompt
+
+Use this architecture guide to implement only the active task. Start with a simple single Gradle project and do not split modules until the codebase justifies it.
+
+### Claude Prompt
+
+Review architecture changes for premature modularization, boundary violations, missing ADRs, and conflicts with `CONSTITUTION.md`.
+
+### GPT Prompt
+
+Explain the current architecture in plain language and identify the next architecture decision that must be made before coding.

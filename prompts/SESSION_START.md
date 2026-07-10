@@ -30,3 +30,7 @@ After reading, report:
 ## Constraint
 
 Do not edit code or documents during session start unless the user explicitly asks.
+
+## Note For ChatGPT Sessions
+
+ChatGPT cannot automatically read the user's local repository in a new session. If this prompt is being used outside Codex, the user must provide the required files listed above or use `prompts/CHATGPT_SESSION_RESUME.md`.

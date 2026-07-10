@@ -31,6 +31,8 @@ git -c safe.directory=C:/enhancer log -1 --oneline
 - Added shared coding, architecture, and review prompts.
 - Added examples for Agent Loop, Tool, and Skill concepts.
 - Recorded the open source operating model: documents, code, ADRs, tests, examples, and prompts managed through Git.
+- Added explicit ChatGPT session resume protocol in `prompts/CHATGPT_SESSION_RESUME.md`.
+- Added Prompt Book sections to `docs/` chapters for Codex, Claude, and GPT.
 
 ## Current State
 
@@ -64,6 +66,7 @@ Implement the Repository Context Reader described in `CURRENT_TASK.md`.
 - `prompts/coding-rules.md`
 - `prompts/architect-rules.md`
 - `prompts/review-rules.md`
+- `prompts/CHATGPT_SESSION_RESUME.md`
 
 ## Decisions Made
 
@@ -75,6 +78,8 @@ Implement the Repository Context Reader described in `CURRENT_TASK.md`.
 - Development must follow Constitution, Architecture, ADR / Decision Log, Task, Implementation, Test, Documentation Update.
 - Feature documents in `docs/` are Codex-ready implementation prompts.
 - Enhancer should be managed like a real open source project with Sprint-based implementation and review.
+- New ChatGPT sessions require explicit document handoff because ChatGPT cannot automatically read the local repository.
+- Each major chapter document should end with Codex, Claude, and GPT prompt sections.
 
 ## Open Issues
 
@@ -104,3 +109,4 @@ gradle --version
 6. Read `SESSION_HANDOFF.md`.
 7. Do not assume past conversation memory is correct when it conflicts with these documents.
 8. Implement the Repository Context Reader from `CURRENT_TASK.md` if the user asks to begin coding.
+9. For a new ChatGPT session, provide the files listed in `prompts/CHATGPT_SESSION_RESUME.md`.

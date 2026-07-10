@@ -27,3 +27,18 @@ Report:
 ## Constraint
 
 Do not push unless the user explicitly asks.
+
+## Handoff Requirement
+
+`SESSION_HANDOFF.md` must be complete enough for a future AI session to recover without chat history.
+
+At minimum, include:
+
+- completed work
+- current state
+- next task
+- relevant files
+- decisions made
+- open issues
+- commands verified
+- instructions for the next agent

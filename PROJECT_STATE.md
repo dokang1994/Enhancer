@@ -26,6 +26,8 @@
 - Shared coding, architecture, and review prompts created under `prompts/`.
 - Concept examples created under `examples/`.
 - Open source operating model recorded in `CONSTITUTION.md`, `README.md`, `ROADMAP.md`, and `DECISION_LOG.md`.
+- Explicit ChatGPT session resume protocol created in `prompts/CHATGPT_SESSION_RESUME.md`.
+- `docs/` chapters now include Prompt Book sections for Codex, Claude, and GPT.
 
 ## Not Implemented
 
@@ -51,6 +53,21 @@
 - `docs/09-Background-Agent.md`
 - `docs/10-Roadmap.md`
 - `docs/11-Architecture.md`
+
+## Session Recovery
+
+New ChatGPT sessions must be resumed with:
+
+- `CONSTITUTION.md`
+- `AGENTS.md`
+- `PROJECT_STATE.md`
+- `CURRENT_TASK.md`
+- `SESSION_HANDOFF.md`
+
+Architecture work also requires:
+
+- `ARCHITECTURE.md`
+- `DECISION_LOG.md`
 
 ## Verified Commands
 

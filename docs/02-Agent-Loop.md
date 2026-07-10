@@ -66,3 +66,17 @@ Cover:
 - Prompt building
 - LLM calls
 - Multi-agent routing
+
+## Prompt Book
+
+### Codex Prompt
+
+Implement only the Agent Loop task if `CURRENT_TASK.md` selects it. Keep the loop deterministic, limit iterations to 20, add focused unit tests, and do not implement tools or LLM calls.
+
+### Claude Prompt
+
+Review the Agent Loop design for termination safety, state clarity, and testability. Flag any hidden coupling to tools, memory, planner, or LLM integration.
+
+### GPT Prompt
+
+Explain the Agent Loop concept and produce a small task plan that preserves the out-of-scope boundaries.
