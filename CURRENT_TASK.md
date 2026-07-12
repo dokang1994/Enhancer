@@ -2,46 +2,48 @@
 
 ## Status
 
-Ready
+Completed
 
 ## Task
 
-Implement the first self-hosting slice: Repository Context Reader.
+Implement the smallest deterministic Task Planner slice.
 
 ## Context
 
-Enhancer's 30-day goal is to propose next tasks from repository context. The first required capability is reading the repository documents that define project memory.
-
-This task should create the smallest useful implementation that reads required project documents and returns structured context for later planning.
-
-## Required Documents
-
-The reader must support the constitution startup order:
-
-1. `CONSTITUTION.md`
-2. `AGENTS.md`
-3. `ARCHITECTURE.md`
-4. `PROJECT_STATE.md`
-5. `ROADMAP.md`
-6. `CURRENT_TASK.md`
-7. `DECISION_LOG.md`
-8. `SESSION_HANDOFF.md`
+The Repository Context Reader is complete. The next self-hosting capability is proposing a candidate task from repository state without using chat memory or an LLM.
 
 ## Acceptance Criteria
 
-- A minimal Java 17 project structure exists.
-- A Repository Context Reader can read the required documents from a project root.
-- The reader preserves document path, read order, and content.
-- Missing required documents are reported with a clear error.
-- Focused unit tests cover success and missing-document cases.
+- The Planner accepts `ProjectContext` as its only input.
+- An active current task prevents a new proposal.
+- A completed current task allows a proposal from the first ready roadmap phase.
+- A proposal contains title, reason, scope, acceptance criteria, out-of-scope items, risks, and explicit `PROPOSAL` state.
+- Missing or ambiguous planning information is reported as risk or a clear planning error.
+- Focused tests cover ready roadmap, active task, and incomplete roadmap information.
 - Project documents are updated after implementation.
 
 ## Out Of Scope
 
-- LLM integration
-- Vector DB or RAG
-- Planner implementation
+- LLM integration or natural-language generation
+- Automatic task acceptance or execution
+- Writing proposals to repository documents
+- Multiple proposal ranking
+- Task Queue
 - Tool execution
-- VSCode Extension
-- Web Dashboard
 - Push to remote repository
+
+## Implementation Result
+
+- Added `RepositoryTaskPlanner` under `com.enhancer.planner`.
+- Added immutable structured proposals with explicit `PROPOSAL` state.
+- Added active-task protection and first-ready-roadmap-phase selection.
+- Added risks for incomplete roadmap planning information.
+
+## Verification
+
+- Compiled with Corretto 17 and Gradle 8.4.
+- All 5 JUnit 5 tests passed with `gradle --no-daemon test` on 2026-07-12.
+
+## Next Task
+
+Define the smallest Assisted Development Loop slice that connects Repository Context Reader and Task Planner without task execution or LLM integration.

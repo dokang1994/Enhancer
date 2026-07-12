@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-07-12
+
+- Implemented the deterministic Repository Task Planner.
+- Added structured task proposals with explicit proposal state, scope, acceptance criteria, exclusions, and risks.
+- Added Planner tests for ready roadmap selection, active-task protection, and incomplete roadmap risk reporting.
+- Added the Java 17 Gradle project structure for the first product slice.
+- Added Gradle build output exclusions.
+- Implemented the Repository Context Reader with ordered UTF-8 document loading and clear missing-document errors.
+- Added JUnit 5 tests for successful context reads and missing required documents.
+- Added `.editorconfig` to declare UTF-8 repository text encoding.
+- Added `.gitattributes` to keep repository text normalization stable.
+- Replaced the `.ai/workflow.md` Korean startup sentence with ASCII English to avoid console encoding display issues.
+
 ## 2026-07-10
 
 - Added repository-backed project memory documents.

@@ -5,7 +5,7 @@ Enhancer follows Document Driven Development.
 Before every session:
 
 ```text
-항상 .ai 폴더를 읽고 시작해.
+Always read the .ai folder before starting work.
 ```
 
 Then:

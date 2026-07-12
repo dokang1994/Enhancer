@@ -2,7 +2,7 @@
 
 ## Updated At
 
-2026-07-10
+2026-07-12
 
 ## Repository State
 
@@ -11,9 +11,9 @@
 - Remote repository: `origin` -> `https://github.com/dokang1994/Enhancer.git`
 - Upstream: `origin/main`
 - Last commit: local bootstrap commit exists. Check the current hash with `git -c safe.directory=C:/enhancer log -1 --oneline`.
-- Product implementation: none yet
-- Tests: none yet
-- Build system: none yet
+- Product implementation: Repository Context Reader and deterministic Task Planner implemented and verified
+- Tests: 5 focused JUnit 5 tests pass
+- Build system: Gradle build files added; no Gradle wrapper or global Gradle available
 
 ## Implemented
 
@@ -34,15 +34,24 @@
 - `docs/` chapters now include Prompt Book sections for Codex, Claude, and GPT.
 - RFC-style design track created under `docs/rfcs/` from `RFC-0001` through `RFC-0012`.
 - Six-month AI Development OS roadmap recorded in `ROADMAP.md`.
+- UTF-8 editor configuration added through `.editorconfig`.
+- Git text normalization added through `.gitattributes`.
+- `.ai/workflow.md` startup sentence changed to ASCII to avoid console encoding display issues.
+- Minimal Java 17 Gradle project files added.
+- Repository Context Reader implemented under `com.enhancer.context`.
+- Structured context preserves required document path, startup order, and UTF-8 content.
+- Missing required documents are reported by `MissingProjectDocumentException` with the missing path.
+- JUnit 5 tests added for successful ordered reads and the first missing document.
+- Repository Context Reader compilation and tests verified with Corretto 17 and Gradle 8.4.
+- Deterministic Task Planner implemented under `com.enhancer.planner`.
+- Planner blocks proposals for active tasks and selects the first ready roadmap phase after task completion.
+- Task proposals preserve explicit `PROPOSAL` state and structured scope, acceptance criteria, exclusions, and risks.
+- Planner and Context Reader compilation and all 5 tests verified with Corretto 17 and Gradle 8.4.
 
 ## Not Implemented
 
-- Product code
-- Automated tests
-- Build or runtime configuration
 - CI/CD
-- Context reader
-- Task planner
+- Gradle wrapper
 - Self-hosting development loop
 
 ## Specification Documents
@@ -115,3 +124,7 @@ GitHub remote `origin` is configured for `https://github.com/dokang1994/Enhancer
 Push to `origin/main` succeeded.
 
 `gradle --version` failed because Gradle is not installed or not available on PATH.
+
+`java -version` failed because Java is not on PATH. Corretto 17 was found at `C:\Users\dokan\.jdks\corretto-17.0.14` and used through a session-local `JAVA_HOME`.
+
+The cached Gradle 8.4 distribution was used to run `gradle --no-daemon test`; compilation and all 5 tests passed on 2026-07-12.

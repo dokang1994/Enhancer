@@ -2,7 +2,7 @@
 
 ## Status
 
-No product architecture has been implemented yet.
+The first two product architecture slices, Repository Context Reader and deterministic Task Planner, are implemented as a simple single Gradle project.
 
 The accepted product direction is Self-hosting AI Development Operating System.
 
@@ -96,6 +96,16 @@ Expected responsibility:
 - Report missing required documents clearly.
 - Produce a structured context object that later components can use.
 
+Implemented package: `com.enhancer.context`
+
+The slice uses immutable context records, an enum as the canonical required-document order, and a filesystem reader. It has no Spring wiring because the current behavior does not require an application container.
+
+## Planner Slice
+
+The first Planner slice is implemented in `com.enhancer.planner` and consumes `ProjectContext` directly.
+
+It is deterministic: an active `CURRENT_TASK.md` blocks a new proposal; otherwise the first ready phase in `ROADMAP.md` becomes one structured proposal. Proposal state is explicit and remains separate from accepted decisions and implementation state. The slice does not call an LLM, mutate documents, rank alternatives, or execute work.
+
 ## Architectural Principles
 
 - Repository documents are product inputs, not only project management notes.
@@ -108,7 +118,6 @@ Expected responsibility:
 
 ## Open Architecture Questions
 
-- Exact package structure is not selected yet.
 - CLI entry point is not selected yet.
 - Context size and token budgeting strategy are not selected yet.
-- Planner input/output schema is not selected yet.
+- Future LLM-backed Planner input/output schema is not selected yet.

@@ -2,11 +2,11 @@
 
 ## 30-Day Target
 
-Status: Accepted
+Status: Implemented
 
 Within 30 days, Enhancer should be able to read its own repository context, understand the current project state, and propose the next useful task without the user manually defining every step.
 
-This is the first self-hosting milestone.
+This first deterministic self-hosting milestone is implemented through Repository Context Reader and Task Planner. LLM-backed planning remains future work.
 
 ## Operating Target
 
@@ -96,23 +96,27 @@ Status: Implemented
 
 ## Phase 2: Context Reader
 
-Status: Ready
+Status: Implemented
 
 - Implement the smallest feature that reads repository context documents.
 - Add focused tests.
 - Update architecture and state documents.
 
+The implementation compiles and its focused tests pass with Java 17 and Gradle 8.4.
+
 ## Phase 3: Task Planner
 
-Status: Pending
+Status: Implemented
 
 - Generate candidate next tasks from repository context.
 - Keep proposal, accepted decision, and implemented state separate.
 - Add tests for planning behavior.
 
+The deterministic Planner proposes the first ready roadmap phase only after the current task is completed and keeps proposal state explicit.
+
 ## Phase 4: Assisted Development Loop
 
-Status: Pending
+Status: Ready
 
 - Connect context reading, task planning, prompt building, and tool execution.
 - Keep human approval for commits and pushes.

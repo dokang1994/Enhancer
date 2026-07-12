@@ -2,7 +2,7 @@
 
 ## Updated At
 
-2026-07-10
+2026-07-12
 
 ## Current Branch
 
@@ -41,24 +41,36 @@ git -c safe.directory=C:/enhancer log -1 --oneline
 - Added Prompt Book sections to `docs/` chapters for Codex, Claude, and GPT.
 - Added RFC-style design track under `docs/rfcs/` from `RFC-0001` through `RFC-0012`.
 - Added six-month AI Development OS roadmap.
+- Added `.editorconfig` to keep repository text files in UTF-8.
+- Added `.gitattributes` to keep repository text normalization stable.
+- Replaced the Korean startup sentence in `.ai/workflow.md` with ASCII English to avoid console mojibake.
+- Added the minimal Java 17 Gradle build files for the first product slice.
+- Implemented the Repository Context Reader under `com.enhancer.context`.
+- Added JUnit 5 tests for required-document ordering/content and missing-document reporting.
+- Updated architecture and recorded the single-module context reader decision.
+- Verified compilation and all Repository Context Reader tests with Corretto 17 and Gradle 8.4.
+- Defined and implemented the deterministic Task Planner slice under `com.enhancer.planner`.
+- Added structured proposals with explicit `PROPOSAL` state, active-task protection, ready-phase selection, and risk reporting.
+- Verified all 5 Context Reader and Planner tests with Corretto 17 and Gradle 8.4.
 
 ## Current State
 
-- Product implementation has not started.
-- No tests or build system exist yet.
+- Repository Context Reader and deterministic Task Planner are implemented and verified.
 - Git has been initialized, but status checks require safe-directory configuration in this sandbox.
 - Enhancer's first strategic direction is self-hosting: read repository context, understand state, and propose next tasks.
-- The next implementation task is now defined and ready.
+- Phase 2, Repository Context Reader, and Phase 3, Task Planner, are complete.
+- The deterministic form of the 30-day self-hosting milestone is implemented.
 - The repository now contains enough documentation for Codex to implement sprint by sprint.
 - Initial local commit has been created.
 - The project direction is long-running open source quality, not one-chat completion.
 - GitHub remote repository has been configured.
 - Push to `origin/main` has succeeded.
 - Long-term architecture now uses RFC references for AI behavior, prompt contract, context builder, planner, tools, skills, memory, multi-agent, OS model, plugin SDK, and self-improvement.
+- Repository text encoding is now declared as UTF-8 through `.editorconfig`, with Git text normalization in `.gitattributes`.
 
 ## Next Task
 
-Implement the Repository Context Reader described in `CURRENT_TASK.md`.
+Define the smallest Assisted Development Loop slice that connects Repository Context Reader and Task Planner without task execution or LLM integration.
 
 ## Relevant Files
 
@@ -93,13 +105,15 @@ Implement the Repository Context Reader described in `CURRENT_TASK.md`.
 - New ChatGPT sessions require explicit document handoff because ChatGPT cannot automatically read the local repository.
 - Each major chapter document should end with Codex, Claude, and GPT prompt sections.
 - Major design areas are managed as RFCs under `docs/rfcs/`.
+- The first Context Reader stays in one Gradle module under `com.enhancer.context` and uses immutable records plus a canonical required-document enum.
+- The first Planner consumes only `ProjectContext`, does not override active work, and emits explicit proposals without persistence or execution.
 - Enhancer's final goal is an AI Development Operating System that lets Codex, GPT, Claude, Gemini, and future agents continue the same project at the same quality from repository documents.
 
 ## Open Issues
 
 - Git safe-directory configuration is needed for normal status checks in this sandbox.
-- Build system is not created yet.
-- No tests exist yet.
+- Java and Gradle are not on PATH; Corretto 17 and a cached Gradle 8.4 distribution are available at user-local paths.
+- No Gradle wrapper exists yet.
 
 ## Commands Verified
 
@@ -125,5 +139,5 @@ gradle --version
 6. Read `CURRENT_TASK.md`.
 7. Read `SESSION_HANDOFF.md`.
 8. Do not assume past conversation memory is correct when it conflicts with these documents.
-9. Implement the Repository Context Reader from `CURRENT_TASK.md` if the user asks to begin coding.
+9. Define the Assisted Development Loop task before implementation; keep execution, persistence, and LLM integration out of the first slice.
 10. For a new ChatGPT session, provide the files listed in `prompts/CHATGPT_SESSION_RESUME.md`.

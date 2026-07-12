@@ -2,6 +2,42 @@
 
 ## Accepted Decisions
 
+### 2026-07-12: Start Planner With Deterministic Repository Proposals
+
+Status: Accepted Decision
+
+Decision:
+
+The first Planner consumes `ProjectContext`, blocks proposals while `CURRENT_TASK.md` is active, and otherwise proposes the first ready roadmap phase. Its output has explicit `PROPOSAL` state and structured reason, scope, acceptance criteria, out-of-scope items, and risks.
+
+Rationale:
+
+This reaches the first self-hosting planning behavior without introducing an LLM, hidden chat context, document mutation, or premature ranking logic.
+
+Consequences:
+
+- Planner behavior is deterministic and unit-testable.
+- A proposal cannot be confused with an accepted decision.
+- Natural-language planning, proposal ranking, persistence, and execution remain future work.
+
+### 2026-07-12: Implement Context Reader As A Single Java Module
+
+Status: Accepted Decision
+
+Decision:
+
+The first Repository Context Reader is implemented in a single Gradle Java 17 project under `com.enhancer.context`. The required document order is represented by an enum, and the returned context uses immutable records.
+
+Rationale:
+
+This matches the existing architecture guide and provides a stable structured input for future planning without premature modules, Spring wiring, or domain abstractions.
+
+Consequences:
+
+- Required startup documents have one canonical code-level order.
+- Missing documents fail with a checked exception that identifies the path.
+- Future context sources can build on `ProjectContext` without changing this task into a full Context Builder.
+
 ### 2026-07-10: Manage Major Designs As RFCs
 
 Status: Accepted Decision
