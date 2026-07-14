@@ -16,6 +16,8 @@ public record AgentLoopResult(
 
         boolean consistent = switch (stopReason) {
             case COMPLETED -> state.status() == AgentLoopStatus.COMPLETED;
+            case AWAITING_VERIFICATION ->
+                    state.status() == AgentLoopStatus.AWAITING_VERIFICATION;
             case FAILED -> state.status() == AgentLoopStatus.FAILED;
             case MAX_ITERATIONS, STAGNATED -> state.status() == AgentLoopStatus.RUNNING;
         };

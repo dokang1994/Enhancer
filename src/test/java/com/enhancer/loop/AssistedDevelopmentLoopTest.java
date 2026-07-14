@@ -30,25 +30,49 @@ class AssistedDevelopmentLoopTest {
     void returnsThePlannedProposalWhenTheCurrentTaskIsCompleted() throws IOException {
         writeProject(
                 "# Current Task\n\n## Status\n\nCompleted\n",
-                "# Roadmap\n\n## Phase 4: Assisted Development Loop\n\nStatus: Ready\n\n"
-                        + "- Connect context reading and planning\n");
+                "# Roadmap\n\n## Delivery Gate 3: Agent Loop Integration\n\n"
+                        + "Status: Specified - Next\n\n"
+                        + "Scope:\n\n- Connect context reading and planning\n\n"
+                        + "Exit criteria:\n\n- A proposal is returned\n");
 
         AssistedDevelopmentResult result = loop.run(projectRoot);
 
         assertEquals(AssistedDevelopmentOutcome.PROPOSAL_AVAILABLE, result.outcome());
-        assertEquals("Phase 4: Assisted Development Loop", result.proposal().orElseThrow().title());
+        assertEquals("Delivery Gate 3: Agent Loop Integration", result.proposal().orElseThrow().title());
     }
 
     @Test
     void preservesAnActiveCurrentTaskWithoutReturningAProposal() throws IOException {
         writeProject(
                 "# Current Task\n\n## Status\n\nIn Progress\n",
-                "# Roadmap\n\n## Phase 4: Assisted Development Loop\n\nStatus: Ready\n");
+                "# Roadmap\n\n## Delivery Gate 3: Agent Loop Integration\n\n"
+                        + "Status: Specified - Next\n");
 
         AssistedDevelopmentResult result = loop.run(projectRoot);
 
         assertEquals(AssistedDevelopmentOutcome.ACTIVE_TASK_PRESERVED, result.outcome());
         assertTrue(result.proposal().isEmpty());
+    }
+
+    @Test
+    void matchesTheActualEnhancerTaskState() throws IOException {
+        Path actualProjectRoot = Path.of(System.getProperty("user.dir"));
+
+        AssistedDevelopmentResult result = loop.run(actualProjectRoot);
+        String currentTask = Files.readString(
+                actualProjectRoot.resolve("CURRENT_TASK.md"),
+                StandardCharsets.UTF_8);
+
+        String normalizedCurrentTask = currentTask.replace("\r\n", "\n").replace('\r', '\n');
+        if (normalizedCurrentTask.contains("## Status\n\nCompleted")) {
+            assertEquals(AssistedDevelopmentOutcome.PROPOSAL_AVAILABLE, result.outcome());
+            assertEquals(
+                    "Delivery Gate 4: Sequential Verification And Run Record",
+                    result.proposal().orElseThrow().title());
+        } else {
+            assertEquals(AssistedDevelopmentOutcome.ACTIVE_TASK_PRESERVED, result.outcome());
+            assertTrue(result.proposal().isEmpty());
+        }
     }
 
     @Test
@@ -83,7 +107,9 @@ class AssistedDevelopmentLoopTest {
                 case ROADMAP -> roadmap;
                 default -> "# " + document.name() + "\n";
             };
-            Files.writeString(projectRoot.resolve(document.path()), content, StandardCharsets.UTF_8);
+            Path path = projectRoot.resolve(document.path());
+            Files.createDirectories(path.getParent());
+            Files.writeString(path, content, StandardCharsets.UTF_8);
         }
     }
 }

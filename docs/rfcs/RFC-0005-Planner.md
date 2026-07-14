@@ -33,6 +33,15 @@ Task 5: Test
 - Planner must not override an active `CURRENT_TASK.md` without approval.
 - Each implementation task should fit one focused verification cycle without placeholders.
 
+## Deterministic Repository Grammar
+
+- An active `CURRENT_TASK.md` returns no proposal.
+- A completed current task permits selection of the first `## Delivery Gate ...` section marked `Status: Specified - Next`.
+- Required-capability, required-contract, or scope bullets become proposal scope.
+- Exit-criteria bullets become proposal acceptance criteria.
+- The retired Phase/Ready grammar is not a supported compatibility format.
+- A regression test reads the actual Enhancer `ROADMAP.md` so canonical grammar drift is observable.
+
 ## Task Granularity
 
 - Prefer one cycle: failing test or check, minimal change, passing verification.

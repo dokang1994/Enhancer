@@ -6,100 +6,129 @@
 
 ## Completed Work
 
-- Replaced Constitution 1.0.0 with a 1.1.0 normative Kernel and consolidated repeated guidance into 15 sections.
-- Added explicit document responsibilities, seven lifecycle states, scoped authorization, fresh-evidence rules, self-hosting safeguards, failure recovery, supply-chain boundaries, and protected amendment rules.
-- Recorded that the long-form guidebook is distributed across Architecture, RFCs, decisions, prompts, Skills, and operating documents rather than loaded as one Constitution.
-- Synchronized `AGENTS.md`, `.ai/`, RFC-0001, session prompts, architecture, decision, roadmap, state, task, and changelog documents.
-- Restored `C:\Enhancer\.git` from a validated fresh no-checkout clone after the matching Recycle Bin item became unavailable.
-- Reconstructed the Git index from HEAD without updating the worktree and verified that all non-.git files were byte-identical across recovery.
-- Published the governed Agent Loop foundation as feature commit `a58b0df` on `agent/governed-agent-loop-foundations`.
-- Pushed the branch and opened draft pull request #2 at `https://github.com/dokang1994/Enhancer/pull/2`.
-- Reclassified current Java capabilities as Contract Verified rather than operational.
-- Replaced the broad phase list with 12 dependency-ordered delivery gates and explicit promotion evidence.
-- Redirected the next product task from an isolated independent verifier to Delivery Gate 1, the bounded read-only Tool Execution Boundary.
+- Corrected Gate 3 documentation to identify the governed temporary-repository integration separately from actual-Enhancer Context Reader and Roadmap Planner regressions.
+- Separated current build dependencies from conditional Spring Boot, local-model, CLI, and editor integrations.
+- Clarified that V1-V3 are product outcomes while Delivery Gates define dependency order and capability promotion.
+- Distinguished self-hosting development from local or hybrid model execution.
+- Synchronized the README entry point with the canonical milestone and self-hosting terminology.
+- Corrected the project-overview startup order to read `.ai/` first and synchronized its foundation checklist with verified maturity.
+- Added V1 AI Development Experience, V2 AI Development Platform, and V3 AI Operating System milestones.
+- Defined AI Kernel lifecycle, resource, lock/lease, scheduling, context, policy, recovery, verification, and audit responsibilities.
+- Defined Project Brain Decision, Architecture, Dependency, Task, and Execution graphs as rebuildable projections over canonical sources.
+- Separated Agent plugins, Skills, Tools, and event-driven workflows and documented marketplace security requirements.
+- Added privacy-aware hybrid Model Router direction with sensitive-code-local defaults.
+- Preserved explicit approval requirements for commit, push, PR, merge, deployment, and other external or destructive workflow stages.
+- Accepted and documented the event-driven Enhancer OS target architecture.
+- Added Workspace, Project Brain, Event/Message Bus with IPC adapters, Agent Runtime, Scheduler, MCP Server/Client, Model Gateway, Skill Engine, Plugin Marketplace, interfaces, and Cloud Sync to the dependency-ordered roadmap.
+- Defined queue-based Planner/Coder/Reviewer/Tester/Memory collaboration and prohibited direct peer calls as the target runtime model.
+- Promoted MCP from a late Tool adapter to a core interoperability layer while preserving policy, evidence, verification, and RunRecord boundaries.
+- Hardened Gate 3 approval, failure, progress, and state-construction boundaries.
+- Added repository-derived `ApprovedTask` plus active-task, approval-evidence, and allowed-Tool validation.
+- Added structured Tool failure codes and a standard timeout/temporary retry classifier.
+- Added evidence content SHA-256 identity and removed opaque references and prose from progress identity.
+- Restricted `AgentRunState` construction to ready factory and controller-owned transitions.
+- Implemented Delivery Gate 3 Tool-result-driven Agent Loop integration.
+- Added `AgentRunState`, `AgentRunController`, external retry classification, and deterministic result progress fingerprints.
+- Added `AWAITING_VERIFICATION` so successful Tool execution stops before independently verified completion.
+- Reused the existing maximum-iteration and stagnation behavior for real Tool retries.
+- Added governed temporary-repository Context-to-ReadFileTool-to-evidence-to-loop integration coverage.
+- Proved terminal failure cannot become completion and denied mutation code is never invoked.
+- Implemented Delivery Gate 2 atomic and integrity-checked evidence persistence.
+- Added UUID run/evidence identities, opaque references, versioned single-file envelopes, and restart-safe resolution.
+- Added maximum-content and retention-duration policy without automatic deletion.
+- Connected large `ReadFileTool` output to real complete evidence through `EvidenceRecorder`.
+- Restored the self-hosting Context Reader and Planner before Delivery Gate 2.
+- Added seven governed `.ai/` inputs before the eight canonical root inputs.
+- Replaced the retired Phase/Ready Planner grammar with Delivery Gate/Specified - Next.
+- Added actual repository context and actual Enhancer Roadmap regression tests.
+- Implemented Delivery Gate 1 as a bounded read-only Tool Execution Boundary.
+- Added immutable `ToolRequest`, `CancellationToken`, and `ExecutionPolicy` contracts.
+- Added a unique-name `ToolExecutor` registry with deny-over-allow enforcement, pre/post cancellation checks, timeout, exception conversion, and invalid-result protection.
+- Added `ReadFileTool` for relative UTF-8 files within the approved real project root.
+- Added test-first request, policy, executor, and real temporary-file integration tests.
+- Updated Architecture, RFC-0006, Tool and Roadmap guides, canonical Roadmap, Project State, Current Task, Changelog, and this handoff.
+- Promoted Delivery Gates 1 through 3 to Integrated and Delivery Gate 4 to Specified - Next.
 
 ## Current State
 
-- Repository Context Reader, deterministic Task Planner, both Agent Loop slices, and bounded Tool result evidence are implemented.
-- Constitution 1.1.0 governance is implemented; automatic self-modification remains disabled until its prerequisites exist.
-- No standalone examples directory exists; `docs/`, RFCs, and tests own relevant examples.
-- MoAI-ADK is not a dependency; Tool execution, independent verification, LLM integration, and self-improvement remain deferred.
-- Delivery Gate 0 is Contract Verified. No complete Agent run or supported runtime entry point exists yet.
-- New contracts must name their current or next-gate integration consumer.
-- Java 17 and Wrapper-based builds are reproducible on Windows.
-- Global Gradle is not required.
-- Git metadata is restored at `C:\Enhancer\.git`; repository root is `C:/Enhancer` and the active branch is `agent/governed-agent-loop-foundations`.
-- Origin is `https://github.com/dokang1994/Enhancer.git`; the branch tracks `origin/agent/governed-agent-loop-foundations`.
-- The intended feature scope is committed and published in draft PR #2. `Enhancer/` and `IMPROVEMENTS.md` remain deliberately untracked.
-- The roadmap realignment documents are committed and pushed to the existing Agent branch; draft PR #2 is updated but remains unmerged and in Draft state.
-- Ollama is not installed.
+- Branch: `main`, tracking `origin/main`.
+- Base commit: `fc4525820ccc94a1409e811a792585b059de1e11`.
+- Pull request #2 is merged.
+- Gate 1 through Gate 3 and self-hosting recovery work is local and uncommitted; no commit or push was requested.
+- Gate 0 foundation contracts remain Contract Verified.
+- Gate 0 context and planning contracts are now verified against the current repository format.
+- Gate 1 is Integrated but not Operational.
+- Gate 2 is Integrated but not Operational.
+- Gate 3 is Integrated but not Operational.
+- Gate 3 hardening is completed locally; Gate 4 remains the next task.
+- No independent verifier, RunRecord, CLI, or LLM integration exists.
+- Workspace, Event/Message Bus, IPC, Agent Runtime, MCP, Skill Engine, Model Gateway, Plugin Marketplace, multi-agent execution, and Cloud Sync remain planned rather than implemented.
 
-## Verification
+## Fresh Verification
 
-- Constitution structure: 262 lines, 15 required sections, 0 missing.
-- Normative terms: 59 MUST, 9 SHOULD, 11 MAY occurrences.
-- Constitution implementation-detail search: 0 matches for the retired Gordon, Cursor-ratio, and specific stack terms.
-- `.\scripts\gradle.ps1 cleanTest test`: `BUILD SUCCESSFUL`.
-- Fresh test results: 6 suites, 25 tests, 0 failures, 0 errors, 0 skipped.
-- Independent review was not performed; the next product task implements its sequential contract.
-- `git fsck --full`: passed with no object errors.
-- Non-.git recovery manifest: 1,479 files and matching aggregate SHA-256 before and after metadata copy.
-- Recovery-time normalized status: 25 tracked changes and 18 untracked paths.
-- Final status: 25 tracked changes, 18 untracked paths, 0 staged changes, and `HEAD...origin/main` at 0 ahead and 0 behind.
-- `git diff --check`: passed.
-- Post-recovery `.\scripts\gradle.ps1 cleanTest test`: `BUILD SUCCESSFUL`; 6 suites, 25 tests, 0 failures, 0 errors, 0 skipped.
-- Pre-publication credential, placeholder, and whitespace checks passed.
-- Feature commit `a58b0df`: 41 files, 1,339 insertions, 528 deletions.
-- Remote branch and draft PR #2 creation succeeded.
-- Roadmap structure check: Delivery Gates 0 through 12 are present with no missing number.
-- Planning consistency check: no active document directs the next task to an isolated independent verifier.
-- Post-roadmap `.\scripts\gradle.ps1 cleanTest test`: `BUILD SUCCESSFUL`; 6 suites, 25 tests, 0 failures, 0 errors, 0 skipped.
-- The roadmap publication commit and remote PR membership were verified after push.
+- Documentation-alignment structural checks found sequential Roadmap Gates 0 through 16, one Gate 4 next marker, and no superseded actual-worktree Gate 3 claim.
+- `git diff --check` passed after the documentation corrections.
+- The first documentation-alignment Gradle invocation used an invalid one-second launcher timeout and was discarded without being treated as a test result.
+- Documentation-alignment full regression rerun: 17 suites, 63 tests, 62 passed, 1 existing symbolic-link setup skip, 0 failures, and 0 errors.
+- V1-V3 vision structure check passed with Roadmap Gates 0 through 16, one Gate 4 next marker, and all five Project Brain graph types.
+- Post-vision Planner and Assisted Development Loop regression: 2 suites, 8 tests, all passed.
+- Post-vision full regression: 17 suites, 63 tests, 62 passed, 1 existing symbolic-link setup skip, 0 failures, and 0 errors.
+- Gate 3 hardening RED: focused compilation failed with 37 expected missing hardening symbols and APIs.
+- Hardening focused tests: 6 suites, 24 tests, all passed with no skips.
+- Hardening full regression after final documentation synchronization: 17 suites, 63 tests, 62 passed, 1 existing symbolic-link setup skip, 0 failures, and 0 errors.
+- Expanded-roadmap Planner and Assisted Development Loop regression: 2 suites, 8 tests, all passed; Gate 4 remains the next proposal.
+- Structural roadmap review found Gates 0 through 16 and one `Specified - Next` marker.
+- Governed Context-to-ApprovedTask-to-ReadFileTool-to-evidence-to-loop integration passed.
+- Changing evidence locations with identical content reached `STAGNATED`; Tool failures were classified by code rather than prose.
+- Gate 3 RED: focused compilation failed with 33 missing production symbols after one unrelated test API assumption was corrected.
+- Gate 3 focused tests: 3 suites, 16 tests, all passed with no skips.
+- Latest full regression after roadmap synchronization: 16 suites, 58 tests, 57 passed, 1 existing symbolic-link setup skip, 0 failures, and 0 errors.
+- A governed temporary repository plus a real persisted-evidence read reached `AWAITING_VERIFICATION` in the Agent Loop; actual-Enhancer coverage remains separate Context Reader and Roadmap Planner regression tests.
+- Terminal, retryable stagnation, and denied fake Git mutation behaviors passed.
+- Gate 2 RED: focused compilation failed with 44 missing production symbols after correcting the fixture encoding.
+- Gate 2 focused tests: 4 suites, 9 tests, all passed with no skips.
+- Complete Tool tests: 10 suites, 30 tests, 29 passed, 1 existing symbolic-link setup skip, 0 failures, 0 errors.
+- Latest full regression: 14 suites, 51 tests, 50 passed, 1 existing symbolic-link setup skip, 0 failures, 0 errors.
+- Restart resolution, atomic publication, missing references, corruption, invalid UTF-8, and the real large-file Tool path were verified.
+- Recovery RED: 11 focused tests ran with 7 expected failures before production changes.
+- Recovery focused tests: 3 suites, 12 tests, 12 passed, 0 failures, 0 errors, 0 skipped.
+- During the compatibility recovery, the actual repository `AssistedDevelopmentLoop` loaded all 15 startup documents and proposed Delivery Gate 2 from that Roadmap state.
+- Expected RED confirmed: Gate 1 tests failed compilation before production types existed.
+- Focused Tool tests: build successful; 21 tests, 20 passed, 1 skipped, 0 failures, 0 errors.
+- The one skipped test requires symbolic-link creation, which this Windows host denied. It remains executable on a permitted host or CI environment.
+- Production source: 47 Java files, 1,807 lines.
+- Test source: 17 Java files, 1,573 lines.
 
 ## Next Task
 
-Implement Delivery Gate 1: `ToolRequest`, `Tool`, `ExecutionPolicy`, `ToolExecutor`, one allowlisted read-only filesystem Tool, deterministic test doubles, and a request-to-result integration test.
+Implement Delivery Gate 4 sequential verification and RunRecord:
 
-## Relevant Files
+- define `VerificationRequest` and `VerificationDecision`;
+- add a sequential `IndependentVerifier` outside the worker step;
+- validate bounded and referenced evidence deterministically for the first read-only scenario;
+- allow only a successful independent decision to promote `AWAITING_VERIFICATION` to completion;
+- persist a replayable `RunRecord` with inputs, policy outcome, Tool result, verification, iterations, and stop reason.
 
-- `CONSTITUTION.md`
-- `AGENTS.md`
-- `.ai/constitution.md`
-- `.ai/prompt_rules.md`
-- `.ai/workflow.md`
-- `README.md`
-- `ARCHITECTURE.md`
-- `PROJECT_STATE.md`
-- `CURRENT_TASK.md`
-- `DECISION_LOG.md`
-- `ROADMAP.md`
-- `docs/rfcs/RFC-0001-Constitution.md`
-- `docs/rfcs/RFC-0006-Tool-Specification.md`
-- `docs/03-Tool-System.md`
-- `docs/10-Roadmap.md`
-- `docs/11-Architecture.md`
-- `prompts/SESSION_START.md`
-- `prompts/IMPLEMENT_TASK.md`
-- `prompts/SESSION_CLOSE.md`
+Keep CLI, mutation Tools, Git, network, LLM behavior, and multi-agent routing out of Gate 4.
 
 ## Remaining Risks
 
-- The setup script targets Windows PowerShell and x64 Microsoft OpenJDK.
-- Ollama and Qwen remain unconfigured.
-- Only the deliberately excluded `Enhancer/` and `IMPROVEMENTS.md` paths remain outside the published commit scope.
-- Draft PR #2 still requires review and merge approval.
-- The untracked `C:\Enhancer\Enhancer` directory contains the metadata-only original repository that reappeared after the Recycle Bin source vanished. It has the same origin, `main` branch, and HEAD and was preserved rather than deleted.
-- The temporary no-checkout recovery clone remains under the user Temp directory as a fallback.
-- Gradle 8.4 reports that deprecated features will need review before a future Gradle 9 upgrade.
-- Stagnation currently detects consecutive unchanged progress keys, not oscillating multi-state cycles.
-- Complete-output references are modeled but not persisted or checked for existence.
-- Capability maturity remains Contract Verified until real Tool execution and integration evidence exist.
-- Constitution checks were performed by the implementing Agent and are not independent verification.
+- The startup context list is explicit rather than dynamically discovered; future governed `.ai/` additions require enum and test synchronization.
+- The Planner intentionally depends on the canonical Delivery Gate Markdown grammar; the actual-repository regression test is the guard against future drift.
+- Evidence integrity uses SHA-256 for corruption detection, not signatures or tamper-proof external storage.
+- The initial resolver is memory-bounded to 64 MiB and automatic retention cleanup is intentionally absent.
+- Symbolic-link escape behavior was not dynamically exercised on this Windows host because link creation requires unavailable privilege; traversal and real-path enforcement code are present and the conditional test remains active.
+- Gradle 8.4 reports deprecated features that require review before a future Gradle 9 upgrade.
+- A timed-out Tool is interrupted, but a Tool implementation that ignores interruption may occupy the single worker until it returns; only trusted registered Tools exist in Gate 1.
+- The standard retry policy intentionally retries only timeout and explicit temporary failure; future Tools must select typed codes deliberately.
+- Repository approval evidence and SHA-256 progress identities are provenance and diagnostic controls, not signatures or authorization tokens.
+- Workspace, messaging, runtime, MCP/model gateway, and Cloud Sync require detailed RFCs before their delivery gates become active.
+- Knowledge Graph storage technology, graph update consistency, model data-classification policy, and marketplace isolation remain undecided until their owning RFCs.
 
 ## Instructions For Next Agent
 
-1. Read `.ai/` and the canonical startup documents.
-2. Run `.\scripts\gradle.ps1 test` for verification.
-3. Run `scripts\setup-dev.ps1` first if `.tools/` is absent.
-4. Do not commit or push unless explicitly requested.
-5. Review draft PR #2 before merge.
+1. Read `.ai/` and all canonical startup documents in required order.
+2. Confirm Gate 4 in `CURRENT_TASK.md` before editing.
+3. Use test-first behavior for verifier decisions, evidence failures, completion gating, and RunRecord replay.
+4. Run focused and full Wrapper tests and read fresh XML results.
+5. Do not commit or push unless explicitly requested.

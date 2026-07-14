@@ -2,7 +2,7 @@
 
 ## Codex Prompt
 
-Implement the selected Delivery Gate 1 boundary: Tool request, policy, executor, and one allowlisted read-only filesystem Tool. Do not implement terminal, Git, network, or LLM behavior.
+Maintain the integrated Delivery Gate 1 and 2 boundaries. Do not add Agent Loop, terminal, Git, network, or LLM behavior from this chapter unless its later delivery gate is active.
 
 ## Goal
 
@@ -10,12 +10,12 @@ Tools are the boundary between the Agent Loop and the outside world.
 
 ## Core Interface
 
-Start with a minimal shape:
+Gate 1 uses this minimal shape:
 
 ```java
-public interface Tool<I, O> {
+public interface Tool {
     String name();
-    O execute(I input);
+    ToolResult execute(ToolRequest request, ExecutionPolicy policy) throws Exception;
 }
 ```
 
@@ -38,13 +38,13 @@ ToolResult
    └─ optional fullOutputReference
 ```
 
-Truncated output requires a reference to the complete output. The first slice models the reference but does not persist evidence or execute a Tool.
+Truncated output requires a reference to the complete output. The result-contract slice models the reference, Gate 1 executes a Tool through it, and Gate 2 makes the reference durable and resolvable.
 
-Capability maturity: **Contract Verified**. The result contract is tested, but the Tool System is not Integrated or Operational.
+The result contract is **Contract Verified**. The bounded read-only execution and durable evidence paths are **Integrated**, but the Tool System is not Operational.
 
 ## Delivery Gate 1
 
-The next active product slice adds:
+Integrated scope:
 
 - `ToolRequest` with Tool identity, arguments, and correlation identity;
 - `Tool` interface;
@@ -54,7 +54,21 @@ The next active product slice adds:
 - deterministic fake Tool support;
 - a request-to-policy-to-Tool-to-result integration test.
 
-The first concrete Tool must deny paths outside the approved project root and must return bounded `VerificationEvidence`. It must not mutate the filesystem.
+`ReadFileTool` denies paths outside the approved real project root, enforces a bounded byte limit, decodes UTF-8 strictly, and returns bounded `VerificationEvidence`. It does not mutate the filesystem.
+
+## Delivery Gate 2
+
+Integrated scope:
+
+- `EvidenceStore` and `FileSystemEvidenceStore`;
+- UUID run and evidence identities;
+- opaque contained evidence references;
+- one versioned atomic envelope with timestamp, UTF-8 byte length, SHA-256 digest, and complete output;
+- bounded resolution with missing and corruption failures;
+- explicit maximum-content and retention-duration policy without automatic cleanup;
+- `EvidenceRecorder` integration with large `ReadFileTool` output.
+
+The initial in-memory implementation supports at most 64 MiB per configured evidence item. A lower configured policy limit is expected for normal use. Gate 2 detects corruption but does not provide encryption, signatures, external tamper-proof storage, or automatic deletion.
 
 ## Planned Tools
 
@@ -87,6 +101,8 @@ Cover:
 - truncated output with a complete-output reference
 - rejection of truncated output without a reference
 - status and exit-code consistency
+- structured failure-code consistency
+- stable content digest independent of evidence storage reference
 
 ## Out Of Scope
 
@@ -94,14 +110,14 @@ Cover:
 - Network tools
 - MCP tools
 - Background execution
-- Evidence persistence
 - Independent verification
+- Verified completion and RunRecord persistence
 
 ## Prompt Book
 
 ### Codex Prompt
 
-Implement only Delivery Gate 1 when active. A read-only filesystem Tool is explicitly selected; terminal, Git, network, MCP, evidence persistence, and verifier behavior remain deferred.
+Preserve Delivery Gates 1 through 3. Implement sequential independent verification and RunRecord only through the active Gate 4 task; terminal, Git, network, MCP, and LLM behavior remain deferred.
 
 ### Claude Prompt
 

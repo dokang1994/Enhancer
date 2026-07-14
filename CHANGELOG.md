@@ -2,6 +2,35 @@
 
 ## 2026-07-14
 
+- Corrected Gate 3 evidence wording to distinguish the governed temporary-repository integration test from separate actual-Enhancer Context and Planner regressions.
+- Separated current build dependencies from planned Spring Boot, local-model, CLI, and editor integrations.
+- Clarified product milestones versus dependency-ordered Delivery Gates and distinguished self-hosting development from local or hybrid model execution.
+- Synchronized the project-overview startup order with the required `.ai/`-first bootstrap sequence and replaced stale foundation checklist states.
+- Added V1 development-experience, V2 Agent-platform, and V3 AI-OS product milestones.
+- Defined AI Kernel responsibilities and provenance-preserving Project Brain Decision, Architecture, Dependency, Task, and Execution graphs.
+- Distinguished Agent plugins, Skills, Tools, and workflows and added marketplace and workflow approval boundaries.
+- Added privacy-aware local/remote Model Router direction with sensitive-code-local defaults.
+- Accepted the event-driven Enhancer OS target with Workspace, Project Brain, messaging/IPC, Agent Runtime, MCP, Skills, plugins, model routing, scheduling, interfaces, and governed Cloud Sync.
+- Reordered future delivery gates so verification and the first CLI precede Workspace, Event Bus, runtime, MCP/model, Skill, plugin, interface, multi-agent, sync, and self-improvement tracks.
+- Defined Event Bus semantics, Message Bus delivery, IPC transport separation, and queue-only Agent collaboration as the target architecture.
+- Hardened Gate 3 with repository-derived `ApprovedTask` identity, explicit approval evidence, and Tool-name scope.
+- Added structured Tool failure codes and a standard retry policy for timeouts and explicit temporary failures.
+- Added evidence content digests and semantic progress detection independent of opaque references and prose summaries.
+- Restricted `AgentRunState` construction to governed factories and controller-owned transitions.
+- Integrated Delivery Gate 3 with approved Agent run state, Tool-result-driven transitions, and shared bounded termination behavior.
+- Added `AWAITING_VERIFICATION` so Tool success cannot claim completion before the sequential independent verifier.
+- Added external retry/terminal classification and canonical progress fingerprints for deterministic stagnation detection.
+- Added governed temporary-repository Context-to-ReadFileTool-to-evidence-to-loop coverage plus terminal-failure and denied-mutation safeguards.
+- Integrated Delivery Gate 2 with UUID evidence identities, atomic versioned filesystem envelopes, restart-safe resolution, and SHA-256/length/UTF-8 integrity checks.
+- Added explicit maximum-content and retention-duration policy without automatic cleanup or destructive deletion.
+- Connected large read-only Tool output to bounded `VerificationEvidence` and a resolvable complete-output reference through `EvidenceRecorder`.
+- Added focused persistence, uniqueness, missing, corruption, invalid-encoding, and real large-file integration tests.
+- Restored self-hosting planning compatibility by replacing the retired Phase/Ready parser with the canonical Delivery Gate/Specified - Next grammar.
+- Added actual Enhancer Roadmap regression coverage and mapped gate scope and exit criteria into structured task proposals.
+- Expanded executable startup context from eight root documents to seven `.ai/` documents followed by eight canonical root documents.
+- Integrated Delivery Gate 1 with immutable Tool requests, execution policy, cancellation, timeout, a unique Tool registry, and bounded structured failure conversion.
+- Added a real UTF-8 read-only file Tool with normalized and real-path containment, size limits, strict decoding, and no filesystem mutation.
+- Added test-first request, policy, executor, and temporary-file integration coverage and promoted Gate 2 evidence persistence to the next task.
 - Replaced ambiguous implementation roadmap labels with capability maturity and 12 dependency-ordered delivery gates.
 - Redirected the next product task from an isolated verifier contract to a real read-only Tool Execution Boundary and E2E promotion track.
 - Added explicit integration consumers, evidence, and exit criteria for post-foundation contracts.

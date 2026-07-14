@@ -20,6 +20,10 @@ The preceding Assisted Development Loop slice is intentionally smaller: it perfo
 - `AgentLoopStatus`: running, completed, or failed state.
 - `AgentLoopStopReason`: completed, failed, maximum iterations, or stagnated.
 - `AgentLoopResult`: latest state, stop reason, and executed iteration count.
+- `AgentRunState`: approved task, pending Tool request, last Tool result, loop status, and progress key.
+- `AgentRunController`: executes a pre-authorized request and maps its result into the next run state.
+- `ToolFailureClassifier`: external deterministic retry-or-terminal decision.
+- `ApprovedTaskReader`: derives active task identity, approval evidence, and Tool scope from repository context.
 
 ## Rules
 
@@ -34,6 +38,26 @@ The preceding Assisted Development Loop slice is intentionally smaller: it perfo
 - Prefer maximum iteration when its ceiling and stagnation threshold coincide.
 - Count only executed steps as iterations; an initially terminal state reports zero.
 - Keep implementation deterministic and testable.
+- Stop successful Tool execution at `AWAITING_VERIFICATION`; only the later independent verifier may enable task completion.
+- Keep retry classification outside Tool implementations and do not infer it from diagnostic text.
+- Never let the controller create approvals, expand execution policy, or authorize Git, shell, network, or other external action.
+- Use structured Tool failure codes for retry decisions; do not parse diagnostic summaries.
+- Treat evidence content digests as progress identity and exclude opaque storage references.
+- Allow public callers to create only a ready Agent run state from an approved in-scope request.
+
+## Gate 3 Tool Integration
+
+```text
+Repository Context
+-> externally approved task and ToolRequest
+-> AgentRunController
+-> ToolExecutor under immutable ExecutionPolicy
+-> ToolResult and bounded evidence
+-> AWAITING_VERIFICATION | FAILED | retry
+-> bounded stop reason
+```
+
+On retry, the pending request is preserved and canonical request/result content produces the progress key. Identical results therefore reach `STAGNATED`; changing results reset stagnation. A successful result is not an independent verification decision.
 
 ## Candidate Classes
 
@@ -68,13 +92,19 @@ Cover:
 - unchanged progress stops as stagnated
 - terminal status wins over stagnation
 - iteration count is reported
+- a real read-only Tool result reaches `AWAITING_VERIFICATION`
+- terminal Tool failure cannot be completion
+- repeated identical retryable failure reaches stagnation
+- a denied Tool cannot invoke itself or broaden policy
 
 ## Out Of Scope
 
-- Tool execution
 - Prompt building
 - LLM calls
 - Multi-agent routing
+- Independent verification and task completion
+- Git, shell, network, or browser mutation
+- RunRecord persistence and CLI wiring
 
 ## Prompt Book
 

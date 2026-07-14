@@ -1,6 +1,7 @@
 package com.enhancer.loop;
 
 import java.util.Objects;
+import java.util.function.UnaryOperator;
 
 public final class AgentLoop {
     public static final int DEFAULT_MAX_ITERATIONS = 20;
@@ -25,12 +26,25 @@ public final class AgentLoop {
     }
 
     public AgentLoopResult run(AgentLoopState initialState, AgentLoopStep step) {
-        AgentLoopState state = Objects.requireNonNull(initialState, "initialState must not be null");
+        Objects.requireNonNull(initialState, "initialState must not be null");
+        Objects.requireNonNull(step, "step must not be null");
+
+        LoopExecution<AgentLoopState> execution = runSnapshots(initialState, step::execute);
+        return new AgentLoopResult(
+                execution.state(),
+                execution.stopReason(),
+                execution.iterations());
+    }
+
+    <S extends AgentLoopSnapshot> LoopExecution<S> runSnapshots(
+            S initialState,
+            UnaryOperator<S> step) {
+        S state = Objects.requireNonNull(initialState, "initialState must not be null");
         Objects.requireNonNull(step, "step must not be null");
 
         AgentLoopStopReason initialStopReason = terminalStopReason(state.status());
         if (initialStopReason != null) {
-            return new AgentLoopResult(state, initialStopReason, 0);
+            return new LoopExecution<>(state, initialStopReason, 0);
         }
 
         int iterations = 0;
@@ -39,17 +53,17 @@ public final class AgentLoop {
 
         while (iterations < maxIterations) {
             state = Objects.requireNonNull(
-                    step.execute(state),
+                    step.apply(state),
                     "step result must not be null");
             iterations++;
 
             AgentLoopStopReason terminalStopReason = terminalStopReason(state.status());
             if (terminalStopReason != null) {
-                return new AgentLoopResult(state, terminalStopReason, iterations);
+                return new LoopExecution<>(state, terminalStopReason, iterations);
             }
 
             if (iterations >= maxIterations) {
-                return new AgentLoopResult(
+                return new LoopExecution<>(
                         state,
                         AgentLoopStopReason.MAX_ITERATIONS,
                         iterations);
@@ -61,7 +75,7 @@ public final class AgentLoop {
                 stagnantIterations = 0;
             }
             if (stagnantIterations >= stagnationThreshold) {
-                return new AgentLoopResult(
+                return new LoopExecution<>(
                         state,
                         AgentLoopStopReason.STAGNATED,
                         iterations);
@@ -76,6 +90,7 @@ public final class AgentLoop {
     private AgentLoopStopReason terminalStopReason(AgentLoopStatus status) {
         return switch (status) {
             case COMPLETED -> AgentLoopStopReason.COMPLETED;
+            case AWAITING_VERIFICATION -> AgentLoopStopReason.AWAITING_VERIFICATION;
             case FAILED -> AgentLoopStopReason.FAILED;
             case RUNNING -> null;
         };

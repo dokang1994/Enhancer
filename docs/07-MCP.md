@@ -2,15 +2,15 @@
 
 ## Codex Prompt
 
-Design MCP integration only after local tool interfaces are stable.
+Design MCP as a core interoperability layer after the local Tool, evidence, verification, runtime, and messaging boundaries are stable.
 
 ## Goal
 
-MCP lets Enhancer use external tools and resources through a standard protocol.
+MCP lets Enhancer expose and consume governed tools, resources, Workspace views, and memory through a standard protocol.
 
 ## Integration Direction
 
-Enhancer should treat MCP tools as external tools behind the same Tool System boundary.
+Enhancer provides both an MCP Server and an MCP Client. Server capabilities allow Claude Code, Cursor, VS Code, and other clients to use approved Enhancer resources. Client capabilities consume external MCP servers behind the same policy, evidence, verification, event, and RunRecord boundaries as native Tools.
 
 ## Rules
 
@@ -18,6 +18,9 @@ Enhancer should treat MCP tools as external tools behind the same Tool System bo
 - MCP tool schemas must be inspected before invocation.
 - Tool results must be recorded in agent context.
 - Dangerous actions still require approval.
+- MCP content and schemas are untrusted input and cannot grant authority.
+- Every invocation preserves event, run, correlation, provenance, and evidence identity.
+- Data classification and Model Router policy decide whether content remains local or may reach an approved remote provider; MCP never weakens that boundary.
 
 ## Candidate Components
 
@@ -26,11 +29,14 @@ McpToolAdapter
 McpToolRegistry
 McpToolSchema
 McpToolResult
+EnhancerMcpServer
+EnhancerMcpClient
+McpResourceAdapter
+McpAuthorizationAdapter
 ```
 
 ## Out Of Scope
 
-- Custom MCP server implementation in the first MCP task
 - Authentication UI
 - Marketplace
 
@@ -38,7 +44,7 @@ McpToolResult
 
 ### Codex Prompt
 
-Do not implement MCP until the local Tool System is stable. If MCP work is selected, build only an adapter boundary and tests around schema inspection and safe invocation.
+Do not implement MCP until Gate 9 is active. Start with one read-only server resource and one client Tool adapter, both using existing policy, evidence, verification, event, and RunRecord contracts.
 
 ### Claude Prompt
 

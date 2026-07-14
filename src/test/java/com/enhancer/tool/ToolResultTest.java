@@ -30,6 +30,7 @@ class ToolResultTest {
         assertEquals(0, processResult.exitCode().orElseThrow());
         assertTrue(nonProcessResult.exitCode().isEmpty());
         assertEquals(evidence, processResult.evidence());
+        assertTrue(processResult.failureCode().isEmpty());
     }
 
     @Test
@@ -38,10 +39,32 @@ class ToolResultTest {
                 "terminal",
                 ToolResultStatus.FAILURE,
                 OptionalInt.of(1),
+                Optional.of(ToolFailureCode.INVALID_REQUEST),
                 evidence);
 
         assertEquals(ToolResultStatus.FAILURE, result.status());
         assertEquals(1, result.exitCode().orElseThrow());
+        assertEquals(ToolFailureCode.INVALID_REQUEST, result.failureCode().orElseThrow());
+    }
+
+    @Test
+    void requiresFailureCodesOnlyForFailedResults() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new ToolResult(
+                        "terminal",
+                        ToolResultStatus.FAILURE,
+                        OptionalInt.of(1),
+                        Optional.empty(),
+                        evidence));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new ToolResult(
+                        "terminal",
+                        ToolResultStatus.SUCCESS,
+                        OptionalInt.of(0),
+                        Optional.of(ToolFailureCode.TEMPORARY_FAILURE),
+                        evidence));
     }
 
     @Test

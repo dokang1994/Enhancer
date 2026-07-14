@@ -28,9 +28,13 @@ Verification
 Documentation Update
 ```
 
+The target runtime extends this bootstrap flow into `Workspace + Project Brain -> Event/Message Bus -> Agent Runtime + Scheduler -> MCP/Model Gateway -> Skill/Plugin runtime`. Event Bus owns domain semantics, Message Bus owns delivery, and IPC is a transport adapter. Runtime Agents communicate through messages rather than direct calls.
+
+The product evolves from V1 development experience, through V2 Agent/workflow platform, to V3 AI Operating System. The V3 Kernel manages lifecycle, context, memory, resource budgets, locks, scheduling, cancellation, recovery, policy, verification, and audit state. Project Brain provides rebuildable Decision, Architecture, Dependency, Task, and Execution graph projections while Git and canonical documents remain authoritative.
+
 ## Current Capability Maturity
 
-The repository is at **Contract Verified**, not Integrated or Operational, for its core Java slices. Existing code proves Context, Planner, loop termination, and Tool evidence invariants but does not yet execute one complete Agent run.
+The core foundation contracts are **Contract Verified**, and the bounded read-only Tool, complete-evidence, and Tool-driven loop boundaries are **Integrated**. The repository is not Operational and does not yet execute one independently verified, recorded Agent run.
 
 Capability maturity uses:
 
@@ -42,9 +46,9 @@ Capability maturity uses:
 
 Task completion and capability maturity are separate. A completed contract task does not imply an operational subsystem.
 
-## Next Vertical Slice
+## Current Vertical Slice
 
-The next architecture path is:
+The integrated Gate 1 path is:
 
 ```text
 ToolRequest
@@ -60,7 +64,7 @@ ToolResult
 VerificationEvidence
 ```
 
-Later gates extend that real ToolResult through Agent Loop integration, evidence persistence, sequential verification, RunRecord persistence, and a CLI.
+The integrated Gate 3 path extends persisted Tool results through Agent Loop state and stops successful execution at `AWAITING_VERIFICATION`. The next gate adds sequential verification and RunRecord persistence; a later gate adds the CLI.
 
 The independent verifier is not implemented as an isolated record before real Tool execution. It consumes persisted evidence from the integrated path.
 
@@ -73,10 +77,17 @@ enhancer-core
 enhancer-context
 enhancer-planner
 enhancer-tool
+enhancer-workspace
+enhancer-events
+enhancer-runtime
 enhancer-skill
 enhancer-memory
 enhancer-mcp
+enhancer-model-gateway
+enhancer-plugin
 enhancer-cli
+enhancer-api
+enhancer-desktop
 enhancer-extension
 enhancer-web
 ```

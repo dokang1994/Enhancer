@@ -16,6 +16,8 @@ The Planner turns project context into candidate next tasks.
 - decision log
 - project state
 
+The deterministic first Planner follows the canonical Roadmap grammar: it selects the first `## Delivery Gate ...` section marked `Status: Specified - Next` after confirming that `CURRENT_TASK.md` is completed.
+
 ## Output
 
 Use a simple task proposal:
@@ -38,6 +40,9 @@ risk
 - Prefer tasks that fit one focused failing-check, minimal-change, passing-verification cycle.
 - Do not force a commit per task; follow `AGENTS.md` and user instruction.
 - Do not emit vague tasks, cross-task shorthand, or placeholders.
+- Map `Required capabilities`, `Required contracts`, or `Scope` bullets to proposal scope.
+- Map `Exit criteria` bullets to proposal acceptance criteria.
+- Keep an actual-Enhancer Roadmap regression test so document grammar drift fails visibly.
 
 ## Tests
 
@@ -47,6 +52,7 @@ Cover:
 - does not override current task
 - marks unknown information as risk
 - keeps proposal separate from accepted decision
+- parses the actual Enhancer Roadmap and selects the current next gate
 
 ## Prompt Book
 

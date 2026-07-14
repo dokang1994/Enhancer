@@ -10,6 +10,8 @@ import java.util.Optional;
 public final class RepositoryTaskPlanner {
     private static final String CURRENT_TASK = "CURRENT_TASK.md";
     private static final String ROADMAP = "ROADMAP.md";
+    private static final String DELIVERY_GATE_HEADING = "## Delivery Gate ";
+    private static final String NEXT_STATUS = "Status: Specified - Next";
 
     public Optional<TaskProposal> propose(ProjectContext context) {
         Objects.requireNonNull(context, "context must not be null");
@@ -21,22 +23,23 @@ public final class RepositoryTaskPlanner {
             return Optional.empty();
         }
 
-        ReadyPhase phase = firstReadyPhase(requiredContent(context, ROADMAP));
+        NextDeliveryGate gate = firstNextDeliveryGate(requiredContent(context, ROADMAP));
         List<String> risks = new ArrayList<>();
-        if (phase.scope().isEmpty()) {
-            risks.add("The ready roadmap phase does not define scope items.");
+        if (gate.scope().isEmpty()) {
+            risks.add("The next delivery gate does not define scope items.");
         }
-        risks.add("Dependencies and detailed acceptance criteria are not defined by the roadmap phase.");
+        if (gate.exitCriteria().isEmpty()) {
+            risks.add("The next delivery gate does not define exit criteria.");
+        }
+        risks.add("Dependencies may require additional validation before proposal acceptance.");
 
         return Optional.of(new TaskProposal(
-                phase.title(),
-                "The current task is completed and this is the first roadmap phase marked Ready.",
-                phase.scope(),
+                gate.title(),
+                "The current task is completed and this is the first delivery gate marked Specified - Next.",
+                gate.scope(),
+                gate.exitCriteria(),
                 List.of(
-                        "The selected roadmap phase has a focused implementation and tests.",
-                        "Project state and handoff documents reflect the result."),
-                List.of(
-                        "Items from later roadmap phases",
+                        "Items from later delivery gates",
                         "Automatic proposal acceptance or execution"),
                 risks,
                 ProposalState.PROPOSAL));
@@ -50,36 +53,71 @@ public final class RepositoryTaskPlanner {
                 .orElseThrow(() -> new PlanningException("Project context is missing required document: " + path));
     }
 
-    private ReadyPhase firstReadyPhase(String roadmap) {
+    private NextDeliveryGate firstNextDeliveryGate(String roadmap) {
         String normalized = normalize(roadmap);
         String[] lines = normalized.split("\n", -1);
 
         for (int index = 0; index < lines.length; index++) {
-            if (!lines[index].startsWith("## Phase ")) {
+            if (!lines[index].startsWith(DELIVERY_GATE_HEADING)) {
                 continue;
             }
 
             int end = index + 1;
-            while (end < lines.length && !lines[end].startsWith("## Phase ")) {
+            while (end < lines.length && !lines[end].startsWith("## ")) {
                 end++;
             }
 
-            List<String> phaseLines = List.of(lines).subList(index + 1, end);
-            boolean ready = phaseLines.stream().anyMatch(line -> line.trim().equalsIgnoreCase("Status: Ready"));
-            if (ready) {
-                List<String> scope = phaseLines.stream()
-                        .map(String::trim)
-                        .filter(line -> line.startsWith("- "))
-                        .map(line -> line.substring(2).trim())
-                        .filter(line -> !line.isEmpty())
-                        .toList();
-                return new ReadyPhase(lines[index].substring(3).trim(), scope);
+            List<String> gateLines = List.of(lines).subList(index + 1, end);
+            boolean isNext = gateLines.stream()
+                    .anyMatch(line -> line.trim().equalsIgnoreCase(NEXT_STATUS));
+            if (isNext) {
+                List<String> scope = bulletsAfterLabel(
+                        gateLines,
+                        List.of("Required capabilities:", "Required contracts:", "Scope:"));
+                List<String> exitCriteria = bulletsAfterLabel(
+                        gateLines,
+                        List.of("Exit criteria:"));
+                return new NextDeliveryGate(
+                        lines[index].substring(3).trim(),
+                        scope,
+                        exitCriteria);
             }
 
             index = end - 1;
         }
 
-        throw new PlanningException("ROADMAP.md does not contain a phase marked Ready");
+        throw new PlanningException(
+                "ROADMAP.md does not contain a delivery gate marked Specified - Next");
+    }
+
+    private List<String> bulletsAfterLabel(List<String> lines, List<String> labels) {
+        int labelIndex = -1;
+        for (int index = 0; index < lines.size(); index++) {
+            String line = lines.get(index).trim();
+            if (labels.stream().anyMatch(label -> line.equalsIgnoreCase(label))) {
+                labelIndex = index;
+                break;
+            }
+        }
+        if (labelIndex < 0) {
+            return List.of();
+        }
+
+        List<String> bullets = new ArrayList<>();
+        for (int index = labelIndex + 1; index < lines.size(); index++) {
+            String line = lines.get(index).trim();
+            if (line.isEmpty()) {
+                continue;
+            }
+            if (!line.startsWith("- ")) {
+                break;
+            }
+            String item = line.substring(2).trim();
+            if (!item.isEmpty()) {
+                bullets.add(item);
+            }
+        }
+        return List.copyOf(bullets);
     }
 
     private Optional<String> section(String markdown, String heading) {
@@ -107,6 +145,9 @@ public final class RepositoryTaskPlanner {
         return content.replace("\r\n", "\n").replace('\r', '\n');
     }
 
-    private record ReadyPhase(String title, List<String> scope) {
+    private record NextDeliveryGate(
+            String title,
+            List<String> scope,
+            List<String> exitCriteria) {
     }
 }

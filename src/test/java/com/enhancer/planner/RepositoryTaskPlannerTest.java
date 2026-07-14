@@ -6,6 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.enhancer.context.ProjectContext;
 import com.enhancer.context.ProjectDocument;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -14,18 +18,24 @@ class RepositoryTaskPlannerTest {
     private final RepositoryTaskPlanner planner = new RepositoryTaskPlanner();
 
     @Test
-    void proposesTheFirstReadyRoadmapPhase() {
+    void proposesTheFirstNextDeliveryGateWithStructuredScopeAndAcceptanceCriteria() {
         ProjectContext context = context(
                 "# Current Task\n\n## Status\n\nCompleted\n",
-                "# Roadmap\n\n## Phase 2: Context\n\nStatus: Implemented\n\n"
-                        + "## Phase 3: Task Planner\n\nStatus: Ready\n\n"
-                        + "- Generate candidate tasks\n- Add planning tests\n\n"
-                        + "## Phase 4: Agent Loop\n\nStatus: Pending\n");
+                "# Roadmap\n\n## Delivery Gate 1: Tool Execution\n\nStatus: Integrated\n\n"
+                        + "## Delivery Gate 2: Evidence Persistence\n\nStatus: Specified - Next\n\n"
+                        + "Required capabilities:\n\n"
+                        + "- Store complete evidence\n- Validate evidence integrity\n\n"
+                        + "Exit criteria:\n\n"
+                        + "- Missing evidence is rejected\n- Corruption is detected\n\n"
+                        + "## Delivery Gate 3: Loop Integration\n\nStatus: Specified\n");
 
         TaskProposal proposal = planner.propose(context).orElseThrow();
 
-        assertEquals("Phase 3: Task Planner", proposal.title());
-        assertEquals(List.of("Generate candidate tasks", "Add planning tests"), proposal.scope());
+        assertEquals("Delivery Gate 2: Evidence Persistence", proposal.title());
+        assertEquals(List.of("Store complete evidence", "Validate evidence integrity"), proposal.scope());
+        assertEquals(
+                List.of("Missing evidence is rejected", "Corruption is detected"),
+                proposal.acceptanceCriteria());
         assertEquals(ProposalState.PROPOSAL, proposal.state());
         assertFalse(proposal.acceptanceCriteria().isEmpty());
         assertFalse(proposal.outOfScope().isEmpty());
@@ -35,7 +45,7 @@ class RepositoryTaskPlannerTest {
     void doesNotOverrideAnActiveCurrentTask() {
         ProjectContext context = context(
                 "# Current Task\n\n## Status\n\nIn Progress\n",
-                "# Roadmap\n\n## Phase 3: Task Planner\n\nStatus: Ready\n");
+                "# Roadmap\n\n## Delivery Gate 2: Evidence\n\nStatus: Specified - Next\n");
 
         Optional<TaskProposal> proposal = planner.propose(context);
 
@@ -43,15 +53,31 @@ class RepositoryTaskPlannerTest {
     }
 
     @Test
-    void marksMissingRoadmapScopeAsRisk() {
+    void marksMissingDeliveryGateScopeAsRisk() {
         ProjectContext context = context(
                 "# Current Task\n\n## Status\n\nCompleted\n",
-                "# Roadmap\n\n## Phase 3: Task Planner\n\nStatus: Ready\n");
+                "# Roadmap\n\n## Delivery Gate 2: Evidence\n\nStatus: Specified - Next\n");
 
         TaskProposal proposal = planner.propose(context).orElseThrow();
 
         assertTrue(proposal.scope().isEmpty());
         assertTrue(proposal.risks().stream().anyMatch(risk -> risk.contains("does not define scope")));
+    }
+
+    @Test
+    void proposesTheCurrentNextGateFromTheActualEnhancerRoadmap() throws IOException {
+        Path roadmapPath = Path.of(System.getProperty("user.dir")).resolve("ROADMAP.md");
+        String roadmap = Files.readString(roadmapPath, StandardCharsets.UTF_8);
+
+        TaskProposal proposal = planner.propose(context(
+                "# Current Task\n\n## Status\n\nCompleted\n",
+                roadmap)).orElseThrow();
+
+        assertEquals("Delivery Gate 4: Sequential Verification And Run Record", proposal.title());
+        assertTrue(proposal.scope().contains(
+                "VerificationRequest and VerificationDecision;"));
+        assertTrue(proposal.acceptanceCriteria().contains(
+                "worker output cannot mark itself verified;"));
     }
 
     private ProjectContext context(String currentTask, String roadmap) {

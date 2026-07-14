@@ -37,6 +37,21 @@ class AgentLoopTest {
     }
 
     @Test
+    void stopsAtTheIndependentVerificationBoundary() {
+        AgentLoop loop = new AgentLoop(10, 3);
+
+        AgentLoopResult result = loop.run(
+                running("start"),
+                current -> new AgentLoopState(
+                        AgentLoopStatus.AWAITING_VERIFICATION,
+                        "tool-succeeded"));
+
+        assertEquals(AgentLoopStopReason.AWAITING_VERIFICATION, result.stopReason());
+        assertEquals(AgentLoopStatus.AWAITING_VERIFICATION, result.state().status());
+        assertEquals(1, result.iterations());
+    }
+
+    @Test
     void stopsAtTheMaximumIterationCeiling() {
         AgentLoop loop = new AgentLoop(3, 2);
         AtomicInteger steps = new AtomicInteger();

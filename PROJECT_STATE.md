@@ -6,163 +6,175 @@
 
 ## Repository State
 
-- Git worktree metadata: restored into `C:\Enhancer\.git` from a validated no-checkout clone without changing working files.
 - Repository root: `C:/Enhancer`.
-- Current branch: `agent/governed-agent-loop-foundations`.
-- Upstream: `origin/agent/governed-agent-loop-foundations`.
-- Base commit from `main`: `cb058c4b2ccfaa520acec7359b87ca11733c3ad3`.
-- Published feature commit: `a58b0df`.
-- Publication-state commit: `78484b0`.
-- Remote: `origin` -> `https://github.com/dokang1994/Enhancer.git` for fetch and push.
-- Draft pull request: `https://github.com/dokang1994/Enhancer/pull/2`.
-- The governed Agent Loop foundation and roadmap realignment are committed and pushed on the current Agent branch; draft PR #2 contains the published work.
-- Product maturity: Delivery Gate 0 is Contract Verified for Repository Context Reader, deterministic Task Planner, single-pass Assisted Development Loop, bounded repeated Agent Loop termination, and bounded Tool result verification evidence.
-- Product integration: no complete Agent run, concrete Tool execution, evidence persistence, supported entry point, or LLM call exists yet.
-- Governance maturity: Constitution 1.1.0 and the repository operating workflow are Operational for human-directed repository development; automated enforcement remains future work.
-- Tests: 25 focused JUnit 5 tests pass through the repository Wrapper
-- Build system: Gradle 8.4 Wrapper with Java 17 toolchain
+- Current branch: `main` tracking `origin/main`.
+- Current base commit: `fc4525820ccc94a1409e811a792585b059de1e11`.
+- Pull request #2 has been merged into `main`.
+- Delivery Gates 1 through 3 plus self-hosting compatibility recovery changes are present locally and are not committed or pushed.
+- Build system: Gradle 8.4 Wrapper with Java 17.
+- Production source: 47 Java files and 1,807 lines.
+- Test source: 17 Java files and 1,573 lines.
 
-## Verified Repository Work
+## Capability Maturity
 
-- Repository-backed project memory document set.
-- Session start, implementation, review, and close prompt templates.
-- Self-hosting project vision recorded in `CONSTITUTION.md`, `ROADMAP.md`, and `DECISION_LOG.md`.
-- Required repository structure created: `docs/`, `prompts/`, `.ai/`, and `src/`.
-- AI-only operating notes created under `.ai/`.
-- `.ai/` startup rule documented: always read `.ai/` before starting work.
-- `.ai/` startup rule recorded as an accepted decision in `DECISION_LOG.md`.
-- First self-hosting implementation task defined in `CURRENT_TASK.md`.
-- Document Driven Development workflow recorded in `CONSTITUTION.md`, `AGENTS.md`, `.ai/workflow.md`, `prompts/IMPLEMENT_TASK.md`, and `DECISION_LOG.md`.
-- Codex-ready chapter specifications created under `docs/`.
-- Shared coding, architecture, and review prompts created under `prompts/`.
-- Conceptual examples are colocated with their owning specifications, and executable examples are represented by tests.
-- Open source operating model recorded in `CONSTITUTION.md`, `README.md`, `ROADMAP.md`, and `DECISION_LOG.md`.
-- Explicit ChatGPT session resume protocol created in `prompts/CHATGPT_SESSION_RESUME.md`.
-- `docs/` chapters now include Prompt Book sections for Codex, Claude, and GPT.
-- RFC-style design track created under `docs/rfcs/` from `RFC-0001` through `RFC-0012`.
-- Six-month AI Development OS roadmap recorded in `ROADMAP.md`.
-- UTF-8 editor configuration added through `.editorconfig`.
-- Git text normalization added through `.gitattributes`.
-- `.ai/workflow.md` startup sentence changed to ASCII to avoid console encoding display issues.
-- Minimal Java 17 Gradle project files added.
-- Repository Context Reader implemented under `com.enhancer.context`.
-- Structured context preserves required document path, startup order, and UTF-8 content.
-- Missing required documents are reported by `MissingProjectDocumentException` with the missing path.
-- JUnit 5 tests added for successful ordered reads and the first missing document.
-- Repository Context Reader compilation and tests verified with Corretto 17 and Gradle 8.4.
-- Deterministic Task Planner implemented under `com.enhancer.planner`.
-- Planner blocks proposals for active tasks and selects the first ready roadmap phase after task completion.
-- Task proposals preserve explicit `PROPOSAL` state and structured scope, acceptance criteria, exclusions, and risks.
-- Planner and Context Reader compilation and all 5 tests verified with Corretto 17 and Gradle 8.4.
-- Accepted Skill authoring, memory-distillation, test-first, and evidence-before-claims operating rules.
-- Added `.ai/skill_rules.md` and synchronized session prompts, README, architecture chapters, and accepted RFCs.
-- Added `skills/INDEX.md` as a Proposed-only catalog; no Skill implementation is currently Available.
-- Resolved commit-policy wording so focused verification cycles do not force commits.
-- Added Gradle 8.4 Wrapper files and reproducible Windows setup scripts.
-- Configured Microsoft OpenJDK 17.0.19 under ignored `.tools/` and verified the Wrapper uses it.
-- Verified all 5 JUnit 5 tests through `scripts/gradle.ps1`.
-- Deterministic Assisted Development Loop implemented under `com.enhancer.loop`.
-- The loop composes context reading and planning once, returning `PROPOSAL_AVAILABLE` or `ACTIVE_TASK_PRESERVED` without mutating the repository.
-- Result invariants prevent contradictory outcome and proposal payload combinations.
-- Added 3 focused loop tests; all 8 repository tests pass with 0 failures, errors, or skipped tests.
-- A JShell smoke test against the actual repository documents returned `PROPOSAL_AVAILABLE` for `Phase 4: Assisted Development Loop`.
-- Accepted selective, provider-neutral adoption of useful external agent-harness patterns without adding a MoAI runtime dependency.
-- Confirmed the staged pattern sequence does not conflict with `.ai/` when each slice preserves minimal scope, test-first verification, proposal-state separation, and least privilege.
-- Implemented bounded repeated Agent Loop termination under `com.enhancer.loop` with `COMPLETED`, `FAILED`, `MAX_ITERATIONS`, and `STAGNATED` reasons.
-- Added immutable state, caller-supplied deterministic steps, default 20-iteration and 3-unchanged-step limits, and explicit termination precedence.
-- Added 9 focused Agent Loop tests; all 17 repository tests pass with 0 failures, errors, or skipped tests.
-- Implemented `VerificationEvidence`, `ToolResult`, and `ToolResultStatus` under `com.enhancer.tool` without real Tool execution.
-- Bounded evidence summaries to 512 characters and output tails to 4096 characters; truncated output requires a complete-output reference.
-- Added optional exit-code handling with explicit Tool success and failure consistency rules.
-- Added 8 focused Tool contract tests; all 25 repository tests pass with 0 failures, errors, or skipped tests.
-- Removed the standalone `examples/` directory after its conceptual files drifted behind implemented contracts.
-- Updated the Constitution, README, architecture, decision log, roadmap, and state documents so `docs/` and tests own examples.
-- Restructured `CONSTITUTION.md` from a repetitive 1.0.0 guide into a concise 1.1.0 normative Kernel.
-- Defined Proposal, Accepted Decision, Active Task, Implemented, Verified, Completed, and Released as separate lifecycle states.
-- Added explicit local, destructive, external-action, Git, secret, untrusted-content, and least-privilege authorization boundaries.
-- Added fresh evidence requirements, incomplete-verification reporting, and independent-verifier principles.
-- Added bounded self-hosting requirements covering approval, recovery, limits, evidence, review, rollback, and stop conditions.
-- Added protected Constitution amendments with user approval, semantic versioning, decision records, mirror review, and verification.
-- Synchronized `AGENTS.md`, `.ai/`, RFC-0001, and session prompts while delegating implementation detail to Architecture and RFCs.
-- Recovered the existing GitHub repository relationship into the active workspace through a validated no-checkout clone and metadata-only copy.
-- Reconstructed the copied no-checkout index from HEAD without updating working files.
-- Verified all 1,479 non-.git files remained byte-identical across Git metadata recovery.
-- Published the accumulated Agent Loop, Tool evidence, Constitution 1.1, and documentation changes on an Agent branch and opened draft PR #2.
-- Replaced ambiguous roadmap capability status with Specified, Contract Verified, Integrated, Operational, and Released.
-- Defined 12 dependency-ordered delivery gates from Tool execution through open-source release.
-- Changed the next product task from an isolated independent-verifier contract to the bounded Tool Execution Boundary.
-- Required new contracts to identify an integration consumer and promotion evidence.
+### Contract Verified
 
-## Not Integrated Or Operational
+- Repository Context Reader with seven `.ai/` documents followed by eight canonical root documents.
+- Deterministic Task Planner using Delivery Gate/Specified - Next grammar and explicit proposal state.
+- Single-pass Assisted Development Loop.
+- Repeated Agent Loop completion, failure, iteration, and stagnation exits.
+- Bounded `ToolResult` and `VerificationEvidence` invariants.
 
-- CI/CD
-- Prompt, concrete Tool execution, Tool-result/Agent-Loop integration, supported CLI, and LLM integration
-- Sequential independent verifier
-- Tool request, execution policy, Tool interface, concrete Tool execution, and evidence persistence
-- Durable RunRecord storage and replay
-- Skill loading runtime and implemented `SKILL.md` workflows
+### Integrated
 
-## Specification Documents
+- Delivery Gate 1 bounded read-only Tool Execution Boundary.
+- Immutable `ToolRequest` with correlation identity and arguments.
+- Immutable `ExecutionPolicy` with deny-over-allow policy, project root, size, timeout, and cancellation boundaries.
+- Unique in-process `ToolExecutor` registry with bounded structured failure conversion.
+- `ReadFileTool` request-to-policy-to-executor-to-real-file-to-result flow.
+- Relative-path, traversal, real-path containment, regular-file, size, and strict UTF-8 checks.
+- Delivery Gate 2 atomic complete-evidence persistence and restart-safe resolution.
+- UUID run/evidence identities, opaque references, creation time, UTF-8 byte length, and SHA-256 metadata.
+- Missing, malformed, oversized, length-mismatched, digest-mismatched, and invalid-UTF-8 evidence rejection.
+- Large `ReadFileTool` output connected through `EvidenceRecorder` to a resolvable full-output reference.
+- Delivery Gate 3 Tool-result-driven Agent Loop integration.
+- `AgentRunState` with approved task, pending request, last result, explicit status, and deterministic progress key.
+- `AgentRunController` orchestration over an existing executor, immutable policy, and external failure classifier.
+- Successful Tool execution stops at `AWAITING_VERIFICATION`; retryable and terminal failures remain distinct.
+- Existing maximum-iteration and stagnation exits operate over real Tool results.
+- Repository-derived `ApprovedTask` identity, approval evidence, and Tool-name scope.
+- Structured Tool failure codes and a standard retry policy without prose parsing.
+- SHA-256 evidence content identity and semantic progress independent of storage references.
+- Private Agent run construction with public ready-state creation only.
 
-- `docs/00-Project-Overview.md`
-- `docs/01-Development-Environment.md`
-- `docs/02-Agent-Loop.md`
-- `docs/03-Tool-System.md`
-- `docs/04-Skill-System.md`
-- `docs/05-Memory.md`
-- `docs/06-Planner.md`
-- `docs/07-MCP.md`
-- `docs/08-Multi-Agent.md`
-- `docs/09-Background-Agent.md`
-- `docs/10-Roadmap.md`
-- `docs/11-Architecture.md`
+### Operational Governance
 
-## RFC Documents
+- Constitution 1.1 Kernel and Document Driven Development.
+- Explicit lifecycle, authorization, fresh-evidence, self-hosting, recovery, and amendment rules.
+- Git-backed project memory and session handoff.
 
-- `docs/rfcs/RFC-0001-Constitution.md`
-- `docs/rfcs/RFC-0002-AI-Behavior-Specification.md`
-- `docs/rfcs/RFC-0003-Prompt-Contract.md`
-- `docs/rfcs/RFC-0004-Context-Builder.md`
-- `docs/rfcs/RFC-0005-Planner.md`
-- `docs/rfcs/RFC-0006-Tool-Specification.md`
-- `docs/rfcs/RFC-0007-Skill-Specification.md`
-- `docs/rfcs/RFC-0008-Memory-Specification.md`
-- `docs/rfcs/RFC-0009-Multi-Agent.md`
-- `docs/rfcs/RFC-0010-AI-Operating-System.md`
-- `docs/rfcs/RFC-0011-Plugin-SDK.md`
-- `docs/rfcs/RFC-0012-Self-Improvement.md`
+## Accepted Product Direction
+
+- Enhancer OS is an event-driven AI development platform, not a Chat -> Tool -> Stop wrapper.
+- The target platform includes Desktop, CLI, API, Workspace, Project Brain, Memory, MCP Server/Client, Agent Runtime, Event/Message Bus with IPC adapters, Skill Engine, Plugin Marketplace, Model Router, Scheduler, and governed Cloud Sync.
+- Event Bus defines domain semantics, Message Bus defines delivery, and IPC is a transport adapter for the same versioned envelope.
+- Runtime Agents will communicate through queues rather than direct Agent-to-Agent calls after the messaging boundary exists.
+- Workspace will expose governed file, Git, diagnostic, terminal-metadata, and selection snapshots; Project Brain will combine them with repository memory and RunRecords while preserving provenance.
+- The owner's rough 20-25% foundation estimate is qualitative planning context, not verified maturity or completion evidence.
+- Product milestones are V1 AI Development Experience, V2 AI Development Platform, and V3 AI Operating System.
+- Product milestones describe user-visible outcomes, while Delivery Gates define dependency-ordered implementation and promotion; their numbering is not a claim that every V1 surface precedes all V2 foundations.
+- The AI Kernel target owns Agent/workflow lifecycle, context and memory resources, locks and leases, scheduling, cancellation, recovery, policy, verification gates, and audit state.
+- Project Brain will expose rebuildable Decision, Architecture, Dependency, Task, and Execution graph projections while Git and canonical documents remain authoritative.
+- Agent plugins, Skills, Tools, and workflows are distinct extension types with separate authority and provenance.
+- The Model Router target selects approved local or remote providers using capability, data classification, policy, cost, latency, context, and availability; sensitive code defaults local.
+- Self-hosting development means applying Enhancer's governed workflow to its own repository; local or hybrid model execution is a separate provider-routing capability.
+
+## Not Yet Integrated Or Operational
+
+- Sequential independent verification and durable RunRecord replay.
+- Supported CLI or application entry point.
+- Prompt and LLM invocation.
+- Workspace, Project Brain, Event/Message Bus, IPC, Agent Runtime, Scheduler, and Model Gateway.
+- Project Brain graph storage and impact reasoning, Dependency Analyzer, Workflow Engine, Agent Marketplace, and privacy-aware hybrid model routing.
+- Skill loading runtime, plugins, MCP, multi-agent, background execution, Cloud Sync, and governed self-improvement.
+- CI/CD and released distribution.
+
+## Gate 1 Verification
+
+- Test-first RED: Gate 1 tests initially failed compilation because the production types did not exist.
+- Focused command: `.\scripts\gradle.ps1 cleanTest test --tests "com.enhancer.tool.*"`.
+- Focused result: build successful; 21 tests discovered, 20 passed, 1 skipped, 0 failures, 0 errors.
+- Full command: `.\scripts\gradle.ps1 cleanTest test`.
+- Full result: build successful; 10 suites, 38 tests, 37 passed, 1 skipped, 0 failures, 0 errors.
+- The skipped test creates an escaping symbolic link. This Windows host denied link creation; the test remains active and exercises the real-path containment behavior on hosts with link permission.
+- Traversal, absolute-path, malformed-path, directory, missing-file, oversized-file, invalid-UTF-8, policy, cancellation, timeout, exception, and invalid-result cases passed locally.
+- `ReadFileTool` performs no write operation; mutation, shell, Git, network, and LLM behavior remain outside Gate 1.
+
+## Self-Hosting Compatibility Recovery
+
+- Test-first RED produced 7 expected focused failures against the old context and Planner behavior.
+- Focused Context, Planner, and Assisted Loop verification: 3 suites, 12 tests, all passed with no skips.
+- Actual repository context verification loaded 15 documents with `.ai/constitution.md` first.
+- The actual Enhancer `AssistedDevelopmentLoop` selected `Delivery Gate 2: Evidence Persistence` and mapped its required capabilities and exit criteria.
+- Full regression: 10 suites, 42 tests, 41 passed, 1 existing symbolic-link setup skip, 0 failures, and 0 errors.
+
+## Gate 2 Verification
+
+- Test-first RED: focused tests failed compilation with 44 missing Gate 2 symbols after the fixture encoding was corrected.
+- Gate 2 focused verification: 4 suites, 9 tests, all passed with no skips.
+- Complete Tool verification: 10 suites, 30 tests, 29 passed and 1 existing symbolic-link setup skip.
+- Full regression: 14 suites, 51 tests, 50 passed, 1 existing symbolic-link setup skip, 0 failures, and 0 errors.
+- Persistence and resolution were verified across separate `FileSystemEvidenceStore` instances using the same root.
+- Atomic publication left no `.pending-*` artifact after successful writes.
+- Corruption coverage includes invalid envelope, declared-length mismatch, SHA-256 mismatch, and invalid UTF-8.
+- A large real file produced bounded `VerificationEvidence` plus a reference resolving to the complete original content.
+- Retention cleanup is specified by policy but is not automatically executed.
+
+## Gate 3 Verification
+
+- Test-first RED: focused compilation failed with 33 missing Gate 3 symbols after correcting one unrelated test API assumption.
+- Focused verification: 3 suites, 16 tests, all passed with no skips.
+- Full regression after roadmap synchronization: 16 suites, 58 tests, 57 passed, 1 existing symbolic-link setup skip, 0 failures, and 0 errors.
+- A governed temporary repository connects startup context, repository-derived approval, `ReadFileTool`, persisted evidence, and the Agent Loop transition in one integration test.
+- Separate actual-Enhancer regressions verify the 15-document startup context and canonical Roadmap proposal path; a full Agent run against the actual worktree is not yet Operational.
+- Real Tool success reaches `AWAITING_VERIFICATION`, not `COMPLETED`.
+- Terminal failure reaches `FAILED`; repeated identical retryable results reach `STAGNATED` through the existing threshold.
+- A denied fake Git mutation Tool records zero invocations and leaves its `.git/HEAD` sentinel unchanged.
+- The controller cannot register Tools, create requests, approve work, or broaden the immutable execution policy.
+- Hardening RED: 37 expected missing-symbol/API compilation errors against the prior Gate 3 implementation.
+- Hardening focused verification: 6 suites, 24 tests, all passed with no skips.
+- Hardening full regression after final document synchronization: 17 suites, 63 tests, 62 passed, 1 existing symbolic-link setup skip, 0 failures, and 0 errors.
+- Active repository context now produces the exact structured approval consumed by the run, and out-of-scope Tool requests are rejected before execution.
+- Identical content with changing summary and evidence reference reaches `STAGNATED` through stable content identity.
+- Tool result status/failure-code consistency and non-public run-state construction are executable invariants.
+- Expanded-roadmap self-hosting verification: Planner and Assisted Development Loop suites passed 8 of 8 tests and still select Gate 4.
+- Structural review found sequential Delivery Gates 0 through 16 and exactly one `Specified - Next` marker.
+
+## Current Delivery Position
+
+- Delivery Gate 0: Contract Verified.
+- Delivery Gate 1: Integrated.
+- Delivery Gate 2: Integrated.
+- Delivery Gate 3: Integrated.
+- Delivery Gate 4: Specified - Next.
+- Enhancer is not yet Operational because no independently verified, recorded Agent run or supported entry point exists.
+
+## Vision Documentation Verification
+
+- Canonical Roadmap contains sequential Delivery Gates 0 through 16 and exactly one `Specified - Next` marker at Gate 4.
+- V1, V2, V3 and Decision, Architecture, Dependency, Task, and Execution graph terms are present in Architecture and Roadmap.
+- Planner and Assisted Development Loop self-hosting regression passed 8 of 8 tests after the vision and roadmap update.
+- Full regression passed 62 of 63 tests with 1 existing Windows symbolic-link setup skip and no failures or errors.
+- New Kernel, graph, workflow, marketplace, MCP, model-routing, and multi-agent capabilities remain Planned rather than implemented.
+
+## Documentation Alignment Verification
+
+- Gate 3 evidence now identifies the governed temporary-repository integration test separately from actual-Enhancer Context Reader and Roadmap Planner regressions.
+- No document claims a supported full Agent run against the actual worktree before the Operational CLI gate.
+- Current Java 17, Gradle 8.4 Wrapper, JUnit 5, Mockito, and Git usage is separated from conditional Spring Boot, local-model, CLI, and editor integrations.
+- V1-V3 product outcomes are explicitly separate from dependency-ordered Delivery Gates.
+- Self-hosting development is explicitly separate from local or hybrid model execution.
+- The README entry point carries the same milestone and self-hosting terminology as the canonical Architecture and Roadmap.
+- The project overview now follows the `.ai/`-first bootstrap order and reports current foundation checklist state.
+- Structural review found sequential Delivery Gates 0 through 16, exactly one `Specified - Next` marker at Gate 4, and no superseded actual-worktree Gate 3 claim.
+- Full regression after the correction: 17 suites, 63 tests, 62 passed, 1 existing Windows symbolic-link setup skip, 0 failures, and 0 errors.
+
+## Next Task
+
+Implement Delivery Gate 4 sequential independent verification and durable RunRecord persistence. Only a successful verifier decision may promote `AWAITING_VERIFICATION` to completion.
 
 ## Session Recovery
 
-New ChatGPT sessions must be resumed with:
+Read in repository order:
 
-- `CONSTITUTION.md`
-- `AGENTS.md`
-- `PROJECT_STATE.md`
-- `CURRENT_TASK.md`
-- `SESSION_HANDOFF.md`
+1. `.ai/`
+2. `CONSTITUTION.md`
+3. `AGENTS.md`
+4. `ARCHITECTURE.md`
+5. `PROJECT_STATE.md`
+6. `ROADMAP.md`
+7. `CURRENT_TASK.md`
+8. `DECISION_LOG.md`
+9. `SESSION_HANDOFF.md`
 
-Architecture work also requires:
-
-- `ARCHITECTURE.md`
-- `DECISION_LOG.md`
-
-## Verified Commands
-
-```powershell
-Get-ChildItem -Force
-git status --short
-git -c safe.directory=C:/enhancer status --short
-git -c safe.directory=C:/enhancer branch -M main
-git -c safe.directory=C:/enhancer remote add origin https://github.com/dokang1994/Enhancer.git
-git -c safe.directory=C:/enhancer add .
-git -c safe.directory=C:/enhancer commit -m "docs: bootstrap enhancer project memory"
-git -c safe.directory=C:/enhancer push -u origin main
-gradle --version
-```
-
-The historical bootstrap commands above are retained as project history. Git metadata is now present, but destructive or publishing commands still require explicit user authority.
-
-The project-local Microsoft OpenJDK 17.0.19 and repository Gradle 8.4 Wrapper were verified on 2026-07-14. The latest `cleanTest test` run completed successfully with 6 suites and all 25 tests passing, with 0 failures, errors, or skipped tests. A global Gradle installation is not required.
-
-Git 2.54.0, GitHub CLI 2.96.0, VS Code, and Codex CLI 0.144.3 are available. Repository identity, object integrity, committed scope, remote branch, and draft PR #2 were freshly verified on 2026-07-14. Ollama is not installed.
+Do not commit or push unless the user explicitly requests it.

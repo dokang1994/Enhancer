@@ -6,16 +6,13 @@ Set up the minimal development environment for Enhancer.
 
 Do not install tools automatically unless the user asks. Detect what exists, document what is missing, and create project files that can be used once dependencies are available.
 
-## Target Environment
+## Current Required Environment
 
 - Java 17
-- Gradle
-- Spring Boot 3
+- Gradle 8.4 Wrapper
 - Git
-- VSCode
-- Codex CLI
-- Ollama
-- Qwen coder model
+
+Spring Boot 3 is a conditional future application-wiring choice and is not a current dependency. VS Code and Codex CLI are development surfaces, not required Enhancer runtime dependencies. Ollama and Qwen are possible future local-model integrations; neither is currently selected or required.
 
 ## Required Checks
 
@@ -25,8 +22,9 @@ Run or document these checks:
 powershell -ExecutionPolicy Bypass -File .\scripts\setup-dev.ps1
 .\scripts\gradle.ps1 --version
 git --version
-ollama --version
 ```
+
+Check `ollama --version` only when a future active task selects an Ollama adapter.
 
 The setup script installs Microsoft OpenJDK 17 into the ignored `.tools/` directory and uses the repository Gradle Wrapper. A global Gradle installation is not required.
 
@@ -58,7 +56,7 @@ Create a minimal "Hello Agent" entry point only after the context reader task is
 - [x] Git status works.
 - [x] Tests can run.
 - [x] Project documents are updated with actual environment state.
-- [ ] Ollama and a Qwen coder model are installed.
+- [ ] Optional local-model provider installation is selected by a future active task.
 
 ## Prompt Book
 

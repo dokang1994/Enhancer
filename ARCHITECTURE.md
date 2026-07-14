@@ -2,7 +2,7 @@
 
 ## Status
 
-The first five product architecture slices, Repository Context Reader, deterministic Task Planner, deterministic single-pass Assisted Development Loop, bounded repeated Agent Loop termination, and bounded Tool result verification evidence, are contract-verified in a simple single Gradle project. They are not yet an integrated or operational Agent runtime.
+The first five foundation slices are contract-verified in a simple single Gradle project. The self-hosting context and planning path is verified against the current `.ai/` bootstrap set and canonical Roadmap grammar. Delivery Gates 1 through 3 integrate bounded read-only Tool execution, durable integrity-checked evidence, and Tool-result-driven Agent Loop transitions. Enhancer is not yet an operational Agent runtime.
 
 The accepted product direction is Self-hosting AI Development Operating System.
 
@@ -22,24 +22,27 @@ Roadmap capability maturity is separate from the task lifecycle defined by the C
 
 Enhancer will evolve toward these major components:
 
-- Kernel: constitution, AI rules, scheduler, and core operating policies.
-- Prompt Engine: converts tasks into model-specific prompts.
-- Context Builder: reads repository documents and code context.
-- Memory: treats Git repository state as durable memory.
-- Planner: proposes next tasks from current project state.
-- Task Queue: tracks selected and pending work.
-- Prompt Builder: creates prompts for AI agents and tools.
-- Tool System: exposes file, terminal, search, Git, and external tools.
-- Skill System: stores reusable agent workflows.
-- Agent Loop: coordinates context, planning, tool use, verification, and handoff.
-- MCP and Plugin System: integrates external capabilities.
-- Agent Runtime: supports single-agent and future multi-agent operation.
-- CLI, VSCode Extension, and Web Dashboard: user-facing control surfaces.
-- SDK: allows plugins such as Oracle, MyBatis, Spring, WebSquare, React, and Vue.
+- Kernel: constitution, authorization, lifecycle, budgets, and core operating policies.
+- Workspace: governed snapshots of project files, active and selected context, Git state, diagnostics, and terminal-session metadata.
+- Project Brain: combines repository memory, decisions, workspace observations, and run history without erasing source provenance.
+- Memory: durable repository state plus explicit runtime memory records.
+- Event Bus: typed domain events and subscriptions.
+- Message Bus and IPC: envelopes, queues, delivery, replay, backpressure, and transport adapters.
+- Agent Runtime: Goal, Planner, Executor, Memory, Reflection, Retry, and Done state machine.
+- Scheduler: queues, resumes, cancels, and budgets foreground or background runs.
+- Skill Engine: validates, progressively loads, and composes reusable workflows.
+- MCP Server and Client: exposes and consumes governed Tools, resources, and memory through a standard protocol.
+- Model Gateway and Router: provider-neutral model requests, routing, budgets, redaction, and adapters.
+- Tool System: exposes file, terminal, search, Git, browser, and external capabilities behind policy.
+- Plugin SDK and Marketplace: installs traceable, owned, versioned, integrity-checked extensions.
+- Desktop, CLI, API, VSCode Extension, and Web Dashboard: user-facing control surfaces over shared application boundaries.
+- Cloud Sync: optional governed synchronization with encryption, conflict, ownership, and secret-exclusion rules.
 
 ## Operating System Model
 
 Enhancer is modeled as an AI Development Operating System:
+
+The original linear chain below is retained as early conceptual history. It is superseded by the event-driven topology that follows it.
 
 ```text
 Kernel
@@ -62,6 +65,116 @@ LLM
 ```
 
 Cursor-like behavior is treated as an application-level capability on top of Enhancer, not the identity of Enhancer itself.
+
+Refined target topology:
+
+```text
+Desktop | CLI | API | VSCode | Web
+                  |
+          Workspace + Project Brain
+                  |
+      Agent Runtime + Scheduler + Memory
+                  |
+      Event API -> Message Bus -> IPC adapters
+            |          |          |
+       Skill Engine  MCP Core  Plugin Runtime
+            |          |          |
+        Tool System + Model Gateway/Router
+                  |
+       Repository / Providers / Cloud Sync
+```
+
+## Event And Message Architecture
+
+Enhancer uses one messaging model with three responsibilities:
+
+- **Event Bus:** semantic domain event types and subscriptions, such as `GitPushObserved`, `PlanRequested`, `CodeChangeProduced`, `ReviewRequested`, `TestCompleted`, and `MergeApprovalRequested`.
+- **Message Bus:** versioned envelopes, topic or queue addressing, delivery state, idempotency, correlation, causation, retry, dead-letter, replay, and backpressure.
+- **IPC transport:** in-process, local process, or later remote transport for the same envelope contract.
+
+The first implementation MUST be deterministic and in-process. Durable queues and IPC are later adapters. Agent Runtime components publish and consume messages; they do not gain authority from an event and do not directly call the next role. Every envelope preserves provenance, authorization context, run identity, schema version, and bounded payload or evidence reference.
+
+## Workspace And Project Brain
+
+Workspace is the current observable development environment. Its snapshots may include repository files, active and selected files, Git status and diff, diagnostics, terminal-session metadata, project configuration, and later editor state. Each source has an explicit adapter and permission boundary.
+
+Project Brain is the reasoning-facing aggregate of canonical repository memory, Workspace snapshots, accepted decisions, RunRecords, and indexed knowledge. It preserves source identity and freshness; it MUST NOT turn transient editor state or external output into authority.
+
+## Agent Runtime Model
+
+The target runtime is a persisted, event-driven state machine:
+
+```text
+Goal -> Planner -> Queue -> Executor -> Evidence
+     -> Memory -> Reflection -> Retry | Verification -> Done
+```
+
+Planner, Coder, Reviewer, Tester, and Memory are roles or workers behind message contracts, not hard-coded direct-call chains. Single-agent sequential execution is implemented first. Multi-agent concurrency begins only after queue, idempotency, cancellation, RunRecord, recovery, and independent verification are operational.
+
+## MCP, Skill, And Model Boundaries
+
+MCP is a core interoperability layer, not a late plugin detail. The MCP Server exposes approved Enhancer Tools, resources, Workspace views, and memory; the MCP Client consumes external servers through the same policy, evidence, and verification pipeline.
+
+Skills are validated workflow packages whose metadata loads before full instructions. Skills may compose into explicit chains, but composition intersects rather than unions Tool permissions. The Model Gateway remains provider-neutral and routes bounded requests without allowing model output to grant authority.
+
+## Product Evolution: V1 To V3
+
+- **V1 - AI Development Experience:** Cursor-level productivity through CLI, editor, Desktop, and API surfaces backed by Workspace awareness. Enhancer remains a shared engine below those interfaces, not an IDE identity.
+- **V2 - AI Development Platform:** Agent Runtime, Event/Message Bus, Workflow Engine, Skills, Memory, MCP, Model Gateway, plugins, marketplace foundations, and self-hosting development workflows.
+- **V3 - AI Operating System:** AI Kernel, Project Brain knowledge graphs, multi-agent scheduling, privacy-aware hybrid model routing, full plugin ecosystem, governed Cloud Sync, and self-improvement safeguards.
+
+These milestones describe product outcomes. Internal dependency gates may implement Kernel or platform foundations before a polished V1 interface is released.
+
+Delivery Gates, not V1-V3 labels, define implementation order and capability promotion. A V2 platform foundation may be required internally before all V1 control surfaces are polished; this does not make V2 Operational or V1 Released.
+
+## Self-Hosting And Model-Hosting Terminology
+
+**Self-hosting development** means Enhancer uses its own governed repository context, planning, execution, evidence, verification, and recovery workflow to improve Enhancer. **Local model hosting** means running an approved model on the user's infrastructure, while **hybrid model execution** routes work across approved local and remote providers. These are separate dimensions: local inference alone is not self-hosting, and self-hosting remains provider-neutral.
+
+## AI Kernel Responsibilities
+
+The Kernel is the authority-preserving control plane below every interface. It owns:
+
+- Agent and workflow lifecycle;
+- memory, context, and resource-budget allocation;
+- locks, leases, idempotency, and concurrency coordination;
+- scheduling, queueing, cancellation, timeout, pause, resume, and recovery;
+- policy, approvals, secrets boundaries, and data classification;
+- event routing and durable run/audit identity;
+- verification gates and terminal state transitions.
+
+The Kernel does not implement every Agent or framework. Java, Python, Spring, Vue, React, Android, AWS, Security, and similar capabilities enter as governed Agent plugins, Skills, Tools, or combinations of them.
+
+## Project Brain Graph Model
+
+Git and canonical repository documents remain authoritative durable memory. Project Brain adds rebuildable graph projections with source, timestamp, version, and confidence metadata:
+
+- **Decision Graph:** proposals, accepted decisions, supersession, constraints, and affected artifacts;
+- **Architecture Graph:** systems, modules, components, ownership, interfaces, and dependency direction;
+- **Dependency Graph:** file, symbol, package, module, build, service, data, and deployment dependencies;
+- **Task Graph:** user intent, goals, plans, subtasks, blockers, approvals, issues, and delivery gates;
+- **Execution Graph:** events, Agents, Skills, Tools, models, evidence, verification, commits, PRs, tests, bugs, and outcomes.
+
+Graph edges enable questions such as which decision justifies a change, which modules and tests are affected, and which execution introduced a regression. A graph index cannot silently overwrite its source. Stale or missing projections are explicit and rebuildable from repository and RunRecord evidence.
+
+## Agent, Skill, Tool, And Workflow Separation
+
+- **Agent plugin:** a schedulable role or capability worker, such as Architect, Spring, Oracle, AWS, Security, Reviewer, or Tester.
+- **Skill:** a validated, progressively loaded workflow recipe such as creating a Spring REST API with controller, DTO, entity, repository, service, tests, and API documentation.
+- **Tool:** a policy-governed external capability such as reading files, running tests, operating Git, or invoking an API.
+- **Workflow:** an event-driven state machine that composes Agents, Skills, Tools, memory, verification, rollback, and approval gates.
+
+Marketplace installation never implies execution approval. Installed Agents and Skills declare capabilities and permissions; the active task and Kernel policy select the allowed subset.
+
+## Intent, Workflow, And Git Boundary
+
+The target user interaction may be one sentence such as "Implement login." Enhancer Shell compiles it through Intent Understanding into an inspectable Goal, dependency analysis, Project Brain queries, plan, resource budget, Agent schedule, execution graph, verification plan, and RunRecord.
+
+Workflows may represent Issue -> Branch -> Develop -> Test -> Review -> Commit -> Push -> PR -> Merge. Local reversible stages can run within approved scope. Commit, push, PR creation, merge, deployment, and other external or destructive stages require explicit approval or an equally explicit pre-authorized policy. The user need not micromanage prompts or models, but the Kernel must preserve control and auditability.
+
+## Privacy-Aware Model Routing
+
+The Model Router selects providers using required capability, data classification, repository policy, locality, cost, latency, context capacity, availability, and past evidence. Sensitive code defaults to an approved local model route; remote transmission requires policy authority. Planner, coding, review, debugging, and architecture roles may use different local or remote models without changing Agent, Skill, Tool, or verification contracts.
 
 ## Specification Architecture
 
@@ -110,13 +223,13 @@ Expected responsibility:
 
 Implemented package: `com.enhancer.context`
 
-The slice uses immutable context records, an enum as the canonical required-document order, and a filesystem reader. It has no Spring wiring because the current behavior does not require an application container.
+The slice uses immutable context records, an enum as the canonical required-document order, and a filesystem reader. The executable startup context reads the seven governed `.ai/` documents first in a stable order, followed by the eight canonical root documents. It has no Spring wiring because the current behavior does not require an application container.
 
 ## Planner Slice
 
 The first Planner slice is implemented in `com.enhancer.planner` and consumes `ProjectContext` directly.
 
-It is deterministic: an active `CURRENT_TASK.md` blocks a new proposal; otherwise the first ready phase in `ROADMAP.md` becomes one structured proposal. Proposal state is explicit and remains separate from accepted decisions and implementation state. The slice does not call an LLM, mutate documents, rank alternatives, or execute work.
+It is deterministic: an active `CURRENT_TASK.md` blocks a new proposal; otherwise the first `## Delivery Gate ...` section whose status is `Specified - Next` becomes one structured proposal. Required-capability or scope bullets become proposal scope, and exit-criteria bullets become acceptance criteria. Proposal state is explicit and remains separate from accepted decisions and implementation state. The slice does not call an LLM, mutate documents, rank alternatives, or execute work.
 
 ## Assisted Development Loop Slice
 
@@ -128,17 +241,19 @@ This slice reads repository state but does not mutate it. It does not repeat wor
 
 The repeated Agent Loop termination slice is implemented under `com.enhancer.loop`. A caller-supplied step produces the next immutable state; the loop owns only termination safety and iteration accounting.
 
-The accepted stop reasons are `COMPLETED`, `FAILED`, `MAX_ITERATIONS`, and `STAGNATED`. Defaults are 20 maximum iterations and 3 consecutive unchanged progress keys. Terminal task status is evaluated first, followed by the maximum-iteration ceiling and then stagnation. A completing or failing step is not misclassified as stalled, and `MAX_ITERATIONS` wins when the ceiling and stagnation threshold coincide. This slice does not execute Tools, build prompts, call an LLM, or perform verification.
+The accepted stop reasons are `COMPLETED`, `AWAITING_VERIFICATION`, `FAILED`, `MAX_ITERATIONS`, and `STAGNATED`. Defaults are 20 maximum iterations and 3 consecutive unchanged progress keys. Terminal task status is evaluated first, followed by the maximum-iteration ceiling and then stagnation. A terminal step is not misclassified as stalled, and `MAX_ITERATIONS` wins when the ceiling and stagnation threshold coincide. `AWAITING_VERIFICATION` is the Gate 3 success boundary: it explicitly does not mean task completion.
 
 An independent verifier will be introduced later as a sequential boundary after the single-agent loop is stable. It must not imply parallel multi-agent execution or allow a worker to verify its own result.
 
-## Tool Result Verification-Evidence Slice
+## Tool System Slices
 
-The first Tool System slice is implemented under `com.enhancer.tool` as provider-neutral result and evidence records without a Tool interface or external behavior.
+The first Tool System slice is implemented under `com.enhancer.tool` as provider-neutral result and evidence records.
 
-Every `ToolResult` carries a tool name, explicit success or failure status, an optional process exit code, and required `VerificationEvidence`. Evidence keeps a non-blank summary of at most 512 characters and the final 4096 characters of output. When output is truncated, the caller must supply a non-blank reference to the complete output; persistence behind that reference remains future work.
+Every `ToolResult` carries a tool name, explicit success or failure status, an optional process exit code, and required `VerificationEvidence`. Evidence keeps a non-blank summary of at most 512 characters and the final 4096 characters of output. When output is truncated, the caller must supply a non-blank reference to complete output; Gate 2 now makes that reference durable and integrity-checkable.
 
 Tool status and an available exit code must agree: success requires exit code zero, while failure cannot carry exit code zero. Tools without process exit codes may leave it absent. This contract bounds Agent Context growth while retaining the most recent diagnostic output and a route to full evidence.
+
+Delivery Gate 1 adds the integrated `ToolRequest` -> `ExecutionPolicy` -> `ToolExecutor` -> `ReadFileTool` -> `ToolResult` path described below. Gate 2 extends it through `EvidenceRecorder` and `EvidenceStore`; Gate 3 connects the result to Agent Loop state.
 
 ## Executable Agent Vertical Slice
 
@@ -159,16 +274,54 @@ CLI or test harness
 
 The slice is introduced in bounded increments:
 
-1. **Tool execution boundary:** define `ToolRequest`, `Tool`, `ExecutionPolicy`, and `ToolExecutor`; implement one read-only filesystem Tool and deterministic test doubles.
-2. **Evidence persistence:** store complete output behind `VerificationEvidence.fullOutputReference` and verify reference existence and integrity.
-3. **Loop integration:** make one Agent Loop iteration consume a Tool request and produce a `ToolResult`-backed state transition.
-4. **Sequential verification:** evaluate the result outside the worker step and prevent worker claims from self-verifying.
+1. **Tool execution boundary - Integrated:** define `ToolRequest`, `Tool`, `ExecutionPolicy`, and `ToolExecutor`; implement one read-only filesystem Tool and deterministic test doubles.
+2. **Evidence persistence - Integrated:** store complete output behind `VerificationEvidence.fullOutputReference` and verify reference existence and integrity.
+3. **Loop integration - Integrated:** make one Agent Loop iteration consume a Tool request and produce a `ToolResult`-backed state transition.
+4. **Sequential verification - Next:** evaluate the result outside the worker step and prevent worker claims from self-verifying.
 5. **Run record:** persist request, decision, result, evidence, verification, and stop reason for replay and diagnosis.
 6. **Runnable entry point:** expose the integrated path through a minimal CLI or application command.
 
 The first operational scenario remains deliberately small: read a temporary repository file through an allowlisted Tool, retain bounded evidence, independently verify the expected result, stop explicitly, and persist a run record. Shell mutation, LLM calls, commits, pushes, and multi-agent routing remain outside that first scenario.
 
 No new foundation contract SHOULD be added unless it has an identified integration consumer in the current or immediately following delivery gate.
+
+### Delivery Gate 1 Boundary
+
+The first `ToolRequest` uses a non-blank Tool name, a non-blank correlation identity, and an immutable string argument map. `ToolExecutor` resolves the request against a unique in-process Tool registry and applies `ExecutionPolicy` before invocation.
+
+`ExecutionPolicy` owns the normalized project root, explicit allow and deny Tool-name sets, maximum readable bytes, positive timeout, and cancellation token. Deny takes precedence over allow. Cancellation is checked before and after invocation, and execution runs behind a bounded timeout.
+
+The first concrete Tool is `ReadFileTool`. It accepts only a relative path, resolves the real target path, rejects traversal and symbolic-link escape outside the real project root, requires a regular file, enforces the size limit before reading, and decodes UTF-8 strictly. Its no-argument Gate 1 mode returns no fictional complete-output reference and therefore fails structurally if oversized output would truncate; the Gate 2 constructor supplies `EvidenceRecorder` for larger successful reads.
+
+Policy denial, unknown Tool, cancellation, timeout, malformed arguments, path escape, missing file, size overflow, invalid UTF-8, and unexpected Tool exceptions are represented as bounded failure `ToolResult` values. The Gate 1 boundary itself does not persist full evidence and does not authorize mutation; Gate 2 adds only governed evidence-root writes.
+
+### Delivery Gate 2 Boundary
+
+Gate 2 introduces `EvidenceStore`, `FileSystemEvidenceStore`, stored and resolved evidence records, an explicit `EvidenceRetentionPolicy`, and `EvidenceRecorder`. The filesystem store generates UUID run and evidence identities and exposes opaque references in the form `evidence/<run-id>/<evidence-id>`.
+
+Each evidence artifact is one versioned binary envelope containing its creation time, UTF-8 byte length, SHA-256 digest, and full output bytes. Persistence writes a temporary file in the final run directory and publishes it with an atomic move. A host that cannot provide the atomic move fails the write rather than silently weakening the contract.
+
+Resolution validates reference grammar and containment, file size, envelope header, declared length, SHA-256 digest, and strict UTF-8 decoding before returning content. Missing artifacts and corrupted artifacts use separate checked failure types. Maximum stored bytes and retention duration are explicit policy; Gate 2 performs no automatic or destructive cleanup.
+
+`EvidenceRecorder` stores output only when the bounded `VerificationEvidence` tail is truncated. A persistence-enabled `ReadFileTool` uses the request correlation identity as a previously created evidence run identity, allowing one real request to return a resolvable complete-output reference. `ExecutionPolicy` and evidence storage share the initial 64 MiB absolute implementation ceiling, while callers configure lower operational limits. The no-argument Tool remains available for the bounded Gate 1 path. Gate 2 does not add Agent Loop, verifier, CLI, Git, terminal, network, or LLM behavior.
+
+### Delivery Gate 3 Boundary
+
+Gate 3 introduces `AgentRunState` and `AgentRunController`. Run state carries an externally approved task, a caller-created pending request, the last Tool result, loop status, and a deterministic progress key. The controller owns only orchestration: it receives an existing `ToolExecutor`, immutable `ExecutionPolicy`, and external `ToolFailureClassifier`; it cannot register Tools, create or approve work, or broaden Tool authority.
+
+A successful Tool result transitions to `AWAITING_VERIFICATION`, never directly to `COMPLETED`. A terminal failure transitions to `FAILED`. A retryable failure retains its pending request and remains `RUNNING`. Canonical request/result fingerprints make identical retry outcomes reuse the existing stagnation and maximum-iteration exits without inspecting human-readable diagnostic prose.
+
+The existing bounded loop engine is shared by the original minimal state and the richer run state. Production capability remains read-only except for the evidence store's governed artifact writes. Gate 3 adds no Git, shell, network, browser, LLM, approval, independent verification, or RunRecord authority.
+
+#### Gate 3 Hardening Boundary
+
+`ApprovedTaskReader` converts the active `CURRENT_TASK.md` inside `ProjectContext` into a structured `ApprovedTask`. The document must provide a stable task ID, `In Progress` status, task description, explicit approval evidence, and an allowed Tool-name list. This is repository provenance supplied by the human-governed task document; it is not a signature and cannot override `ExecutionPolicy`. `AgentRunState.ready` rejects a request outside the approved Tool scope.
+
+Every failed `ToolResult` carries a structured `ToolFailureCode`; successful results carry none. `ToolExecutor` assigns boundary-specific codes, and the standard retry classifier retries only timeout and explicitly temporary failures. Diagnostic summaries remain human-facing and are never parsed for control decisions.
+
+`VerificationEvidence.capture` records a SHA-256 digest of complete output. Agent progress uses stable task, request, result, failure-code, exit-code, length, and content-digest fields while excluding opaque evidence locations and prose summaries. Therefore re-persisting identical content does not reset stagnation.
+
+`AgentRunState` is an immutable final class with a private constructor. Public callers can create only a ready state from `ApprovedTask` and an in-scope request; controller-owned package transitions create retry, failure, and verification-wait states. Gate 4 is the immediate consumer of these hardened contracts.
 
 ## Constitution Kernel Architecture
 

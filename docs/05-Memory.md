@@ -40,6 +40,21 @@ Add later:
 - semantic search
 - RAG
 - historical commit lookup
+- Project Brain views over repository memory, Workspace snapshots, RunRecords, and indexed knowledge
+
+## Project Brain Boundary
+
+Project Brain is a provenance-preserving aggregate for reasoning. Repository documents remain canonical memory, Workspace snapshots remain time-sensitive observations, and RunRecords remain execution history. Project Brain must retain source, freshness, and authority class instead of flattening them into untrusted hidden memory.
+
+Its graph projections are:
+
+- Decision Graph;
+- Architecture Graph;
+- Dependency Graph;
+- Task Graph;
+- Execution Graph.
+
+Every node and edge identifies its source and can be rebuilt. Graph storage does not become a second silent source of truth.
 
 ## Distillation
 

@@ -18,9 +18,9 @@ These states do not replace the Constitution task lifecycle. A task can be Compl
 
 ## Current Boundary
 
-Delivery Gate 0 is Contract Verified. Context reading, deterministic planning, loop termination, and Tool evidence records have focused tests.
+Delivery Gate 0 is Contract Verified. Delivery Gates 1 through 3 are Integrated: approved work passes through policy and the read-only Tool boundary into bounded, resolvable evidence and a Tool-result-driven loop transition.
 
-Enhancer is not yet an integrated Agent runtime. It has no concrete Tool execution, evidence persistence, independent verification, run record, CLI, or LLM call.
+Enhancer is not yet an operational Agent runtime. It has no independent verification, run record, CLI, or LLM call.
 
 ## Delivery Sequence
 
@@ -31,27 +31,31 @@ Enhancer is not yet an integrated Agent runtime. It has no concrete Tool executi
 | 3 | Agent Loop and Tool Integration | One real Tool-driven loop transition |
 | 4 | Sequential Verification and Run Record | External decision and replayable run |
 | 5 | First Operational CLI | End-to-end governed read-only Agent run |
-| 6 | Prompt and LLM Boundary | Bounded provider-backed decision step |
-| 7 | Skill and Memory Runtime | Progressive loading and governed memory |
-| 8 | Extensible Tooling | Git, terminal, MCP, plugin, provenance |
-| 9 | User Interfaces | VSCode and web control surfaces |
-| 10 | Multi-Agent and Background | Bounded delegation and resumable work |
-| 11 | Governed Self-Improvement | Human-approved change with rollback |
-| 12 | SDK and Release | Packaged, verified open-source distribution |
+| 6 | Workspace and Project Brain | Provenance-preserving development snapshot |
+| 7 | Event Bus and IPC | Typed, replayable, transport-neutral messaging |
+| 8 | Agent Runtime and Scheduler | Durable Goal-to-Done state machine |
+| 9 | Model Gateway and MCP Core | Provider routing and shared protocol capabilities |
+| 10 | Skill Engine and Memory Runtime | Composable Skills and governed memory |
+| 11 | Tooling and Plugin Marketplace | Traceable external capabilities and extensions |
+| 12 | Desktop, CLI, API and Editors | Shared control surfaces with Workspace context |
+| 13 | Multi-Agent and Background | Queue-based roles and resumable work |
+| 14 | Project Brain Graph and Cloud Sync | Provenance graphs plus optional governed synchronization |
+| 15 | Governed Self-Improvement | Human-approved change with rollback |
+| 16 | SDK and Release | Packaged, verified open-source distribution |
 
 ## Immediate Next Task
 
-Implement Delivery Gate 1 as a small test-first slice:
+Implement Delivery Gate 4 as a small test-first slice:
 
-- ToolRequest;
-- Tool;
-- ExecutionPolicy;
-- ToolExecutor;
-- read-only filesystem Tool;
-- deterministic fake Tool;
-- request-to-result integration test.
+- `VerificationRequest` and `VerificationDecision` contracts;
+- a sequential `IndependentVerifier` outside the worker step;
+- deterministic evidence validation for the first read-only scenario;
+- a durable `RunRecord` containing inputs, policy outcome, Tool result, verification, iterations, and stop reason;
+- replay and diagnostic reads through `RunRecordStore`.
 
-Do not include shell mutation, Git writes, LLM calls, evidence persistence, or the independent verifier in that first task.
+Do not include shell mutation, Git writes, LLM calls, CLI behavior, or multi-agent routing in this task.
+
+V1, V2, and V3 are product milestones layered over delivery gates: V1 is the development experience, V2 is the Agent/workflow platform, and V3 is the AI Kernel and Project Brain operating system. They are not substitutes for verified maturity states.
 
 ## Promotion Checklist
 

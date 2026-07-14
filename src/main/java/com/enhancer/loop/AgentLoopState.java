@@ -2,7 +2,8 @@ package com.enhancer.loop;
 
 import java.util.Objects;
 
-public record AgentLoopState(AgentLoopStatus status, String progressKey) {
+public record AgentLoopState(AgentLoopStatus status, String progressKey)
+        implements AgentLoopSnapshot {
     public AgentLoopState {
         Objects.requireNonNull(status, "status must not be null");
         Objects.requireNonNull(progressKey, "progressKey must not be null");

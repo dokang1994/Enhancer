@@ -1,6 +1,6 @@
 # RFC-0006: Tool Specification
 
-Status: Draft
+Status: Accepted
 
 ## Purpose
 
@@ -32,19 +32,25 @@ Capability maturity: Contract Verified
 - Only the final 4096 output characters are retained in the result.
 - Truncated output requires a reference to the complete output.
 - Result status is explicit, and an available exit code must agree with success or failure.
-- Evidence persistence, concrete Tool execution, and independent verification remain out of scope for this slice.
+- Evidence persistence and independent verification remain out of scope for the result-contract slice; concrete execution is delivered by Gate 1 below.
 
-## Next Delivery Slice
+## Integrated Delivery Slice
 
-Delivery Gate 1 introduces `ToolRequest`, `Tool`, `ExecutionPolicy`, `ToolExecutor`, one allowlisted read-only filesystem Tool, and deterministic test doubles.
+Delivery Gate 1 integrates `ToolRequest`, `Tool`, `ExecutionPolicy`, `ToolExecutor`, one allowlisted read-only filesystem Tool, and deterministic test doubles.
 
-The Gate must connect a real request to a real `ToolResult` in an integration test. Evidence persistence and the sequential independent verifier follow in later dependency gates; they are not implemented as disconnected contracts before Tool execution exists.
+The Gate connects a real request to a real `ToolResult` in an integration test.
+
+Delivery Gate 2 integrates `EvidenceStore`, atomic filesystem envelopes, UUID identities, SHA-256 and length validation, strict UTF-8 resolution, bounded retention policy, and a real large-file Tool result with a resolvable reference.
+
+Delivery Gate 3 integrates externally approved work, a prebuilt Tool request, immutable execution policy, real Tool results, retry classification, and bounded Agent Loop transitions. Tool success stops at `AWAITING_VERIFICATION`; the Gate 4 sequential independent verifier is the next consumer.
+
+Gate 3 hardening requires every failed result to carry a structured `ToolFailureCode`. Complete evidence capture also carries a SHA-256 content identity so retry progress remains stable when an opaque storage reference changes. Diagnostic prose and storage location are not control-plane identity.
 
 ## Prompt Book
 
 ### Codex Prompt
 
-Implement Delivery Gate 1 only when it is the active task. Use test-first behavior for the Tool request, policy, executor, and one read-only filesystem Tool. Avoid shell mutation, Git writes, network calls, and LLM use.
+Preserve Delivery Gates 1 through 3. Implement Gate 4 verification and RunRecord without shell mutation, Git writes, network calls, CLI wiring, or LLM use.
 
 ### Claude Prompt
 

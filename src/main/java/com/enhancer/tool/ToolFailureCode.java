@@ -1,0 +1,14 @@
+package com.enhancer.tool;
+
+public enum ToolFailureCode {
+    POLICY_DENIED,
+    TOOL_NOT_REGISTERED,
+    CANCELLED,
+    TIMED_OUT,
+    INTERRUPTED,
+    INVALID_REQUEST,
+    EXECUTION_FAILED,
+    INVALID_RESULT,
+    TEMPORARY_FAILURE,
+    TOOL_REPORTED_FAILURE
+}

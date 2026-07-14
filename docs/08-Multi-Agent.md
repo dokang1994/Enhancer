@@ -19,7 +19,7 @@ Multiple agents should collaborate by role, not by uncontrolled parallel chatter
 ## Rules
 
 - One agent must own final task state.
-- Agents communicate through structured artifacts.
+- Agents communicate through typed messages and durable artifacts, never direct peer calls once the bus exists.
 - Repository documents remain the source of truth.
 - Human approval gates destructive actions.
 - Keep sequential artifact handoff as the first model and defer parallel-agent execution until the single-agent loop is stable.
@@ -28,6 +28,13 @@ Multiple agents should collaborate by role, not by uncontrolled parallel chatter
 ## First Multi-Agent Slice
 
 Start with a sequential handoff:
+
+The early diagram below is conceptual. The target implementation routes every handoff through the Message Bus:
+
+```text
+Planner -> Queue -> Implementation -> Queue
+        -> Review -> Queue -> Test -> Memory
+```
 
 ```text
 Planner Agent
@@ -44,6 +51,8 @@ Cover:
 - handoff preserves task context
 - review can reject incomplete work
 - final state updates session handoff
+- duplicate delivery does not duplicate side effects
+- correlation, causation, provenance, and authority survive every queue hop
 
 ## Prompt Book
 

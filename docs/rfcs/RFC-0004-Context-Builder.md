@@ -1,6 +1,6 @@
 # RFC-0004: Context Builder
 
-Status: Draft
+Status: Accepted
 
 ## Purpose
 
@@ -34,6 +34,13 @@ For a login-related task, the Context Builder should include only relevant files
 ## Initial Scope
 
 Start with repository Markdown documents before code-aware context selection.
+
+The executable bootstrap context uses a deterministic 15-document order:
+
+1. seven governed `.ai/` documents in the repository-defined operational order;
+2. eight canonical root documents from `CONSTITUTION.md` through `SESSION_HANDOFF.md`.
+
+Every path is explicit and required. Missing inputs fail with their path instead of silently producing partial startup context.
 
 ## Future Scope
 

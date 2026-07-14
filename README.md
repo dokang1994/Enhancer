@@ -10,9 +10,27 @@ Enhancer는 AI Development Operating System을 만드는 Self-hosting 프로젝�
 
 ## Current Development Maturity
 
-The current Java foundation is **Contract Verified**, not yet an integrated or operational AI Development OS. Context, planning, loop termination, and Tool evidence invariants have focused tests, but concrete Tool execution, evidence persistence, Agent-Loop integration, independent verification, a CLI, and LLM invocation remain future delivery gates.
+The Java foundation contracts are **Contract Verified**, and Delivery Gates 1 through 3 integrate bounded read-only Tool execution, durable integrity-checked evidence, and Tool-result-driven Agent Loop transitions. The executable context reads `.ai/` before the canonical root documents, and the deterministic Planner is tested against the current Enhancer Delivery Gate Roadmap. Enhancer is not yet an operational AI Development OS: independent verification, RunRecord persistence, a CLI, and LLM invocation remain future delivery gates.
 
 Use `ROADMAP.md` for the canonical promotion path: Specified → Contract Verified → Integrated → Operational → Released. A completed contract task must not be presented as an operational product capability.
+
+Terminology is explicit: **self-hosting development** means Enhancer applies its governed workflow to the Enhancer repository, while **local or hybrid model execution** describes provider routing. Neither capability implies the other. V1-V3 describe product outcomes; dependency-ordered Delivery Gates define implementation and promotion order.
+
+## Enhancer OS Direction
+
+The target platform is event-driven rather than Chat -> Tool -> Stop. Enhancer OS is planned around Desktop, CLI, API, Workspace, Project Brain, Memory, MCP Server/Client, Agent Runtime, Event/Message Bus with IPC adapters, Skill Engine, Plugin Marketplace, Model Router, Scheduler, and governed Cloud Sync.
+
+Planner, Coder, Reviewer, Tester, and Memory roles will communicate through typed queues rather than direct Agent calls. Workspace will provide governed file, Git, diagnostic, terminal-metadata, and selection context. MCP will allow Claude Code, Cursor, VS Code, and other clients to share the same approved Tool and memory layer.
+
+The owner's rough 20-25% foundation estimate is directional planning context, not a verified completion percentage. Current verified maturity remains defined only by `PROJECT_STATE.md` and the delivery gates.
+
+Enhancer evolves through three product milestones:
+
+- **V1 AI Development Experience:** Cursor-level productivity through shared CLI, editor, Desktop, API, and Workspace surfaces.
+- **V2 AI Development Platform:** Agent Runtime, workflows, Skills, Memory, MCP, model routing, plugins, and marketplace foundations.
+- **V3 AI Operating System:** AI Kernel, Project Brain knowledge graphs, multi-agent scheduling, hybrid local/remote models, plugin ecosystem, governed synchronization, and self-improvement.
+
+Git and canonical Markdown remain durable truth. Project Brain adds rebuildable Decision, Architecture, Dependency, Task, and Execution graphs with provenance and freshness, enabling impact reasoning without replacing their sources.
 
 ## Open Source Operating Model
 

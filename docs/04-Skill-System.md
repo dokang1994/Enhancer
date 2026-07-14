@@ -26,6 +26,8 @@ SkillMetadata
 SkillTrigger
 SkillInstruction
 SkillRegistry
+SkillComposition
+SkillExecutionPlan
 ```
 
 ## Initial Skill Sources
@@ -44,6 +46,11 @@ SkillRegistry
 - Descriptions contain trigger conditions only, and `allowed-tools` follows least privilege.
 - Catalog entries marked Proposed are not installed, selectable, or executable.
 - `.ai/skill_rules.md` contains operational authoring rules.
+- Skills load progressively: metadata first and full instructions only after selection.
+- Composition such as Spring -> Java -> Database -> Test is explicit and preserves order, conflicts, provenance, and verification.
+- Composed permissions are intersected with task approval and execution policy; composition never unions authority.
+- A Skill is a workflow recipe, not an Agent. Agent plugins provide schedulable expertise; Skills may select Agents and Tools through the Workflow Engine.
+- A Spring REST API Skill may explicitly compose controller, DTO, entity, repository, service, test, API-documentation, and optional Git stages.
 
 ## Tests
 

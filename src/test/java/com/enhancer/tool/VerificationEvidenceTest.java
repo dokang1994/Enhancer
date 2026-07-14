@@ -23,6 +23,7 @@ class VerificationEvidenceTest {
         assertEquals(output.length(), evidence.originalOutputLength());
         assertFalse(evidence.truncated());
         assertTrue(evidence.fullOutputReference().isEmpty());
+        assertEquals(64, evidence.contentSha256().orElseThrow().length());
     }
 
     @Test
@@ -39,6 +40,22 @@ class VerificationEvidenceTest {
         assertEquals(output.length(), evidence.originalOutputLength());
         assertTrue(evidence.truncated());
         assertEquals("evidence/build-123.log", evidence.fullOutputReference().orElseThrow());
+    }
+
+    @Test
+    void contentIdentityDoesNotDependOnItsStorageReference() {
+        String output = "same-content".repeat(500);
+
+        VerificationEvidence first = VerificationEvidence.capture(
+                "first summary",
+                output,
+                Optional.of("evidence/run/first"));
+        VerificationEvidence second = VerificationEvidence.capture(
+                "second summary",
+                output,
+                Optional.of("evidence/run/second"));
+
+        assertEquals(first.contentSha256(), second.contentSha256());
     }
 
     @Test
