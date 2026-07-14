@@ -23,6 +23,17 @@ Define Tool interfaces and invocation rules.
 - Tool results must be added to agent context.
 - Tools must not bypass repository source-of-truth rules.
 
+## Accepted Result Contract Slice
+
+Implementation status: Implemented
+
+- Every Tool result includes structured verification evidence.
+- Evidence summaries are limited to 512 characters.
+- Only the final 4096 output characters are retained in the result.
+- Truncated output requires a reference to the complete output.
+- Result status is explicit, and an available exit code must agree with success or failure.
+- Evidence persistence, concrete Tool execution, and independent verification remain out of scope for this slice.
+
 ## Prompt Book
 
 ### Codex Prompt

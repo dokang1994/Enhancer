@@ -14,10 +14,13 @@ Use this prompt when implementing the current task.
 8. For observable feature or bug-fix behavior, add a failing focused test first and confirm its expected failure. For excluded changes, record the alternative verification.
 9. Implement the minimum scoped change and run fresh relevant verification commands.
 10. Update project documents if state, architecture, roadmap, task, or decisions changed.
-11. Report changed files, fresh verification evidence, and remaining risks.
+11. Promote lifecycle state only when fresh evidence supports the promotion.
+12. Report changed files, fresh verification evidence, checks not run, and remaining risks.
 
 ## Scope Rules
 
 - Do not expand beyond `CURRENT_TASK.md` without explicit user approval.
 - Do not convert proposals into decisions unless the user accepts them.
+- Do not infer destructive or external-action authority from permission to implement.
+- Do not treat the implementing Agent's claim as independent verification.
 - Do not push without explicit user approval.

@@ -21,6 +21,25 @@ public interface Tool<I, O> {
 
 Only add richer metadata when a real use case requires it.
 
+## First Result Contract Slice
+
+The bounded result records that every future Tool must return are implemented under `com.enhancer.tool`:
+
+```text
+ToolResult
+├─ toolName
+├─ status: SUCCESS or FAILURE
+├─ optional exitCode
+└─ VerificationEvidence
+   ├─ summary: at most 512 characters
+   ├─ outputTail: final 4096 characters at most
+   ├─ originalOutputLength
+   ├─ truncated
+   └─ optional fullOutputReference
+```
+
+Truncated output requires a reference to the complete output. The first slice models the reference but does not persist evidence or execute a Tool.
+
 ## Planned Tools
 
 - ReadFile
@@ -35,6 +54,9 @@ Only add richer metadata when a real use case requires it.
 - Tool execution must be explicit.
 - Tool input and output should be structured.
 - Tool failures should be represented clearly.
+- Every Tool result must include bounded verification evidence.
+- Retain the final diagnostic output rather than an unbounded full log.
+- Success with an exit code requires zero; failure cannot carry exit code zero.
 - Dangerous tools require user approval or a safety policy.
 
 ## Tests
@@ -45,6 +67,10 @@ Cover:
 - successful execution
 - failure result
 - invalid input
+- bounded short output
+- truncated output with a complete-output reference
+- rejection of truncated output without a reference
+- status and exit-code consistency
 
 ## Out Of Scope
 
@@ -52,6 +78,8 @@ Cover:
 - Network tools
 - MCP tools
 - Background execution
+- Evidence persistence
+- Independent verification
 
 ## Prompt Book
 

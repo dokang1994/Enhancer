@@ -2,6 +2,146 @@
 
 ## Accepted Decisions
 
+### 2026-07-14: Recover Existing Git Metadata Instead Of Initializing New History
+
+Status: Accepted Decision
+
+Context:
+
+- The active C:\Enhancer directory contains the project files but no .git metadata.
+- PowerShell history shows that the GitHub repository was cloned into the nested C:\Enhancer\Enhancer path.
+- Windows Recycle Bin metadata identifies the deleted nested clone and its Enhancer origin, main branch, and commit history.
+- Running git init in the active directory would create unrelated history and lose the existing repository relationship.
+
+Decision:
+
+- Prefer the existing Recycle Bin metadata, but if it is unavailable before copying, create a temporary no-checkout clone from the verified Enhancer origin and copy only its .git metadata into C:\Enhancer.
+- Preserve the available recovery source until validation completes and verify that non-.git working files are unchanged.
+- Do not perform checkout, reset, clean, commit, push, or other worktree reconciliation as part of recovery.
+
+Consequences:
+
+- Existing Git history and origin can be restored without overwriting current work; a fresh clone may be used when the deleted metadata is no longer available.
+- The restored status may show substantial local differences that must be reviewed separately.
+- Recovery success does not authorize committing or pushing those differences.
+
+### 2026-07-14: Restructure The Constitution As A Versioned Kernel
+
+Status: Accepted Decision
+
+Decision:
+
+Enhancer will replace the repetitive Constitution 1.0.0 structure with Constitution 1.1.0 as a concise normative Kernel. The revised document defines normative language, document responsibilities, lifecycle states, authorization and safety boundaries, fresh verification evidence, self-hosting safeguards, failure recovery, and an explicit amendment process.
+
+The 300-page Codex guidebook target applies to the complete repository documentation system, not to `CONSTITUTION.md` alone. Detailed procedures and component contracts remain in `AGENTS.md`, `.ai/`, `docs/`, RFCs, prompts, and Skills.
+
+Rationale:
+
+The previous Constitution repeated repository-memory and working-process rules while omitting the governance needed for safe self-hosting. A smaller but stronger Kernel reduces startup context, makes mandatory rules easier to locate, and prevents detailed implementation guidance from becoming constitutional debt.
+
+Consequences:
+
+- Constitution version increases from 1.0.0 to 1.1.0.
+- `MUST`, `SHOULD`, and `MAY` receive explicit meanings.
+- Proposal, Accepted Decision, Active Task, Implemented, Verified, Completed, and Released become distinct lifecycle states.
+- Destructive and externally visible actions require explicit authority; secrets and external content receive safety rules.
+- Constitution amendments require explicit user approval, Decision Log rationale, semantic versioning, and mirror review.
+- Technology choices and detailed procedures remain changeable through Architecture, RFCs, and task documents rather than being frozen in the Kernel.
+
+### 2026-07-14: Colocate Examples With Specifications And Tests
+
+Status: Accepted Decision
+
+Decision:
+
+Enhancer will not maintain a standalone `examples/` directory. Conceptual examples belong in the `docs/` or RFC document that owns the contract, while executable examples belong in focused tests.
+
+Rationale:
+
+The standalone Agent Loop and Tool examples were already behind the implemented contracts. Colocation reduces duplicate descriptions, prevents conceptual samples from drifting away from code, and keeps the repository structure smaller.
+
+Consequences:
+
+- Remove `examples/agent-loop.md`, `examples/tool-example.md`, `examples/skill-example.md`, and the empty-directory marker.
+- Do not treat examples as a separate source of truth.
+- New conceptual examples must be updated with their owning specification.
+- Observable executable behavior remains demonstrated and verified through tests.
+
+### 2026-07-14: Adopt External Agent Harness Patterns Selectively
+
+Status: Accepted Decision
+
+Decision:
+
+Enhancer will treat [MoAI-ADK](https://github.com/modu-ai/moai-adk) and similar agent harnesses as reference implementations rather than runtime dependencies. The first adopted pattern is an explicit terminal outcome for the deterministic Assisted Development Loop that composes repository context reading and task planning. Other useful patterns will be introduced only in the roadmap slice that owns them.
+
+Rationale:
+
+MoAI-ADK contains useful operational patterns, including explicit stop reasons, stagnation detection, bounded verification evidence, progressive Skill loading, artifact provenance, and approval-protected self-improvement. Importing its framework, provider-specific schemas, or Git workflow would duplicate Enhancer components and weaken the current document-driven approval model. Selective, provider-neutral adoption preserves the useful semantics without coupling the products.
+
+Consequences:
+
+- The current slice adds no MoAI package, command, generated configuration, or runtime dependency.
+- The first Assisted Development Loop is a single read-and-plan pass with explicit outcomes and no repository mutation.
+- Repeated-loop termination and stagnation are implemented in a separate Agent Loop slice.
+- Verification evidence belongs to the Tool System; progressive loading belongs to the Skill System; provenance belongs to Plugin and template management.
+- Token budgets follow LLM integration, while self-improvement requires snapshot, approval, verification, and rollback contracts before implementation.
+- Claude-specific configuration, automatic commits or pushes, and parallel multi-agent orchestration are not adopted.
+
+Adoption sequence:
+
+1. Implement bounded repeated-loop termination and consecutive-state stagnation detection in the Agent Loop.
+2. Define a bounded verification-evidence contract with Tool results.
+3. Add a sequential independent verifier after the single-agent loop is stable.
+4. Add progressive Skill loading while preserving the rule that Proposed catalog entries are not loadable.
+5. Add artifact provenance when Plugin or template installation exists.
+6. Add provider-neutral token and context budgets only after an LLM invocation boundary exists.
+7. Implement self-improvement only after snapshot, human approval, independent verification, and rollback contracts exist.
+
+The sequence does not conflict with `.ai/` rules: each item remains a small `CURRENT_TASK.md` scope, uses test-first verification for observable behavior, preserves proposal/decision/implemented-state separation, and cannot override the Constitution. The independent verifier begins as a sequential component, not multi-agent routing.
+
+### 2026-07-14: Use Bounded Deterministic Agent Loop Termination
+
+Status: Accepted Decision
+
+Decision:
+
+The first repeated Agent Loop uses immutable state transitions and explicit `COMPLETED`, `FAILED`, `MAX_ITERATIONS`, and `STAGNATED` stop reasons. The default ceiling is 20 executed steps. Stagnation means the progress key remains unchanged for 3 consecutive executed steps; both limits are constructor-configurable for focused tests and later runtime configuration.
+
+Rationale:
+
+Explicit bounded exits prevent silent infinite work before Tool or LLM execution is introduced. A caller-provided deterministic step keeps the loop independently testable and avoids premature Agent, Tool, prompt, or provider abstractions.
+
+Consequences:
+
+- Terminal status wins over stagnation after a step.
+- Maximum iteration wins when its ceiling and the stagnation threshold coincide.
+- Iteration count reports executed steps, including the terminal step.
+- Maximum-iteration and stagnation results retain the latest running state for diagnosis.
+- Tool execution, verification evidence, independent verification, LLM calls, and multi-agent routing remain out of scope.
+
+### 2026-07-14: Bound Tool Verification Evidence
+
+Status: Accepted Decision
+
+Decision:
+
+Every future Tool result will include structured verification evidence. The first contract limits summaries to 512 characters and retained output tails to 4096 characters. Output exceeding the tail limit must be marked truncated and include a non-blank reference to the complete output. The contract records original output length without implementing persistence.
+
+Tool result status is explicit. An optional exit code supports process-like tools while allowing file or API tools to omit it. When present, success requires exit code zero and failure requires a non-zero code.
+
+Rationale:
+
+Unbounded command output would consume future Agent Context and obscure the most useful recent diagnostics. Keeping a bounded tail plus a reference preserves inspectability without introducing an LLM-specific token model, filesystem policy, or concrete Tool implementation.
+
+Consequences:
+
+- `VerificationEvidence` is mandatory on every `ToolResult`.
+- Evidence summaries and output tails are bounded before they can enter Agent Context.
+- Truncated output cannot be represented without a reference to the complete evidence.
+- The contract does not claim that referenced evidence has been persisted or independently verified.
+- Evidence storage, real Tool execution, Agent Loop integration, and the sequential independent verifier remain separate tasks.
+
 ### 2026-07-14: Use A Repository Gradle Wrapper
 
 Status: Accepted Decision
@@ -175,7 +315,7 @@ Status: Accepted Decision
 
 Decision:
 
-Enhancer will be operated as a real open source project, not as a one-off chat artifact or documentation-only repository. The project will include documentation, code, ADRs, tests, examples, and shared prompts for Codex, Claude, and GPT.
+Enhancer will be operated as a real open source project, not as a one-off chat artifact or documentation-only repository. The project will include documentation, code, ADRs, tests, inline specification examples, and shared prompts for Codex, Claude, and GPT.
 
 Rationale:
 

@@ -10,45 +10,52 @@ Do not implement tools, LLM integration, memory, or planner in this task unless 
 
 The Agent Loop coordinates repeated work until a task is complete or a maximum iteration count is reached.
 
+The preceding Assisted Development Loop slice is intentionally smaller: it performs one read-and-plan pass and reports either `PROPOSAL_AVAILABLE` or `ACTIVE_TASK_PRESERVED`. It is orchestration groundwork, not the repeated Agent Loop described below.
+
 ## Concepts
 
-- `Agent`: owns execution behavior.
-- `AgentLoop`: runs the loop.
-- `AgentContext`: carries current state.
-- `Task`: describes the work.
-- `TaskStatus`: tracks pending, running, completed, failed.
+- `AgentLoopStep`: caller-supplied deterministic state transition.
+- `AgentLoop`: owns repeated execution and termination safety.
+- `AgentLoopState`: immutable status and progress key.
+- `AgentLoopStatus`: running, completed, or failed state.
+- `AgentLoopStopReason`: completed, failed, maximum iterations, or stagnated.
+- `AgentLoopResult`: latest state, stop reason, and executed iteration count.
 
 ## Rules
 
 - Use a `while` based loop.
 - Limit max iterations to 20.
 - Stop on task completion.
+- Stop on task failure.
 - Stop on max iteration.
+- Default to 20 maximum iterations.
+- Stop after 3 consecutive executed steps return the same progress key by default.
+- Check completed or failed status before classifying a step as stagnated.
+- Prefer maximum iteration when its ceiling and stagnation threshold coincide.
+- Count only executed steps as iterations; an initially terminal state reports zero.
 - Keep implementation deterministic and testable.
 
 ## Candidate Classes
 
 ```text
-Agent
+AgentLoopStep
 AgentLoop
-AgentContext
-Task
-TaskStatus
+AgentLoopState
+AgentLoopStatus
+AgentLoopStopReason
 AgentLoopResult
 ```
 
 ## Sequence
 
 ```text
-Task
+AgentLoopState
 ↓
 AgentLoop
 ↓
-Agent
+AgentLoopStep
 ↓
-AgentContext update
-↓
-TaskStatus check
+AgentLoopStatus and progress check
 ```
 
 ## Tests
@@ -58,6 +65,8 @@ Cover:
 - completes before max iteration
 - stops at max iteration
 - failed task stops the loop
+- unchanged progress stops as stagnated
+- terminal status wins over stagnation
 - iteration count is reported
 
 ## Out Of Scope

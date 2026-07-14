@@ -2,58 +2,53 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Configure a reproducible Windows development environment with Java 17 and a repository Gradle Wrapper.
+Review, commit, push, and publish the accumulated governed Agent Loop foundation changes.
 
 ## Context
 
-The project requires Java 17 and Gradle, but the current machine exposes only Java 8 and has no global Gradle command. Git, VS Code, and Codex CLI are available; Ollama is not installed. The user explicitly requested project environment setup.
+The user explicitly requested a Git commit and push after Git metadata recovery. The worktree contains the accumulated Assisted Development Loop, bounded repeated Agent Loop, Tool verification evidence model, Constitution 1.1 governance, examples cleanup, and synchronized project documentation.
 
 ## Acceptance Criteria
 
-- A Java 17 JDK is installed and `java -version` reports Java 17 in a refreshed environment.
-- Gradle Wrapper files are stored in the repository.
-- `gradlew.bat --version` uses Java 17.
-- `gradlew.bat test` compiles the project and passes all tests.
-- Git, VS Code, Codex CLI, and Ollama availability is documented accurately.
-- Environment, project state, changelog, and session handoff documents are updated.
+- Review tracked and untracked changes before staging.
+- Exclude the nested metadata-only Enhancer repository and unrelated IMPROVEMENTS.md.
+- Scan the intended scope for credentials, placeholders, and diff whitespace errors.
+- Run the complete test suite with fresh evidence.
+- Create an agent branch rather than committing directly to main.
+- Stage only explicit intended paths.
+- Commit with a concise message and inspect the committed file list.
+- Push the branch to origin with upstream tracking.
+- Open a draft pull request to main and report its URL.
+- Leave no intended commit-scope changes unstaged after publication.
 
 ## Out Of Scope
 
-- Spring Boot application wiring
-- Ollama installation and model download
-- CI/CD configuration
-- Product feature implementation
-- Commit or push
-
-## Baseline
-
-- Branch: `main`
-- Base commit: `fc392bb6e83d69824638442ffc34aa92de9e263c`
-- Existing uncommitted documentation changes from the approved improvements task are preserved.
+- Committing or deleting Enhancer/
+- Committing or editing IMPROVEMENTS.md
+- Merging the pull request
+- Pushing directly to main
+- Rewriting history
 
 ## Approval
 
-Approved by the user on 2026-07-14 through the explicit environment-configuration request.
+Commit and push were explicitly requested by the user on 2026-07-14. Draft PR publication follows the repository GitHub publish workflow.
 
 ## Implementation Result
 
-- Added the Gradle 8.4 Wrapper to the repository.
-- Added `scripts/setup-dev.ps1` to install a project-local Microsoft OpenJDK 17 runtime and run verification.
-- Added `scripts/gradle.ps1` to run Wrapper commands with the local JDK.
-- Ignored `.tools/` so downloaded runtimes and distributions are never committed.
-- Detected Git, VS Code, and Codex CLI; Ollama remains unavailable and out of scope.
+Pending branch creation, explicit staging, commit, push, and draft pull request.
 
 ## Verification
 
-- Java: Microsoft OpenJDK 17.0.19 LTS.
-- Gradle: Wrapper 8.4 running on Java 17.0.19.
-- Tests: `BUILD SUCCESSFUL`; all 5 JUnit tests passed/up-to-date.
-- Setup entry point: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup-dev.ps1` exited successfully.
+- Pre-publication review found no credential patterns in the intended scope.
+- No implementation placeholders were found; the only TODO match is descriptive content in docs/09-Background-Agent.md.
+- git diff --check passed.
+- GitHub CLI 2.96.0 is authenticated as dokang1994.
+- Repository is dokang1994/Enhancer and default branch is main.
 
 ## Next Task
 
-Define the smallest Assisted Development Loop slice that connects Repository Context Reader and Task Planner without task execution or LLM integration.
+After publication, review the draft pull request. The next product implementation remains the sequential independent verifier.

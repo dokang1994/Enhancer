@@ -6,45 +6,73 @@
 
 ## Completed Work
 
-- Preserved the approved Skill and evidence-rule document changes from the prior task.
-- Added Gradle 8.4 Wrapper files.
-- Added `scripts/setup-dev.ps1` and `scripts/gradle.ps1`.
-- Configured Microsoft OpenJDK 17.0.19 under ignored `.tools/` without requiring administrator privileges.
-- Updated environment, state, README, changelog, task, and decision documents.
+- Replaced Constitution 1.0.0 with a 1.1.0 normative Kernel and consolidated repeated guidance into 15 sections.
+- Added explicit document responsibilities, seven lifecycle states, scoped authorization, fresh-evidence rules, self-hosting safeguards, failure recovery, supply-chain boundaries, and protected amendment rules.
+- Recorded that the long-form guidebook is distributed across Architecture, RFCs, decisions, prompts, Skills, and operating documents rather than loaded as one Constitution.
+- Synchronized `AGENTS.md`, `.ai/`, RFC-0001, session prompts, architecture, decision, roadmap, state, task, and changelog documents.
+- Restored `C:\Enhancer\.git` from a validated fresh no-checkout clone after the matching Recycle Bin item became unavailable.
+- Reconstructed the Git index from HEAD without updating the worktree and verified that all non-.git files were byte-identical across recovery.
 
 ## Current State
 
-- Repository Context Reader and deterministic Task Planner are implemented.
+- Repository Context Reader, deterministic Task Planner, both Agent Loop slices, and bounded Tool result evidence are implemented.
+- Constitution 1.1.0 governance is implemented; automatic self-modification remains disabled until its prerequisites exist.
+- No standalone examples directory exists; `docs/`, RFCs, and tests own relevant examples.
+- MoAI-ADK is not a dependency; Tool execution, independent verification, LLM integration, and self-improvement remain deferred.
 - Java 17 and Wrapper-based builds are reproducible on Windows.
 - Global Gradle is not required.
-- Git, VS Code, and Codex CLI are available.
+- Git metadata is restored at `C:\Enhancer\.git`; repository root is `C:/Enhancer`, branch is `main`, and HEAD is `cb058c4b2ccfaa520acec7359b87ca11733c3ad3`.
+- Origin is `https://github.com/dokang1994/Enhancer.git`; current changes remain uncommitted.
 - Ollama is not installed.
 
 ## Verification
 
-- `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup-dev.ps1`: passed.
-- Gradle 8.4 ran on Microsoft OpenJDK 17.0.19.
-- `gradlew.bat --no-daemon test`: `BUILD SUCCESSFUL`; all 5 tests passed/up-to-date.
+- Constitution structure: 262 lines, 15 required sections, 0 missing.
+- Normative terms: 59 MUST, 9 SHOULD, 11 MAY occurrences.
+- Constitution implementation-detail search: 0 matches for the retired Gordon, Cursor-ratio, and specific stack terms.
+- `.\scripts\gradle.ps1 cleanTest test`: `BUILD SUCCESSFUL`.
+- Fresh test results: 6 suites, 25 tests, 0 failures, 0 errors, 0 skipped.
+- Independent review was not performed; the next product task implements its sequential contract.
+- `git fsck --full`: passed with no object errors.
+- Non-.git recovery manifest: 1,479 files and matching aggregate SHA-256 before and after metadata copy.
+- Recovery-time normalized status: 25 tracked changes and 18 untracked paths.
+- Final status: 25 tracked changes, 18 untracked paths, 0 staged changes, and `HEAD...origin/main` at 0 ahead and 0 behind.
+- `git diff --check`: passed.
+- Post-recovery `.\scripts\gradle.ps1 cleanTest test`: `BUILD SUCCESSFUL`; 6 suites, 25 tests, 0 failures, 0 errors, 0 skipped.
 
 ## Next Task
 
-Define the smallest Assisted Development Loop slice without task execution or LLM integration.
+Define a sequential independent verifier over structured Tool results without real Tool execution or multi-agent routing.
 
 ## Relevant Files
 
-- `gradlew`
-- `gradlew.bat`
-- `gradle/wrapper/gradle-wrapper.jar`
-- `gradle/wrapper/gradle-wrapper.properties`
-- `scripts/setup-dev.ps1`
-- `scripts/gradle.ps1`
-- `docs/01-Development-Environment.md`
+- `CONSTITUTION.md`
+- `AGENTS.md`
+- `.ai/constitution.md`
+- `.ai/prompt_rules.md`
+- `.ai/workflow.md`
+- `README.md`
+- `ARCHITECTURE.md`
+- `PROJECT_STATE.md`
+- `CURRENT_TASK.md`
+- `DECISION_LOG.md`
+- `ROADMAP.md`
+- `docs/rfcs/RFC-0001-Constitution.md`
+- `prompts/SESSION_START.md`
+- `prompts/IMPLEMENT_TASK.md`
+- `prompts/SESSION_CLOSE.md`
 
 ## Remaining Risks
 
 - The setup script targets Windows PowerShell and x64 Microsoft OpenJDK.
 - Ollama and Qwen remain unconfigured.
+- The restored worktree has substantial uncommitted changes that must be reviewed before any commit.
+- The untracked `C:\Enhancer\Enhancer` directory contains the metadata-only original repository that reappeared after the Recycle Bin source vanished. It has the same origin, `main` branch, and HEAD and was preserved rather than deleted.
+- The temporary no-checkout recovery clone remains under the user Temp directory as a fallback.
 - Gradle 8.4 reports that deprecated features will need review before a future Gradle 9 upgrade.
+- Stagnation currently detects consecutive unchanged progress keys, not oscillating multi-state cycles.
+- Complete-output references are modeled but not persisted or checked for existence.
+- Constitution checks were performed by the implementing Agent and are not independent verification.
 
 ## Instructions For Next Agent
 
@@ -52,3 +80,4 @@ Define the smallest Assisted Development Loop slice without task execution or LL
 2. Run `.\scripts\gradle.ps1 test` for verification.
 3. Run `scripts\setup-dev.ps1` first if `.tools/` is absent.
 4. Do not commit or push unless explicitly requested.
+5. Review `git status` and `git diff` before deciding how to preserve the recovered worktree changes.

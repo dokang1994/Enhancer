@@ -32,7 +32,8 @@ After reading, report:
 4. Relevant design decisions
 5. Files that may be changed in this session
 6. Risks
-7. Work plan
+7. Current lifecycle state and required authority
+8. Work plan
 
 ## Constraint
 
