@@ -35,6 +35,9 @@ risk
 - Human approval is required before implementation.
 - Proposals are not accepted decisions.
 - Accepted decisions must be written to `DECISION_LOG.md`.
+- Prefer tasks that fit one focused failing-check, minimal-change, passing-verification cycle.
+- Do not force a commit per task; follow `AGENTS.md` and user instruction.
+- Do not emit vague tasks, cross-task shorthand, or placeholders.
 
 ## Tests
 

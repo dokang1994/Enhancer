@@ -40,6 +40,10 @@ SkillRegistry
 - Skills are instructions, not hidden memory.
 - Skills must be stored in the repository.
 - Skills must not override `CONSTITUTION.md`.
+- Implemented Skills use `skills/<name>/SKILL.md` with the RFC-0007 frontmatter schema.
+- Descriptions contain trigger conditions only, and `allowed-tools` follows least privilege.
+- Catalog entries marked Proposed are not installed, selectable, or executable.
+- `.ai/skill_rules.md` contains operational authoring rules.
 
 ## Tests
 
@@ -49,6 +53,8 @@ Cover:
 - missing skill file
 - skill priority
 - invalid skill metadata
+- unknown permission value
+- Proposed catalog entry cannot be loaded
 
 ## Prompt Book
 

@@ -14,6 +14,8 @@ Find:
 
 ## Required Output
 
+Review with technical rigor rather than performative agreement. Ask when material context is unclear, challenge incorrect feedback with evidence, and require fresh verification before accepting completion claims.
+
 Report findings first.
 
 For each finding, include:

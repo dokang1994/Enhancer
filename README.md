@@ -56,6 +56,21 @@ prompts/SESSION_START.md를 읽고 실행해라.
 - `.ai/architecture.md`
 - `.ai/prompt_rules.md`
 - `.ai/memory.md`
+- `.ai/skill_rules.md`
+
+## Development Setup
+
+Windows에서 관리자 권한이나 전역 Gradle 설치 없이 개발 환경을 구성한다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\setup-dev.ps1
+```
+
+이 명령은 공식 Microsoft OpenJDK 17을 Git에서 제외된 `.tools/`에 구성하고 Gradle Wrapper 8.4로 전체 테스트를 실행한다. 이후에는 다음 명령을 사용한다.
+
+```powershell
+.\scripts\gradle.ps1 test
+```
 
 ## Resume In A New ChatGPT Session
 
@@ -167,6 +182,7 @@ Enhancer/
 ├─ docs/
 ├─ examples/
 ├─ prompts/
+├─ skills/
 ├─ .ai/
 └─ src/
 ```

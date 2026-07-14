@@ -22,13 +22,19 @@ Do not install tools automatically unless the user asks. Detect what exists, doc
 Run or document these checks:
 
 ```powershell
-java -version
-gradle --version
+powershell -ExecutionPolicy Bypass -File .\scripts\setup-dev.ps1
+.\scripts\gradle.ps1 --version
 git --version
 ollama --version
 ```
 
-If Gradle is unavailable, prefer adding a Gradle wrapper later instead of assuming global Gradle.
+The setup script installs Microsoft OpenJDK 17 into the ignored `.tools/` directory and uses the repository Gradle Wrapper. A global Gradle installation is not required.
+
+For later builds, run:
+
+```powershell
+.\scripts\gradle.ps1 test
+```
 
 ## Project Bootstrap Target
 
@@ -47,11 +53,12 @@ Create a minimal "Hello Agent" entry point only after the context reader task is
 
 ## Checklist
 
-- [ ] Java 17 available.
-- [ ] Gradle or Gradle wrapper available.
-- [ ] Git status works.
-- [ ] Tests can run.
-- [ ] Project documents are updated with actual environment state.
+- [x] Java 17 available through project-local setup.
+- [x] Gradle Wrapper 8.4 available.
+- [x] Git status works.
+- [x] Tests can run.
+- [x] Project documents are updated with actual environment state.
+- [ ] Ollama and a Qwen coder model are installed.
 
 ## Prompt Book
 

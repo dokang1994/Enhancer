@@ -41,6 +41,13 @@ Add later:
 - RAG
 - historical commit lookup
 
+## Distillation
+
+- Promote project-independent repeatable procedures to validated Skills.
+- Promote repository-specific rationale and pitfalls to `DECISION_LOG.md` or an ADR.
+- Do not duplicate promoted knowledge in `SESSION_HANDOFF.md`.
+- Keep embeddings and vector search deferred until Markdown memory is reliable.
+
 ## Tests
 
 Cover:

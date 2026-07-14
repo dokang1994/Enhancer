@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-07-14
+
+- Added a Gradle 8.4 Wrapper and project-local Microsoft OpenJDK 17 setup workflow.
+- Added PowerShell setup and Gradle launcher scripts for reproducible Windows builds.
+- Verified compilation and all 5 tests through the Wrapper.
+- Accepted repository Skill authoring and least-privilege permission rules.
+- Added memory distillation, test-first scope, and fresh verification evidence requirements.
+- Added a Proposed-only Skill catalog without activating unimplemented Skills.
+- Synchronized `.ai`, session prompts, README, architecture chapters, and related RFCs.
+- Clarified that verification cycles do not require automatic commits.
+
 ## 2026-07-12
 
 - Implemented the deterministic Repository Task Planner.

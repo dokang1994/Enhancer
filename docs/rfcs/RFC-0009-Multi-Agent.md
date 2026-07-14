@@ -1,6 +1,6 @@
 # RFC-0009: Multi Agent
 
-Status: Draft
+Status: Accepted
 
 ## Purpose
 
@@ -29,6 +29,13 @@ Document Writer
 - One owner must control final task state.
 - Reviewer can reject incomplete work.
 - Human owner approves push and major direction.
+
+## Reference Alignment
+
+- Sequential handoff remains the first implementation model; parallel execution is deferred.
+- Review stages may later use repository-defined requesting-review and receiving-review Skills.
+- Agents exchange structured repository artifacts and keep coordination context small.
+- Parallel-agent and subagent-driven workflows remain future references until the single-agent loop is stable.
 
 ## Prompt Book
 
