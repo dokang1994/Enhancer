@@ -22,6 +22,8 @@ Multiple agents should collaborate by role, not by uncontrolled parallel chatter
 - Agents communicate through structured artifacts.
 - Repository documents remain the source of truth.
 - Human approval gates destructive actions.
+- Keep sequential artifact handoff as the first model and defer parallel-agent execution until the single-agent loop is stable.
+- Proposed review Skills are references only until their validated `SKILL.md` files exist.
 
 ## First Multi-Agent Slice
 

@@ -75,6 +75,8 @@ Status: Accepted
 - `RFC-0011`: Plugin SDK
 - `RFC-0012`: Self Improvement
 
+The operating rules in RFC-0002, RFC-0005, RFC-0007, RFC-0008, and RFC-0009 were accepted on 2026-07-14. Skill workflow implementation and runtime loading remain future work.
+
 ## Phase 0: Project Memory
 
 Status: Implemented

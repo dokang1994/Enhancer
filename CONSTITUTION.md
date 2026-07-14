@@ -298,7 +298,8 @@ Enhancer/
 ├─ coding_rules.md
 ├─ architecture.md
 ├─ prompt_rules.md
-└─ memory.md
+├─ memory.md
+└─ skill_rules.md
 ```
 
 ---
@@ -335,8 +336,16 @@ Session Handoff 작성
 - 테스트 성공
 - 문서 최신화
 - Task 완료
-- Commit 완료
+- Commit이 필요한 세션이면 완료
 - Session Handoff 작성
+- 완료·통과·수정을 선언하기 전에 관련 검증 명령을 실제로 실행하고 출력을 확인한다. 가정, 부분 확인, 과거 실행 결과만으로 완료를 선언하지 않는다.
+
+---
+
+# Review
+
+- 중요한 변경은 리뷰 후 승인한다.
+- 리뷰는 수행적 동의가 아니라 기술적 엄밀성을 우선한다. 불명확하면 구현 전에 질문하고, 잘못된 제안에는 근거를 제시하며, 수정된 결과로 이해를 증명한다.
 
 ---
 
@@ -369,7 +378,7 @@ Task가 완료되면 `CURRENT_TASK.md`를 수정한다.
 3. 작게 개발한다.
 4. Test한다.
 5. 문서를 수정한다.
-6. Commit한다.
+6. 필요한 경우에만 Commit한다.
 7. Session Handoff를 남긴다.
 
 ---

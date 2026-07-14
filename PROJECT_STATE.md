@@ -2,7 +2,7 @@
 
 ## Updated At
 
-2026-07-12
+2026-07-14
 
 ## Repository State
 
@@ -12,8 +12,8 @@
 - Upstream: `origin/main`
 - Last commit: local bootstrap commit exists. Check the current hash with `git -c safe.directory=C:/enhancer log -1 --oneline`.
 - Product implementation: Repository Context Reader and deterministic Task Planner implemented and verified
-- Tests: 5 focused JUnit 5 tests pass
-- Build system: Gradle build files added; no Gradle wrapper or global Gradle available
+- Tests: 5 focused JUnit 5 tests pass through the repository Wrapper
+- Build system: Gradle 8.4 Wrapper with Java 17 toolchain
 
 ## Implemented
 
@@ -47,12 +47,19 @@
 - Planner blocks proposals for active tasks and selects the first ready roadmap phase after task completion.
 - Task proposals preserve explicit `PROPOSAL` state and structured scope, acceptance criteria, exclusions, and risks.
 - Planner and Context Reader compilation and all 5 tests verified with Corretto 17 and Gradle 8.4.
+- Accepted Skill authoring, memory-distillation, test-first, and evidence-before-claims operating rules.
+- Added `.ai/skill_rules.md` and synchronized session prompts, README, architecture chapters, and accepted RFCs.
+- Added `skills/INDEX.md` as a Proposed-only catalog; no Skill implementation is currently Available.
+- Resolved commit-policy wording so focused verification cycles do not force commits.
+- Added Gradle 8.4 Wrapper files and reproducible Windows setup scripts.
+- Configured Microsoft OpenJDK 17.0.19 under ignored `.tools/` and verified the Wrapper uses it.
+- Verified all 5 JUnit 5 tests through `scripts/gradle.ps1`.
 
 ## Not Implemented
 
 - CI/CD
-- Gradle wrapper
 - Self-hosting development loop
+- Skill loading runtime and implemented `SKILL.md` workflows
 
 ## Specification Documents
 
@@ -123,8 +130,6 @@ GitHub remote `origin` is configured for `https://github.com/dokang1994/Enhancer
 
 Push to `origin/main` succeeded.
 
-`gradle --version` failed because Gradle is not installed or not available on PATH.
+The project-local Microsoft OpenJDK 17.0.19 and repository Gradle 8.4 Wrapper were verified on 2026-07-14. `powershell -ExecutionPolicy Bypass -File .\scripts\setup-dev.ps1` completed successfully and all 5 tests passed. A global Gradle installation is not required.
 
-`java -version` failed because Java is not on PATH. Corretto 17 was found at `C:\Users\dokan\.jdks\corretto-17.0.14` and used through a session-local `JAVA_HOME`.
-
-The cached Gradle 8.4 distribution was used to run `gradle --no-daemon test`; compilation and all 5 tests passed on 2026-07-12.
+Git 2.54.0, VS Code, and Codex CLI 0.144.3 are available. Ollama is not installed.

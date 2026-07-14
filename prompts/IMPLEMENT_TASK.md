@@ -11,10 +11,10 @@ Use this prompt when implementing the current task.
 5. Confirm the active task from `CURRENT_TASK.md`.
 6. Inspect the relevant code and tests.
 7. Make the smallest coherent change that satisfies the task.
-8. Add or update focused tests when applicable.
-9. Run relevant verification commands.
+8. For observable feature or bug-fix behavior, add a failing focused test first and confirm its expected failure. For excluded changes, record the alternative verification.
+9. Implement the minimum scoped change and run fresh relevant verification commands.
 10. Update project documents if state, architecture, roadmap, task, or decisions changed.
-11. Report changed files, tests, and remaining risks.
+11. Report changed files, fresh verification evidence, and remaining risks.
 
 ## Scope Rules
 

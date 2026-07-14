@@ -10,10 +10,14 @@ Read and execute this prompt before ending a Codex work session.
 4. Update `CURRENT_TASK.md`.
 5. Update `ARCHITECTURE.md` if architecture changed.
 6. Add new accepted decisions to `DECISION_LOG.md`.
-7. Update `SESSION_HANDOFF.md` so the next agent can continue.
-8. Update `CHANGELOG.md` when notable changes occurred.
-9. Review the final diff.
-10. Commit with an appropriate message if commit is part of this session.
+7. Distill reusable knowledge:
+   - Promote project-independent repeatable procedures to a validated Skill and synchronize `skills/INDEX.md`.
+   - Promote repository-specific rationale or pitfalls to `DECISION_LOG.md` or an ADR.
+   - Do not duplicate promoted knowledge in `SESSION_HANDOFF.md`.
+8. Update `SESSION_HANDOFF.md` so the next agent can continue.
+9. Update `CHANGELOG.md` when notable changes occurred.
+10. Review the final diff.
+11. Commit with an appropriate message if commit is part of this session.
 
 ## Final Report
 

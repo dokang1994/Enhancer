@@ -12,6 +12,7 @@ Read `.ai/` first, then read these files in order:
 0. `.ai/architecture.md`
 0. `.ai/prompt_rules.md`
 0. `.ai/memory.md`
+0. `.ai/skill_rules.md`
 1. `CONSTITUTION.md`
 2. `AGENTS.md`
 3. `ARCHITECTURE.md`

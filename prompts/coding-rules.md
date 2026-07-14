@@ -11,6 +11,7 @@ You are a senior developer building Enhancer.
 - Keep implementation minimal.
 - Keep code compilable.
 - Add focused tests.
+- For observable feature and bug-fix behavior, write and observe a failing test before the minimum implementation. Use and report an appropriate alternative for documentation-only or behavior-preserving mechanical changes.
 - Update documents after work.
 - Suggest the next task after completion.
 

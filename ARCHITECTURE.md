@@ -115,6 +115,9 @@ It is deterministic: an active `CURRENT_TASK.md` blocks a new proposal; otherwis
 - Do not add abstractions until duplication or complexity justifies them.
 - Accepted decisions belong in `DECISION_LOG.md`.
 - Implemented state belongs in `PROJECT_STATE.md`.
+- Repository Skills use validated `skills/<name>/SKILL.md` definitions with least-privilege capability categories.
+- Proposed Skill catalog entries are design candidates, not loadable runtime inputs.
+- Repository memory is distilled by promoting reusable procedures to Skills and repository-local rationale to decisions or ADRs.
 
 ## Open Architecture Questions
 

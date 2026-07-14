@@ -16,3 +16,5 @@ For architecture work, also read:
 
 - `ARCHITECTURE.md`
 - `DECISION_LOG.md`
+
+- Promotion boundary: a project-independent repeatable procedure becomes a Skill under RFC-0007; repository-specific rationale or pitfalls remain repository memory. Execute distillation through `prompts/SESSION_CLOSE.md` Step 7.

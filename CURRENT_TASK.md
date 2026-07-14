@@ -6,43 +6,53 @@ Completed
 
 ## Task
 
-Implement the smallest deterministic Task Planner slice.
+Configure a reproducible Windows development environment with Java 17 and a repository Gradle Wrapper.
 
 ## Context
 
-The Repository Context Reader is complete. The next self-hosting capability is proposing a candidate task from repository state without using chat memory or an LLM.
+The project requires Java 17 and Gradle, but the current machine exposes only Java 8 and has no global Gradle command. Git, VS Code, and Codex CLI are available; Ollama is not installed. The user explicitly requested project environment setup.
 
 ## Acceptance Criteria
 
-- The Planner accepts `ProjectContext` as its only input.
-- An active current task prevents a new proposal.
-- A completed current task allows a proposal from the first ready roadmap phase.
-- A proposal contains title, reason, scope, acceptance criteria, out-of-scope items, risks, and explicit `PROPOSAL` state.
-- Missing or ambiguous planning information is reported as risk or a clear planning error.
-- Focused tests cover ready roadmap, active task, and incomplete roadmap information.
-- Project documents are updated after implementation.
+- A Java 17 JDK is installed and `java -version` reports Java 17 in a refreshed environment.
+- Gradle Wrapper files are stored in the repository.
+- `gradlew.bat --version` uses Java 17.
+- `gradlew.bat test` compiles the project and passes all tests.
+- Git, VS Code, Codex CLI, and Ollama availability is documented accurately.
+- Environment, project state, changelog, and session handoff documents are updated.
 
 ## Out Of Scope
 
-- LLM integration or natural-language generation
-- Automatic task acceptance or execution
-- Writing proposals to repository documents
-- Multiple proposal ranking
-- Task Queue
-- Tool execution
-- Push to remote repository
+- Spring Boot application wiring
+- Ollama installation and model download
+- CI/CD configuration
+- Product feature implementation
+- Commit or push
+
+## Baseline
+
+- Branch: `main`
+- Base commit: `fc392bb6e83d69824638442ffc34aa92de9e263c`
+- Existing uncommitted documentation changes from the approved improvements task are preserved.
+
+## Approval
+
+Approved by the user on 2026-07-14 through the explicit environment-configuration request.
 
 ## Implementation Result
 
-- Added `RepositoryTaskPlanner` under `com.enhancer.planner`.
-- Added immutable structured proposals with explicit `PROPOSAL` state.
-- Added active-task protection and first-ready-roadmap-phase selection.
-- Added risks for incomplete roadmap planning information.
+- Added the Gradle 8.4 Wrapper to the repository.
+- Added `scripts/setup-dev.ps1` to install a project-local Microsoft OpenJDK 17 runtime and run verification.
+- Added `scripts/gradle.ps1` to run Wrapper commands with the local JDK.
+- Ignored `.tools/` so downloaded runtimes and distributions are never committed.
+- Detected Git, VS Code, and Codex CLI; Ollama remains unavailable and out of scope.
 
 ## Verification
 
-- Compiled with Corretto 17 and Gradle 8.4.
-- All 5 JUnit 5 tests passed with `gradle --no-daemon test` on 2026-07-12.
+- Java: Microsoft OpenJDK 17.0.19 LTS.
+- Gradle: Wrapper 8.4 running on Java 17.0.19.
+- Tests: `BUILD SUCCESSFUL`; all 5 JUnit tests passed/up-to-date.
+- Setup entry point: `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup-dev.ps1` exited successfully.
 
 ## Next Task
 

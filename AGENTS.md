@@ -41,6 +41,8 @@ When context conflicts, follow this order:
 - Keep proposals, accepted decisions, and implemented state separate.
 - Update project documents whenever implementation state, task state, roadmap, architecture, or decisions change.
 - Run relevant tests before reporting completion when tests exist.
+- For observable feature and bug-fix behavior, use test-first unless `CURRENT_TASK.md` documents a justified alternative verification.
+- Never claim completion, passing checks, or a fix without fresh verification output.
 - Report any test that could not be run and why.
 - Commit only when the user requests it or the session-close prompt explicitly requires it.
 - Do not push unless the user explicitly asks.
@@ -67,6 +69,7 @@ A task is done only when:
 - `CURRENT_TASK.md` reflects task completion or the next task.
 - `SESSION_HANDOFF.md` is updated.
 - Commit is completed when required.
+- Fresh verification evidence has been read before completion is claimed.
 
 ## Session Close Requirements
 
