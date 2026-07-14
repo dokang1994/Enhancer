@@ -2,6 +2,7 @@
 
 ## 2026-07-14
 
+- Published the governed Agent Loop foundation on `agent/governed-agent-loop-foundations` and opened draft PR #2.
 - Restored Git metadata for the active C:\Enhancer worktree from a validated no-checkout clone without changing working files.
 - Reconstructed the Git index from HEAD, verified repository identity and object integrity, and confirmed all 1,479 non-.git files remained byte-identical.
 - Replaced Constitution 1.0.0 with a deduplicated, versioned 1.1.0 normative Kernel.

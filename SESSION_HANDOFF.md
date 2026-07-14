@@ -12,6 +12,8 @@
 - Synchronized `AGENTS.md`, `.ai/`, RFC-0001, session prompts, architecture, decision, roadmap, state, task, and changelog documents.
 - Restored `C:\Enhancer\.git` from a validated fresh no-checkout clone after the matching Recycle Bin item became unavailable.
 - Reconstructed the Git index from HEAD without updating the worktree and verified that all non-.git files were byte-identical across recovery.
+- Published the governed Agent Loop foundation as feature commit `a58b0df` on `agent/governed-agent-loop-foundations`.
+- Pushed the branch and opened draft pull request #2 at `https://github.com/dokang1994/Enhancer/pull/2`.
 
 ## Current State
 
@@ -21,8 +23,9 @@
 - MoAI-ADK is not a dependency; Tool execution, independent verification, LLM integration, and self-improvement remain deferred.
 - Java 17 and Wrapper-based builds are reproducible on Windows.
 - Global Gradle is not required.
-- Git metadata is restored at `C:\Enhancer\.git`; repository root is `C:/Enhancer`, branch is `main`, and HEAD is `cb058c4b2ccfaa520acec7359b87ca11733c3ad3`.
-- Origin is `https://github.com/dokang1994/Enhancer.git`; current changes remain uncommitted.
+- Git metadata is restored at `C:\Enhancer\.git`; repository root is `C:/Enhancer` and the active branch is `agent/governed-agent-loop-foundations`.
+- Origin is `https://github.com/dokang1994/Enhancer.git`; the branch tracks `origin/agent/governed-agent-loop-foundations`.
+- The intended feature scope is committed and published in draft PR #2. `Enhancer/` and `IMPROVEMENTS.md` remain deliberately untracked.
 - Ollama is not installed.
 
 ## Verification
@@ -39,6 +42,9 @@
 - Final status: 25 tracked changes, 18 untracked paths, 0 staged changes, and `HEAD...origin/main` at 0 ahead and 0 behind.
 - `git diff --check`: passed.
 - Post-recovery `.\scripts\gradle.ps1 cleanTest test`: `BUILD SUCCESSFUL`; 6 suites, 25 tests, 0 failures, 0 errors, 0 skipped.
+- Pre-publication credential, placeholder, and whitespace checks passed.
+- Feature commit `a58b0df`: 41 files, 1,339 insertions, 528 deletions.
+- Remote branch and draft PR #2 creation succeeded.
 
 ## Next Task
 
@@ -66,7 +72,8 @@ Define a sequential independent verifier over structured Tool results without re
 
 - The setup script targets Windows PowerShell and x64 Microsoft OpenJDK.
 - Ollama and Qwen remain unconfigured.
-- The restored worktree has substantial uncommitted changes that must be reviewed before any commit.
+- Only the deliberately excluded `Enhancer/` and `IMPROVEMENTS.md` paths remain outside the published commit scope.
+- Draft PR #2 still requires review and merge approval.
 - The untracked `C:\Enhancer\Enhancer` directory contains the metadata-only original repository that reappeared after the Recycle Bin source vanished. It has the same origin, `main` branch, and HEAD and was preserved rather than deleted.
 - The temporary no-checkout recovery clone remains under the user Temp directory as a fallback.
 - Gradle 8.4 reports that deprecated features will need review before a future Gradle 9 upgrade.
@@ -80,4 +87,4 @@ Define a sequential independent verifier over structured Tool results without re
 2. Run `.\scripts\gradle.ps1 test` for verification.
 3. Run `scripts\setup-dev.ps1` first if `.tools/` is absent.
 4. Do not commit or push unless explicitly requested.
-5. Review `git status` and `git diff` before deciding how to preserve the recovered worktree changes.
+5. Review draft PR #2 before merge.
