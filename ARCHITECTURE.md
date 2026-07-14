@@ -2,9 +2,21 @@
 
 ## Status
 
-The first five product architecture slices, Repository Context Reader, deterministic Task Planner, deterministic single-pass Assisted Development Loop, bounded repeated Agent Loop termination, and bounded Tool result verification evidence, are implemented as a simple single Gradle project.
+The first five product architecture slices, Repository Context Reader, deterministic Task Planner, deterministic single-pass Assisted Development Loop, bounded repeated Agent Loop termination, and bounded Tool result verification evidence, are contract-verified in a simple single Gradle project. They are not yet an integrated or operational Agent runtime.
 
 The accepted product direction is Self-hosting AI Development Operating System.
+
+## Capability Maturity Model
+
+Roadmap capability maturity is separate from the task lifecycle defined by the Constitution:
+
+- **Specified:** the capability has an accepted responsibility, boundary, and exit criteria.
+- **Contract Verified:** core types, invariants, and focused tests exist without claiming end-to-end behavior.
+- **Integrated:** the capability is connected to its real upstream and downstream collaborators in an integration test.
+- **Operational:** a supported entry point can execute the capability against a real project with observable evidence and documented recovery.
+- **Released:** the operational capability is intentionally distributed with release evidence.
+
+`Implemented` MUST NOT be used by itself for roadmap capability state because it hides the difference between a contract and an operational product. `PROJECT_STATE.md` records verified current maturity; `ROADMAP.md` records the next promotion gate.
 
 ## Target Architecture
 
@@ -127,6 +139,36 @@ The first Tool System slice is implemented under `com.enhancer.tool` as provider
 Every `ToolResult` carries a tool name, explicit success or failure status, an optional process exit code, and required `VerificationEvidence`. Evidence keeps a non-blank summary of at most 512 characters and the final 4096 characters of output. When output is truncated, the caller must supply a non-blank reference to the complete output; persistence behind that reference remains future work.
 
 Tool status and an available exit code must agree: success requires exit code zero, while failure cannot carry exit code zero. Tools without process exit codes may leave it absent. This contract bounds Agent Context growth while retaining the most recent diagnostic output and a route to full evidence.
+
+## Executable Agent Vertical Slice
+
+The next architecture objective is an executable vertical slice, not another isolated contract. It promotes the existing contracts through the following connected flow:
+
+```text
+CLI or test harness
+→ Repository Context
+→ Plan or approved task
+→ Agent Run Controller
+→ Tool Request and Execution Policy
+→ Concrete Tool
+→ Tool Result and Evidence Store
+→ Sequential Independent Verifier
+→ Loop State and Stop Reason
+→ Durable Run Record
+```
+
+The slice is introduced in bounded increments:
+
+1. **Tool execution boundary:** define `ToolRequest`, `Tool`, `ExecutionPolicy`, and `ToolExecutor`; implement one read-only filesystem Tool and deterministic test doubles.
+2. **Evidence persistence:** store complete output behind `VerificationEvidence.fullOutputReference` and verify reference existence and integrity.
+3. **Loop integration:** make one Agent Loop iteration consume a Tool request and produce a `ToolResult`-backed state transition.
+4. **Sequential verification:** evaluate the result outside the worker step and prevent worker claims from self-verifying.
+5. **Run record:** persist request, decision, result, evidence, verification, and stop reason for replay and diagnosis.
+6. **Runnable entry point:** expose the integrated path through a minimal CLI or application command.
+
+The first operational scenario remains deliberately small: read a temporary repository file through an allowlisted Tool, retain bounded evidence, independently verify the expected result, stop explicitly, and persist a run record. Shell mutation, LLM calls, commits, pushes, and multi-agent routing remain outside that first scenario.
+
+No new foundation contract SHOULD be added unless it has an identified integration consumer in the current or immediately following delivery gate.
 
 ## Constitution Kernel Architecture
 

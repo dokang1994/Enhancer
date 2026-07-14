@@ -14,6 +14,9 @@
 - Reconstructed the Git index from HEAD without updating the worktree and verified that all non-.git files were byte-identical across recovery.
 - Published the governed Agent Loop foundation as feature commit `a58b0df` on `agent/governed-agent-loop-foundations`.
 - Pushed the branch and opened draft pull request #2 at `https://github.com/dokang1994/Enhancer/pull/2`.
+- Reclassified current Java capabilities as Contract Verified rather than operational.
+- Replaced the broad phase list with 12 dependency-ordered delivery gates and explicit promotion evidence.
+- Redirected the next product task from an isolated independent verifier to Delivery Gate 1, the bounded read-only Tool Execution Boundary.
 
 ## Current State
 
@@ -21,11 +24,14 @@
 - Constitution 1.1.0 governance is implemented; automatic self-modification remains disabled until its prerequisites exist.
 - No standalone examples directory exists; `docs/`, RFCs, and tests own relevant examples.
 - MoAI-ADK is not a dependency; Tool execution, independent verification, LLM integration, and self-improvement remain deferred.
+- Delivery Gate 0 is Contract Verified. No complete Agent run or supported runtime entry point exists yet.
+- New contracts must name their current or next-gate integration consumer.
 - Java 17 and Wrapper-based builds are reproducible on Windows.
 - Global Gradle is not required.
 - Git metadata is restored at `C:\Enhancer\.git`; repository root is `C:/Enhancer` and the active branch is `agent/governed-agent-loop-foundations`.
 - Origin is `https://github.com/dokang1994/Enhancer.git`; the branch tracks `origin/agent/governed-agent-loop-foundations`.
 - The intended feature scope is committed and published in draft PR #2. `Enhancer/` and `IMPROVEMENTS.md` remain deliberately untracked.
+- The roadmap realignment documents are committed and pushed to the existing Agent branch; draft PR #2 is updated but remains unmerged and in Draft state.
 - Ollama is not installed.
 
 ## Verification
@@ -45,10 +51,14 @@
 - Pre-publication credential, placeholder, and whitespace checks passed.
 - Feature commit `a58b0df`: 41 files, 1,339 insertions, 528 deletions.
 - Remote branch and draft PR #2 creation succeeded.
+- Roadmap structure check: Delivery Gates 0 through 12 are present with no missing number.
+- Planning consistency check: no active document directs the next task to an isolated independent verifier.
+- Post-roadmap `.\scripts\gradle.ps1 cleanTest test`: `BUILD SUCCESSFUL`; 6 suites, 25 tests, 0 failures, 0 errors, 0 skipped.
+- The roadmap publication commit and remote PR membership were verified after push.
 
 ## Next Task
 
-Define a sequential independent verifier over structured Tool results without real Tool execution or multi-agent routing.
+Implement Delivery Gate 1: `ToolRequest`, `Tool`, `ExecutionPolicy`, `ToolExecutor`, one allowlisted read-only filesystem Tool, deterministic test doubles, and a request-to-result integration test.
 
 ## Relevant Files
 
@@ -64,6 +74,10 @@ Define a sequential independent verifier over structured Tool results without re
 - `DECISION_LOG.md`
 - `ROADMAP.md`
 - `docs/rfcs/RFC-0001-Constitution.md`
+- `docs/rfcs/RFC-0006-Tool-Specification.md`
+- `docs/03-Tool-System.md`
+- `docs/10-Roadmap.md`
+- `docs/11-Architecture.md`
 - `prompts/SESSION_START.md`
 - `prompts/IMPLEMENT_TASK.md`
 - `prompts/SESSION_CLOSE.md`
@@ -79,6 +93,7 @@ Define a sequential independent verifier over structured Tool results without re
 - Gradle 8.4 reports that deprecated features will need review before a future Gradle 9 upgrade.
 - Stagnation currently detects consecutive unchanged progress keys, not oscillating multi-state cycles.
 - Complete-output references are modeled but not persisted or checked for existence.
+- Capability maturity remains Contract Verified until real Tool execution and integration evidence exist.
 - Constitution checks were performed by the implementing Agent and are not independent verification.
 
 ## Instructions For Next Agent

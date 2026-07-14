@@ -2,6 +2,10 @@
 
 ## 2026-07-14
 
+- Replaced ambiguous implementation roadmap labels with capability maturity and 12 dependency-ordered delivery gates.
+- Redirected the next product task from an isolated verifier contract to a real read-only Tool Execution Boundary and E2E promotion track.
+- Added explicit integration consumers, evidence, and exit criteria for post-foundation contracts.
+- Published the delivery-gate roadmap realignment to draft PR #2.
 - Published the governed Agent Loop foundation on `agent/governed-agent-loop-foundations` and opened draft PR #2.
 - Restored Git metadata for the active C:\Enhancer worktree from a validated no-checkout clone without changing working files.
 - Reconstructed the Git index from HEAD, verified repository identity and object integrity, and confirmed all 1,479 non-.git files remained byte-identical.
