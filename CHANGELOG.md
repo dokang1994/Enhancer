@@ -2,6 +2,7 @@
 
 ## 2026-07-14
 
+- Published the Gate 1-3 governed Agent execution foundation, self-hosting recovery, long-term vision, and documentation alignment to `origin/main` in commit `3fcda4c`.
 - Corrected Gate 3 evidence wording to distinguish the governed temporary-repository integration test from separate actual-Enhancer Context and Planner regressions.
 - Separated current build dependencies from planned Spring Boot, local-model, CLI, and editor integrations.
 - Clarified product milestones versus dependency-ordered Delivery Gates and distinguished self-hosting development from local or hybrid model execution.

@@ -52,9 +52,9 @@
 ## Current State
 
 - Branch: `main`, tracking `origin/main`.
-- Base commit: `fc4525820ccc94a1409e811a792585b059de1e11`.
+- Gate 1-3 delivery commit: `3fcda4c` (`feat: integrate governed agent execution foundations`).
 - Pull request #2 is merged.
-- Gate 1 through Gate 3 and self-hosting recovery work is local and uncommitted; no commit or push was requested.
+- Gate 1 through Gate 3, self-hosting recovery, long-term vision, and documentation-alignment work is published on `origin/main`.
 - Gate 0 foundation contracts remain Contract Verified.
 - Gate 0 context and planning contracts are now verified against the current repository format.
 - Gate 1 is Integrated but not Operational.

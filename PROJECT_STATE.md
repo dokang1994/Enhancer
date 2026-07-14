@@ -8,9 +8,9 @@
 
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
-- Current base commit: `fc4525820ccc94a1409e811a792585b059de1e11`.
+- Gate 1-3 delivery commit: `3fcda4c` (`feat: integrate governed agent execution foundations`).
 - Pull request #2 has been merged into `main`.
-- Delivery Gates 1 through 3 plus self-hosting compatibility recovery changes are present locally and are not committed or pushed.
+- Delivery Gates 1 through 3, self-hosting compatibility recovery, long-term vision, and documentation-alignment changes are published on `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
 - Production source: 47 Java files and 1,807 lines.
 - Test source: 17 Java files and 1,573 lines.
