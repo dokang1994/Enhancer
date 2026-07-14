@@ -6,21 +6,28 @@
 
 ## Repository State
 
-- Git repository: initialized in `C:\enhancer`, but `git status` requires `safe.directory` configuration because the sandbox user differs from the repository owner.
-- Current branch: `main`
-- Remote repository: `origin` -> `https://github.com/dokang1994/Enhancer.git`
-- Upstream: `origin/main`
-- Last commit: local bootstrap commit exists. Check the current hash with `git -c safe.directory=C:/enhancer log -1 --oneline`.
-- Product implementation: Repository Context Reader and deterministic Task Planner implemented and verified
-- Tests: 5 focused JUnit 5 tests pass through the repository Wrapper
+- Git worktree metadata: restored into `C:\Enhancer\.git` from a validated no-checkout clone without changing working files.
+- Repository root: `C:/Enhancer`.
+- Current branch: `agent/governed-agent-loop-foundations`.
+- Upstream: `origin/agent/governed-agent-loop-foundations`.
+- Base commit from `main`: `cb058c4b2ccfaa520acec7359b87ca11733c3ad3`.
+- Published feature commit: `a58b0df`.
+- Publication-state commit: `78484b0`.
+- Remote: `origin` -> `https://github.com/dokang1994/Enhancer.git` for fetch and push.
+- Draft pull request: `https://github.com/dokang1994/Enhancer/pull/2`.
+- The governed Agent Loop foundation and roadmap realignment are committed and pushed on the current Agent branch; draft PR #2 contains the published work.
+- Product maturity: Delivery Gate 0 is Contract Verified for Repository Context Reader, deterministic Task Planner, single-pass Assisted Development Loop, bounded repeated Agent Loop termination, and bounded Tool result verification evidence.
+- Product integration: no complete Agent run, concrete Tool execution, evidence persistence, supported entry point, or LLM call exists yet.
+- Governance maturity: Constitution 1.1.0 and the repository operating workflow are Operational for human-directed repository development; automated enforcement remains future work.
+- Tests: 25 focused JUnit 5 tests pass through the repository Wrapper
 - Build system: Gradle 8.4 Wrapper with Java 17 toolchain
 
-## Implemented
+## Verified Repository Work
 
 - Repository-backed project memory document set.
 - Session start, implementation, review, and close prompt templates.
 - Self-hosting project vision recorded in `CONSTITUTION.md`, `ROADMAP.md`, and `DECISION_LOG.md`.
-- Required repository structure created: `docs/`, `examples/`, `prompts/`, `.ai/`, and `src/`.
+- Required repository structure created: `docs/`, `prompts/`, `.ai/`, and `src/`.
 - AI-only operating notes created under `.ai/`.
 - `.ai/` startup rule documented: always read `.ai/` before starting work.
 - `.ai/` startup rule recorded as an accepted decision in `DECISION_LOG.md`.
@@ -28,7 +35,7 @@
 - Document Driven Development workflow recorded in `CONSTITUTION.md`, `AGENTS.md`, `.ai/workflow.md`, `prompts/IMPLEMENT_TASK.md`, and `DECISION_LOG.md`.
 - Codex-ready chapter specifications created under `docs/`.
 - Shared coding, architecture, and review prompts created under `prompts/`.
-- Concept examples created under `examples/`.
+- Conceptual examples are colocated with their owning specifications, and executable examples are represented by tests.
 - Open source operating model recorded in `CONSTITUTION.md`, `README.md`, `ROADMAP.md`, and `DECISION_LOG.md`.
 - Explicit ChatGPT session resume protocol created in `prompts/CHATGPT_SESSION_RESUME.md`.
 - `docs/` chapters now include Prompt Book sections for Codex, Claude, and GPT.
@@ -54,11 +61,45 @@
 - Added Gradle 8.4 Wrapper files and reproducible Windows setup scripts.
 - Configured Microsoft OpenJDK 17.0.19 under ignored `.tools/` and verified the Wrapper uses it.
 - Verified all 5 JUnit 5 tests through `scripts/gradle.ps1`.
+- Deterministic Assisted Development Loop implemented under `com.enhancer.loop`.
+- The loop composes context reading and planning once, returning `PROPOSAL_AVAILABLE` or `ACTIVE_TASK_PRESERVED` without mutating the repository.
+- Result invariants prevent contradictory outcome and proposal payload combinations.
+- Added 3 focused loop tests; all 8 repository tests pass with 0 failures, errors, or skipped tests.
+- A JShell smoke test against the actual repository documents returned `PROPOSAL_AVAILABLE` for `Phase 4: Assisted Development Loop`.
+- Accepted selective, provider-neutral adoption of useful external agent-harness patterns without adding a MoAI runtime dependency.
+- Confirmed the staged pattern sequence does not conflict with `.ai/` when each slice preserves minimal scope, test-first verification, proposal-state separation, and least privilege.
+- Implemented bounded repeated Agent Loop termination under `com.enhancer.loop` with `COMPLETED`, `FAILED`, `MAX_ITERATIONS`, and `STAGNATED` reasons.
+- Added immutable state, caller-supplied deterministic steps, default 20-iteration and 3-unchanged-step limits, and explicit termination precedence.
+- Added 9 focused Agent Loop tests; all 17 repository tests pass with 0 failures, errors, or skipped tests.
+- Implemented `VerificationEvidence`, `ToolResult`, and `ToolResultStatus` under `com.enhancer.tool` without real Tool execution.
+- Bounded evidence summaries to 512 characters and output tails to 4096 characters; truncated output requires a complete-output reference.
+- Added optional exit-code handling with explicit Tool success and failure consistency rules.
+- Added 8 focused Tool contract tests; all 25 repository tests pass with 0 failures, errors, or skipped tests.
+- Removed the standalone `examples/` directory after its conceptual files drifted behind implemented contracts.
+- Updated the Constitution, README, architecture, decision log, roadmap, and state documents so `docs/` and tests own examples.
+- Restructured `CONSTITUTION.md` from a repetitive 1.0.0 guide into a concise 1.1.0 normative Kernel.
+- Defined Proposal, Accepted Decision, Active Task, Implemented, Verified, Completed, and Released as separate lifecycle states.
+- Added explicit local, destructive, external-action, Git, secret, untrusted-content, and least-privilege authorization boundaries.
+- Added fresh evidence requirements, incomplete-verification reporting, and independent-verifier principles.
+- Added bounded self-hosting requirements covering approval, recovery, limits, evidence, review, rollback, and stop conditions.
+- Added protected Constitution amendments with user approval, semantic versioning, decision records, mirror review, and verification.
+- Synchronized `AGENTS.md`, `.ai/`, RFC-0001, and session prompts while delegating implementation detail to Architecture and RFCs.
+- Recovered the existing GitHub repository relationship into the active workspace through a validated no-checkout clone and metadata-only copy.
+- Reconstructed the copied no-checkout index from HEAD without updating working files.
+- Verified all 1,479 non-.git files remained byte-identical across Git metadata recovery.
+- Published the accumulated Agent Loop, Tool evidence, Constitution 1.1, and documentation changes on an Agent branch and opened draft PR #2.
+- Replaced ambiguous roadmap capability status with Specified, Contract Verified, Integrated, Operational, and Released.
+- Defined 12 dependency-ordered delivery gates from Tool execution through open-source release.
+- Changed the next product task from an isolated independent-verifier contract to the bounded Tool Execution Boundary.
+- Required new contracts to identify an integration consumer and promotion evidence.
 
-## Not Implemented
+## Not Integrated Or Operational
 
 - CI/CD
-- Self-hosting development loop
+- Prompt, concrete Tool execution, Tool-result/Agent-Loop integration, supported CLI, and LLM integration
+- Sequential independent verifier
+- Tool request, execution policy, Tool interface, concrete Tool execution, and evidence persistence
+- Durable RunRecord storage and replay
 - Skill loading runtime and implemented `SKILL.md` workflows
 
 ## Specification Documents
@@ -120,16 +161,8 @@ git -c safe.directory=C:/enhancer push -u origin main
 gradle --version
 ```
 
-`git status --short` failed because Git requires `safe.directory` configuration for `C:\enhancer` in the sandbox user.
+The historical bootstrap commands above are retained as project history. Git metadata is now present, but destructive or publishing commands still require explicit user authority.
 
-`git -c safe.directory=C:/enhancer status --short` succeeded.
+The project-local Microsoft OpenJDK 17.0.19 and repository Gradle 8.4 Wrapper were verified on 2026-07-14. The latest `cleanTest test` run completed successfully with 6 suites and all 25 tests passing, with 0 failures, errors, or skipped tests. A global Gradle installation is not required.
 
-Initial local commit succeeded. Use `git -c safe.directory=C:/enhancer log -1 --oneline` for the current hash.
-
-GitHub remote `origin` is configured for `https://github.com/dokang1994/Enhancer.git`.
-
-Push to `origin/main` succeeded.
-
-The project-local Microsoft OpenJDK 17.0.19 and repository Gradle 8.4 Wrapper were verified on 2026-07-14. `powershell -ExecutionPolicy Bypass -File .\scripts\setup-dev.ps1` completed successfully and all 5 tests passed. A global Gradle installation is not required.
-
-Git 2.54.0, VS Code, and Codex CLI 0.144.3 are available. Ollama is not installed.
+Git 2.54.0, GitHub CLI 2.96.0, VS Code, and Codex CLI 0.144.3 are available. Repository identity, object integrity, committed scope, remote branch, and draft PR #2 were freshly verified on 2026-07-14. Ollama is not installed.

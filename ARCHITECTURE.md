@@ -2,9 +2,21 @@
 
 ## Status
 
-The first two product architecture slices, Repository Context Reader and deterministic Task Planner, are implemented as a simple single Gradle project.
+The first five product architecture slices, Repository Context Reader, deterministic Task Planner, deterministic single-pass Assisted Development Loop, bounded repeated Agent Loop termination, and bounded Tool result verification evidence, are contract-verified in a simple single Gradle project. They are not yet an integrated or operational Agent runtime.
 
 The accepted product direction is Self-hosting AI Development Operating System.
+
+## Capability Maturity Model
+
+Roadmap capability maturity is separate from the task lifecycle defined by the Constitution:
+
+- **Specified:** the capability has an accepted responsibility, boundary, and exit criteria.
+- **Contract Verified:** core types, invariants, and focused tests exist without claiming end-to-end behavior.
+- **Integrated:** the capability is connected to its real upstream and downstream collaborators in an integration test.
+- **Operational:** a supported entry point can execute the capability against a real project with observable evidence and documented recovery.
+- **Released:** the operational capability is intentionally distributed with release evidence.
+
+`Implemented` MUST NOT be used by itself for roadmap capability state because it hides the difference between a contract and an operational product. `PROJECT_STATE.md` records verified current maturity; `ROADMAP.md` records the next promotion gate.
 
 ## Target Architecture
 
@@ -106,9 +118,68 @@ The first Planner slice is implemented in `com.enhancer.planner` and consumes `P
 
 It is deterministic: an active `CURRENT_TASK.md` blocks a new proposal; otherwise the first ready phase in `ROADMAP.md` becomes one structured proposal. Proposal state is explicit and remains separate from accepted decisions and implementation state. The slice does not call an LLM, mutate documents, rank alternatives, or execute work.
 
+## Assisted Development Loop Slice
+
+The first Assisted Development Loop slice is implemented in `com.enhancer.loop`. It composes `ProjectContextReader` and `RepositoryTaskPlanner` in one deterministic pass. Its result has an explicit terminal outcome: either `PROPOSAL_AVAILABLE` or `ACTIVE_TASK_PRESERVED`.
+
+This slice reads repository state but does not mutate it. It does not repeat work, build prompts, execute tools, call an LLM, approve a proposal, or perform Git operations. Maximum-iteration and stagnation termination are implemented separately in the repeated Agent Loop slice below.
+
+## Repeated Agent Loop Termination Slice
+
+The repeated Agent Loop termination slice is implemented under `com.enhancer.loop`. A caller-supplied step produces the next immutable state; the loop owns only termination safety and iteration accounting.
+
+The accepted stop reasons are `COMPLETED`, `FAILED`, `MAX_ITERATIONS`, and `STAGNATED`. Defaults are 20 maximum iterations and 3 consecutive unchanged progress keys. Terminal task status is evaluated first, followed by the maximum-iteration ceiling and then stagnation. A completing or failing step is not misclassified as stalled, and `MAX_ITERATIONS` wins when the ceiling and stagnation threshold coincide. This slice does not execute Tools, build prompts, call an LLM, or perform verification.
+
+An independent verifier will be introduced later as a sequential boundary after the single-agent loop is stable. It must not imply parallel multi-agent execution or allow a worker to verify its own result.
+
+## Tool Result Verification-Evidence Slice
+
+The first Tool System slice is implemented under `com.enhancer.tool` as provider-neutral result and evidence records without a Tool interface or external behavior.
+
+Every `ToolResult` carries a tool name, explicit success or failure status, an optional process exit code, and required `VerificationEvidence`. Evidence keeps a non-blank summary of at most 512 characters and the final 4096 characters of output. When output is truncated, the caller must supply a non-blank reference to the complete output; persistence behind that reference remains future work.
+
+Tool status and an available exit code must agree: success requires exit code zero, while failure cannot carry exit code zero. Tools without process exit codes may leave it absent. This contract bounds Agent Context growth while retaining the most recent diagnostic output and a route to full evidence.
+
+## Executable Agent Vertical Slice
+
+The next architecture objective is an executable vertical slice, not another isolated contract. It promotes the existing contracts through the following connected flow:
+
+```text
+CLI or test harness
+→ Repository Context
+→ Plan or approved task
+→ Agent Run Controller
+→ Tool Request and Execution Policy
+→ Concrete Tool
+→ Tool Result and Evidence Store
+→ Sequential Independent Verifier
+→ Loop State and Stop Reason
+→ Durable Run Record
+```
+
+The slice is introduced in bounded increments:
+
+1. **Tool execution boundary:** define `ToolRequest`, `Tool`, `ExecutionPolicy`, and `ToolExecutor`; implement one read-only filesystem Tool and deterministic test doubles.
+2. **Evidence persistence:** store complete output behind `VerificationEvidence.fullOutputReference` and verify reference existence and integrity.
+3. **Loop integration:** make one Agent Loop iteration consume a Tool request and produce a `ToolResult`-backed state transition.
+4. **Sequential verification:** evaluate the result outside the worker step and prevent worker claims from self-verifying.
+5. **Run record:** persist request, decision, result, evidence, verification, and stop reason for replay and diagnosis.
+6. **Runnable entry point:** expose the integrated path through a minimal CLI or application command.
+
+The first operational scenario remains deliberately small: read a temporary repository file through an allowlisted Tool, retain bounded evidence, independently verify the expected result, stop explicitly, and persist a run record. Shell mutation, LLM calls, commits, pushes, and multi-agent routing remain outside that first scenario.
+
+No new foundation contract SHOULD be added unless it has an identified integration consumer in the current or immediately following delivery gate.
+
+## Constitution Kernel Architecture
+
+`CONSTITUTION.md` is the stable normative Kernel, not the complete Codex guidebook. It defines identity, document authority, lifecycle states, authorization boundaries, verification principles, self-hosting safeguards, and amendment governance.
+
+Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts belong in RFCs and `docs/`; active and implemented state belong in `CURRENT_TASK.md` and `PROJECT_STATE.md`; repeatable invocations belong in prompts and validated Skills. The 300-page documentation target is distributed across this document system so every session does not need to load the entire guidebook as constitutional context.
+
 ## Architectural Principles
 
 - Repository documents are product inputs, not only project management notes.
+- Keep conceptual examples with their owning specification and executable examples in tests; do not maintain a separate `examples/` directory.
 - Keep the first implementation minimal.
 - Prefer Java 17, Spring Boot 3, Gradle, JUnit5, and Mockito.
 - Do not introduce DDD early.
@@ -118,6 +189,7 @@ It is deterministic: an active `CURRENT_TASK.md` blocks a new proposal; otherwis
 - Repository Skills use validated `skills/<name>/SKILL.md` definitions with least-privilege capability categories.
 - Proposed Skill catalog entries are design candidates, not loadable runtime inputs.
 - Repository memory is distilled by promoting reusable procedures to Skills and repository-local rationale to decisions or ADRs.
+- External agent harnesses are reference implementations, not runtime dependencies. Selected patterns must be restated as provider-neutral Enhancer contracts and introduced only when the owning roadmap slice is active.
 
 ## Open Architecture Questions
 

@@ -9,23 +9,28 @@ Define the kernel rules of Enhancer.
 ## Scope
 
 - project purpose
-- project philosophy
-- repository-centered memory
-- session operation
-- source-of-truth priority
-- definition of done
+- normative authority and terminology
+- document responsibilities and context priority
+- lifecycle state model
+- authorization and safety boundaries
+- fresh verification and independent evidence
+- self-hosting and recovery governance
+- repository-centered memory and session operation
+- definition of done and amendment governance
 
 ## Role In Enhancer
 
-This RFC maps to `CONSTITUTION.md`.
+This RFC maps to `CONSTITUTION.md` version 1.1.0.
 
-The Constitution is the Kernel Rule of the project. Every AI agent must read it before planning, coding, reviewing, or updating documents.
+The Constitution is the concise Kernel Rule of the project. The long-form guidebook is distributed across Architecture, RFCs, decisions, prompts, Skills, and operating documents rather than duplicated in the Constitution. Every AI Agent must read the canonical Constitution before planning, coding, reviewing, or updating documents.
+
+Constitution amendments require explicit user approval, a bounded active task, a recorded accepted decision, semantic versioning, mirror review, fresh verification, and state and handoff updates.
 
 ## Prompt Book
 
 ### Codex Prompt
 
-Read `CONSTITUTION.md` and this RFC before editing. If a requested change conflicts with the Constitution, stop and report the conflict.
+Read `CONSTITUTION.md` and this RFC before editing. Identify the lifecycle state, authority, and evidence required. If a requested change conflicts with the Constitution, stop and report the conflict.
 
 ### Claude Prompt
 

@@ -18,6 +18,7 @@ Read and execute this prompt before ending a Codex work session.
 9. Update `CHANGELOG.md` when notable changes occurred.
 10. Review the final diff.
 11. Commit with an appropriate message if commit is part of this session.
+12. Confirm the recorded lifecycle state is supported by fresh evidence and does not imply release.
 
 ## Final Report
 
@@ -25,6 +26,7 @@ Report:
 
 - Changed files
 - Verification commands and results
+- Lifecycle state and checks not run
 - Commit hash, if committed
 - Remaining risks or next task
 
