@@ -31,10 +31,20 @@ public final class RunEvidenceGraphProducer {
             ResolvedRunRecord run,
             Instant projectedAt,
             List<GraphNode> additionalNodes) {
+        return produce(snapshot, run, projectedAt, additionalNodes, List.of());
+    }
+
+    public ProjectBrainGraph produce(
+            WorkspaceSnapshot snapshot,
+            ResolvedRunRecord run,
+            Instant projectedAt,
+            List<GraphNode> additionalNodes,
+            List<GraphEdge> additionalEdges) {
         Objects.requireNonNull(snapshot, "snapshot must not be null");
         Objects.requireNonNull(run, "run must not be null");
         Objects.requireNonNull(projectedAt, "projectedAt must not be null");
         Objects.requireNonNull(additionalNodes, "additionalNodes must not be null");
+        Objects.requireNonNull(additionalEdges, "additionalEdges must not be null");
         requireSameApprovedTask(snapshot.approvedTaskRevision(), run);
 
         ApprovedTaskRevision revision = snapshot.approvedTaskRevision();
@@ -69,15 +79,19 @@ public final class RunEvidenceGraphProducer {
         nodes.add(new GraphNode(reference, GraphNodeKind.EXECUTION, executionProvenance));
         nodes.addAll(additionalNodes);
 
+        List<GraphEdge> edges = new ArrayList<>(1 + additionalEdges.size());
+        edges.add(new GraphEdge(
+                revision.taskId(),
+                GraphEdgeKind.RECORDED_AS,
+                reference,
+                executionProvenance));
+        edges.addAll(additionalEdges);
+
         return ProjectBrainGraph.project(
                 snapshot.snapshotId(),
                 projectedAt,
                 nodes,
-                List.of(new GraphEdge(
-                        revision.taskId(),
-                        GraphEdgeKind.RECORDED_AS,
-                        reference,
-                        executionProvenance)));
+                edges);
     }
 
     private static GraphElementFreshness freshness(WorkspaceSourceObservation observation) {

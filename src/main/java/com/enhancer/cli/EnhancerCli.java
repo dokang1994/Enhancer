@@ -10,6 +10,7 @@ import com.enhancer.brain.RepositoryMemoryEntry;
 import com.enhancer.brain.RunEvidenceGraphProducer;
 import com.enhancer.brain.TaskImpact;
 import com.enhancer.brain.TaskImpactQuery;
+import com.enhancer.brain.TaskJustificationProjector;
 import com.enhancer.context.ProjectContext;
 import com.enhancer.context.ProjectContextReader;
 import com.enhancer.loop.AgentLoop;
@@ -146,7 +147,11 @@ public final class EnhancerCli {
                 snapshot,
                 new ResolvedRunRecord(finalized.storedRecord(), finalized.record()),
                 Instant.now(),
-                decisions);
+                decisions,
+                new TaskJustificationProjector().project(
+                        snapshot,
+                        inputs.repositoryMemory(),
+                        decisions));
         TaskImpact impact = new TaskImpactQuery().query(graph, approvedTask.taskId());
 
         writeBounded(stdout, String.join("\n",
@@ -164,7 +169,8 @@ public final class EnhancerCli {
                 "graphNodes=" + graph.nodes().size(),
                 "graphEdges=" + graph.edges().size(),
                 "graphDecisions=" + countDecisions(graph),
-                "impactExecutions=" + impact.executions().size()) + "\n");
+                "impactExecutions=" + impact.executions().size(),
+                "impactDecisions=" + impact.decisions().size()) + "\n");
         return exitCode.code();
     }
 

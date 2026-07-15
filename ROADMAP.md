@@ -331,8 +331,9 @@ Current increment:
 - Integrated: the repository-memory path from a real governed run and really-loaded repository memory through `RepositoryMemorySnapshotCollector` into the composed view, including explicit divergence detection;
 - Integrated: the endpoint-checked graph projection contract and the task-to-decision-to-code-to-test impact query, populated and answered exclusively through the real producer chain naming the real stored execution;
 - Integrated: accepted-decision projection from the decision log's own status lines and run-record metadata observation over the real store with explicit corruption surfacing;
-- Operational: the production CLI `run` path composes the view and the produced graph for every recorded run, observing prior run records, merging decision nodes, and reporting bounded snapshot, freshness, graph, and impact metadata, evidenced by actual-repository runs;
-- next increment: a task-to-decision reference grammar with `JUSTIFIED_BY` projection, or the next read-only source adapter;
+- Integrated: the explicit `Justified By` task-document reference grammar projected into `JUSTIFIED_BY` edges, with the first real reference resolved on the actual repository;
+- Operational: the production CLI `run` path composes the view and the produced graph for every recorded run, observing prior run records, merging decision nodes and justification edges, and reporting bounded snapshot, freshness, graph, and impact metadata, evidenced by actual-repository runs;
+- next increment: the next read-only source adapter, or gate-level exit-criteria evidence including authority-boundary enforcement;
 - deferred: Git/diagnostics/selection/terminal adapters, payload capture, modifies/verified-by producers, persistence, and messaging.
 
 Dependencies:

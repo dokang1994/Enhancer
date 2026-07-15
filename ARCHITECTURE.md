@@ -152,15 +152,17 @@ The run-evidence production path is Integrated: the end-to-end integration test 
 
 ### Gate 6 Decision Projection And Run Record Observation
 
-`AcceptedDecisionProjector` parses accepted decisions from the decision log's own `Status: Accepted Decision` lines in already-loaded repository memory into unlinked `DECISION` nodes. Freshness is snapshot-relative: a matching observed digest is `CURRENT`; a diverged or unobserved document is `STALE`, because currency cannot be proven without a matching observation. No `JUSTIFIED_BY` edge exists until a task-to-decision reference grammar is adopted through its own decision.
+`AcceptedDecisionProjector` parses accepted decisions from the decision log's own `Status: Accepted Decision` lines in already-loaded repository memory into `DECISION` nodes. Freshness is snapshot-relative: a matching observed digest is `CURRENT`; a diverged or unobserved document is `STALE`, because currency cannot be proven without a matching observation.
+
+`TaskJustificationProjector` links tasks to decisions only through the optional `## Justified By` section of the active task document, whose bullets must name accepted-decision headings exactly. Resolved references become `JUSTIFIED_BY` edges with task-document provenance and snapshot-relative freshness; unresolved, duplicate, empty, or non-bullet references are rejected rather than skipped, and an absent section honestly claims no justification.
 
 `RunRecordMetadataCollector` observes stored run records through the store's read-only, deterministically ordered `references()` listing: one `RUN_RECORD` observation per record with `run-record-store` provenance, the envelope SHA-256 as content digest, and the stored time as source-update time. A record that fails integrity resolution becomes an explicit `UNAVAILABLE` observation with a bounded reason rather than being silently skipped.
 
 ### Gate 6 Production Graph Composition
 
-The CLI `run` path composes the graph in production: the RunRecord store is constructed before collection so prior records are observed into the snapshot, accepted-decision nodes from the same loaded memory are merged into the run-evidence graph through additional-observation and additional-node overloads, and the task impact query is answered in process. The output reports bounded `graphNodes`, `graphEdges`, `graphDecisions`, and `impactExecutions` counts only. Snapshot identity intentionally reflects prior run-record observations, so identical trees with different run histories produce different snapshot identities.
+The CLI `run` path composes the graph in production: the RunRecord store is constructed before collection so prior records are observed into the snapshot, accepted-decision nodes and resolved `Justified By` edges from the same loaded memory are merged into the run-evidence graph through additional-observation, additional-node, and additional-edge overloads, and the task impact query is answered in process. The output reports bounded `graphNodes`, `graphEdges`, `graphDecisions`, `impactExecutions`, and `impactDecisions` counts only. Snapshot identity intentionally reflects prior run-record observations, so identical trees with different run histories produce different snapshot identities.
 
-This makes the production graph composition Operational for the governed read-only CLI scenario. Impact answers currently contain executions only, because decisions are unlinked and no modifies or verified-by evidence exists.
+This makes the production graph composition Operational for the governed read-only CLI scenario. Impact answers carry executions and explicitly justified decisions; modifies and verified-by evidence does not exist yet.
 
 ## Agent Runtime Model
 

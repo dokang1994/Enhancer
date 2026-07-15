@@ -6,6 +6,7 @@
 
 ## Completed Work
 
+- Implemented the eleventh Delivery Gate 6 increment: the `Justified By` task-document reference grammar and `TaskJustificationProjector`, projecting explicit task-to-decision references into `JUSTIFIED_BY` edges with strict rejection of malformed or unresolved references, merged into the production graph with an `impactDecisions` count; the first real reference resolved on the actual repository.
 - Completed the Gate 6 sub-capability integration promotion audit: all six Contract Verified sub-capabilities promoted to Integrated against named, fresh-run, pre-existing integration evidence, with no production or test code change and Gate 6 preserved as `Specified - Next`.
 - Implemented the tenth Delivery Gate 6 increment: production graph composition on the CLI `run` path — prior run records observed into the snapshot, accepted-decision nodes merged into the run-evidence graph, the task impact query answered in process, and bounded `graphNodes`/`graphEdges`/`graphDecisions`/`impactExecutions` output.
 - Implemented the ninth Delivery Gate 6 increment: `RunRecordMetadataCollector` plus the store's read-only ordered `references()` listing, with corrupted or missing records surfaced as explicit `UNAVAILABLE` observations.
@@ -55,8 +56,10 @@
 - `gate-6-repository-memory-snapshot-collection` is Completed; its record is preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
 - `gate-6-run-evidence-graph-producer`, `gate-6-accepted-decision-projection`, and `gate-6-run-record-metadata-observation` are Completed; their records are preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
 - `gate-6-production-graph-composition` is Completed; its record is preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
-- `CURRENT_TASK.md` is Completed for `gate-6-sub-capability-integration-promotion`.
-- The promotion audit is published on `origin/main` through documentation commit `59d0c05`.
+- `gate-6-sub-capability-integration-promotion` is Completed; the audit is published through documentation commits `59d0c05` and `6a75545`.
+- `CURRENT_TASK.md` is Completed for `gate-6-task-justification-references`.
+- The justification-reference increment (projector, producer overload, CLI change, tests, and synchronized documents) is an uncommitted local change on `main`.
+- The actual-repository evidence run persisted `run-record/4eec43bf-62e8-4ed8-bc2b-b94a67ff432b` under the Git-ignored `.enhancer/run-records` directory.
 - The first five Gate 6 increments (view, collector, production composition, graph contract, impact query) are published on `origin/main` through delivery commit `d3b6197`.
 - The four later increments (run-evidence producer, decision projection, run-record observation with store listing, production graph composition) are committed and published on `origin/main` through delivery commit `396665b`.
 - The actual-repository evidence runs persisted `run-record/ca604c7c-23e8-4b1c-8aa2-38fb6bfed5cf` and `run-record/69977403-1cfb-45ba-ba0f-9239ad26a8c1` under the Git-ignored `.enhancer/run-records` directory.
@@ -64,8 +67,12 @@
 
 ## Fresh Verification
 
+- Justification RED: 6 expected missing-symbol errors naming only the absent `TaskJustificationProjector`; focused GREEN passed 18 suites and 54 tests.
+- Current full command: `.\scripts\gradle.ps1 --no-daemon clean test --warning-mode all`.
+- Current full result: 39 suites, 144 tests, 142 passed, 2 Windows symbolic-link setup skips, 0 failures, and 0 errors; Java 17 lint passed with `-Xlint:all -Werror`.
+- Actual repository `run`: task `gate-6-task-justification-references`, exit code 0, `COMPLETED`, `VERIFIED`, 18 observations, `graphNodes=63`, `graphEdges=2`, `graphDecisions=46`, `impactExecutions=1`, `impactDecisions=1` — this task's own `Justified By` reference resolved.
 - Promotion audit: fresh focused verification across workspace, brain, run, CLI, and integration suites passed 19 suites and 59 tests with no skips, failures, or errors; each named connecting suite passed individually.
-- Promotion audit full regression: 38 suites, 140 tests, 138 passed, 2 Windows symbolic-link setup skips, 0 failures, 0 errors; Java 17 lint passed with `-Xlint:all -Werror`; the audit diff is documentation-only.
+- Promotion audit full regression: 38 suites, 140 tests, 138 passed, 2 Windows symbolic-link setup skips, 0 failures, 0 errors; the audit diff was documentation-only.
 - Composition RED: both focused CLI graph-composition tests failed with the expected `output does not contain graphDecisions=` assertion while the runs completed.
 - Composition focused GREEN: CLI, workspace, brain, and integration suites passed 17 suites and 50 tests with no skips, failures, or errors.
 - Actual repository `run`: `README.md`, task `gate-6-production-graph-composition`, exit code 0, `COMPLETED`, `VERIFIED`, snapshot `d5bd10cb...a44632`, 17 observations (15 documents plus 2 prior run records), `graphNodes=61`, `graphEdges=1`, `graphDecisions=44` matching the decision log exactly, `impactExecutions=1`.
@@ -84,8 +91,7 @@
 - Actual repository `replay` of `run-record/ca604c7c-23e8-4b1c-8aa2-38fb6bfed5cf` returned exit code 0 with unchanged output.
 - Collector RED: the focused compile failed with 6 expected missing-symbol errors, all naming only the absent `RepositoryMemorySnapshotCollector`.
 - Collector focused GREEN: 7 suites and 20 tests with no skips, failures, or errors.
-- Current full command: `.\scripts\gradle.ps1 --no-daemon clean test --warning-mode all`.
-- Current full result: 38 suites, 140 tests, 138 passed, 2 Windows symbolic-link setup skips, 0 failures, and 0 errors, confirmed against fresh XML output.
+- Earlier session full result: 38 suites, 140 tests, 138 passed, 2 Windows symbolic-link setup skips, 0 failures, and 0 errors.
 - Current Java 17 production lint passed with `-Xlint:all -Werror`; Gradle emitted no deprecation warning.
 - Current structural verification: exactly one `Specified - Next` gate status marker at Gate 6 and `git diff --check` passed.
 - End-to-end: `WorkspaceCollectionIntegrationTest` connected a real governed CLI run, real RunRecord, real Context Reader memory, the collector, and the composed view; all 15 documents were `SNAPSHOT_MATCHED` and exactly `CURRENT_TASK.md` reported `SNAPSHOT_DIVERGED` after its edit.
@@ -121,14 +127,15 @@
 - Gate 6 repository-memory path (real governed run -> real memory -> collector -> composed view with divergence detection): Integrated.
 - Gate 6 production composition: Operational for the governed read-only CLI scenario; every recorded `run` reports bounded snapshot identity, observation count, and memory freshness.
 - Gate 6 `WorkspaceSnapshot`, `ProjectBrainView`, graph projection contract, `TaskImpactQuery`, `AcceptedDecisionProjector`, and `RunRecordMetadataCollector`: Integrated through the fresh promotion audit against named pre-existing integration evidence.
+- Gate 6 `TaskJustificationProjector` and the `Justified By` reference grammar: Integrated; the first real reference resolved on the actual repository.
 - Gate 6 repository-memory and run-evidence production paths: Integrated.
-- Gate 6 production view and graph composition: Operational for the governed read-only CLI scenario; decisions remain unlinked in impact answers, and modifies/verified-by producers do not exist.
+- Gate 6 production view and graph composition: Operational for the governed read-only CLI scenario; impact answers carry executions and explicitly justified decisions, and modifies/verified-by producers do not exist.
 - Gate 0 integration proves planning, explicit external activation, verified execution, persistence, and replay without changing Proposal authority.
 - Workspace source adapters and live collection, LLM invocation, Event/Message Bus, IPC, Scheduler, broader Agent Runtime, MCP, Skills, plugins, multi-agent execution, background execution, and release packaging remain unimplemented.
 
 ## Next Task
 
-Activate a separate Gate 6 increment: a task-to-decision reference grammar with its `JUSTIFIED_BY` projection, or the next read-only source adapter. A Git status/diff adapter additionally requires an explicit user decision on external command authority. Payload capture and messaging remain later increments.
+Activate a separate Gate 6 increment: the next read-only source adapter, or gate-level exit-criteria evidence including authority-boundary enforcement. A Git status/diff adapter additionally requires an explicit user decision on external command authority. Payload capture and messaging remain later increments.
 
 ## Remaining Risks
 
@@ -142,7 +149,7 @@ Activate a separate Gate 6 increment: a task-to-decision reference grammar with 
 ## Instructions For Next Agent
 
 1. Read `.ai/` and every canonical startup document in repository order.
-2. Confirm Gate 6 is the sole `Specified - Next` gate status marker and `CURRENT_TASK.md` records `gate-6-sub-capability-integration-promotion` as Completed.
-3. All nine post-contract Gate 6 increments and the promotion audit are published on `origin/main` through commits `d3b6197`, `396665b`, and `59d0c05`; the working tree should be clean apart from any newly activated work.
-4. Activate a bounded reference-grammar or next-adapter task before editing production code; defer payload capture and messaging, and obtain explicit authority before any external command adapter.
+2. Confirm Gate 6 is the sole `Specified - Next` gate status marker and `CURRENT_TASK.md` records `gate-6-task-justification-references` as Completed.
+3. Earlier Gate 6 work is published through `d3b6197`, `396665b`, `59d0c05`, and `6a75545`; the justification-reference increment is an uncommitted local change on `main` — do not discard it, and commit only when the user asks.
+4. Activate a bounded next-adapter or gate-exit-evidence task before editing production code; defer payload capture and messaging, and obtain explicit authority before any external command adapter.
 5. Do not commit or push unless explicitly requested.

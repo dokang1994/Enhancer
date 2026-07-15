@@ -2,6 +2,9 @@
 
 ## 2026-07-15
 
+- Adopted the optional `Justified By` task-document section and the `TaskJustificationProjector`: explicit references to accepted-decision headings become `JUSTIFIED_BY` edges with task-document provenance, strict rejection of malformed or unresolved references, and a bounded `impactDecisions` count on the production run output.
+- Resolved the first real justification on the actual repository: this increment's own task document reference surfaced as `impactDecisions=1` with 46 decision nodes and 18 observations.
+- Verified the reference grammar test-first with 6 expected RED missing-symbol errors, then 54 focused tests and the full 144-test regression with only the 2 existing Windows symbolic-link setup skips.
 - Promoted all six Contract Verified Gate 6 sub-capabilities to Integrated through a documentation-only audit: `WorkspaceSnapshot`, `ProjectBrainView`, the graph projection contract, `TaskImpactQuery`, `AcceptedDecisionProjector`, and `RunRecordMetadataCollector`, each mapped to named pre-existing integration evidence re-run fresh (59 focused tests, full 140-test regression, no failures).
 - Kept Delivery Gate 6 `Specified - Next`; gate-level promotion still requires the reference grammar, remaining producers and adapters, and full exit-criteria evidence.
 - Published the run-evidence producer, decision projection, run-record observation, and production graph composition increments to `origin/main` in delivery commit `396665b`.

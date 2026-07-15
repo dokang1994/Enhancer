@@ -38,8 +38,9 @@ class EnhancerCliGraphCompositionTest {
         assertEquals(
                 Integer.toString(DOCUMENTS + 2 + 2),
                 value(first.stdout(), "graphNodes"));
-        assertEquals("1", value(first.stdout(), "graphEdges"));
+        assertEquals("2", value(first.stdout(), "graphEdges"));
         assertEquals("1", value(first.stdout(), "impactExecutions"));
+        assertEquals("1", value(first.stdout(), "impactDecisions"));
         assertTrue(first.stdout().length() <= EnhancerCli.MAX_DIAGNOSTIC_CHARACTERS);
         assertFalse(first.stdout().contains("Adopt The First Rule"));
 
@@ -89,6 +90,7 @@ class EnhancerCliGraphCompositionTest {
                         + "## Status\n\nIn Progress\n\n"
                         + "## Task\n\nCompose the production graph.\n\n"
                         + "## Task ID\n\n" + TASK_ID + "\n\n"
+                        + "## Justified By\n\n- 2026-07-14: Adopt The First Rule\n\n"
                         + "## Approval\n\nApproved by the integration-test owner.\n\n"
                         + "## Allowed Tools\n\n- read-file\n";
                 case DECISION_LOG -> "# Decision Log\n\n"

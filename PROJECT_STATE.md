@@ -17,9 +17,11 @@
 - Delivery Gate 6 metadata-only WorkspaceSnapshot contract and its Contract Verified evidence are published on `origin/main` through delivery commit `c5a16b9`.
 - The Gate 6 read-only `ProjectBrainView` aggregate, `RepositoryMemorySnapshotCollector`, production CLI composition, graph projection contract, and task impact query are published on `origin/main` through delivery commit `d3b6197` (`feat: integrate Gate 6 project brain foundations`).
 - The Gate 6 `RunEvidenceGraphProducer`, `AcceptedDecisionProjector`, `RunRecordMetadataCollector`, store `references()` listing, and production graph composition are published on `origin/main` through delivery commit `396665b` (`feat: operationalize Gate 6 graph production`).
+- The Gate 6 sub-capability promotion audit is published through documentation commits `59d0c05` and `6a75545`.
+- The Gate 6 `TaskJustificationProjector` and `Justified By` reference grammar are implemented and verified locally on `main`; they are not committed or published.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 94 Java files and 5,301 lines.
-- Test source: 38 Java files and 5,537 lines.
+- Production source: 95 Java files and 5,467 lines.
+- Test source: 39 Java files and 5,733 lines.
 
 ## Capability Maturity
 
@@ -31,7 +33,8 @@
 - Delivery Gate 6 `TaskImpactQuery`: answers the task-to-decision-to-code-to-test chain over really-produced graphs, naming the real stored execution, with deduplication, modified-artifact-restricted `VERIFIED_BY` traversal, and rebuild status derived from every traversed element; transitive `DEPENDS_ON` closure remains deferred by decision.
 - Delivery Gate 6 `AcceptedDecisionProjector`: accepted decisions parsed from a real decision log through the real Context Reader and merged into the production graph output.
 - Delivery Gate 6 `RunRecordMetadataCollector` and store `references()` listing: observations produced against the real filesystem RunRecord store, with a really-persisted prior record observed on the production CLI path and corruption surfaced as explicit `UNAVAILABLE`.
-- Gate 6 boundaries that remain outside these integrations: source payloads, Git/diagnostics/selection/terminal adapters, graph persistence, confidence metadata, and modifies/verified-by/justified-by/supersedes/depends-on projection, each requiring its own evidence source.
+- Delivery Gate 6 `TaskJustificationProjector` and the optional `Justified By` task-document section: explicit references to accepted-decision headings projected into `JUSTIFIED_BY` edges with task-document provenance and snapshot-relative freshness, with strict rejection of empty, non-bullet, duplicate, or unresolved references; the first real reference resolved on the actual repository through the production CLI path.
+- Gate 6 boundaries that remain outside these integrations: source payloads, Git/diagnostics/selection/terminal adapters, graph persistence, confidence metadata, and modifies/verified-by/supersedes/depends-on projection, each requiring its own evidence source.
 
 - Delivery Gate 6 repository-memory Workspace path: `RepositoryMemorySnapshotCollector` derives a real snapshot from really-loaded Context Reader memory, and the composed `ProjectBrainView` explains a real governed run including explicit divergence detection.
 - The collector reads no files, retains no content, derives the `ApprovedTaskRevision` from the same loaded memory, and reuses `WorkspaceSnapshot.capture` for identity and bounds.
@@ -177,6 +180,7 @@
 - Delivery Gate 5: Operational.
 - Delivery Gate 6: Specified - Next.
 - Gate 6 `WorkspaceSnapshot`, `ProjectBrainView`, graph projection contract, `TaskImpactQuery`, `AcceptedDecisionProjector`, and `RunRecordMetadataCollector` sub-capabilities: Integrated through the fresh promotion audit `gate-6-sub-capability-integration-promotion`, each connected to real upstream and downstream components by named integration evidence.
+- Gate 6 `TaskJustificationProjector` and the `Justified By` reference grammar: Integrated; the first real reference resolved on the actual repository through the production composition.
 - Gate 6 repository-memory path (real governed run -> real Context Reader memory -> collector -> composed view with divergence detection): Integrated through `WorkspaceCollectionIntegrationTest`.
 - Gate 6 run-evidence graph production path (real governed run -> real snapshot -> producer -> impact-query answer naming the real stored execution): Integrated through the extended `WorkspaceCollectionIntegrationTest`.
 - Gate 6 production view composition: Operational for the governed read-only CLI scenario; every recorded `run` composes the view and reports bounded snapshot identity, observation count, and memory freshness.
@@ -310,6 +314,15 @@
 - The result promotes only the impact query to Contract Verified against contract-constructed graphs. Gate 6 remains `Specified - Next`: no producer projects real repository evidence and no persistence exists.
 - Gate 6 remains the sole `Specified - Next` gate status marker and `git diff --check` passed.
 
+## Gate 6 Task Justification Reference Verification
+
+- Test-first RED: the focused compile failed with 6 expected missing-symbol errors naming only the absent `TaskJustificationProjector`.
+- Focused GREEN: brain, CLI, workspace, and integration suites passed 18 suites and 54 tests with no skips, failures, or errors.
+- Full regression with `--warning-mode all`: 39 suites, 144 tests, 142 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors; Java 17 lint passed with `-Xlint:all -Werror`.
+- Projector tests cover reference resolution with task-document provenance, absent-section and unobserved-freshness behavior, empty/non-bullet/unresolved/duplicate rejection, null rejection, and a justifying decision surfacing in an impact answer.
+- The production CLI test resolves a temp-project reference (`graphEdges=2`, `impactDecisions=1`), and the actual-repository run resolved this task's own reference: 18 observations, `graphNodes=63`, `graphDecisions=46`, `impactExecutions=1`, `impactDecisions=1`.
+- The result records the justification reference path as Integrated on the production composition. Gate 6 remains `Specified - Next`: remaining adapters, modifies/verified-by producers, persistence, and full gate exit criteria are not evidenced.
+
 ## Gate 6 Sub-Capability Integration Promotion Verification
 
 - The promotion audit changed no production or test code; the diff for this task contains documentation only.
@@ -390,7 +403,7 @@
 
 ## Next Task
 
-Activate a separate Gate 6 increment: a task-to-decision reference grammar with its `JUSTIFIED_BY` projection, or the next read-only source adapter. A Git status/diff adapter additionally requires an explicit decision on external command authority.
+Activate a separate Gate 6 increment: the next read-only source adapter, or gate-level exit-criteria evidence including authority-boundary enforcement. A Git status/diff adapter additionally requires an explicit decision on external command authority.
 
 ## Session Recovery
 
