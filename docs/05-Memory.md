@@ -56,6 +56,10 @@ Its graph projections are:
 
 Every node and edge identifies its source and can be rebuilt. Graph storage does not become a second silent source of truth.
 
+## RunRecord Execution Memory
+
+Gate 4 stores each finalized run as a typed, versioned, SHA-256-checked binary envelope. A record preserves task and request inputs, the policy bound to the worker execution, Tool result and bounded evidence, the expected content digest, verification decision, iterations, and worker/final stop reasons. Its constructor rejects lifecycle combinations that the governed worker and verification flow cannot produce. A new store instance can replay the record without chat history. RunRecords are execution history; they do not override canonical project decisions or task authority.
+
 ## Distillation
 
 - Promote project-independent repeatable procedures to validated Skills.

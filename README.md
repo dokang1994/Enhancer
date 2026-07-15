@@ -10,7 +10,7 @@ Enhancer는 AI Development Operating System을 만드는 Self-hosting 프로젝�
 
 ## Current Development Maturity
 
-The Java foundation contracts are **Contract Verified**, and Delivery Gates 1 through 3 integrate bounded read-only Tool execution, durable integrity-checked evidence, and Tool-result-driven Agent Loop transitions. The executable context reads `.ai/` before the canonical root documents, and the deterministic Planner is tested against the current Enhancer Delivery Gate Roadmap. Enhancer is not yet an operational AI Development OS: independent verification, RunRecord persistence, a CLI, and LLM invocation remain future delivery gates.
+The Java foundation contracts are **Contract Verified**, and Delivery Gates 1 through 4 integrate bounded read-only Tool execution, durable integrity-checked evidence, Tool-result-driven Agent Loop transitions, sequential independent verification, and replayable RunRecords. The executable context reads `.ai/` before the canonical root documents, and the deterministic Planner is tested against the current Enhancer Delivery Gate Roadmap. Enhancer is not yet an operational AI Development OS: a supported CLI and LLM invocation remain future delivery gates.
 
 Use `ROADMAP.md` for the canonical promotion path: Specified → Contract Verified → Integrated → Operational → Released. A completed contract task must not be presented as an operational product capability.
 

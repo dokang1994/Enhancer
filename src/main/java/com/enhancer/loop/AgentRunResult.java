@@ -1,18 +1,30 @@
 package com.enhancer.loop;
 
+import com.enhancer.tool.ExecutionPolicy;
 import java.util.Objects;
 
-public record AgentRunResult(
-        AgentRunState state,
-        AgentLoopStopReason stopReason,
-        int iterations) {
+public final class AgentRunResult {
+    private final AgentRunState state;
+    private final AgentLoopStopReason stopReason;
+    private final int iterations;
+    private final ExecutionPolicy executionPolicy;
 
-    public AgentRunResult {
-        Objects.requireNonNull(state, "state must not be null");
-        Objects.requireNonNull(stopReason, "stopReason must not be null");
+    AgentRunResult(
+            AgentRunState state,
+            AgentLoopStopReason stopReason,
+            int iterations,
+            ExecutionPolicy executionPolicy) {
+        this.state = Objects.requireNonNull(state, "state must not be null");
+        this.stopReason = Objects.requireNonNull(
+                stopReason,
+                "stopReason must not be null");
+        this.executionPolicy = Objects.requireNonNull(
+                executionPolicy,
+                "executionPolicy must not be null");
         if (iterations <= 0) {
             throw new IllegalArgumentException("Agent run requires at least one iteration");
         }
+        this.iterations = iterations;
 
         boolean consistent = switch (stopReason) {
             case AWAITING_VERIFICATION ->
@@ -23,7 +35,24 @@ public record AgentRunResult(
         };
         if (!consistent) {
             throw new IllegalArgumentException(
-                    "stopReason " + stopReason + " contradicts Agent run state " + state.status());
+                    "stopReason " + stopReason
+                            + " contradicts Agent run state " + state.status());
         }
+    }
+
+    public AgentRunState state() {
+        return state;
+    }
+
+    public AgentLoopStopReason stopReason() {
+        return stopReason;
+    }
+
+    public int iterations() {
+        return iterations;
+    }
+
+    public ExecutionPolicy executionPolicy() {
+        return executionPolicy;
     }
 }

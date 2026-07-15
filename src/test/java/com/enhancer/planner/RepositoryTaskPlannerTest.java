@@ -73,11 +73,11 @@ class RepositoryTaskPlannerTest {
                 "# Current Task\n\n## Status\n\nCompleted\n",
                 roadmap)).orElseThrow();
 
-        assertEquals("Delivery Gate 4: Sequential Verification And Run Record", proposal.title());
+        assertEquals("Delivery Gate 5: First Operational CLI", proposal.title());
         assertTrue(proposal.scope().contains(
-                "VerificationRequest and VerificationDecision;"));
+                "minimal Java CLI entry point over the existing Context, Tool, verification, and RunRecord boundaries;"));
         assertTrue(proposal.acceptanceCriteria().contains(
-                "worker output cannot mark itself verified;"));
+                "a documented CLI command runs against a temporary and the actual Enhancer repository;"));
     }
 
     private ProjectContext context(String currentTask, String roadmap) {

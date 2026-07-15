@@ -2,7 +2,7 @@
 
 ## Status
 
-The first five foundation slices are contract-verified in a simple single Gradle project. The self-hosting context and planning path is verified against the current `.ai/` bootstrap set and canonical Roadmap grammar. Delivery Gates 1 through 3 integrate bounded read-only Tool execution, durable integrity-checked evidence, and Tool-result-driven Agent Loop transitions. Enhancer is not yet an operational Agent runtime.
+The first five foundation slices are contract-verified in a simple single Gradle project. The self-hosting context and planning path is verified against the current `.ai/` bootstrap set and canonical Roadmap grammar. Delivery Gates 1 through 4 integrate bounded read-only Tool execution, durable integrity-checked evidence, Tool-result-driven Agent Loop transitions, sequential independent verification, and replayable RunRecords. Enhancer is not yet an operational Agent runtime because no supported entry point exists.
 
 The accepted product direction is Self-hosting AI Development Operating System.
 
@@ -110,6 +110,37 @@ Goal -> Planner -> Queue -> Executor -> Evidence
 ```
 
 Planner, Coder, Reviewer, Tester, and Memory are roles or workers behind message contracts, not hard-coded direct-call chains. Single-agent sequential execution is implemented first. Multi-agent concurrency begins only after queue, idempotency, cancellation, RunRecord, recovery, and independent verification are operational.
+
+## Agent Orchestration Contract
+
+Enhancer escalates orchestration only when the simpler topology cannot satisfy the approved work: one worker, sequential pipeline, Producer-Reviewer, bounded fan-out/fan-in, expert routing or supervisor allocation, and finally a hierarchy with at most one subordinate coordination layer. A role is a capability assignment, not a fixed personality, provider, prompt, or process.
+
+Every orchestration topology preserves these invariants:
+
+- one Kernel-owned coordinator is the sole writer of terminal task and run state;
+- every dispatched worker receives the same immutable `WorkspaceSnapshot` identity and approved task revision unless a later explicitly recorded event creates a new revision;
+- branch ownership, expected artifacts, synthesis criteria, conflict policy, and time, cost, context, and Tool budgets are fixed before parallel dispatch;
+- every handoff uses a versioned envelope carrying run, task, message, correlation, causation, producer, schema, authorization, input-snapshot, and artifact or evidence-reference identity;
+- the Scheduler, not a prompt, owns dependency readiness, cycle rejection, work leases, duplicate suppression, retry, timeout, cancellation, pause, resume, reassignment, dead-letter, replay, and recovery;
+- typed control commands may pause, resume, cancel, reprioritize, reassign, request mediation, or propose injected work, but they cannot approve new scope or broaden external-action authority;
+- `WorkerHeartbeat`, quality, confidence, and prompt-adherence observations are diagnostic telemetry only and cannot prove progress, verification, completion, or release;
+- a producing worker or reviewer may request bounded revision, but only the independent verification and durable RunRecord boundary may promote a run to `COMPLETED`;
+- provider-specific CLI flags, prompts, retries, and recovery heuristics remain removable adapter details behind the provider-neutral Model Gateway and policy boundary.
+
+The dependency-ordered landing points are:
+
+| Contract or pattern | Owning gate |
+|---|---|
+| immutable common input snapshot and provenance | Gate 6 |
+| typed handoff, control/event envelope, idempotency, replay, and transport-neutral delivery | Gate 7 |
+| dependency graph, leases, heartbeat ingestion, sequential worker, Scheduler, and recovery | Gate 8 |
+| provider-neutral execution profile, routing, and model/context/cost budgets | Gate 9 |
+| validated workflow-pattern selection, Skill composition, and durable artifact schemas | Gate 10 |
+| authenticated user-facing run controls | Gate 12 |
+| dynamic capability roster, Producer-Reviewer, bounded fan-out/fan-in, supervisor allocation, and background work | Gate 13 |
+| baseline-first autonomous experiment ledger with fixed evaluation and rollback | Gate 15 |
+
+Archon commit `263cf3658a7cadefa0c5fbe82cc527a00ffb4c16` and meta-harness commit `ccab9a677878f72b3316de464c99b36f56a3f2e7` are pinned design references for this contract. Their packages, provider commands, Skill layouts, prompts, shared-worktree assumptions, quality scores, and file-based queues are not Enhancer runtime dependencies or sources of authority.
 
 ## MCP, Skill, And Model Boundaries
 
@@ -277,9 +308,9 @@ The slice is introduced in bounded increments:
 1. **Tool execution boundary - Integrated:** define `ToolRequest`, `Tool`, `ExecutionPolicy`, and `ToolExecutor`; implement one read-only filesystem Tool and deterministic test doubles.
 2. **Evidence persistence - Integrated:** store complete output behind `VerificationEvidence.fullOutputReference` and verify reference existence and integrity.
 3. **Loop integration - Integrated:** make one Agent Loop iteration consume a Tool request and produce a `ToolResult`-backed state transition.
-4. **Sequential verification - Next:** evaluate the result outside the worker step and prevent worker claims from self-verifying.
-5. **Run record:** persist request, decision, result, evidence, verification, and stop reason for replay and diagnosis.
-6. **Runnable entry point:** expose the integrated path through a minimal CLI or application command.
+4. **Sequential verification - Integrated:** evaluate the result outside the worker step and prevent worker claims from self-verifying.
+5. **Run record - Integrated:** persist request, decision, result, evidence, verification, and stop reason for replay and diagnosis.
+6. **Runnable entry point - Next:** expose the integrated path through a minimal CLI or application command.
 
 The first operational scenario remains deliberately small: read a temporary repository file through an allowlisted Tool, retain bounded evidence, independently verify the expected result, stop explicitly, and persist a run record. Shell mutation, LLM calls, commits, pushes, and multi-agent routing remain outside that first scenario.
 
@@ -322,6 +353,22 @@ Every failed `ToolResult` carries a structured `ToolFailureCode`; successful res
 `VerificationEvidence.capture` records a SHA-256 digest of complete output. Agent progress uses stable task, request, result, failure-code, exit-code, length, and content-digest fields while excluding opaque evidence locations and prose summaries. Therefore re-persisting identical content does not reset stagnation.
 
 `AgentRunState` is an immutable final class with a private constructor. Public callers can create only a ready state from `ApprovedTask` and an in-scope request; controller-owned package transitions create retry, failure, and verification-wait states. Gate 4 is the immediate consumer of these hardened contracts.
+
+### Delivery Gate 4 Boundary
+
+Gate 4 adds a sequential verification and finalization boundary outside `AgentRunController`. `VerificationRequest` binds the approved task, executed request, successful Tool result, and caller-supplied expected content digest. `IndependentVerifier` returns a typed `VerificationDecision`; human-readable reasons are diagnostic only and never drive completion.
+
+The first deterministic verifier supports the read-only file scenario. It verifies non-truncated output directly, resolves truncated output through `EvidenceStore`, recomputes SHA-256 over complete UTF-8 content, and compares the computed digest with both `VerificationEvidence.contentSha256` and the expected digest. Missing evidence is Unverified. Corrupted, structurally inconsistent, or content-mismatched evidence is Rejected. Worker failure, stagnation, and iteration exhaustion are recorded with verification Not Performed.
+
+The executed `ToolRequest` remains part of terminal `AgentRunState` so verification and audit do not reconstruct inputs from prose or hashes. Only the sequential finalizer can create a `COMPLETED` state, and only from `AWAITING_VERIFICATION` plus a Verified decision. Rejected or Unverified decisions leave the run at the verification boundary.
+
+Every finalization attempt produces a typed `RunRecord` containing the approved task, Tool request, immutable policy snapshot and decision, Tool result and evidence, verification decision, iteration count, and worker/final stop reasons. The filesystem store writes a versioned length-prefixed binary payload inside a SHA-256 envelope and publishes it atomically. A completion result is not returned until the RunRecord is durable and replayable. Gate 4 adds no supported CLI and therefore promotes the vertical slice to Integrated, not Operational.
+
+#### Gate 4 RED Contract Hardening
+
+The worker result retains the exact immutable `ExecutionPolicy` used by `AgentRunController`. Finalization derives its persisted policy decision from that retained policy and does not accept a second caller-supplied policy that could rewrite the audit record after execution.
+
+`RunRecord` mirrors the governed lifecycle rather than accepting merely type-correct combinations. A worker cannot report `COMPLETED`; awaiting-verification records require a successful Tool result and a performed verification decision; failed, stagnated, and iteration-limited records require a failed Tool result and verification Not Performed. Only Verified may promote `AWAITING_VERIFICATION` to `COMPLETED`.
 
 ## Constitution Kernel Architecture
 

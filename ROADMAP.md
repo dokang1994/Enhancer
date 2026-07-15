@@ -16,7 +16,7 @@ The standalone label Implemented is no longer used for capability maturity. It m
 
 ## Current Position
 
-Status: Delivery Gate 3 Integrated; Delivery Gate 4 Specified - Next
+Status: Delivery Gate 4 Integrated; Delivery Gate 5 Specified - Next
 
 Contract-verified capabilities:
 
@@ -34,6 +34,8 @@ Integrated capabilities:
 - atomic complete-evidence persistence with resolvable integrity-checked references.
 - repository-derived approved tasks with Tool scope and structured failure codes;
 - Tool-result-driven Agent Loop transitions with verification-wait, terminal, retry, iteration, and semantic stagnation outcomes.
+- sequential independent read-file verification over inline or referenced complete evidence;
+- atomic integrity-checked RunRecord persistence and restart-safe replay.
 
 Operational repository governance:
 
@@ -45,8 +47,6 @@ Operational repository governance:
 
 Not yet integrated or operational:
 
-- sequential independent verification;
-- durable run records;
 - CLI or application entry point;
 - LLM invocation;
 - Workspace, Project Brain, Event/Message Bus, IPC, Agent Runtime, Scheduler, and Model Gateway;
@@ -228,7 +228,7 @@ Hardening evidence:
 
 ## Delivery Gate 4: Sequential Verification And Run Record
 
-Status: Specified - Next
+Status: Integrated
 
 Goal:
 
@@ -250,13 +250,44 @@ Exit criteria:
 - a persisted run can be inspected without chat history;
 - integration tests cover pass, fail, missing evidence, and stagnation.
 
+Exit evidence:
+
+- `VerificationRequest`, typed decisions, and a sequential `IndependentVerifier` bind approved task, executed request, Tool result, and external expected digest;
+- the deterministic read verifier checks inline content or resolves truncated output through `EvidenceStore` and recomputes complete SHA-256 identity;
+- missing evidence remains Unverified, while corrupted, structurally invalid, or mismatched evidence is Rejected;
+- only a Verified decision creates `COMPLETED`, and RunRecord persistence must succeed before completion is returned;
+- failed, stagnated, and maximum-iteration runs persist with verification Not Performed;
+- RunRecords contain task, request, policy snapshot and decision, Tool result and evidence, expected digest, verification, iterations, and worker/final stop reasons;
+- a versioned binary SHA-256 envelope is atomically published and replayed through a new filesystem-store instance;
+- focused Gate 4 verification covers verified, rejected, missing, corrupted, persistence-failure, failed, stagnated, and iteration-limited paths.
+
+Hardening task: Completed
+
+- bind the immutable execution policy to the worker result so finalization cannot substitute audit context;
+- reject RunRecord lifecycle combinations that the governed Agent path cannot produce;
+- preserve Verified-only completion and persist-before-return behavior.
+
+Hardening evidence:
+
+- `AgentRunResult` retains the controller-owned `ExecutionPolicy` and cannot be publicly constructed;
+- finalization derives the persisted policy decision from the worker result without a second policy argument;
+- `RunRecord` rejects lifecycle combinations outside verification-wait, verified completion, failed, stagnated, and iteration-limited paths;
+- focused hardening verification passed 24 of 24 tests.
+
 ## Delivery Gate 5: First Operational CLI
 
-Status: Specified
+Status: Specified - Next
 
 Goal:
 
 Expose the connected read-only Agent run through a supported local command.
+
+Required capabilities:
+
+- minimal Java CLI entry point over the existing Context, Tool, verification, and RunRecord boundaries;
+- explicit project-root, task, target-path, expected-digest, evidence-root, and RunRecord-root inputs;
+- stable exit codes and bounded diagnostic output for every final stop reason;
+- documented local recovery and record-inspection commands.
 
 First operational scenario:
 
@@ -290,6 +321,7 @@ Dependencies:
 Scope:
 
 - immutable WorkspaceSnapshot and source freshness metadata;
+- one common immutable input-snapshot identity and approved task revision for every later worker handoff;
 - repository files plus active and selected file context;
 - read-only Git status and diff adapters;
 - diagnostics and terminal-session metadata adapters without command authority;
@@ -317,6 +349,7 @@ Scope:
 
 - typed domain events and versioned message envelopes;
 - event, message, correlation, causation, run, and producer identities;
+- typed work, result, control, and handoff payloads that preserve authorization and snapshot references;
 - in-process topic and queue delivery;
 - idempotency, retry, cancellation, dead-letter, replay, ordering, and backpressure contracts;
 - IPC transport interface for later local-process or remote adapters.
@@ -340,7 +373,7 @@ Scope:
 
 - persisted Goal and AgentRun state machine;
 - Goal -> Planner -> Executor -> Memory -> Reflection -> Retry -> Done transitions;
-- Scheduler queues, budgets, cancellation, pause, resume, and recovery;
+- Scheduler queues, dependency validation, cycle rejection, fenced leases, idempotency, budgets, cancellation, pause, resume, reassignment, and recovery;
 - Planner, Coder, Reviewer, Tester, and Memory worker roles behind message contracts;
 - single-agent sequential worker first, without multi-agent concurrency.
 - Dependency Analyzer and Verification Engine as Kernel services;
@@ -364,6 +397,7 @@ Dependencies:
 Scope:
 
 - provider-neutral ModelRequest, response, usage, and routing contracts;
+- provider-neutral execution profiles for capability, model class, locality, reasoning, context, token, cost, time, and data-classification requirements;
 - Model Router with deterministic fake plus explicitly selected provider adapters;
 - timeout, cancellation, token, context, cost, redaction, and response-validation budgets;
 - MCP Server exposing governed Tools, resources, Workspace views, and memory;
@@ -389,6 +423,7 @@ Dependencies:
 Scope:
 
 - progressive Skill discovery, metadata-first loading, validation, and least-privilege enforcement;
+- validated orchestration-pattern and workflow metadata without runtime authority;
 - explicit Skill composition such as Spring -> Java -> Database -> Test;
 - composition permission intersection and conflict handling;
 - repository memory reads, explicit writes, and governed distillation;
@@ -442,6 +477,7 @@ Scope:
 - production CLI and local API;
 - VSCode Extension and web dashboard;
 - Workspace, run, event, evidence, task, approval, Skill, MCP, and model views;
+- authenticated typed pause, resume, cancel, reprioritize, reassign, mediation, and injected-work proposal controls;
 - consistent control surfaces without duplicated runtime policy.
 - Enhancer Shell and Intent Understanding that compile one user request into an inspectable Goal, plan, authorization scope, execution graph, and verification plan.
 
@@ -461,15 +497,20 @@ Dependencies:
 
 Scope:
 
+- select the smallest sufficient topology: one worker, sequential pipeline, Producer-Reviewer, bounded fan-out/fan-in, expert routing or supervisor allocation, and shallow hierarchy only when justified;
+- immutable capability-roster revisions derived from approved task, validated metadata, policy, data classification, budgets, and isolation capacity;
 - Planner -> Queue -> Coder -> Queue -> Reviewer -> Queue -> Tester -> Memory pipelines;
-- bounded delegation and worker/verifier role separation;
+- typed versioned handoffs over the common Message Bus with one Kernel-owned terminal-state coordinator;
+- bounded delegation, Producer-Reviewer revision, deterministic synthesis, and worker/reviewer/verifier role separation;
 - concurrency, cost, context, and time budgets;
-- resumable background runs and conflict handling.
+- resumable background runs, diagnostic-only heartbeat and quality telemetry, and explicit conflict handling.
 
 Exit criteria:
 
 - Agents never require direct peer calls;
 - delegation cannot broaden user authority;
+- parallel branches share one immutable snapshot, have isolated ownership, and use a named deterministic reducer;
+- reviewer pass, heartbeat, confidence, or self-reported quality cannot create Verified or Completed state;
 - every message and result preserves provenance, evidence, causation, and run identity;
 - interrupted or conflicting work can stop, resume, or roll back safely.
 
@@ -508,6 +549,7 @@ Dependencies:
 
 Scope:
 
+- immutable evaluation baseline and bounded candidate experiment ledger;
 - bounded self-improvement proposal;
 - before-and-after evidence;
 - separate review;
@@ -578,7 +620,7 @@ Future detailed RFC work is required for Workspace and Project Brain, Event/Mess
 |---|---|---|---|
 | P0 | Repeated termination and stagnation detection | Gate 0 | Contract Verified |
 | P0 | Verification evidence contract | Gate 0 | Contract Verified |
-| P1 | Independent verifier | Gate 4 | Specified |
+| P1 | Independent verifier | Gate 4 | Integrated |
 | P1 | Progressive Skill loading | Gate 10 | Planned |
 | P2 | Artifact provenance | Gate 11 | Planned |
 | P2 | Token and context budget | Gate 9 | Planned |

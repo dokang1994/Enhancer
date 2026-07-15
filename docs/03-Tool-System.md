@@ -70,6 +70,10 @@ Integrated scope:
 
 The initial in-memory implementation supports at most 64 MiB per configured evidence item. A lower configured policy limit is expected for normal use. Gate 2 detects corruption but does not provide encryption, signatures, external tamper-proof storage, or automatic deletion.
 
+## Delivery Gate 4 Evidence Consumer
+
+The integrated deterministic read verifier consumes `VerificationEvidence` without trusting its summary. Inline output is hashed directly; truncated output is resolved through `EvidenceStore`, validated, and hashed in full. The computed digest must match both Tool metadata and the external verification expectation before the Agent run can complete.
+
 ## Planned Tools
 
 - ReadFile
@@ -110,14 +114,14 @@ Cover:
 - Network tools
 - MCP tools
 - Background execution
-- Independent verification
-- Verified completion and RunRecord persistence
+- Alternative or LLM-backed verifiers
+- Remote RunRecord persistence
 
 ## Prompt Book
 
 ### Codex Prompt
 
-Preserve Delivery Gates 1 through 3. Implement sequential independent verification and RunRecord only through the active Gate 4 task; terminal, Git, network, MCP, and LLM behavior remain deferred.
+Preserve Delivery Gates 1 through 4. Implement the supported read-only CLI only through the active Gate 5 task; terminal mutation, Git, network, MCP, and LLM behavior remain deferred.
 
 ### Claude Prompt
 

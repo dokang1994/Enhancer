@@ -2,18 +2,19 @@
 
 ## Updated At
 
-2026-07-14
+2026-07-15
 
 ## Repository State
 
 - Repository root: `C:/Enhancer`.
-- Current branch: `main` tracking `origin/main`.
+- Current branch: `agent/document-agent-orchestration-guidance`.
 - Gate 1-3 delivery commit: `3fcda4c` (`feat: integrate governed agent execution foundations`).
 - Pull request #2 has been merged into `main`.
 - Delivery Gates 1 through 3, self-hosting compatibility recovery, long-term vision, and documentation-alignment changes are published on `origin/main`.
+- Delivery Gate 4 sequential verification, RunRecord changes, and provider-neutral Agent orchestration reference alignment are included in the current feature-branch delivery.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 47 Java files and 1,807 lines.
-- Test source: 17 Java files and 1,573 lines.
+- Production source: 64 Java files and 3,304 lines.
+- Test source: 21 Java files and 2,612 lines.
 
 ## Capability Maturity
 
@@ -46,6 +47,15 @@
 - Structured Tool failure codes and a standard retry policy without prose parsing.
 - SHA-256 evidence content identity and semantic progress independent of storage references.
 - Private Agent run construction with public ready-state creation only.
+- Delivery Gate 4 sequential independent verification and durable RunRecord replay.
+- Typed Verified, Rejected, Unverified, and Not Performed decisions with structured reason codes.
+- Deterministic read verifier over inline or integrity-checked referenced complete evidence.
+- Executed Tool request retention across worker terminal states.
+- Verified-only completion through `AgentRunFinalizer` outside the worker controller.
+- Immutable policy snapshot and decision recorded with task, request, Tool result, expected digest, verification, iterations, and stop reasons.
+- Atomic versioned RunRecord envelopes with SHA-256 integrity and restart-safe replay.
+- Controller-bound execution policy retained in the non-publicly constructible `AgentRunResult`.
+- RunRecord lifecycle validation that rejects policy-history substitution and impossible worker, verification, result, and stop-reason combinations.
 
 ### Operational Governance
 
@@ -59,6 +69,9 @@
 - The target platform includes Desktop, CLI, API, Workspace, Project Brain, Memory, MCP Server/Client, Agent Runtime, Event/Message Bus with IPC adapters, Skill Engine, Plugin Marketplace, Model Router, Scheduler, and governed Cloud Sync.
 - Event Bus defines domain semantics, Message Bus defines delivery, and IPC is a transport adapter for the same versioned envelope.
 - Runtime Agents will communicate through queues rather than direct Agent-to-Agent calls after the messaging boundary exists.
+- Agent orchestration escalates only as needed from one worker to sequential work, Producer-Reviewer, bounded fan-out/fan-in, expert routing or supervisor allocation, and at most one subordinate coordination layer.
+- One Kernel coordinator owns terminal run state; every worker shares an immutable input snapshot and approved task revision through typed versioned handoffs with bounded authority, budgets, evidence, and recovery state.
+- Archon `263cf365` and meta-harness `ccab9a6` are pinned design references, not runtime, prompt, Skill, storage, provider, or governance dependencies.
 - Workspace will expose governed file, Git, diagnostic, terminal-metadata, and selection snapshots; Project Brain will combine them with repository memory and RunRecords while preserving provenance.
 - The owner's rough 20-25% foundation estimate is qualitative planning context, not verified maturity or completion evidence.
 - Product milestones are V1 AI Development Experience, V2 AI Development Platform, and V3 AI Operating System.
@@ -71,7 +84,6 @@
 
 ## Not Yet Integrated Or Operational
 
-- Sequential independent verification and durable RunRecord replay.
 - Supported CLI or application entry point.
 - Prompt and LLM invocation.
 - Workspace, Project Brain, Event/Message Bus, IPC, Agent Runtime, Scheduler, and Model Gateway.
@@ -127,7 +139,7 @@
 - Active repository context now produces the exact structured approval consumed by the run, and out-of-scope Tool requests are rejected before execution.
 - Identical content with changing summary and evidence reference reaches `STAGNATED` through stable content identity.
 - Tool result status/failure-code consistency and non-public run-state construction are executable invariants.
-- Expanded-roadmap self-hosting verification: Planner and Assisted Development Loop suites passed 8 of 8 tests and still select Gate 4.
+- Historical Gate 3 expanded-roadmap self-hosting verification: Planner and Assisted Development Loop suites passed 8 of 8 tests and selected Gate 4 at that time.
 - Structural review found sequential Delivery Gates 0 through 16 and exactly one `Specified - Next` marker.
 
 ## Current Delivery Position
@@ -136,12 +148,29 @@
 - Delivery Gate 1: Integrated.
 - Delivery Gate 2: Integrated.
 - Delivery Gate 3: Integrated.
-- Delivery Gate 4: Specified - Next.
-- Enhancer is not yet Operational because no independently verified, recorded Agent run or supported entry point exists.
+- Delivery Gate 4: Integrated.
+- Delivery Gate 5: Specified - Next.
+- Enhancer is not yet Operational because no supported entry point exposes the independently verified and recorded run.
+
+## Gate 4 Verification
+
+- Test-first RED: focused compilation failed with 87 missing Gate 4 production symbols.
+- Initial Gate 4 focused verification: 3 suites, 12 tests, all passed with no skips.
+- Hardened focused verification including terminal request retention and failed/limited run records: 4 suites, 19 tests, all passed with no skips.
+- Gate 4 plus self-hosting Planner verification after roadmap promotion: 6 suites, 27 tests, all passed with no skips.
+- Final full regression after documentation synchronization: 20 suites, 77 tests, 76 passed, 1 existing symbolic-link setup skip, 0 failures, and 0 errors.
+- Real `ReadFileTool` output flows through evidence persistence, independent digest verification, verified-only completion, atomic RunRecord persistence, and replay through a new store instance.
+- Expected-content mismatch, missing evidence, corrupted evidence, and RunRecord persistence failure cannot return completion.
+- Failed, stagnated, and maximum-iteration worker runs remain non-completed and are recorded with verification Not Performed.
+- RunRecord replay preserves the external expected digest as well as result and decision evidence.
+- Gate 4 hardening policy-binding RED failed compilation with 15 expected missing API errors.
+- Gate 4 hardening lifecycle RED ran 16 tests with 4 expected failures, and result-construction RED ran 1 test with 1 expected failure.
+- Hardened focused verification passed 24 of 24 tests across 5 suites.
+- Hardened full regression passed 81 of 82 tests across 21 suites with 1 existing symbolic-link setup skip, 0 failures, and 0 errors.
 
 ## Vision Documentation Verification
 
-- Canonical Roadmap contains sequential Delivery Gates 0 through 16 and exactly one `Specified - Next` marker at Gate 4.
+- Canonical Roadmap contains sequential Delivery Gates 0 through 16 and exactly one `Specified - Next` marker at Gate 5.
 - V1, V2, V3 and Decision, Architecture, Dependency, Task, and Execution graph terms are present in Architecture and Roadmap.
 - Planner and Assisted Development Loop self-hosting regression passed 8 of 8 tests after the vision and roadmap update.
 - Full regression passed 62 of 63 tests with 1 existing Windows symbolic-link setup skip and no failures or errors.
@@ -156,12 +185,23 @@
 - Self-hosting development is explicitly separate from local or hybrid model execution.
 - The README entry point carries the same milestone and self-hosting terminology as the canonical Architecture and Roadmap.
 - The project overview now follows the `.ai/`-first bootstrap order and reports current foundation checklist state.
-- Structural review found sequential Delivery Gates 0 through 16, exactly one `Specified - Next` marker at Gate 4, and no superseded actual-worktree Gate 3 claim.
+- Structural review found sequential Delivery Gates 0 through 16, exactly one `Specified - Next` marker at Gate 5, and no superseded actual-worktree Gate 3 claim.
 - Full regression after the correction: 17 suites, 63 tests, 62 passed, 1 existing Windows symbolic-link setup skip, 0 failures, and 0 errors.
+
+## Agent Orchestration Reference Alignment
+
+- Architecture, RFC-0009, Multi-Agent guidance, the canonical Roadmap, the compact AI architecture, Decision Log, Changelog, and Session Handoff now share the provider-neutral orchestration progression and invariants.
+- Gate 6 owns the common immutable snapshot; Gate 7 typed delivery and control envelopes; Gate 8 dependency scheduling, fenced leases, idempotency, heartbeat ingestion, and recovery; Gate 9 provider-neutral execution profiles; Gate 10 validated workflow metadata; Gate 12 authenticated controls; Gate 13 dynamic rosters and bounded multi-worker patterns; Gate 15 bounded experiment baselines and rollback.
+- Direct peer control, prompt-only coordination, file polling as the canonical bus, shared-worktree parallel mutation, optional verification, subjective completion scores, unlimited execution, and silent evidence loss are explicitly rejected.
+- Both pinned GitHub tree links returned HTTP 200 on 2026-07-15.
+- Structural verification found sequential Delivery Gates 0 through 16, exactly one `Specified - Next` marker at Gate 5, and Planned status for Gates 7, 8, 9, 10, and 13.
+- Focused Planner and Assisted Development Loop verification passed 8 of 8 tests with no skips.
+- The first full regression attempt failed 8 tests because the sandboxed Java child process could not resolve JUnit temporary paths under the user profile. Reproduction showed `AccessDeniedException`; the same read path succeeded inside the workspace.
+- The full regression rerun with `java.io.tmpdir=C:/Enhancer/build/tmp/junit` passed 81 of 82 tests across 21 suites with 1 existing symbolic-link setup skip, 0 failures, and 0 errors.
 
 ## Next Task
 
-Implement Delivery Gate 4 sequential independent verification and durable RunRecord persistence. Only a successful verifier decision may promote `AWAITING_VERIFICATION` to completion.
+Implement Delivery Gate 5 First Operational CLI over the integrated Context, Tool, verification, and RunRecord path.
 
 ## Session Recovery
 

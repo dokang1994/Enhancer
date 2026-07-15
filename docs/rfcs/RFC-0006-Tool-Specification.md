@@ -42,7 +42,9 @@ The Gate connects a real request to a real `ToolResult` in an integration test.
 
 Delivery Gate 2 integrates `EvidenceStore`, atomic filesystem envelopes, UUID identities, SHA-256 and length validation, strict UTF-8 resolution, bounded retention policy, and a real large-file Tool result with a resolvable reference.
 
-Delivery Gate 3 integrates externally approved work, a prebuilt Tool request, immutable execution policy, real Tool results, retry classification, and bounded Agent Loop transitions. Tool success stops at `AWAITING_VERIFICATION`; the Gate 4 sequential independent verifier is the next consumer.
+Delivery Gate 3 integrates externally approved work, a prebuilt Tool request, immutable execution policy, real Tool results, retry classification, and bounded Agent Loop transitions. Tool success stops at `AWAITING_VERIFICATION`.
+
+Delivery Gate 4 integrates the next consumer: a deterministic sequential read verifier resolves complete evidence, recomputes content identity, and permits completion only after an external expected digest matches. The controller binds the immutable execution policy to its worker result, and the finalization boundary derives the audit snapshot from that result before atomically persisting a lifecycle-valid replayable RunRecord.
 
 Gate 3 hardening requires every failed result to carry a structured `ToolFailureCode`. Complete evidence capture also carries a SHA-256 content identity so retry progress remains stable when an opaque storage reference changes. Diagnostic prose and storage location are not control-plane identity.
 
@@ -50,7 +52,7 @@ Gate 3 hardening requires every failed result to carry a structured `ToolFailure
 
 ### Codex Prompt
 
-Preserve Delivery Gates 1 through 3. Implement Gate 4 verification and RunRecord without shell mutation, Git writes, network calls, CLI wiring, or LLM use.
+Preserve Delivery Gates 1 through 4. Implement Gate 5 CLI wiring without shell mutation, Git writes, network calls, or LLM use.
 
 ### Claude Prompt
 

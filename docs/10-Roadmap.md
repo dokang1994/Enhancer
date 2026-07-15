@@ -18,9 +18,9 @@ These states do not replace the Constitution task lifecycle. A task can be Compl
 
 ## Current Boundary
 
-Delivery Gate 0 is Contract Verified. Delivery Gates 1 through 3 are Integrated: approved work passes through policy and the read-only Tool boundary into bounded, resolvable evidence and a Tool-result-driven loop transition.
+Delivery Gate 0 is Contract Verified. Delivery Gates 1 through 4 are Integrated: approved work passes through policy and the read-only Tool boundary into bounded, resolvable evidence, a Tool-result-driven loop transition, independent verification, and a replayable RunRecord.
 
-Enhancer is not yet an operational Agent runtime. It has no independent verification, run record, CLI, or LLM call.
+Enhancer is not yet an operational Agent runtime. It has no supported CLI or LLM call.
 
 ## Delivery Sequence
 
@@ -45,15 +45,9 @@ Enhancer is not yet an operational Agent runtime. It has no independent verifica
 
 ## Immediate Next Task
 
-Implement Delivery Gate 4 as a small test-first slice:
+Implement Delivery Gate 5 as the first supported local CLI over the existing Context, Tool, verification, and RunRecord pipeline. Keep the command read-only and require explicit project root, approved task, target path, expected digest, evidence root, and RunRecord root inputs. Map final stop reasons to stable exit codes and document replay and recovery.
 
-- `VerificationRequest` and `VerificationDecision` contracts;
-- a sequential `IndependentVerifier` outside the worker step;
-- deterministic evidence validation for the first read-only scenario;
-- a durable `RunRecord` containing inputs, policy outcome, Tool result, verification, iterations, and stop reason;
-- replay and diagnostic reads through `RunRecordStore`.
-
-Do not include shell mutation, Git writes, LLM calls, CLI behavior, or multi-agent routing in this task.
+Do not include shell mutation, Git writes, network access, LLM calls, or multi-agent routing in this task.
 
 V1, V2, and V3 are product milestones layered over delivery gates: V1 is the development experience, V2 is the Agent/workflow platform, and V3 is the AI Kernel and Project Brain operating system. They are not substitutes for verified maturity states.
 

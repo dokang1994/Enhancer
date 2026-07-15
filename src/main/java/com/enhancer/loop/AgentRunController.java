@@ -38,7 +38,8 @@ public final class AgentRunController {
         return new AgentRunResult(
                 execution.state(),
                 execution.stopReason(),
-                execution.iterations());
+                execution.iterations(),
+                executionPolicy);
     }
 
     private AgentRunState executeStep(AgentRunState current) {

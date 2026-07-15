@@ -1,7 +1,25 @@
 # Changelog
 
+## 2026-07-15
+
+- Translated selected Archon `263cf365` and meta-harness `ccab9a6` orchestration patterns into provider-neutral Enhancer documentation without adding either repository as a dependency.
+- Defined the escalation path from one worker through sequential, Producer-Reviewer, bounded fan-out/fan-in, routing or supervision, and shallow hierarchy only when justified.
+- Added immutable common snapshots, typed handoffs, single terminal-state ownership, dependency and lease controls, idempotency, replay, bounded budgets, diagnostic-only telemetry, and verified-only completion invariants.
+- Assigned adopted contracts to Delivery Gates 6 through 15 and expanded the Planned Gate 13 scope without changing capability maturity or displacing Gate 5 First Operational CLI.
+- Added explicit rejected patterns covering prompt/file-based authority, direct peer control, shared-worktree parallel mutation, optional verification, self-reported completion, unlimited execution, and silent evidence loss.
+- Verified both pinned GitHub reference links, canonical Roadmap structure, Planner behavior, and the full 82-test regression suite with the existing Windows symbolic-link setup skip.
+
 ## 2026-07-14
 
+- Bound the exact Tool execution policy to the governed Agent run result and removed replaceable policy input from finalization.
+- Restricted `AgentRunResult` construction and hardened RunRecord lifecycle invariants against impossible or historically false audit records.
+- Integrated Delivery Gate 4 sequential independent verification and durable RunRecord replay.
+- Added typed verification status/reason contracts and deterministic complete-content read verification over inline or referenced evidence.
+- Preserved executed requests across terminal Agent state and allowed only verified finalization to create `COMPLETED`.
+- Added typed policy snapshots and RunRecords with external expected digests, iterations, evidence, decisions, and worker/final stop reasons.
+- Added atomic versioned SHA-256 RunRecord envelopes, strict UTF-8 replay, and missing/corruption detection.
+- Added persist-before-return completion gating and durable records for failed, stagnated, and maximum-iteration runs.
+- Promoted Delivery Gate 5 First Operational CLI to `Specified - Next`.
 - Published the Gate 1-3 governed Agent execution foundation, self-hosting recovery, long-term vision, and documentation alignment to `origin/main` in commit `3fcda4c`.
 - Corrected Gate 3 evidence wording to distinguish the governed temporary-repository integration test from separate actual-Enhancer Context and Planner regressions.
 - Separated current build dependencies from planned Spring Boot, local-model, CLI, and editor integrations.

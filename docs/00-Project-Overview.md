@@ -133,7 +133,7 @@ Enhancer must read its own repository documents and produce a structured project
 - [x] Context Reader exists and its tests pass.
 - [x] Planner proposes the next Delivery Gate from the canonical Roadmap.
 - [x] A governed read-only Tool result enters the Agent Loop and stops at `AWAITING_VERIFICATION` in an integration test.
-- [ ] Independent verification and durable RunRecord persistence are implemented.
+- [x] Independent verification and durable RunRecord persistence are integrated.
 - [ ] A supported CLI runs the flow against a real project.
 
 ## Prompt Book

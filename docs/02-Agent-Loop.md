@@ -24,6 +24,7 @@ The preceding Assisted Development Loop slice is intentionally smaller: it perfo
 - `AgentRunController`: executes a pre-authorized request and maps its result into the next run state.
 - `ToolFailureClassifier`: external deterministic retry-or-terminal decision.
 - `ApprovedTaskReader`: derives active task identity, approval evidence, and Tool scope from repository context.
+- `AgentRunFinalizer`: invokes independent verification, controls completed-state creation, and persists the RunRecord before returning.
 
 ## Rules
 
@@ -38,7 +39,7 @@ The preceding Assisted Development Loop slice is intentionally smaller: it perfo
 - Prefer maximum iteration when its ceiling and stagnation threshold coincide.
 - Count only executed steps as iterations; an initially terminal state reports zero.
 - Keep implementation deterministic and testable.
-- Stop successful Tool execution at `AWAITING_VERIFICATION`; only the later independent verifier may enable task completion.
+- Stop successful Tool execution at `AWAITING_VERIFICATION`; only the independent finalization boundary may enable task completion.
 - Keep retry classification outside Tool implementations and do not infer it from diagnostic text.
 - Never let the controller create approvals, expand execution policy, or authorize Git, shell, network, or other external action.
 - Use structured Tool failure codes for retry decisions; do not parse diagnostic summaries.
@@ -58,6 +59,12 @@ Repository Context
 ```
 
 On retry, the pending request is preserved and canonical request/result content produces the progress key. Identical results therefore reach `STAGNATED`; changing results reset stagnation. A successful result is not an independent verification decision.
+
+## Gate 4 Verification And Finalization
+
+`AgentRunState` preserves the executed request after terminal worker transitions. The controller-owned `AgentRunResult` also preserves the exact immutable `ExecutionPolicy` used for Tool execution and cannot be publicly constructed. `AgentRunFinalizer` accepts an externally built `VerificationRequest`, invokes an `IndependentVerifier`, and creates `COMPLETED` only for a typed Verified decision. Rejected or Unverified results remain at `AWAITING_VERIFICATION`. Failed, stagnated, and iteration-limited worker runs are persisted with verification Not Performed.
+
+The finalizer derives the recorded policy decision from the worker-bound policy and does not accept a replacement policy. It persists the typed RunRecord before returning completion. If RunRecord storage fails, no completed result is returned to the caller. The RunRecord contract rejects lifecycle combinations that cannot be produced by the governed worker and verification boundaries.
 
 ## Candidate Classes
 
@@ -96,15 +103,18 @@ Cover:
 - terminal Tool failure cannot be completion
 - repeated identical retryable failure reaches stagnation
 - a denied Tool cannot invoke itself or broaden policy
+- only Verified evidence can create completed Agent state
+- missing or corrupted evidence cannot complete
+- failed, stagnated, and iteration-limited runs remain replayable
+- RunRecord persistence failure prevents completion from being returned
 
 ## Out Of Scope
 
 - Prompt building
 - LLM calls
 - Multi-agent routing
-- Independent verification and task completion
 - Git, shell, network, or browser mutation
-- RunRecord persistence and CLI wiring
+- CLI wiring
 
 ## Prompt Book
 

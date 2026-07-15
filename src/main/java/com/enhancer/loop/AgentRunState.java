@@ -3,11 +3,14 @@ package com.enhancer.loop;
 import com.enhancer.tool.ToolRequest;
 import com.enhancer.tool.ToolResult;
 import com.enhancer.tool.ToolResultStatus;
+import com.enhancer.verification.VerificationDecision;
+import com.enhancer.verification.VerificationStatus;
 import java.util.Objects;
 import java.util.Optional;
 
 public final class AgentRunState implements AgentLoopSnapshot {
     private final ApprovedTask approvedTask;
+    private final ToolRequest executedRequest;
     private final Optional<ToolRequest> pendingRequest;
     private final Optional<ToolResult> lastResult;
     private final AgentLoopStatus status;
@@ -15,6 +18,7 @@ public final class AgentRunState implements AgentLoopSnapshot {
 
     private AgentRunState(
             ApprovedTask approvedTask,
+            ToolRequest executedRequest,
             Optional<ToolRequest> pendingRequest,
             Optional<ToolResult> lastResult,
             AgentLoopStatus status,
@@ -22,6 +26,9 @@ public final class AgentRunState implements AgentLoopSnapshot {
         this.approvedTask = Objects.requireNonNull(
                 approvedTask,
                 "approvedTask must not be null");
+        this.executedRequest = Objects.requireNonNull(
+                executedRequest,
+                "executedRequest must not be null");
         this.pendingRequest = Objects.requireNonNull(
                 pendingRequest,
                 "pendingRequest must not be null");
@@ -43,6 +50,7 @@ public final class AgentRunState implements AgentLoopSnapshot {
         }
         return new AgentRunState(
                 approvedTask,
+                request,
                 Optional.of(request),
                 Optional.empty(),
                 AgentLoopStatus.RUNNING,
@@ -85,8 +93,33 @@ public final class AgentRunState implements AgentLoopSnapshot {
                 AgentLoopStatus.FAILED);
     }
 
+    static AgentRunState completedAfterVerification(
+            AgentRunState current,
+            VerificationDecision decision) {
+        Objects.requireNonNull(current, "current must not be null");
+        Objects.requireNonNull(decision, "decision must not be null");
+        if (current.status != AgentLoopStatus.AWAITING_VERIFICATION) {
+            throw new IllegalArgumentException(
+                    "completion requires AWAITING_VERIFICATION state");
+        }
+        if (decision.status() != VerificationStatus.VERIFIED) {
+            throw new IllegalArgumentException("completion requires a Verified decision");
+        }
+        return new AgentRunState(
+                current.approvedTask,
+                current.executedRequest,
+                Optional.empty(),
+                current.lastResult,
+                AgentLoopStatus.COMPLETED,
+                current.progressKey + "|verification=" + decision.code());
+    }
+
     public ApprovedTask approvedTask() {
         return approvedTask;
+    }
+
+    public ToolRequest executedRequest() {
+        return executedRequest;
     }
 
     public Optional<ToolRequest> pendingRequest() {
@@ -116,8 +149,13 @@ public final class AgentRunState implements AgentLoopSnapshot {
         Objects.requireNonNull(current, "current must not be null");
         Objects.requireNonNull(request, "request must not be null");
         Objects.requireNonNull(result, "result must not be null");
+        if (!current.executedRequest.equals(request)) {
+            throw new IllegalArgumentException(
+                    "transition request must match the preserved executed request");
+        }
         return new AgentRunState(
                 current.approvedTask,
+                request,
                 pendingRequest,
                 Optional.of(result),
                 status,
@@ -140,8 +178,11 @@ public final class AgentRunState implements AgentLoopSnapshot {
                     ToolResultStatus.SUCCESS,
                     "AWAITING_VERIFICATION");
             case FAILED -> requireTerminalResult(ToolResultStatus.FAILURE, "FAILED");
-            case COMPLETED -> throw new IllegalArgumentException(
-                    "COMPLETED is reserved for independent verification");
+            case COMPLETED -> requireTerminalResult(ToolResultStatus.SUCCESS, "COMPLETED");
+        }
+        if (pendingRequest.isPresent() && !pendingRequest.orElseThrow().equals(executedRequest)) {
+            throw new IllegalArgumentException(
+                    "pending request must match the preserved executed request");
         }
     }
 

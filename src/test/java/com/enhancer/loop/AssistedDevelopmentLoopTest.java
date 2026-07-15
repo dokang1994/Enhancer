@@ -67,7 +67,7 @@ class AssistedDevelopmentLoopTest {
         if (normalizedCurrentTask.contains("## Status\n\nCompleted")) {
             assertEquals(AssistedDevelopmentOutcome.PROPOSAL_AVAILABLE, result.outcome());
             assertEquals(
-                    "Delivery Gate 4: Sequential Verification And Run Record",
+                    "Delivery Gate 5: First Operational CLI",
                     result.proposal().orElseThrow().title());
         } else {
             assertEquals(AssistedDevelopmentOutcome.ACTIVE_TASK_PRESERVED, result.outcome());

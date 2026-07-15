@@ -34,7 +34,7 @@ The product evolves from V1 development experience, through V2 Agent/workflow pl
 
 ## Current Capability Maturity
 
-The core foundation contracts are **Contract Verified**, and the bounded read-only Tool, complete-evidence, and Tool-driven loop boundaries are **Integrated**. The repository is not Operational and does not yet execute one independently verified, recorded Agent run.
+The core foundation contracts are **Contract Verified**, and the bounded read-only Tool, complete-evidence, Tool-driven loop, sequential verification, and RunRecord boundaries are **Integrated**. The repository is not Operational because no supported entry point executes the integrated run.
 
 Capability maturity uses:
 
@@ -64,9 +64,9 @@ ToolResult
 VerificationEvidence
 ```
 
-The integrated Gate 3 path extends persisted Tool results through Agent Loop state and stops successful execution at `AWAITING_VERIFICATION`. The next gate adds sequential verification and RunRecord persistence; a later gate adds the CLI.
+The integrated Gate 3 path extends persisted Tool results through Agent Loop state and stops successful execution at `AWAITING_VERIFICATION`. Gate 4 then validates complete evidence outside the worker, permits only Verified completion, and atomically persists a replayable RunRecord. Gate 5 adds the supported CLI.
 
-The independent verifier is not implemented as an isolated record before real Tool execution. It consumes persisted evidence from the integrated path.
+The independent verifier consumes persisted evidence from the integrated Tool path. Missing evidence remains Unverified, invalid or mismatched evidence is Rejected, and neither state can produce completion.
 
 ## Module Direction
 

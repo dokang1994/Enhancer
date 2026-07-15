@@ -2,6 +2,7 @@ package com.enhancer.loop;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -34,11 +35,12 @@ class AgentRunControllerTest {
     @Test
     void successfulToolExecutionStopsAwaitingIndependentVerification() {
         Tool tool = tool("inspect", (request, policy) -> success("inspect", "observed"));
+        ExecutionPolicy executionPolicy = policy(Set.of("inspect"), Set.of());
 
         try (ToolExecutor executor = new ToolExecutor(List.of(tool))) {
             AgentRunController controller = new AgentRunController(
                     executor,
-                    policy(Set.of("inspect"), Set.of()),
+                    executionPolicy,
                     ToolFailureClassifier.terminalByDefault());
 
             AgentRunResult result = controller.run(
@@ -49,6 +51,8 @@ class AgentRunControllerTest {
             assertEquals(AgentLoopStatus.AWAITING_VERIFICATION, result.state().status());
             assertEquals(ToolResultStatus.SUCCESS, result.state().lastResult().orElseThrow().status());
             assertTrue(result.state().pendingRequest().isEmpty());
+            assertEquals(request("inspect"), result.state().executedRequest());
+            assertSame(executionPolicy, result.executionPolicy());
             assertEquals(1, result.iterations());
         }
     }
@@ -139,9 +143,14 @@ class AgentRunControllerTest {
     }
 
     @Test
-    void runStateConstructionIsRestrictedToGovernedFactories() {
+    void runStateAndResultConstructionAreRestrictedToGovernedBoundaries() {
         assertTrue(java.util.Arrays.stream(AgentRunState.class.getDeclaredConstructors())
                 .noneMatch(constructor -> Modifier.isPublic(constructor.getModifiers())));
+        assertTrue(java.util.Arrays.stream(AgentRunResult.class.getDeclaredConstructors())
+                .noneMatch(constructor -> Modifier.isPublic(constructor.getModifiers())));
+        assertTrue(java.util.Arrays.stream(AgentRunState.class.getDeclaredMethods())
+                .filter(method -> method.getName().equals("completedAfterVerification"))
+                .noneMatch(method -> Modifier.isPublic(method.getModifiers())));
     }
 
     private ExecutionPolicy policy(Set<String> allowed, Set<String> denied) {

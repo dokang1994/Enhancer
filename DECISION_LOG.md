@@ -2,6 +2,105 @@
 
 ## Accepted Decisions
 
+### 2026-07-14: Translate External Orchestration Patterns Into Gate-Owned Enhancer Contracts
+
+Status: Accepted Decision
+
+Context:
+
+- The user requested that useful Multi-Agent orchestration lessons from Archon and meta-harness be preserved for future Enhancer implementation.
+- Archon demonstrates an operational control plane with dynamic capability rosters, centralized execution profiles, dependency-aware work, heartbeats, interventions, and resumable sessions, but its provider CLI subprocesses, shared working directory, file polling, and quality-gradient completion model do not satisfy Enhancer authority or evidence rules.
+- meta-harness provides a portable pattern-selection ladder, deterministic handoffs, Producer-Reviewer and supervisor guidance, normal/failure scenarios, and removable provider-specific logic, but it is a design-time meta-skill rather than a runtime with scheduling, authorization, idempotency, replay, or evidence integrity.
+- The reviewed reference snapshots are Archon commit `263cf3658a7cadefa0c5fbe82cc527a00ffb4c16` under MIT and meta-harness commit `ccab9a677878f72b3316de464c99b36f56a3f2e7` under Apache-2.0.
+
+Decision:
+
+- Treat both repositories as pinned reference implementations, never as hidden runtime, governance, Skill-layout, prompt, or file-format dependencies.
+- Select the smallest orchestration topology that satisfies the work: one worker first; then a sequential pipeline; then Producer-Reviewer; then bounded fan-out/fan-in; and only then expert routing, supervisor allocation, or a hierarchy no deeper than one subordinate coordination layer.
+- Require every parallel branch to consume the same immutable `WorkspaceSnapshot` and approved task revision. Branch ownership, expected output, synthesis criteria, budget, and conflict policy are fixed before dispatch.
+- Carry handoffs through versioned Message Bus envelopes with run, task, message, correlation, causation, producer, schema, authorization, input-snapshot, and artifact/evidence-reference identity. Free-form Markdown may be an inspectable projection but cannot be the authoritative queue or control signal.
+- Keep one Kernel-owned coordinator responsible for terminal task and run state. Workers may propose progress, artifacts, or follow-up work; they cannot approve tasks, broaden Tool or model authority, create final completion, or verify their own output.
+- Make dependency readiness, cycle rejection, leases, duplicate suppression, cancellation, retry, timeout, dead-letter, replay, pause, resume, reassignment, and recovery Scheduler or Message Bus responsibilities rather than prompt conventions.
+- Represent execution profiles as provider-neutral capability, model class, reasoning budget, context budget, Tool scope, data classification, and locality requirements. Provider adapters translate an approved profile only after Kernel policy intersects it with task, Skill, and Tool authority.
+- Represent pause, resume, cancel, inject-proposal, reprioritize, reassign, mediate, and scale decisions as typed, authenticated, auditable control commands. A control command cannot silently create accepted work or external-action authority.
+- Treat heartbeats, quality gradients, confidence, prompt adherence, and other worker telemetry as diagnostic observations only. They may trigger inspection or a proposal, but never lifecycle promotion, verification, completion, or release.
+- Preserve independent verification and durable RunRecord finalization outside the producing worker. Producer-Reviewer revision loops are bounded and remain distinct from the independent verifier required for completion.
+- Keep model-specific retries, prompt heuristics, CLI flags, and provider recovery logic behind removable adapters or reference sections so deleting one provider does not rewrite the orchestration contract.
+
+Rationale:
+
+The useful common pattern is observable, resumable, role-aware coordination with explicit handoffs and bounded parallelism. Enhancer already has stronger authority, evidence, verification, and replay requirements than either reference. Translating the patterns into existing Workspace, Event/Message Bus, Scheduler, Model Gateway, Skill, Verification, and RunRecord boundaries preserves those strengths while avoiding provider and storage coupling.
+
+Consequences:
+
+- Gate 6 owns immutable shared input snapshots and provenance; Gate 7 owns typed handoffs and control/event delivery; Gate 8 owns the durable dependency graph, leases, sequential worker, Scheduler, and recovery.
+- Gate 9 owns provider-neutral execution profiles and model budgets; Gate 10 owns validated workflow-pattern and Skill selection; Gate 12 owns user-facing run controls; Gate 13 owns dynamic capability rosters, bounded fan-out/fan-in, Producer-Reviewer roles, supervisor allocation, and background execution.
+- Gate 15 alone may consume autonomous experiment-ledger patterns, and only after approved snapshots, fixed evaluation, budgets, independent verification, and rollback are Operational.
+- Direct peer calls, prompt-only coordination, shared-worktree parallel mutation without isolation, silent ring-buffer loss, self-reported completion, optional verification, unlimited timeouts, and file polling as the core bus are rejected.
+- This decision changes documentation only. It does not promote Workspace, Message Bus, Agent Runtime, Scheduler, Model Gateway, Skill Engine, Multi-Agent, background execution, or self-improvement maturity, and it does not displace Delivery Gate 5.
+- No external code or templates are copied by this decision. Any later copying must preserve applicable license, attribution, and modification notices.
+
+### 2026-07-14: Bind Run Records To The Policy Used During Execution
+
+Status: Accepted Decision
+
+Context:
+
+- Gate 4 records an immutable execution-policy snapshot, but the finalizer currently accepts an `ExecutionPolicy` separately after the worker run.
+- A caller could supply a different still-allowing root, timeout, or size limit and produce an internally valid record that does not describe the actual execution.
+- The public `RunRecord` constructor also permits some verification and stop-reason combinations that the governed Agent run path cannot produce.
+
+Decision:
+
+- Preserve the exact `ExecutionPolicy` used by `AgentRunController` in `AgentRunResult`.
+- Remove the replaceable policy argument from finalization and derive the persisted `PolicyDecision` from the worker-bound policy.
+- Make `RunRecord` enforce the Gate 3 and Gate 4 lifecycle: worker completion is impossible, verification is performed only after successful verification-wait, and non-verification terminal or bounded stops retain failed Tool output with verification Not Performed.
+
+Rationale:
+
+RunRecords are audit evidence. Their policy snapshot and lifecycle must be bound to the executed run rather than trusted as a later caller assertion. Enforcing these relationships in immutable contracts prevents Gate 5 or another future entry point from constructing replayable but historically false records.
+
+Consequences:
+
+- Finalization cannot substitute a different policy after Tool execution.
+- Invalid persisted records are rejected during both direct construction and replay decoding.
+- The change strengthens existing Gate 4 semantics without adding Tool authority, CLI behavior, LLM calls, or multi-agent execution.
+- Gate 5 consumes one policy-bound worker result and no longer needs to repeat the policy at finalization.
+
+### 2026-07-14: Complete Agent Runs Only Through External Evidence Verification And Durable Records
+
+Status: Accepted Decision
+
+Context:
+
+- Gate 3 intentionally stops successful Tool output at `AWAITING_VERIFICATION` and does not preserve an externally inspectable completion record.
+- A worker summary, exit status, or self-reported success cannot independently prove that the expected result was produced.
+- Truncated evidence must be resolved and integrity-checked before completion, while missing evidence must remain distinguishable from proven mismatch or corruption.
+- Failed, stagnated, and iteration-limited runs also need durable diagnostic history even though they never enter verification.
+
+Decision:
+
+- Introduce typed Verification statuses: Verified, Rejected, Unverified, and Not Performed, each constrained by a structured reason code.
+- Bind every `VerificationRequest` to the approved task, executed Tool request, Tool result, and an expected SHA-256 content digest supplied outside the worker.
+- Implement the first `IndependentVerifier` as a deterministic read-file verifier that recomputes complete-content identity and resolves truncated evidence through the existing `EvidenceStore`.
+- Preserve the executed request in terminal Agent state instead of reconstructing it from progress hashes or diagnostic prose.
+- Permit only the sequential finalization boundary to create `COMPLETED`, and only after a Verified decision.
+- Persist a typed RunRecord before returning completed finalization. The record includes inputs, policy snapshot and decision, Tool result and evidence, verification, iterations, and worker/final stop reasons.
+- Store RunRecords as versioned binary payloads in atomically published SHA-256 envelopes and support restart-safe replay.
+- Record worker failure, stagnation, and iteration exhaustion with verification Not Performed rather than fabricating a verification attempt.
+
+Rationale:
+
+This is the smallest provider-neutral boundary that turns worker output into independently checked, replayable execution history. Digest comparison avoids trusting prose, reuse of `EvidenceStore` keeps complete-output integrity in one place, and persist-before-return prevents an in-memory completion from being reported without durable audit evidence.
+
+Consequences:
+
+- Missing evidence is Unverified; corrupted or mismatched evidence is Rejected; neither can complete a run.
+- A RunRecord persistence failure prevents the finalizer from returning completion.
+- The initial RunRecord format is local, bounded, versioned, and integrity-checked but not encrypted, signed, remotely replicated, or automatically deleted.
+- Gate 5 can consume the finalizer and RunRecord reference through a supported CLI without changing verification authority.
+- LLM verification, human review adapters, parallel reviewers, Git mutation, and distributed storage remain future work.
+
 ### 2026-07-14: Adopt V1-V3 Evolution And A Provenance-Preserving Project Brain
 
 Status: Accepted Decision
