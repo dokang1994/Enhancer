@@ -15,10 +15,17 @@
 - Pre-operational Gradle and execution hardening is published on `origin/main` through `b504ba4`.
 - Delivery Gate 5, Gate 0 integration promotion, and the RED workflow clarification are published on `origin/main` through delivery commit `ed901f3`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 71 Java files and 3,403 lines.
-- Test source: 25 Java files and 2,947 lines.
+- Production source: 77 Java files and 3,697 lines.
+- Test source: 28 Java files and 3,354 lines.
 
 ## Capability Maturity
+
+### Contract Verified
+
+- Delivery Gate 6 metadata-only immutable Workspace snapshot contract under `com.enhancer.workspace`.
+- Approved task source revision provenance, typed repository/editor/Git/diagnostic/terminal/RunRecord source metadata, and explicit Available/Stale/Unavailable states.
+- Normalized absolute project roots, deterministic observation ordering, duplicate and 4096-entry bounds, temporal validation, and versioned canonical SHA-256 snapshot identity.
+- Source payloads, adapters, authority, persistence, and Project Brain aggregation remain outside this verified contract.
 
 ### Integrated
 
@@ -98,7 +105,7 @@
 ## Not Yet Integrated Or Operational
 
 - Prompt and LLM invocation.
-- Workspace, Project Brain, Event/Message Bus, IPC, Agent Runtime, Scheduler, and Model Gateway.
+- Workspace collection and Project Brain integration, Event/Message Bus, IPC, Agent Runtime, Scheduler, and Model Gateway.
 - Project Brain graph storage and impact reasoning, Dependency Analyzer, Workflow Engine, Agent Marketplace, and privacy-aware hybrid model routing.
 - Skill loading runtime, plugins, MCP, multi-agent, background execution, Cloud Sync, and governed self-improvement.
 - CI/CD and released distribution.
@@ -163,6 +170,7 @@
 - Delivery Gate 4: Integrated.
 - Delivery Gate 5: Operational.
 - Delivery Gate 6: Specified - Next.
+- Gate 6 `WorkspaceSnapshot` sub-capability: Contract Verified; it is not yet consumed by a Project Brain integration path.
 - Enhancer has one Operational read-only scenario; the broader Agent Runtime remains planned.
 - Gate 0 integration audit is verified without a production correction or second orchestrator and does not displace Gate 6.
 
@@ -229,6 +237,16 @@
 - Gradle `--warning-mode all` emitted no deprecation warning, and Java 17 production lint passed with `-Xlint:all -Werror`.
 - Gate 6 remains the sole `Specified - Next` marker and `git diff --check` passed.
 
+## Gate 6 WorkspaceSnapshot Contract Verification
+
+- Test-first RED: focused Workspace compilation failed with 79 expected missing-symbol errors before production contracts existed.
+- Focused GREEN: 3 suites, 10 tests, all passed with no skips, failures, or errors.
+- Full regression with `--warning-mode all`: 28 suites, 108 tests, 106 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors.
+- Gradle emitted no deprecation warning; Java 17 production lint passed with `-Xlint:all -Werror`.
+- After task completion and document synchronization, focused Context Reader, Planner, and Assisted Loop self-hosting verification passed 14 of 15 tests with 1 existing Windows symbolic-link setup skip and selected Gate 6 as the next proposal boundary.
+- Contract tests cover bounds, state invariants, temporal consistency, collection immutability, deterministic order-independent identity, field sensitivity, and duplicate rejection.
+- The result promotes only the Workspace snapshot sub-capability to Contract Verified. Gate 6 remains `Specified - Next` pending a read-only Project Brain consumer.
+
 ## Vision Documentation Verification
 
 - At the time of the vision review, the canonical Roadmap contained sequential Delivery Gates 0 through 16 and exactly one `Specified - Next` marker at Gate 5.
@@ -262,7 +280,7 @@
 
 ## Next Task
 
-Specify Delivery Gate 6 Workspace and Project Brain Foundation, then activate only an explicitly approved bounded implementation task.
+Activate and implement the next Gate 6 increment that consumes the Contract Verified `WorkspaceSnapshot` in a minimal read-only `ProjectBrainView` with repository-memory and RunRecord provenance.
 
 ## Session Recovery
 

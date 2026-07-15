@@ -324,6 +324,13 @@ Exit evidence:
 
 Status: Specified - Next
 
+Current increment:
+
+- Contract Verified: metadata-only immutable `WorkspaceSnapshot` with canonical identity;
+- Contract Verified: approved task source revision, typed source metadata, explicit freshness/availability, deterministic ordering, and bounded observations without authority or payload capture;
+- next increment: consume the contract in a minimal read-only `ProjectBrainView` with repository-memory and RunRecord provenance before claiming Integration;
+- deferred: source adapters, payload capture, graph projections, persistence, and messaging.
+
 Dependencies:
 
 - the first operational read-only run and RunRecord are available.

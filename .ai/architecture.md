@@ -17,7 +17,7 @@ Current direction:
 - Pre-operational hardening isolates each Tool invocation, constrains representable timeouts, integrity-protects complete Evidence and RunRecord envelopes, strictly preserves UTF-8, bounds and contains startup context, and removes the Gradle 9 JUnit runtime deprecation.
 - Delivery Gate 5 provides the supported `EnhancerCli` `run` and `replay` commands with bounded output, stable exit codes, verified-only completion, and durable replay.
 - Gate 0 integration proves planning -> explicit external activation -> verified Gate 5 execution and replay without automatic Proposal approval or a second production orchestrator.
-- Delivery Gate 6 Workspace and Project Brain Foundation remains the sole next product gate.
+- Delivery Gate 6 Workspace and Project Brain Foundation remains the sole next product gate. Its metadata-only immutable `WorkspaceSnapshot` sub-capability is Contract Verified; a read-only `ProjectBrainView` is the next integration consumer.
 - The long-term OS substrate is Workspace and Project Brain -> Event/Message Bus with IPC adapters -> Agent Runtime and Scheduler -> MCP/Model Gateway -> Skill Engine and Plugin Marketplace.
 - Runtime Agents communicate by typed messages rather than direct Agent-to-Agent calls once the bus boundary exists.
 - Agent orchestration escalates from one worker to sequential work and only later to Producer-Reviewer, bounded fan-out/fan-in, supervisor allocation, or shallow hierarchy; one Kernel coordinator owns terminal run state.

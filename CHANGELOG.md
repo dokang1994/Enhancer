@@ -2,6 +2,9 @@
 
 ## 2026-07-15
 
+- Added the first Delivery Gate 6 contract: immutable metadata-only `WorkspaceSnapshot`, approved-task revision provenance, typed source observations, explicit freshness/availability, deterministic ordering, bounded metadata, and canonical SHA-256 identity.
+- Verified the Workspace contract test-first with 10 focused tests, then passed the 108-test full regression and Java 17 warning-as-error production lint without promoting Gate 6 beyond `Specified - Next`.
+- Recorded the Workspace snapshot sub-capability as Contract Verified and selected a minimal read-only `ProjectBrainView` as its next integration consumer.
 - Published the Operational Gate 5 CLI, Integrated Gate 0 lifecycle evidence, and RED workflow clarification to `origin/main` in commit `ed901f3`.
 - Promoted Delivery Gate 0 Foundation Safety Contracts from Contract Verified to Integrated through a new authority-preserving lifecycle characterization test.
 - Proved Proposal non-mutation, pre-activation rejection, external-only task activation, verified Gate 5 execution, persist-before-completion RunRecord storage, and replay after target deletion.

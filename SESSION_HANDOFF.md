@@ -6,6 +6,12 @@
 
 ## Completed Work
 
+- Implemented the first Delivery Gate 6 contract under `com.enhancer.workspace`.
+- Added immutable approved-task revision provenance and typed metadata observations for repository documents/files, active/selected files, Git status/diff, diagnostics, terminal sessions, and RunRecords.
+- Added explicit Available, Stale, and Unavailable invariants with bounded metadata, digest validation, and temporal consistency.
+- Added immutable `WorkspaceSnapshot` capture with absolute normalized root, canonical ordering, duplicate and 4096-entry limits, and a versioned SHA-256 identity sensitive to every metadata field.
+- Kept payload capture, adapters, persistence, Tool authority, approval creation, and Project Brain integration outside the contract.
+- Recorded the snapshot sub-capability as Contract Verified while leaving Gate 6 as the sole `Specified - Next` product gate.
 - Implemented Delivery Gate 5 First Operational CLI at `com.enhancer.cli.EnhancerCli`.
 - Registered the Gradle `application` entry point and exposed only non-interactive `run` and `replay` commands.
 - Required explicit project root, active task ID, relative target path, expected lowercase SHA-256, evidence root, and RunRecord root for execution.
@@ -23,12 +29,20 @@
 
 - Root: `C:/Enhancer`.
 - Branch: `main`, tracking `origin/main`.
-- Published delivery head: `ed901f3` (`feat: operationalize CLI and integrate Gate 0`).
+- Published head before the current worktree changes: `b9a315e` (`docs: record Gate 0 and CLI publication`).
 - Gate 5, Gate 0 integration promotion, and the RED workflow clarification are committed and published on `origin/main`.
-- `CURRENT_TASK.md` is Completed for `gate-0-integration-promotion`.
+- The Gate 6 WorkspaceSnapshot implementation and synchronized documents are ready for the user-authorized delivery commit and push.
+- `CURRENT_TASK.md` is Completed for `gate-6-workspace-snapshot-contract`.
 
 ## Fresh Verification
 
+- Workspace RED: the first focused compile failed with 79 expected missing-symbol errors before production contracts existed.
+- Workspace focused GREEN: 3 suites, 10 tests, all passed with no skips, failures, or errors.
+- Current full command: `.\scripts\gradle.ps1 --no-daemon clean test --warning-mode all`.
+- Current full result: 28 suites, 108 tests, 106 passed, 2 Windows symbolic-link setup skips, 0 failures, and 0 errors.
+- Current Java 17 production lint passed with `-Xlint:all -Werror`; Gradle emitted no deprecation warning.
+- Post-document self-hosting verification passed 14 of 15 Context Reader, Planner, and Assisted Loop tests with 1 existing Windows symbolic-link setup skip and no failure or error.
+- Structural verification retained exactly one `Specified - Next` marker at Gate 6; `git diff --check` passed.
 - RED: the first focused CLI compile failed with 45 expected missing-symbol errors.
 - Focused GREEN command: `.\scripts\gradle.ps1 --no-daemon cleanTest test --tests 'com.enhancer.cli.*'`.
 - Focused GREEN result: 3 suites, 7 tests, 0 failures, 0 errors, 0 skips.
@@ -51,12 +65,13 @@
 - Gates 1 through 4: Integrated.
 - Gate 5: Operational for one governed read-only local CLI scenario.
 - Gate 6: Specified - Next.
+- Gate 6 metadata-only `WorkspaceSnapshot` sub-capability: Contract Verified.
 - Gate 0 integration proves planning, explicit external activation, verified execution, persistence, and replay without changing Proposal authority.
-- LLM invocation, Workspace, Project Brain implementation, Event/Message Bus, IPC, Scheduler, broader Agent Runtime, MCP, Skills, plugins, multi-agent execution, background execution, and release packaging remain unimplemented.
+- Workspace collection and Project Brain integration, LLM invocation, Event/Message Bus, IPC, Scheduler, broader Agent Runtime, MCP, Skills, plugins, multi-agent execution, background execution, and release packaging remain unimplemented.
 
 ## Next Task
 
-Specify Delivery Gate 6 Workspace and Project Brain Foundation before implementation. Preserve immutable snapshot identity, source freshness, provenance, bounded context, and the rule that observations cannot grant Tool authority.
+Activate a separate Gate 6 task to consume the Contract Verified `WorkspaceSnapshot` in a minimal read-only `ProjectBrainView` with repository-memory and RunRecord provenance. Do not add source adapters or payload capture in that increment.
 
 ## Remaining Risks
 
@@ -70,7 +85,7 @@ Specify Delivery Gate 6 Workspace and Project Brain Foundation before implementa
 ## Instructions For Next Agent
 
 1. Read `.ai/` and every canonical startup document in repository order.
-2. Confirm Gate 6 is the sole `Specified - Next` marker and `CURRENT_TASK.md` records Completed Gate 0 promotion.
-3. Obtain explicit activation before creating a bounded Gate 6 task.
-4. Use test-first development for observable Gate 6 behavior and retain the minimum-change workflow.
+2. Confirm Gate 6 is the sole `Specified - Next` marker and `CURRENT_TASK.md` records `gate-6-workspace-snapshot-contract` as Completed.
+3. Activate a bounded `ProjectBrainView` integration task before editing production code.
+4. Add focused RED integration tests that consume `WorkspaceSnapshot`; defer source adapters, payloads, graph storage, and messaging.
 5. Do not commit or push unless explicitly requested.

@@ -34,7 +34,7 @@ The product evolves from V1 development experience, through V2 Agent/workflow pl
 
 ## Current Capability Maturity
 
-The Gate 0 foundation contracts and the bounded read-only Tool, complete-evidence, Tool-driven loop, sequential verification, and RunRecord boundaries are **Integrated**. Delivery Gate 5 composes them into one **Operational** supported local read-only CLI scenario; the broader Agent Runtime remains planned.
+The Gate 0 foundation contracts and the bounded read-only Tool, complete-evidence, Tool-driven loop, sequential verification, and RunRecord boundaries are **Integrated**. Delivery Gate 5 composes them into one **Operational** supported local read-only CLI scenario. Gate 6 now has a **Contract Verified** metadata-only immutable `WorkspaceSnapshot`, but no Project Brain consumer or collection adapter yet; the broader Agent Runtime remains planned.
 
 Capability maturity uses:
 

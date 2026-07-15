@@ -100,6 +100,14 @@ Workspace is the current observable development environment. Its snapshots may i
 
 Project Brain is the reasoning-facing aggregate of canonical repository memory, Workspace snapshots, accepted decisions, RunRecords, and indexed knowledge. It preserves source identity and freshness; it MUST NOT turn transient editor state or external output into authority.
 
+### Gate 6 Workspace Snapshot Contract
+
+The first Gate 6 increment is a metadata-only immutable snapshot under `com.enhancer.workspace`. `ApprovedTaskRevision` records task identity, source-document identity, and the SHA-256 revision of the approved source. `WorkspaceSourceObservation` records a typed source, stable source identity, adapter provenance, observation time, optional source-update time, explicit Available/Stale/Unavailable state, optional content digest, and bounded reason metadata.
+
+`WorkspaceSnapshot` normalizes the absolute project root, sorts observations canonically, rejects duplicate kind/identity pairs and more than 4096 observations, and computes its own SHA-256 identity over every identity-bearing metadata field. Caller order cannot change the identity. Source payloads, Tool scope, policy, approval creation, and command authority are absent by construction.
+
+This metadata contract is Contract Verified but is not a collection adapter and does not make Gate 6 Integrated. The immediate integration consumer is a later read-only `ProjectBrainView` combining repository memory and RunRecord provenance; Gate 7 message envelopes later carry the same snapshot identity across handoffs.
+
 ## Agent Runtime Model
 
 The target runtime is a persisted, event-driven state machine:

@@ -20,7 +20,7 @@ These states do not replace the Constitution task lifecycle. A task can be Compl
 
 Delivery Gates 0 through 4 are Integrated: governed planning remains separate from explicit approval, and approved work passes through policy and the read-only Tool boundary into bounded, resolvable evidence, a Tool-result-driven loop transition, independent verification, and a replayable RunRecord. Delivery Gate 5 is Operational through the supported local `EnhancerCli` `run` and `replay` commands.
 
-Enhancer now has one deliberately narrow Operational read-only scenario. It still has no LLM call, Workspace snapshot, event bus, scheduler, or broader Agent Runtime.
+Enhancer now has one deliberately narrow Operational read-only scenario and a Contract Verified metadata-only Workspace snapshot contract. It still has no Workspace collection or Project Brain integration, LLM call, event bus, scheduler, or broader Agent Runtime.
 
 ## Delivery Sequence
 
@@ -45,9 +45,9 @@ Enhancer now has one deliberately narrow Operational read-only scenario. It stil
 
 ## Immediate Next Task
 
-Specify and implement Delivery Gate 6 Workspace and Project Brain Foundation through a separately activated task. Preserve immutable snapshot identity, freshness, provenance, bounded context, and the rule that observations cannot grant Tool authority.
+Activate the next Delivery Gate 6 task and consume the Contract Verified `WorkspaceSnapshot` in a minimal read-only `ProjectBrainView` with repository-memory and RunRecord provenance. Preserve immutable snapshot identity, bounded context, and the rule that observations cannot grant Tool authority.
 
-Do not add command authority, network access, LLM calls, event delivery, scheduling, or multi-agent routing in that first Gate 6 task.
+Do not add source adapters, command authority, network access, LLM calls, event delivery, scheduling, or multi-agent routing in that integration task.
 
 V1, V2, and V3 are product milestones layered over delivery gates: V1 is the development experience, V2 is the Agent/workflow platform, and V3 is the AI Kernel and Project Brain operating system. They are not substitutes for verified maturity states.
 
