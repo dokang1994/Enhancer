@@ -6,6 +6,11 @@
 
 ## Completed Work
 
+- Implemented the tenth Delivery Gate 6 increment: production graph composition on the CLI `run` path — prior run records observed into the snapshot, accepted-decision nodes merged into the run-evidence graph, the task impact query answered in process, and bounded `graphNodes`/`graphEdges`/`graphDecisions`/`impactExecutions` output.
+- Implemented the ninth Delivery Gate 6 increment: `RunRecordMetadataCollector` plus the store's read-only ordered `references()` listing, with corrupted or missing records surfaced as explicit `UNAVAILABLE` observations.
+- Implemented the eighth Delivery Gate 6 increment: `AcceptedDecisionProjector` parsing accepted decisions from the decision log's own status lines into unlinked `DECISION` nodes with snapshot-relative freshness.
+- Implemented the seventh Delivery Gate 6 increment: `RunEvidenceGraphProducer`, the first graph producer, projecting evidence-only task/artifact/execution nodes and one `RECORDED_AS` edge from one snapshot and one task-matched stored run record, with one-to-one observation-state-to-freshness mapping.
+- Integrated the run-evidence production path: the end-to-end test flows a real governed run and really-collected snapshot through the producer into an impact-query answer naming the real stored execution.
 - Implemented the sixth Delivery Gate 6 increment: `TaskImpactQuery` and the immutable `TaskImpact` result answering the task-to-decision-to-code-to-test chain over one projected graph, with snapshot-traceable identity and rebuild status derived from every traversed element.
 - Implemented the fifth Delivery Gate 6 increment: the metadata-only graph projection contract (`GraphNode`, `GraphEdge`, `GraphProvenance`, `GraphElementFreshness`, `ProjectBrainGraph`) with five node kinds, six endpoint-checked edge kinds over the five roadmap relationship domains, and snapshot-keyed versioned projections.
 - Enforced provenance invariants (Current/Stale require a SHA-256 revision, Source-Missing prohibits one, rebuild status is derived) plus deterministic ordering, duplicate/self-loop/unknown-endpoint rejection, and 4096-element bounds; named the impact query as the consumer.
@@ -47,15 +52,25 @@
 - `gate-6-workspace-snapshot-contract` is Completed; its record is preserved in commit `c5a16b9`, `CHANGELOG.md`, and `PROJECT_STATE.md`.
 - `gate-6-project-brain-view-integration` is Completed; its record is preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
 - `gate-6-repository-memory-snapshot-collection` is Completed; its record is preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
-- `gate-6-production-brain-composition` and `gate-6-graph-projection-contracts` are Completed; their records are preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
-- `CURRENT_TASK.md` is Completed for `gate-6-task-impact-query`.
-- The five Gate 6 increments (view, collector, production composition, graph contract, impact query) and their synchronized documents are committed and published on `origin/main` through delivery commit `d3b6197`.
+- `gate-6-run-evidence-graph-producer`, `gate-6-accepted-decision-projection`, and `gate-6-run-record-metadata-observation` are Completed; their records are preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
+- `CURRENT_TASK.md` is Completed for `gate-6-production-graph-composition`.
+- The first five Gate 6 increments (view, collector, production composition, graph contract, impact query) are published on `origin/main` through delivery commit `d3b6197`.
+- The four later increments (run-evidence producer, decision projection, run-record observation with store listing, production graph composition) are uncommitted local changes on `main`.
+- The actual-repository evidence runs persisted `run-record/ca604c7c-23e8-4b1c-8aa2-38fb6bfed5cf` and `run-record/69977403-1cfb-45ba-ba0f-9239ad26a8c1` under the Git-ignored `.enhancer/run-records` directory.
 - The actual-repository evidence run persisted `run-record/ca604c7c-23e8-4b1c-8aa2-38fb6bfed5cf` under the Git-ignored `.enhancer/run-records` directory.
 
 ## Fresh Verification
 
+- Composition RED: both focused CLI graph-composition tests failed with the expected `output does not contain graphDecisions=` assertion while the runs completed.
+- Composition focused GREEN: CLI, workspace, brain, and integration suites passed 17 suites and 50 tests with no skips, failures, or errors.
+- Actual repository `run`: `README.md`, task `gate-6-production-graph-composition`, exit code 0, `COMPLETED`, `VERIFIED`, snapshot `d5bd10cb...a44632`, 17 observations (15 documents plus 2 prior run records), `graphNodes=61`, `graphEdges=1`, `graphDecisions=44` matching the decision log exactly, `impactExecutions=1`.
+- Observation RED: 8 expected missing-symbol errors naming only the absent `RunRecordMetadataCollector` and `references()`; focused GREEN passed 8 suites and 33 tests.
+- Projection RED: 6 expected missing-symbol errors naming only the absent `AcceptedDecisionProjector`; focused GREEN passed 5 suites and 20 tests.
+- Producer RED: the first focused compile failed with 6 expected missing-symbol errors naming only the absent `RunEvidenceGraphProducer`.
+- Producer focused GREEN: Project Brain and integration suites passed 6 suites and 18 tests with no skips, failures, or errors.
+- End-to-end: the extended `WorkspaceCollectionIntegrationTest` flowed a real governed run and really-collected snapshot through the producer into an impact-query answer naming the real stored execution reference.
 - Impact-query RED: the first focused compile failed with 9 expected missing-symbol errors naming only the absent `TaskImpactQuery` and `TaskImpact`.
-- Impact-query focused GREEN: `.\scripts\gradle.ps1 --no-daemon cleanTest test --tests 'com.enhancer.brain.*'` passed 3 suites and 13 tests with no skips, failures, or errors.
+- Impact-query focused GREEN: 3 suites and 13 tests with no skips, failures, or errors.
 - Graph RED: the first focused compile failed with 100 expected missing-symbol errors naming only the seven intentionally absent graph types.
 - Graph focused GREEN: 2 suites and 9 tests with no skips, failures, or errors.
 - Composition RED: both focused CLI composition tests failed with the expected `output does not contain workspaceSnapshotId=` assertion while the runs completed and were recorded.
@@ -65,7 +80,7 @@
 - Collector RED: the focused compile failed with 6 expected missing-symbol errors, all naming only the absent `RepositoryMemorySnapshotCollector`.
 - Collector focused GREEN: 7 suites and 20 tests with no skips, failures, or errors.
 - Current full command: `.\scripts\gradle.ps1 --no-daemon clean test --warning-mode all`.
-- Current full result: 34 suites, 127 tests, 125 passed, 2 Windows symbolic-link setup skips, 0 failures, and 0 errors, confirmed against fresh XML output.
+- Current full result: 38 suites, 140 tests, 138 passed, 2 Windows symbolic-link setup skips, 0 failures, and 0 errors, confirmed against fresh XML output.
 - Current Java 17 production lint passed with `-Xlint:all -Werror`; Gradle emitted no deprecation warning.
 - Current structural verification: exactly one `Specified - Next` gate status marker at Gate 6 and `git diff --check` passed.
 - End-to-end: `WorkspaceCollectionIntegrationTest` connected a real governed CLI run, real RunRecord, real Context Reader memory, the collector, and the composed view; all 15 documents were `SNAPSHOT_MATCHED` and exactly `CURRENT_TASK.md` reported `SNAPSHOT_DIVERGED` after its edit.
@@ -102,14 +117,17 @@
 - Gate 6 read-only `ProjectBrainView` sub-capability: Contract Verified.
 - Gate 6 repository-memory path (real governed run -> real memory -> collector -> composed view with divergence detection): Integrated.
 - Gate 6 production composition: Operational for the governed read-only CLI scenario; every recorded `run` reports bounded snapshot identity, observation count, and memory freshness.
-- Gate 6 graph projection contract: Contract Verified; consumed by the task impact query against contract-constructed graphs.
-- Gate 6 task impact query: Contract Verified; no producer projects real repository evidence, so the query has no evidence over the actual project.
+- Gate 6 graph projection contract: Contract Verified; consumed by the impact query and the run-evidence producer.
+- Gate 6 task impact query: Contract Verified; it answers over really-produced graphs in the integration path.
+- Gate 6 run-evidence graph production path: Integrated.
+- Gate 6 accepted-decision projection and run-record metadata observation: Contract Verified; consumed by the production graph composition.
+- Gate 6 production graph composition: Operational for the governed read-only CLI scenario; decisions remain unlinked in impact answers, and modifies/verified-by producers do not exist.
 - Gate 0 integration proves planning, explicit external activation, verified execution, persistence, and replay without changing Proposal authority.
 - Workspace source adapters and live collection, LLM invocation, Event/Message Bus, IPC, Scheduler, broader Agent Runtime, MCP, Skills, plugins, multi-agent execution, background execution, and release packaging remain unimplemented.
 
 ## Next Task
 
-Activate a separate Gate 6 increment: the first graph producer projecting real repository evidence (documents, RunRecords, snapshot observations) into the graph contract so the impact query can answer about the actual project, or the next read-only source adapter. A Git status/diff adapter additionally requires an explicit user decision on external command authority. Payload capture and messaging remain later increments.
+Activate a separate Gate 6 increment: a task-to-decision reference grammar with its `JUSTIFIED_BY` projection, or the next read-only source adapter. A Git status/diff adapter additionally requires an explicit user decision on external command authority. Payload capture and messaging remain later increments.
 
 ## Remaining Risks
 
@@ -123,7 +141,7 @@ Activate a separate Gate 6 increment: the first graph producer projecting real r
 ## Instructions For Next Agent
 
 1. Read `.ai/` and every canonical startup document in repository order.
-2. Confirm Gate 6 is the sole `Specified - Next` gate status marker and `CURRENT_TASK.md` records `gate-6-task-impact-query` as Completed.
-3. The Gate 6 project brain foundations are published through `d3b6197`; the working tree should be clean apart from any newly activated work.
-4. Activate a bounded graph-producer or next-adapter task before editing production code; defer payload capture and messaging, and obtain explicit authority before any external command adapter.
+2. Confirm Gate 6 is the sole `Specified - Next` gate status marker and `CURRENT_TASK.md` records `gate-6-production-graph-composition` as Completed.
+3. The first five Gate 6 increments are published through `d3b6197`; the four later increments (run-evidence producer, decision projection, run-record observation with store listing, production graph composition) are uncommitted local changes on `main` — do not discard them, and commit only when the user asks.
+4. Activate a bounded reference-grammar or next-adapter task before editing production code; defer payload capture and messaging, and obtain explicit authority before any external command adapter.
 5. Do not commit or push unless explicitly requested.

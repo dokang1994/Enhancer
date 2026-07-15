@@ -3,9 +3,14 @@ package com.enhancer.integration;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.enhancer.brain.GraphNode;
 import com.enhancer.brain.MemoryFreshness;
+import com.enhancer.brain.ProjectBrainGraph;
 import com.enhancer.brain.ProjectBrainView;
 import com.enhancer.brain.RepositoryMemoryEntry;
+import com.enhancer.brain.RunEvidenceGraphProducer;
+import com.enhancer.brain.TaskImpact;
+import com.enhancer.brain.TaskImpactQuery;
 import com.enhancer.cli.CliExitCode;
 import com.enhancer.cli.EnhancerCli;
 import com.enhancer.context.ProjectContext;
@@ -100,6 +105,24 @@ class WorkspaceCollectionIntegrationTest {
                 .map(RepositoryMemoryEntry::path)
                 .toList();
         assertEquals(List.of("CURRENT_TASK.md"), diverged);
+
+        ProjectBrainGraph graph = new RunEvidenceGraphProducer().produce(
+                snapshot,
+                resolved,
+                Instant.now());
+        assertEquals(snapshot.snapshotId(), graph.sourceSnapshotId());
+        assertEquals(
+                RequiredProjectDocument.values().length + 2,
+                graph.nodes().size());
+
+        TaskImpact impact = new TaskImpactQuery().query(graph, TASK_ID);
+        assertEquals(snapshot.snapshotId(), impact.sourceSnapshotId());
+        assertEquals(
+                List.of(resolved.metadata().reference()),
+                impact.executions().stream().map(GraphNode::nodeId).toList());
+        assertEquals(List.of(), impact.decisions());
+        assertEquals(List.of(), impact.modifiedArtifacts());
+        assertTrue(!impact.rebuildRequired());
     }
 
     private void writeGovernedProject(

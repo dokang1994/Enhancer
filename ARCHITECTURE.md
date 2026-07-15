@@ -142,7 +142,25 @@ This contract is Contract Verified and is consumed by the impact query below. Pr
 
 `TaskImpactQuery` answers the first rebuildable task-to-decision-to-code-to-test question over exactly one projected graph. From the queried task node it traverses only the named chain — `JUSTIFIED_BY` to decisions, `MODIFIES` to artifacts, `VERIFIED_BY` from those modified artifacts to their verifying artifacts, and `RECORDED_AS` to executions — and returns an immutable `TaskImpact` carrying the graph's source snapshot identity and one derived rebuild-required status. The status is true exactly when the task node, a traversed edge, or a returned node requires rebuild, so the answer says when it stops being trustworthy; unrelated stale elements do not taint it. Transitive `DEPENDS_ON` closure is deliberately deferred until real dependency projections exist.
 
-The query is Contract Verified against contract-constructed graphs. It answers nothing about the actual project until a producer projects real repository evidence into the graph contract; that producer is the query's remaining upstream.
+The query is Contract Verified against contract-constructed graphs and now answers over really-produced graphs through the producer below.
+
+### Gate 6 Run Evidence Graph Producer
+
+`RunEvidenceGraphProducer` is the first graph producer. From one Workspace snapshot and one task-matched stored run record it projects only what that evidence proves: a task node from the approved task revision, one artifact node per repository document/file observation with the observation state mapped one-to-one to element freshness (Available to Current, Stale to Stale, Unavailable to Source-Missing), an execution node carrying the stored envelope SHA-256 and durable reference, and a single `RECORDED_AS` edge. It never emits decision, modifies, verified-by, justified-by, supersedes, or depends-on elements, because no current evidence source justifies them; each of those arrives with its own producer and decision.
+
+The run-evidence production path is Integrated: the end-to-end integration test flows a real governed CLI run and a really-collected snapshot through the producer into a `TaskImpactQuery` answer naming the real stored execution.
+
+### Gate 6 Decision Projection And Run Record Observation
+
+`AcceptedDecisionProjector` parses accepted decisions from the decision log's own `Status: Accepted Decision` lines in already-loaded repository memory into unlinked `DECISION` nodes. Freshness is snapshot-relative: a matching observed digest is `CURRENT`; a diverged or unobserved document is `STALE`, because currency cannot be proven without a matching observation. No `JUSTIFIED_BY` edge exists until a task-to-decision reference grammar is adopted through its own decision.
+
+`RunRecordMetadataCollector` observes stored run records through the store's read-only, deterministically ordered `references()` listing: one `RUN_RECORD` observation per record with `run-record-store` provenance, the envelope SHA-256 as content digest, and the stored time as source-update time. A record that fails integrity resolution becomes an explicit `UNAVAILABLE` observation with a bounded reason rather than being silently skipped.
+
+### Gate 6 Production Graph Composition
+
+The CLI `run` path composes the graph in production: the RunRecord store is constructed before collection so prior records are observed into the snapshot, accepted-decision nodes from the same loaded memory are merged into the run-evidence graph through additional-observation and additional-node overloads, and the task impact query is answered in process. The output reports bounded `graphNodes`, `graphEdges`, `graphDecisions`, and `impactExecutions` counts only. Snapshot identity intentionally reflects prior run-record observations, so identical trees with different run histories produce different snapshot identities.
+
+This makes the production graph composition Operational for the governed read-only CLI scenario. Impact answers currently contain executions only, because decisions are unlinked and no modifies or verified-by evidence exists.
 
 ## Agent Runtime Model
 

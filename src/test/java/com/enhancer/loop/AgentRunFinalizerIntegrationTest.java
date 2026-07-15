@@ -105,6 +105,11 @@ class AgentRunFinalizerIntegrationTest {
             public ResolvedRunRecord resolve(String reference) throws IOException {
                 throw new IOException("storage unavailable");
             }
+
+            @Override
+            public java.util.List<String> references() throws IOException {
+                throw new IOException("storage unavailable");
+            }
         };
         AgentRunFinalizer finalizer = finalizer(fixture.evidenceStore(), failingStore);
 

@@ -1,8 +1,15 @@
 package com.enhancer.cli;
 
+import com.enhancer.brain.AcceptedDecisionProjector;
+import com.enhancer.brain.GraphNode;
+import com.enhancer.brain.GraphNodeKind;
 import com.enhancer.brain.MemoryFreshness;
+import com.enhancer.brain.ProjectBrainGraph;
 import com.enhancer.brain.ProjectBrainView;
 import com.enhancer.brain.RepositoryMemoryEntry;
+import com.enhancer.brain.RunEvidenceGraphProducer;
+import com.enhancer.brain.TaskImpact;
+import com.enhancer.brain.TaskImpactQuery;
 import com.enhancer.context.ProjectContext;
 import com.enhancer.context.ProjectContextReader;
 import com.enhancer.loop.AgentLoop;
@@ -30,6 +37,7 @@ import com.enhancer.tool.ToolRequest;
 import com.enhancer.verification.DeterministicReadFileVerifier;
 import com.enhancer.verification.VerificationRequest;
 import com.enhancer.workspace.RepositoryMemorySnapshotCollector;
+import com.enhancer.workspace.RunRecordMetadataCollector;
 import com.enhancer.workspace.WorkspaceSnapshot;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -75,11 +83,15 @@ public final class EnhancerCli {
     private int executeRun(RunCliCommand command, PrintStream stdout) throws IOException {
         GovernedRunInputs inputs = governedRunInputs(command);
         ApprovedTask approvedTask = inputs.approvedTask();
+        FileSystemRunRecordStore runRecordStore =
+                new FileSystemRunRecordStore(command.runRecordRoot());
+        Instant capturedAt = Instant.now();
         WorkspaceSnapshot snapshot = new RepositoryMemorySnapshotCollector().collect(
                 command.projectRoot(),
-                Instant.now(),
+                capturedAt,
                 approvedTask,
-                inputs.repositoryMemory());
+                inputs.repositoryMemory(),
+                new RunRecordMetadataCollector().observe(runRecordStore, capturedAt));
         FileSystemEvidenceStore evidenceStore = new FileSystemEvidenceStore(
                 command.evidenceRoot(),
                 new EvidenceRetentionPolicy(
@@ -120,13 +132,22 @@ public final class EnhancerCli {
                         : Optional.empty();
         FinalizedAgentRun finalized = new AgentRunFinalizer(
                 new DeterministicReadFileVerifier(evidenceStore),
-                new FileSystemRunRecordStore(command.runRecordRoot()))
+                runRecordStore)
                 .finalizeRun(workerRun, verificationRequest);
         CliExitCode exitCode = exitCode(finalized.record());
         ProjectBrainView view = ProjectBrainView.compose(
                 snapshot,
                 inputs.repositoryMemory(),
                 finalized.record());
+        List<GraphNode> decisions = new AcceptedDecisionProjector().project(
+                snapshot,
+                inputs.repositoryMemory());
+        ProjectBrainGraph graph = new RunEvidenceGraphProducer().produce(
+                snapshot,
+                new ResolvedRunRecord(finalized.storedRecord(), finalized.record()),
+                Instant.now(),
+                decisions);
+        TaskImpact impact = new TaskImpactQuery().query(graph, approvedTask.taskId());
 
         writeBounded(stdout, String.join("\n",
                 "status=" + finalized.stopReason(),
@@ -139,8 +160,18 @@ public final class EnhancerCli {
                 "runRecordReference=" + finalized.storedRecord().reference(),
                 "workspaceSnapshotId=" + view.snapshotId(),
                 "workspaceObservations=" + view.workspaceObservations().size(),
-                "memoryFreshness=" + freshnessSummary(view)) + "\n");
+                "memoryFreshness=" + freshnessSummary(view),
+                "graphNodes=" + graph.nodes().size(),
+                "graphEdges=" + graph.edges().size(),
+                "graphDecisions=" + countDecisions(graph),
+                "impactExecutions=" + impact.executions().size()) + "\n");
         return exitCode.code();
+    }
+
+    private long countDecisions(ProjectBrainGraph graph) {
+        return graph.nodes().stream()
+                .filter(node -> node.kind() == GraphNodeKind.DECISION)
+                .count();
     }
 
     private String freshnessSummary(ProjectBrainView view) {

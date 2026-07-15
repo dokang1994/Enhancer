@@ -2,6 +2,17 @@
 
 ## 2026-07-15
 
+- Composed the Project Brain graph on the production CLI `run` path: prior run records observed into the snapshot, accepted-decision nodes merged into the run-evidence graph, and the task impact query answered in process, reporting bounded `graphNodes`, `graphEdges`, `graphDecisions`, and `impactExecutions` counts.
+- Promoted the production graph composition to Operational with an actual-repository run: 17 observations including 2 prior run records, 61 graph nodes, and 44 decision nodes matching the decision log's 44 accepted decisions exactly.
+- Verified the composition test-first (expected missing-output RED, 50 focused tests GREEN) and passed the full 140-test regression with only the 2 existing Windows symbolic-link setup skips.
+- Added the Contract Verified `RunRecordMetadataCollector` and a read-only lexicographically ordered `references()` listing on the RunRecord store: one `RUN_RECORD` observation per stored record with the envelope SHA-256 and stored time, and explicit `UNAVAILABLE` observations with bounded reasons for corrupted or missing records.
+- Verified the observation path test-first with 8 expected RED missing-symbol errors, then 33 focused tests and the full 139-test regression with only the 2 existing Windows symbolic-link setup skips.
+- Added the Contract Verified `AcceptedDecisionProjector`: accepted decisions parsed from the decision log's own `Status: Accepted Decision` lines into unlinked `DECISION` nodes with snapshot-relative freshness (matched digest Current, diverged or unobserved Stale) and no invented edges.
+- Verified the projector test-first with 6 expected RED missing-symbol errors, then 20 focused Project Brain tests and the full 134-test regression with only the 2 existing Windows symbolic-link setup skips.
+- Added the first Project Brain graph producer: `RunEvidenceGraphProducer` projects one task node, observed repository artifacts with one-to-one state-to-freshness mapping, one execution node with the stored envelope SHA-256, and one `RECORDED_AS` edge from one snapshot and one task-matched run record.
+- Integrated the run-evidence production path end to end: a real governed CLI run and really-collected snapshot flow through the producer into a `TaskImpactQuery` answer naming the real stored execution.
+- Refused unjustified projection by decision: no decision, modifies, verified-by, justified-by, supersedes, or depends-on elements are emitted until their evidence sources exist.
+- Verified the producer test-first with 6 expected RED missing-symbol errors, then 18 focused tests and the full 130-test regression with only the 2 existing Windows symbolic-link setup skips.
 - Published the five Gate 6 project brain foundation increments to `origin/main` in delivery commit `d3b6197`.
 - Added the Contract Verified Gate 6 task impact query: `TaskImpactQuery` answers the first rebuildable task-to-decision-to-code-to-test chain over one projected graph with snapshot-traceable immutable results.
 - Derived one rebuild-required status from every traversed node and edge so unrelated staleness does not taint the answer, deduplicated shared verifying artifacts, and rejected unknown or non-task identities.

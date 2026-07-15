@@ -16,9 +16,10 @@
 - Delivery Gate 5, Gate 0 integration promotion, and the RED workflow clarification are published on `origin/main` through delivery commit `ed901f3`.
 - Delivery Gate 6 metadata-only WorkspaceSnapshot contract and its Contract Verified evidence are published on `origin/main` through delivery commit `c5a16b9`.
 - The Gate 6 read-only `ProjectBrainView` aggregate, `RepositoryMemorySnapshotCollector`, production CLI composition, graph projection contract, and task impact query are published on `origin/main` through delivery commit `d3b6197` (`feat: integrate Gate 6 project brain foundations`).
+- The Gate 6 `RunEvidenceGraphProducer`, `AcceptedDecisionProjector`, `RunRecordMetadataCollector`, store `references()` listing, and production graph composition are implemented and verified locally on `main`; they are not committed or published.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 91 Java files and 4,932 lines.
-- Test source: 34 Java files and 4,827 lines.
+- Production source: 94 Java files and 5,301 lines.
+- Test source: 38 Java files and 5,537 lines.
 
 ## Capability Maturity
 
@@ -37,6 +38,10 @@
 - Graph producers, persistence, and confidence metadata remain outside this verified contract.
 - Delivery Gate 6 task impact query: `TaskImpactQuery` answers the task-to-decision-to-code-to-test chain over one projected graph, returning an immutable `TaskImpact` with the graph's source snapshot identity and a rebuild-required status derived from every traversed element.
 - The query deduplicates shared verifying artifacts, restricts `VERIFIED_BY` traversal to artifacts the task modifies, returns empty collections for edgeless tasks, and rejects unknown or non-task identities; transitive `DEPENDS_ON` closure is deferred by decision.
+- Delivery Gate 6 `RunEvidenceGraphProducer`: evidence-only projection of one task node, observed repository artifact nodes with one-to-one state-to-freshness mapping, one execution node with the stored envelope SHA-256, and one `RECORDED_AS` edge, keyed to the snapshot identity with task-mismatch rejection.
+- Delivery Gate 6 `AcceptedDecisionProjector`: accepted decisions parsed from the decision log's own status lines into unlinked `DECISION` nodes with snapshot-relative freshness.
+- Delivery Gate 6 `RunRecordMetadataCollector` and store `references()` listing: one `RUN_RECORD` observation per stored record with the envelope SHA-256, and explicit `UNAVAILABLE` observations for corrupted or missing records.
+- Modifies, verified-by, justified-by, supersedes, and depends-on projection remains unimplemented; each requires its own evidence source and producer.
 
 ### Integrated
 
@@ -188,7 +193,10 @@
 - Gate 6 repository-memory path (real governed run -> real Context Reader memory -> collector -> composed view with divergence detection): Integrated through `WorkspaceCollectionIntegrationTest`.
 - Gate 6 production composition: Operational for the governed read-only CLI scenario; every recorded `run` composes the view and reports bounded snapshot identity, observation count, and memory freshness.
 - Gate 6 graph projection contract: Contract Verified; consumed by the task impact query against contract-constructed graphs.
-- Gate 6 task impact query: Contract Verified; no producer projects real repository evidence yet, so the query has no evidence over the actual project. The remaining Gate 6 scope keeps the gate `Specified - Next`.
+- Gate 6 task impact query: Contract Verified; it now also answers over really-produced graphs in the integration path.
+- Gate 6 run-evidence graph production path (real governed run -> real snapshot -> producer -> impact-query answer naming the real stored execution): Integrated through the extended `WorkspaceCollectionIntegrationTest`.
+- Gate 6 accepted-decision projection and run-record metadata observation: Contract Verified and consumed by the production graph composition.
+- Gate 6 production graph composition: Operational for the governed read-only CLI scenario; every recorded `run` observes prior run records into the snapshot, merges decision nodes into the produced graph, and reports bounded graph and impact counts. Decisions remain unlinked in impact answers. The remaining Gate 6 scope keeps the gate `Specified - Next`.
 - Enhancer has one Operational read-only scenario; the broader Agent Runtime remains planned.
 - Gate 0 integration audit is verified without a production correction or second orchestrator and does not displace Gate 6.
 
@@ -318,6 +326,43 @@
 - The result promotes only the impact query to Contract Verified against contract-constructed graphs. Gate 6 remains `Specified - Next`: no producer projects real repository evidence and no persistence exists.
 - Gate 6 remains the sole `Specified - Next` gate status marker and `git diff --check` passed.
 
+## Gate 6 Production Graph Composition Verification
+
+- Test-first RED: both focused CLI graph-composition tests failed with the expected `output does not contain graphDecisions=` assertion while the runs completed.
+- Focused GREEN: CLI, workspace, brain, and integration suites passed 17 suites and 50 tests with no skips, failures, or errors.
+- Full regression with `--warning-mode all`: 38 suites, 140 tests, 138 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors; Java 17 lint passed with `-Xlint:all -Werror`.
+- The second-run CLI test proved prior-record observation: `workspaceObservations` grew from 15 to 16 while graph counts stayed evidence-exact.
+- Actual repository `run` on `README.md`: exit code 0, `COMPLETED`, `VERIFIED`, RunRecord `run-record/69977403-1cfb-45ba-ba0f-9239ad26a8c1`, snapshot `d5bd10cb...a44632`, 17 observations (15 documents plus 2 prior run records), `graphNodes=61`, `graphEdges=1`, `graphDecisions=44` matching the decision log's 44 `Status: Accepted Decision` lines, and `impactExecutions=1`.
+- The result promotes the production graph composition to Operational for the governed read-only CLI scenario. Gate 6 remains `Specified - Next`: decisions are unlinked, modifies/verified-by producers and further adapters do not exist, and nothing is persisted beyond the RunRecord.
+
+## Gate 6 Run Record Metadata Observation Verification
+
+- Test-first RED: the focused compile failed with 8 expected missing-symbol errors naming only the absent `RunRecordMetadataCollector` and `references()` store method.
+- One existing anonymous test `RunRecordStore` gained the new interface method; no other existing code changed behavior.
+- Focused GREEN: workspace, run, and finalizer suites passed 8 suites and 33 tests with no skips, failures, or errors.
+- Full regression with `--warning-mode all`: 37 suites, 139 tests, 137 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors; Java 17 lint passed with `-Xlint:all -Werror`.
+- Tests cover ordered listing with non-record files ignored, envelope-digest observation metadata, corrupted-record `UNAVAILABLE` surfacing without a digest, missing/empty-root behavior, snapshot composition alongside repository documents, and null rejection.
+- The result promotes only the run-record observation path to Contract Verified; the CLI does not yet include these observations.
+
+## Gate 6 Accepted Decision Projection Verification
+
+- Test-first RED: the focused compile failed with 6 expected missing-symbol errors naming only the absent `AcceptedDecisionProjector`.
+- Focused GREEN: the Project Brain suites passed 5 suites and 20 tests with no skips, failures, or errors.
+- Full regression with `--warning-mode all`: 36 suites, 134 tests, 132 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors; Java 17 lint passed with `-Xlint:all -Werror`.
+- Projector tests cover document-order accepted-only parsing, matched/diverged/unobserved freshness, missing-document, duplicate-heading, and null rejection, and composition of projected nodes into a `ProjectBrainGraph`.
+- The result promotes only the decision projection to Contract Verified; no `JUSTIFIED_BY` linkage exists because no document grammar evidences task-to-decision references.
+
+## Gate 6 Run Evidence Graph Producer Verification
+
+- Test-first RED: the first focused compile failed with 6 expected missing-symbol errors naming only the absent `RunEvidenceGraphProducer`.
+- Focused GREEN: Project Brain and integration suites passed 6 suites and 18 tests with no skips, failures, or errors.
+- Full regression with `--warning-mode all`: 35 suites, 130 tests, 128 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors.
+- Gradle emitted no deprecation warning; Java 17 production lint passed with `-Xlint:all -Werror`.
+- Producer tests cover snapshot-keyed identity, the one-to-one state-to-freshness mapping including Stale and Source-Missing observations, non-repository observation skipping, execution provenance from the stored envelope digest, evidence-only edge emission, task-mismatch rejection, and null rejection.
+- The extended integration test flowed a real governed CLI run and really-collected snapshot through the producer into a `TaskImpactQuery` answer naming the real stored execution reference, with empty decision, modified-artifact, and verifying-artifact results.
+- The result promotes the run-evidence production path to Integrated. Gate 6 remains `Specified - Next`: decision/modifies/verified-by producers, non-repository observation projection, persistence, and further adapters do not exist.
+- Gate 6 remains the sole `Specified - Next` gate status marker and `git diff --check` passed.
+
 ## Vision Documentation Verification
 
 - At the time of the vision review, the canonical Roadmap contained sequential Delivery Gates 0 through 16 and exactly one `Specified - Next` marker at Gate 5.
@@ -351,7 +396,7 @@
 
 ## Next Task
 
-Activate a separate Gate 6 increment: the first graph producer projecting real repository evidence (documents, RunRecords, snapshot observations) into the graph contract, or the next read-only source adapter. A Git status/diff adapter additionally requires an explicit decision on external command authority.
+Activate a separate Gate 6 increment: a task-to-decision reference grammar with its `JUSTIFIED_BY` projection, or the next read-only source adapter. A Git status/diff adapter additionally requires an explicit decision on external command authority.
 
 ## Session Recovery
 

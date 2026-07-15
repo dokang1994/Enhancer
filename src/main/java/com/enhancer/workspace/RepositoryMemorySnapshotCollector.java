@@ -27,10 +27,22 @@ public final class RepositoryMemorySnapshotCollector {
             Instant capturedAt,
             ApprovedTask approvedTask,
             ProjectContext repositoryMemory) {
+        return collect(projectRoot, capturedAt, approvedTask, repositoryMemory, List.of());
+    }
+
+    public WorkspaceSnapshot collect(
+            Path projectRoot,
+            Instant capturedAt,
+            ApprovedTask approvedTask,
+            ProjectContext repositoryMemory,
+            List<WorkspaceSourceObservation> additionalObservations) {
         Objects.requireNonNull(projectRoot, "projectRoot must not be null");
         Objects.requireNonNull(capturedAt, "capturedAt must not be null");
         Objects.requireNonNull(approvedTask, "approvedTask must not be null");
         Objects.requireNonNull(repositoryMemory, "repositoryMemory must not be null");
+        Objects.requireNonNull(
+                additionalObservations,
+                "additionalObservations must not be null");
 
         List<WorkspaceSourceObservation> observations =
                 new ArrayList<>(repositoryMemory.documents().size());
@@ -55,6 +67,7 @@ public final class RepositoryMemorySnapshotCollector {
                     "repositoryMemory does not contain the approved task source document: "
                             + approvedTask.sourceDocument());
         }
+        observations.addAll(additionalObservations);
 
         return WorkspaceSnapshot.capture(
                 projectRoot,

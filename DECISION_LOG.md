@@ -2,6 +2,123 @@
 
 ## Accepted Decisions
 
+### 2026-07-15: Compose The Production Graph From The Same Governed Inputs The Run Already Loads
+
+Status: Accepted Decision
+
+Context:
+
+- The decision projection and run-record observation are Contract Verified but have no production caller, and the CLI composes only the view.
+- The run path already loads repository memory, collects the snapshot, and persists the RunRecord; the graph needs exactly those inputs plus prior run-record metadata.
+- Reporting node identities or digests would leak repository structure into bounded diagnostics that existing rules keep content-free.
+
+Decision:
+
+- Construct the RunRecord store before snapshot collection so prior records are observed into the snapshot through `RunRecordMetadataCollector`.
+- Extend the memory collector and the run-evidence producer with overloads for additional observations and additional evidence-backed nodes instead of adding parallel collection paths.
+- After finalization, project accepted decisions from the same loaded memory, produce one graph keyed to the same snapshot, and answer the task impact query in process.
+- Report only bounded counts (`graphNodes`, `graphEdges`, `graphDecisions`, `impactExecutions`); keep every existing output line, exit code, and replay behavior unchanged.
+- Persist nothing new; graphs and impact answers remain derived, rebuildable outputs.
+
+Rationale:
+
+Composing from inputs the run already trusts keeps the graph an account of the governed run rather than a second collection path, and count-only reporting makes production composition observable without widening the diagnostic surface. The overloads preserve single enforcement points for snapshot and graph invariants.
+
+Consequences:
+
+- Snapshot identity now reflects prior run-record observations, so runs over the same tree with different run histories produce different snapshot identities by design.
+- Graph production cost grows with stored record count; retention remains governed elsewhere.
+- Decisions remain unlinked in impact answers until a task-to-decision reference grammar exists.
+
+### 2026-07-15: Observe Stored Run Records As Explicit Metadata With Corruption Surfaced As Unavailable
+
+Status: Accepted Decision
+
+Context:
+
+- The Workspace contract types a `RUN_RECORD` source kind and the Gate 6 scope names RunRecord metadata as a snapshot source, but no adapter observes stored records.
+- The RunRecord store exposes only `persist` and `resolve`; observation needs a read-only listing.
+- Resolution already validates envelope integrity, so a listed record either yields trustworthy metadata or a typed corruption failure.
+- Silently skipping a corrupted record would make absence indistinguishable from health, which the snapshot's explicit state model exists to prevent.
+
+Decision:
+
+- Add a read-only `references()` listing to the `RunRecordStore` interface and its filesystem implementation: lexicographically ordered valid references, an empty list for a missing or empty root, and non-record files ignored.
+- Add `RunRecordMetadataCollector` under `com.enhancer.workspace`, emitting one `RUN_RECORD` observation per listed reference with `run-record-store` provenance and a caller-supplied observation time.
+- Emit `AVAILABLE` observations carrying the envelope SHA-256 as content digest and the stored time as source-update time when it does not postdate the observation time.
+- Emit an explicit `UNAVAILABLE` observation with a bounded reason and no digest when integrity resolution fails.
+- Store no payload, evidence, or Tool content, and add no write, delete, or retention capability.
+
+Rationale:
+
+The envelope digest is already the store's own integrity identity, so reusing it as the observation digest gives run-record observations the same content-addressed discipline as documents without decoding payloads a second time. Surfacing corruption as `UNAVAILABLE` uses the state the contract defined for exactly this case and keeps the snapshot an honest account of what the store could and could not vouch for.
+
+Consequences:
+
+- Observation cost grows with record count because each listed record is integrity-checked; retention and cleanup remain governed elsewhere.
+- Files under the storage root that are not record artifacts are outside the store's contract and are not observed.
+- The CLI does not yet include these observations; the production composition increment owns that integration.
+
+### 2026-07-15: Project Accepted Decisions As Unlinked Nodes With Snapshot-Relative Freshness
+
+Status: Accepted Decision
+
+Context:
+
+- Produced graphs contain no decision nodes because no producer parses decision evidence.
+- The decision log already records accepted decisions under dated `### ` headings with an explicit `Status: Accepted Decision` line, and repository memory carries that document.
+- No document grammar links the active task to the decisions that justify it, so `JUSTIFIED_BY` edges cannot be evidenced without inventing linkage.
+- A decision node whose provenance cannot say whether the underlying document changed since the snapshot would silently go stale.
+
+Decision:
+
+- Add `AcceptedDecisionProjector` under `com.enhancer.brain`, projecting decision nodes from the `DECISION_LOG.md` document in one loaded `ProjectContext`.
+- Treat a section as an accepted decision only when its `Status:` line reads exactly `Accepted Decision`; skip proposals and other statuses.
+- Use the heading text as node identity, the decision log path and computed document SHA-256 as provenance, and document order for emission.
+- Derive freshness against the snapshot's `DECISION_LOG.md` observation: same digest is `CURRENT`; a differing digest or an unobserved document is `STALE`, because currency cannot be proven without a matching observation.
+- Emit no edges; task-to-decision linkage requires an explicit reference grammar adopted through its own decision.
+- Reject duplicate accepted-decision headings instead of merging them.
+
+Rationale:
+
+The decision log's own status line is the only machine-readable acceptance evidence in the repository, so parsing exactly that line projects decisions without interpretation. Marking unobserved documents `STALE` keeps the projection honest: a node the snapshot cannot vouch for must not claim currency.
+
+Consequences:
+
+- Impact queries still return empty decision lists until a linkage grammar and its projector exist.
+- Renaming a decision heading changes the node identity; stable decision identifiers would need their own convention.
+- The parser depends on the documented heading and status conventions of this repository's decision log.
+
+### 2026-07-15: Produce The First Real Graph Only From Elements The Run Evidence Actually Proves
+
+Status: Accepted Decision
+
+Context:
+
+- The graph contract and impact query are Contract Verified only against contract-constructed graphs; no producer projects real repository evidence.
+- The available real evidence is one Workspace snapshot (approved task revision plus observed repository documents with digests and explicit states) and one stored run record (task, verification, envelope digest, durable reference).
+- A read-only Gate 5 run modifies nothing, no decision parser exists, and no test-to-code linkage evidence exists, so `MODIFIES`, `VERIFIED_BY`, `JUSTIFIED_BY`, `SUPERSEDES`, and `DEPENDS_ON` edges cannot yet be justified.
+- Projecting unjustified edges would make the impact query report relationships no evidence supports, which is exactly what the graph model prohibits.
+
+Decision:
+
+- Add `RunEvidenceGraphProducer` under `com.enhancer.brain`, producing from one snapshot, one task-matched `ResolvedRunRecord`, and an explicit projection time.
+- Project only what the evidence proves: one task node from the approved task revision, one artifact node per repository document/file observation, one execution node from the stored record, and one `RECORDED_AS` edge from task to execution.
+- Map observation states to element freshness one-to-one: Available to Current, Stale to Stale, Unavailable to Source-Missing, carrying the observation digest exactly when present.
+- Use the stored record's envelope SHA-256 and durable reference as the execution node's provenance.
+- Key the graph to the snapshot identity and delegate all structural enforcement to `ProjectBrainGraph.project`.
+- Skip non-repository observation kinds and emit no other node or edge kinds until later producers can justify them from parsed decisions, write operations, or test evidence.
+
+Rationale:
+
+A projection is trustworthy only if every element can be traced to evidence, so the first producer's value is precisely its refusal to invent. The one-to-one state-to-freshness mapping preserves the snapshot's explicit staleness semantics inside the graph, and reusing the stored envelope digest gives executions the same content-addressed provenance discipline as documents.
+
+Consequences:
+
+- Impact answers over produced graphs currently return executions and observed artifacts only; decisions, modified artifacts, and verifying tests stay empty until their producers exist.
+- Later producers extend the same graph rather than replacing it; each new edge kind requires its own evidence source and decision.
+- Non-repository observations (Git status, diagnostics, terminal) remain unprojected until their adapters and node semantics are decided.
+
 ### 2026-07-15: Answer The First Impact Query Over One Graph With Explicit Rebuild Status And No Transitive Closure
 
 Status: Accepted Decision

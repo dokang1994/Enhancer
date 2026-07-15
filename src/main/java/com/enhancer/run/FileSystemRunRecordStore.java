@@ -23,6 +23,7 @@ import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.nio.channels.FileChannel;
 import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
@@ -33,8 +34,11 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -113,6 +117,34 @@ public final class FileSystemRunRecordStore implements RunRecordStore {
                 storedAt,
                 payload.length,
                 HexFormat.of().formatHex(digest));
+    }
+
+    @Override
+    public List<String> references() throws IOException {
+        if (!Files.isDirectory(storageRoot, LinkOption.NOFOLLOW_LINKS)) {
+            return List.of();
+        }
+        List<String> references = new ArrayList<>();
+        try (DirectoryStream<Path> entries = Files.newDirectoryStream(storageRoot)) {
+            for (Path entry : entries) {
+                String fileName = entry.getFileName().toString();
+                if (!fileName.endsWith(FILE_SUFFIX)
+                        || !Files.isRegularFile(entry, LinkOption.NOFOLLOW_LINKS)) {
+                    continue;
+                }
+                String recordId = fileName.substring(
+                        0,
+                        fileName.length() - FILE_SUFFIX.length());
+                try {
+                    StoredRunRecord.requireCanonicalUuid(recordId);
+                } catch (IllegalArgumentException exception) {
+                    continue;
+                }
+                references.add(REFERENCE_PREFIX + recordId);
+            }
+        }
+        references.sort(Comparator.naturalOrder());
+        return List.copyOf(references);
     }
 
     @Override

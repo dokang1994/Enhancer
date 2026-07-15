@@ -333,8 +333,11 @@ Current increment:
 - Operational: the production CLI `run` path composes the view for every recorded run and reports bounded snapshot identity, observation count, and memory-freshness summary, evidenced by an actual-repository run;
 - Contract Verified: typed endpoint-checked graph projection contract for the Decision, Architecture, Dependency, Task, and Execution relationship domains with source, freshness, version, and rebuild-status provenance keyed to one snapshot identity;
 - Contract Verified: the first rebuildable task-to-decision-to-code-to-test impact query returning snapshot-traceable immutable results with derived rebuild status;
-- next increment: the first graph producer projecting real repository evidence, or the next read-only source adapter;
-- deferred: Git/diagnostics/selection/terminal adapters, payload capture, graph producers, persistence, and messaging.
+- Integrated: the run-evidence graph production path from a real governed run and really-collected snapshot through `RunEvidenceGraphProducer` into an impact-query answer naming the real stored execution;
+- Contract Verified: accepted-decision projection from the decision log's own status lines and run-record metadata observation with explicit corruption surfacing;
+- Operational: production graph composition on the CLI `run` path with prior-run-record observation, merged decision nodes, and bounded graph/impact counts, evidenced by an actual-repository run;
+- next increment: a task-to-decision reference grammar with `JUSTIFIED_BY` projection, or the next read-only source adapter;
+- deferred: Git/diagnostics/selection/terminal adapters, payload capture, modifies/verified-by producers, persistence, and messaging.
 
 Dependencies:
 
