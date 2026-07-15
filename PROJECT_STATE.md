@@ -20,11 +20,18 @@
 - The Gate 6 sub-capability promotion audit is published through documentation commits `59d0c05` and `6a75545`.
 - The Gate 6 `TaskJustificationProjector` and `Justified By` reference grammar are published on `origin/main` through delivery commit `0e2be2c` (`feat: link tasks to decisions through explicit justification references`).
 - The Gate 6 authority-boundary evidence, `TargetFileMetadataCollector`, and `GitWorkspaceCollector` are published on `origin/main` through delivery commit `21e6230` (`feat: complete Gate 6 workspace observation surface`).
+- The Gate 6 maturity assessment, the re-scope-and-promotion, and the Gate 7 `MessageEnvelope` contract are implemented and verified locally on `main`; they are not committed or published.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 97 Java files and 5,774 lines.
-- Test source: 42 Java files and 6,131 lines.
+- Production source: 105 Java files and 5,974 lines.
+- Test source: 43 Java files and 6,267 lines.
 
 ## Capability Maturity
+
+### Contract Verified
+
+- Delivery Gate 7 versioned reference-only `MessageEnvelope` under `com.enhancer.bus`: canonical-UUID message identity, bounded correlation/run/producer identities, optional canonical-UUID causation distinct from the message identity, and one typed payload.
+- Sealed four-kind payload hierarchy (work, result, control, handoff) carrying task revisions, snapshot identities, immutable allowed-tool scopes, run-record references, verification status, and typed control signals as bounded data; no content, delivery semantics, or Tool authority.
+- Delivery, topics, queues, retry, idempotency, replay, ordering, backpressure, and IPC transport remain outside this verified contract.
 
 ### Integrated
 
@@ -179,7 +186,8 @@
 - Delivery Gate 3: Integrated.
 - Delivery Gate 4: Integrated.
 - Delivery Gate 5: Operational.
-- Delivery Gate 6: Specified - Next.
+- Delivery Gate 6: Integrated by the 2026-07-15 re-scope-and-promotion decision; diagnostics, terminal-session, and active/selected-file observation moved to Gate 12.
+- Delivery Gate 7: Specified - Next; its `MessageEnvelope` contract is Contract Verified with no delivery, topic, queue, or transport implementation.
 - Gate 6 `WorkspaceSnapshot`, `ProjectBrainView`, graph projection contract, `TaskImpactQuery`, `AcceptedDecisionProjector`, and `RunRecordMetadataCollector` sub-capabilities: Integrated through the fresh promotion audit `gate-6-sub-capability-integration-promotion`, each connected to real upstream and downstream components by named integration evidence.
 - Gate 6 `TaskJustificationProjector` and the `Justified By` reference grammar: Integrated; the first real reference resolved on the actual repository through the production composition.
 - Gate 6 authority boundary: the exit criterion "Workspace observations cannot override repository authority or grant Tool permission" is pinned by `WorkspaceAuthorityBoundaryIntegrationTest`.
@@ -188,7 +196,7 @@
 - Gate 6 repository-memory path (real governed run -> real Context Reader memory -> collector -> composed view with divergence detection): Integrated through `WorkspaceCollectionIntegrationTest`.
 - Gate 6 run-evidence graph production path (real governed run -> real snapshot -> producer -> impact-query answer naming the real stored execution): Integrated through the extended `WorkspaceCollectionIntegrationTest`.
 - Gate 6 production view composition: Operational for the governed read-only CLI scenario; every recorded `run` composes the view and reports bounded snapshot identity, observation count, and memory freshness.
-- Gate 6 production graph composition: Operational for the governed read-only CLI scenario; every recorded `run` observes prior run records into the snapshot, merges decision nodes into the produced graph, and reports bounded graph and impact counts. Decisions remain unlinked in impact answers. The remaining Gate 6 scope keeps the gate `Specified - Next`.
+- Gate 6 production graph composition: Operational for the governed read-only CLI scenario; every recorded `run` observes prior run records, the run target, and Git state into the snapshot, merges decision nodes and justification edges into the produced graph, and reports bounded graph and impact counts.
 - Enhancer has one Operational read-only scenario; the broader Agent Runtime remains planned.
 - Gate 0 integration audit is verified without a production correction or second orchestrator and does not displace Gate 6.
 
@@ -318,6 +326,52 @@
 - The result promotes only the impact query to Contract Verified against contract-constructed graphs. Gate 6 remains `Specified - Next`: no producer projects real repository evidence and no persistence exists.
 - Gate 6 remains the sole `Specified - Next` gate status marker and `git diff --check` passed.
 
+## Gate 7 Message Envelope Contract Verification
+
+- Test-first RED: after replacing a Java 17 preview switch pattern in the test with an instanceof/sealedness check, the focused compile failed with 38 expected missing-symbol errors naming only the seven intentionally absent bus types.
+- Focused GREEN: the bus suite passed 4 tests with no skips, failures, or errors.
+- Full regression with `--warning-mode all`: 43 suites, 156 tests, 154 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors; Java 17 lint passed with `-Xlint:all -Werror`.
+- Contract tests cover identity carriage, exact four-kind sealedness via `getPermittedSubclasses`, immutable authorization data with empty-scope and invalid-digest rejection, and invalid-identity/self-causation rejection.
+- The result promotes only the envelope contract to Contract Verified. Gate 7 remains `Specified - Next`: no envelope has crossed a real hop because no delivery, topic, queue, or transport exists.
+
+## Gate 6 Re-Scope And Promotion Verification
+
+- The user approved the assessment's Option B recommendation on 2026-07-15; the accepted decision records the re-scope and its rationale.
+- Roadmap changes: Gate 6 status Integrated with the evidence summary retained, the three editor-dependent observation items moved to Gate 12 as Workspace observation integrations, exit criteria annotated with the re-scope, Gate 7 status Specified - Next, and the Current Position updated.
+- The two actual-roadmap test contracts were updated to Gate 7 in the same change (`RepositoryTaskPlannerTest`, `AssistedDevelopmentLoopTest`); no production code changed.
+- Focused planner and Assisted Loop suites passed 8 tests against the actual repository roadmap with no skips, failures, or errors.
+- Fresh full regression: 42 suites, 152 tests, 150 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors; Java 17 lint passed with `-Xlint:all -Werror`.
+- Exactly one `Specified - Next` gate status marker remains, now at Gate 7; `git diff --check` passed.
+
+## Gate 6 Maturity Assessment
+
+Fresh supporting evidence for this assessment: 42 suites, 152 tests, 150 passed, 2 existing Windows symbolic-link setup skips, 0 failures, 0 errors, with Java 17 `-Xlint:all -Werror` passing and no Gradle deprecation warning.
+
+Scope-item disposition:
+
+- Immutable `WorkspaceSnapshot` and source freshness metadata: Integrated (`WorkspaceCollectionIntegrationTest`, production CLI suites).
+- Common immutable input-snapshot identity and approved task revision: Integrated; every production run reports the canonical snapshot identity.
+- Repository files and documents: Integrated for the fifteen canonical documents and the run's target file; active and selected file context has no adapter because no editor integration exists before the Gate 12 interface work.
+- Read-only Git status and diff adapters: Integrated at digest granularity under decision-scoped external command authority; per-file metadata would be a separate decision.
+- Diagnostics and terminal-session metadata adapters: no adapter; no diagnostic provider or terminal integration exists before the Gate 8-12 runtime and interface work. The source kinds are already typed in the contract.
+- Project Brain view with provenance: Operational on the production CLI path.
+- Graph projection contracts for the five relationship domains: Integrated.
+- Task-to-decision-to-code-to-test impact query: Integrated for the task, decision, and execution legs; the code and test legs return empty honestly because `MODIFIES`/`VERIFIED_BY` evidence sources require write and test Tools from later gates.
+
+Exit-criterion disposition:
+
+- "One snapshot can explain which files, Git state, diagnostics, selection, and documents informed a run": evidenced for documents, files, Git state, and run history (23 observations on the latest actual-repository run); diagnostics and selection are blocked on later-gate capabilities.
+- "Stale and unavailable sources are explicit": evidenced; real `UNAVAILABLE` observations exist for corrupted records, non-repository roots, and missing targets, and graph elements carry real `STALE` freshness. Observation-level `STALE` awaits a re-observing adapter by design.
+- "Workspace observations cannot override repository authority or grant Tool permission": evidenced by `WorkspaceAuthorityBoundaryIntegrationTest`.
+- "Snapshot size and sensitive-data boundaries are enforced": evidenced by contract bounds, digest-only retention, and no-content output assertions.
+- "Graph nodes and edges retain source, freshness, version, and rebuild status": evidenced by the graph contract and its tests.
+
+Recommendation (requires explicit user approval; the gate status is unchanged by this assessment):
+
+- Option A: keep Gate 6 `Specified - Next` until diagnostics, terminal, and selection adapters exist; those depend on Gate 8-12 capabilities, so the gate would stay open across several gates.
+- Option B (recommended): re-scope by accepted decision — move diagnostics, terminal-session, and active/selected-file observation to the gates that own those capabilities, keeping the already-typed source kinds; declare Gate 6 Integrated as the Workspace and Project Brain foundation; advance `Specified - Next` to Gate 7 Event Bus and IPC Foundation.
+- Stub adapters that observe nothing real are rejected as dishonest evidence.
+
 ## Gate 6 Git Workspace Adapter Verification
 
 - Test-first RED: the focused compile failed with 6 expected missing-symbol errors naming only the absent `GitWorkspaceCollector`.
@@ -433,7 +487,7 @@
 
 ## Next Task
 
-Activate a separate Gate 6 increment: bounded per-file Git status metadata under its own decision, or an assessment of Gate 6 gate-level maturity against the full exit criteria. Diagnostics, terminal, and selection adapters remain blocked on capabilities from later gates.
+Activate the next Delivery Gate 7 increment under separate explicit activation: deterministic in-process topic and queue delivery over the Contract Verified envelopes with idempotency and replay contracts.
 
 ## Session Recovery
 

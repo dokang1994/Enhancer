@@ -6,6 +6,9 @@
 
 ## Completed Work
 
+- Implemented the first Delivery Gate 7 increment: the Contract Verified `MessageEnvelope` under `com.enhancer.bus` — versioned reference-only envelopes with canonical identities and the sealed four-kind payload hierarchy carrying authorization and snapshot references as data.
+- Executed the user-approved Gate 6 re-scope and promotion: editor-dependent observations moved to Gate 12, Gate 6 promoted to Integrated, the `Specified - Next` marker advanced to Gate 7, and the two actual-roadmap test contracts updated in the same change.
+- Completed the Gate 6 maturity assessment: every scope item and exit criterion mapped to fresh evidence or its later-gate blocker, with the re-scope-and-promote recommendation (Option B) recorded pending explicit user approval; documentation-only, gate status unchanged.
 - Implemented the fourteenth Delivery Gate 6 increment: `GitWorkspaceCollector` under explicitly granted read-only external command authority — two fixed git invocations, digest-only retention, discovery confined to the project root, watchdog timeout, and explicit `UNAVAILABLE` on every failure; a real discovery-ceiling defect and a piped-stderr hang were caught and fixed during GREEN.
 - Implemented the thirteenth Delivery Gate 6 increment: `TargetFileMetadataCollector` observing the run target pre-run with a streamed containment-checked digest, missing targets explicit `UNAVAILABLE`, and containment violations rejected as usage errors before execution.
 - Implemented the twelfth Delivery Gate 6 increment: `WorkspaceAuthorityBoundaryIntegrationTest`, pinning on first run that adversarial tool-grant text in observed documents cannot widen task or policy scope, appear in bounded output, or mutate any repository document.
@@ -60,7 +63,10 @@
 - `gate-6-run-evidence-graph-producer`, `gate-6-accepted-decision-projection`, and `gate-6-run-record-metadata-observation` are Completed; their records are preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
 - `gate-6-production-graph-composition` is Completed; its record is preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
 - `gate-6-task-justification-references` (published through `0e2be2c`), `gate-6-authority-boundary-evidence`, and `gate-6-target-file-observation` are Completed; their records are preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
-- `CURRENT_TASK.md` is Completed for `gate-6-git-workspace-adapter`.
+- `gate-6-git-workspace-adapter` is Completed and published through `21e6230`; `gate-6-maturity-assessment` is Completed with its record preserved in `PROJECT_STATE.md`.
+- `gate-6-rescope-and-promotion` is Completed; its record is preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
+- `CURRENT_TASK.md` is Completed for `gate-7-message-envelope-contract`.
+- The maturity assessment, the re-scope-and-promotion, and the Gate 7 envelope contract are uncommitted local changes on `main`.
 - The authority-boundary, target-file, and Git-adapter increments are committed and published on `origin/main` through delivery commit `21e6230`.
 - The external read-only command authority for the Git adapter was explicitly granted by the user on 2026-07-15 ("3번 승인할게") and is scoped to `GitWorkspaceCollector` by accepted decision.
 - The actual-repository evidence runs persisted records under the Git-ignored `.enhancer/run-records` directory, most recently `run-record/4f0d3da1-e8a8-412f-a513-79338d47b2b7`.
@@ -71,11 +77,14 @@
 
 ## Fresh Verification
 
+- Envelope RED: 38 expected missing-symbol errors naming only the seven absent bus types (after replacing a Java 17 preview switch pattern in the test); focused GREEN passed 4 bus tests.
+- Current full command: `.\scripts\gradle.ps1 --no-daemon clean test --warning-mode all`.
+- Current full result: 43 suites, 156 tests, 154 passed, 2 Windows symbolic-link setup skips, 0 failures, and 0 errors; Java 17 lint passed with `-Xlint:all -Werror`.
+- Rescope verification: focused planner and Assisted Loop suites passed 8 tests against the actual roadmap proposing Gate 7; the marker moved with exactly one `Specified - Next` remaining.
 - Git adapter RED: 6 expected missing-symbol errors; GREEN caught and fixed the discovery-ceiling defect; focused GREEN passed 21 suites and 62 tests.
 - Target-file RED: 4 expected missing-symbol errors; focused GREEN passed 20 suites and 59 tests.
 - Boundary characterization passed on first run (2 tests) with no production change.
-- Current full command: `.\scripts\gradle.ps1 --no-daemon clean test --warning-mode all`.
-- Current full result: 42 suites, 152 tests, 150 passed, 2 Windows symbolic-link setup skips, 0 failures, and 0 errors; Java 17 lint passed with `-Xlint:all -Werror`.
+- Earlier session full result: 42 suites, 152 tests, 150 passed, 2 Windows symbolic-link setup skips, 0 failures, and 0 errors.
 - Actual repository `run`: task `gate-6-git-workspace-adapter`, exit code 0, `COMPLETED`, `VERIFIED`, `workspaceObservations=23` (15 documents, 5 prior run records, 1 target file, 2 `AVAILABLE` Git observations), `graphNodes=67`, `graphDecisions=49`.
 - Earlier: the justification run resolved its own `Justified By` reference (`impactDecisions=1`, `graphDecisions=46`).
 - Promotion audit: fresh focused verification across workspace, brain, run, CLI, and integration suites passed 19 suites and 59 tests with no skips, failures, or errors; each named connecting suite passed individually.
@@ -130,7 +139,8 @@
 - Gate 0: Integrated.
 - Gates 1 through 4: Integrated.
 - Gate 5: Operational for one governed read-only local CLI scenario.
-- Gate 6: Specified - Next.
+- Gate 6: Integrated by the user-approved re-scope-and-promotion decision; the production view and graph composition remain Operational sub-capabilities.
+- Gate 7: Specified - Next; its `MessageEnvelope` contract is Contract Verified with no delivery, topic, queue, or transport implementation.
 - Gate 6 repository-memory path (real governed run -> real memory -> collector -> composed view with divergence detection): Integrated.
 - Gate 6 production composition: Operational for the governed read-only CLI scenario; every recorded `run` reports bounded snapshot identity, observation count, and memory freshness.
 - Gate 6 `WorkspaceSnapshot`, `ProjectBrainView`, graph projection contract, `TaskImpactQuery`, `AcceptedDecisionProjector`, and `RunRecordMetadataCollector`: Integrated through the fresh promotion audit against named pre-existing integration evidence.
@@ -144,7 +154,7 @@
 
 ## Next Task
 
-Activate a separate Gate 6 increment: bounded per-file Git status metadata under its own decision, or a gate-level maturity assessment against the full Gate 6 exit criteria. Diagnostics, terminal, and selection adapters remain blocked on later-gate capabilities; payload capture and messaging remain later increments.
+Activate the next Delivery Gate 7 increment under separate explicit activation: deterministic in-process topic and queue delivery over the Contract Verified envelopes with idempotency and replay contracts; retry, dead-letter, ordering, backpressure, and IPC transport remain later increments.
 
 ## Remaining Risks
 
@@ -158,8 +168,8 @@ Activate a separate Gate 6 increment: bounded per-file Git status metadata under
 ## Instructions For Next Agent
 
 1. Read `.ai/` and every canonical startup document in repository order.
-2. Confirm Gate 6 is the sole `Specified - Next` gate status marker and `CURRENT_TASK.md` records `gate-6-git-workspace-adapter` as Completed.
-3. All Gate 6 work is published on `origin/main`, most recently through delivery commit `21e6230`; the working tree should be clean apart from any newly activated work.
+2. Confirm Gate 7 is the sole `Specified - Next` gate status marker and `CURRENT_TASK.md` records `gate-7-message-envelope-contract` as Completed.
+3. Work through `21e6230` is published; the assessment, re-scope-and-promotion, and envelope-contract changes are uncommitted local changes on `main` — do not discard them, and commit only when the user asks.
 4. The only external command authority is the decision-scoped read-only Git adapter; any new external command capability requires its own explicit user approval.
-5. Activate a bounded per-file-Git-metadata or gate-maturity-assessment task before editing production code; defer payload capture and messaging.
+5. Activate a bounded in-process delivery task before editing production code; defer retry, dead-letter, ordering, backpressure, and IPC transport to later increments.
 6. Do not commit or push unless explicitly requested.

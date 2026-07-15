@@ -2,6 +2,61 @@
 
 ## Accepted Decisions
 
+### 2026-07-15: Start Gate 7 With Reference-Only Versioned Envelopes And Exactly Four Payload Kinds
+
+Status: Accepted Decision
+
+Context:
+
+- Gate 7 owns the typed message foundation, and the adopted orchestration invariants require every handoff to preserve the approved task revision, snapshot identity, authorization, correlation, and causation.
+- The Gate 6 snapshot identity is deliberately absent from the RunRecord because envelopes own cross-handoff identity.
+- Carrying payload content, evidence bodies, or Tool authority inside messages would widen the sensitive-data and authority boundaries that the evidence and policy layers already govern.
+
+Decision:
+
+- Add the envelope contract under `com.enhancer.bus`: an immutable versioned `MessageEnvelope` with canonical-UUID message identity, bounded correlation identity, optional canonical-UUID causation identity distinct from the message identity, bounded logical run and producer identities, an occurrence time, and one typed payload.
+- Seal the payload hierarchy to exactly four kinds — work, result, control, handoff — so consumers exhaust them by type instead of interpreting conventions.
+- Carry authorization and provenance as data only: the work and handoff payloads carry the approved task revision, a valid snapshot identity, and (for work) a bounded non-empty allowed-tool scope copied immutably; the result payload carries the run-record reference and verification status; the control payload carries a typed cancel/pause/resume signal with a bounded reason.
+- Store references and identities only; delivery, topics, queues, retry, idempotency, replay, ordering, backpressure, and IPC transport arrive in later increments over this contract.
+
+Rationale:
+
+A message that carries the task revision, snapshot identity, and authorization scope as bounded data lets every later consumer verify what it received against repository authority instead of trusting the sender, which is the invariant the orchestration model demands. Sealing the payload kinds makes exhaustive handling a compiler guarantee before any bus exists.
+
+Consequences:
+
+- Possessing an envelope grants nothing: authority still enters only through the task document and execution policy, and later delivery code must re-validate rather than trust.
+- New payload kinds require extending the sealed hierarchy through a recorded decision.
+- Envelope schema evolution beyond the version identifier is deliberately unspecified until persistence or IPC needs it.
+
+### 2026-07-15: Re-Scope Editor-Dependent Observations To Gate 12 And Promote Gate 6 As The Foundation
+
+Status: Accepted Decision
+
+Context:
+
+- The recorded Gate 6 maturity assessment evidenced every scope item and exit criterion except diagnostics, terminal-session, and active/selected-file observation.
+- Those three observations require diagnostic providers, terminal integration, and editor state that first exist with the Gate 12 interface work; Gate 6 cannot produce honest evidence for them, and stub adapters were rejected.
+- The Roadmap keeps exactly one `Specified - Next` product gate, and leaving Gate 6 open across several gates would block that flow on capabilities it does not own.
+- The user approved proceeding on the assessment's Option B recommendation on 2026-07-15.
+
+Decision:
+
+- Move the diagnostics, terminal-session metadata, and active/selected-file observation items from Gate 6 to Gate 12 as Workspace observation integrations of the interfaces that own those capabilities; their source kinds stay typed in the Workspace contract now.
+- Promote Delivery Gate 6 to Integrated as the Workspace and Project Brain foundation on the evidence recorded in the maturity assessment; the production view and graph composition remain Operational sub-capabilities.
+- Advance the sole `Specified - Next` marker to Delivery Gate 7 Event Bus and IPC Foundation.
+- Update the two actual-roadmap test expectations to Gate 7 in the same change, because their contract is "the current next gate", not "Gate 6".
+
+Rationale:
+
+A gate should exit when everything it can honestly evidence is evidenced and the remainder belongs to capabilities other gates own; keeping typed source kinds now and integrating their adapters where the sources first exist preserves both the contract's completeness and the evidence discipline. The dependency order stays truthful: Gate 7 depends on snapshots and RunRecords, which are Integrated and Operational.
+
+Consequences:
+
+- Gate 12 gains three explicit Workspace observation integration items and Gate 6's exit no longer waits on them.
+- Gate 6 is Integrated, not Operational or Released: its Operational surface remains the governed read-only CLI scenario, and per-file Git metadata, payload capture, modifies/verified-by producers, and graph persistence remain future work in their owning gates.
+- The next product work is the Gate 7 event and message envelope foundation, which carries the snapshot identity across handoffs by design.
+
 ### 2026-07-15: Grant Read-Only Git Observation Through Two Fixed Commands With Digest-Only Retention
 
 Status: Accepted Decision

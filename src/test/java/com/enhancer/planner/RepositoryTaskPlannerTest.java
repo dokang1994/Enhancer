@@ -73,11 +73,11 @@ class RepositoryTaskPlannerTest {
                 "# Current Task\n\n## Status\n\nCompleted\n",
                 roadmap)).orElseThrow();
 
-        assertEquals("Delivery Gate 6: Workspace And Project Brain Foundation", proposal.title());
+        assertEquals("Delivery Gate 7: Event Bus And IPC Foundation", proposal.title());
         assertTrue(proposal.scope().contains(
-                "immutable WorkspaceSnapshot and source freshness metadata;"));
+                "typed domain events and versioned message envelopes;"));
         assertTrue(proposal.acceptanceCriteria().contains(
-                "Workspace observations cannot override repository authority or grant Tool permission;"));
+                "authorization and provenance survive every hop;"));
     }
 
     private ProjectContext context(String currentTask, String roadmap) {

@@ -16,7 +16,7 @@ The standalone label Implemented is no longer used for capability maturity. It m
 
 ## Current Position
 
-Status: Delivery Gate 5 Operational; Delivery Gate 6 Specified - Next
+Status: Delivery Gate 6 Integrated with an Operational production composition; Delivery Gate 7 Specified - Next
 
 Integrated capabilities:
 
@@ -322,7 +322,7 @@ Exit evidence:
 
 ## Delivery Gate 6: Workspace And Project Brain Foundation
 
-Status: Specified - Next
+Status: Integrated
 
 Current increment:
 
@@ -335,8 +335,8 @@ Current increment:
 - Integrated: target-file observation with real pre-run containment-checked digests, and read-only Git status/diff observation at digest granularity under explicitly granted, decision-scoped external command authority with discovery confined to the project root;
 - Evidenced: the authority-boundary exit criterion is pinned by characterization — observed documents cannot grant Tool permission, widen policy, or be mutated by composition;
 - Operational: the production CLI `run` path composes the view and the produced graph for every recorded run, observing prior run records, the run target, and Git state, merging decision nodes and justification edges, and reporting bounded snapshot, freshness, graph, and impact metadata, evidenced by actual-repository runs;
-- next increment: bounded per-file Git status metadata under its own decision, or a gate-level maturity assessment against the full exit criteria;
-- deferred: diagnostics/selection/terminal adapters, payload capture, modifies/verified-by producers, persistence, and messaging.
+- assessed and promoted: the recorded gate maturity assessment mapped every scope item and exit criterion to evidence or to its later-gate blocker, and the user-approved re-scope decision moved diagnostics, terminal-session, and active/selected-file observation to Gate 12, which owns those capabilities;
+- deferred to owning gates: diagnostics/selection/terminal observation integrations (Gate 12), per-file Git metadata, payload capture, modifies/verified-by producers, graph persistence, and messaging.
 
 Dependencies:
 
@@ -346,16 +346,15 @@ Scope:
 
 - immutable WorkspaceSnapshot and source freshness metadata;
 - one common immutable input-snapshot identity and approved task revision for every later worker handoff;
-- repository files plus active and selected file context;
+- repository documents, repository files, and the governed run's target file;
 - read-only Git status and diff adapters;
-- diagnostics and terminal-session metadata adapters without command authority;
 - Project Brain view combining repository memory, workspace observations, decisions, and run history with provenance.
 - graph projection contracts for Decision, Architecture, Dependency, Task, and Execution relationships;
 - first rebuildable task-to-decision-to-code-to-test impact query.
 
 Exit criteria:
 
-- one snapshot can explain which files, Git state, diagnostics, selection, and documents informed a run;
+- one snapshot can explain which files, Git state, run history, and documents informed a run (diagnostics and selection observation moved to Gate 12 by the 2026-07-15 re-scope decision);
 - stale and unavailable sources are explicit;
 - Workspace observations cannot override repository authority or grant Tool permission;
 - snapshot size and sensitive-data boundaries are enforced.
@@ -363,7 +362,13 @@ Exit criteria:
 
 ## Delivery Gate 7: Event Bus And IPC Foundation
 
-Status: Planned
+Status: Specified - Next
+
+Current increment:
+
+- Contract Verified: versioned reference-only `MessageEnvelope` with canonical message/causation identities, bounded correlation/run/producer identities, and the sealed four-kind payload hierarchy carrying task revisions, snapshot identities, authorization scopes, run-record references, verification status, and control signals as data;
+- next increment: deterministic in-process topic and queue delivery over these envelopes with idempotency and replay contracts;
+- deferred: retry, cancellation propagation, dead-letter, ordering, backpressure, and the IPC transport interface.
 
 Dependencies:
 
@@ -501,6 +506,7 @@ Scope:
 - production CLI and local API;
 - VSCode Extension and web dashboard;
 - Workspace, run, event, evidence, task, approval, Skill, MCP, and model views;
+- Workspace observation integrations for the sources these interfaces own: diagnostics, terminal-session metadata, and active/selected file context, using the already-typed Workspace source kinds (moved from Gate 6 by the 2026-07-15 re-scope decision);
 - authenticated typed pause, resume, cancel, reprioritize, reassign, mediation, and injected-work proposal controls;
 - consistent control surfaces without duplicated runtime policy.
 - Enhancer Shell and Intent Understanding that compile one user request into an inspectable Goal, plan, authorization scope, execution graph, and verification plan.

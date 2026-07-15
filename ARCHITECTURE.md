@@ -106,7 +106,7 @@ The first Gate 6 increment is a metadata-only immutable snapshot under `com.enha
 
 `WorkspaceSnapshot` normalizes the absolute project root, sorts observations canonically, rejects duplicate kind/identity pairs and more than 4096 observations, and computes its own SHA-256 identity over every identity-bearing metadata field. Caller order cannot change the identity. Source payloads, Tool scope, policy, approval creation, and command authority are absent by construction.
 
-This metadata contract is Integrated: the real Context Reader feeds it through the repository-memory collector and the view, producer, and query consume it, but it is not itself a collection adapter and does not make Gate 6 Integrated. Gate 7 message envelopes later carry the same snapshot identity across handoffs.
+This metadata contract is Integrated: the real Context Reader feeds it through the repository-memory collector and the view, producer, and query consume it. Gate 7 message envelopes later carry the same snapshot identity across handoffs.
 
 ### Gate 6 Project Brain View
 
@@ -128,7 +128,7 @@ The repository-memory path is Integrated: an integration test connects a real go
 
 The `EnhancerCli` `run` path composes the view in production. The CLI keeps the `ProjectContext` it already loads for task approval, collects the snapshot with a capture time taken before worker execution, composes the view after finalization with the persisted RunRecord for every outcome that produces a record, and appends `workspaceSnapshotId`, `workspaceObservations`, and a `memoryFreshness` summary to the bounded run output. No content, digest list, or evidence is printed; no command, argument, exit code, or authority was added. The RunRecord does not store the snapshot identity; carrying that identity across handoffs belongs to the Gate 7 envelope contracts.
 
-This makes the repository-memory composition Operational for the governed read-only CLI scenario. Gate 6 remains `Specified - Next`: Git, diagnostics, selection, and terminal adapters, graph producers, persistence, and the impact query remain deferred.
+This makes the repository-memory composition Operational for the governed read-only CLI scenario. Delivery Gate 6 is Integrated by the 2026-07-15 re-scope-and-promotion decision: diagnostics, terminal-session, and active/selected-file observation moved to Gate 12, which owns those capabilities, and Gate 7 Event Bus and IPC Foundation is the sole `Specified - Next` product gate.
 
 ### Gate 6 Graph Projection Contract
 
@@ -169,6 +169,14 @@ The run-evidence production path is Integrated: the end-to-end integration test 
 The CLI `run` path composes the graph in production: the RunRecord store is constructed before collection so prior records are observed into the snapshot, accepted-decision nodes and resolved `Justified By` edges from the same loaded memory are merged into the run-evidence graph through additional-observation, additional-node, and additional-edge overloads, and the task impact query is answered in process. The output reports bounded `graphNodes`, `graphEdges`, `graphDecisions`, `impactExecutions`, and `impactDecisions` counts only. Snapshot identity intentionally reflects prior run-record observations, so identical trees with different run histories produce different snapshot identities.
 
 This makes the production graph composition Operational for the governed read-only CLI scenario. Impact answers carry executions and explicitly justified decisions; modifies and verified-by evidence does not exist yet.
+
+## Gate 7 Message Envelope Contract
+
+The first Gate 7 increment is the reference-only envelope contract under `com.enhancer.bus`. `MessageEnvelope` is versioned (`message-envelope-v1`) and carries a canonical-UUID message identity, a bounded correlation identity, an optional canonical-UUID causation identity that must differ from the message identity, bounded logical-run and producer identities, an occurrence time, and one typed payload.
+
+`MessagePayload` is sealed to exactly four kinds. The work payload carries the approved task revision, a valid Workspace snapshot identity, and an immutable bounded allowed-tool scope; the result payload carries the task identity, a run-record reference, and the verification status; the control payload carries a typed cancel/pause/resume signal with a bounded reason; the handoff payload carries the task revision, snapshot identity, and run-record reference. Authorization is carried as data, never created: possessing an envelope grants nothing, and delivery code must validate contents against repository authority rather than trust the sender.
+
+This contract is Contract Verified. Its named consumer is deterministic in-process topic and queue delivery; topics, queues, retry, idempotency, dead-letter, replay, ordering, backpressure, and IPC transport arrive in later increments over this contract.
 
 ## Agent Runtime Model
 

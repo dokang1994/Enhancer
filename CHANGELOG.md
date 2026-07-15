@@ -2,6 +2,11 @@
 
 ## 2026-07-15
 
+- Added the Contract Verified Gate 7 `MessageEnvelope` contract: versioned reference-only envelopes with canonical message/causation identities, bounded correlation/run/producer identities, and a sealed four-kind payload hierarchy carrying task revisions, snapshot identities, authorization scopes, run-record references, verification status, and control signals as data.
+- Verified the envelope contract test-first with 38 expected RED missing-symbol errors, then 4 focused tests and the full 156-test regression with only the 2 existing Windows symbolic-link setup skips.
+- Promoted Delivery Gate 6 to Integrated through the user-approved re-scope decision: diagnostics, terminal-session, and active/selected-file observation moved to Gate 12, which owns those capabilities, and Delivery Gate 7 Event Bus and IPC Foundation became the sole `Specified - Next` product gate.
+- Updated the two actual-roadmap test contracts to Gate 7 and verified the full 152-test regression with the marker at Gate 7 and no production change.
+- Recorded the Gate 6 maturity assessment against fresh 152-test evidence: all evidenced scope items and exit criteria named, diagnostics/terminal/selection blockers traced to Gate 8-12 capabilities, and the re-scope-and-promote recommendation recorded pending explicit user approval.
 - Published the authority-boundary evidence, target-file observation, and Git adapter increments to `origin/main` in delivery commit `21e6230`.
 - Added the `GitWorkspaceCollector` under explicitly granted read-only external command authority: two fixed git invocations (status/diff) with discovery confined to the project root, watchdog-enforced timeout, discarded stderr, `--no-optional-locks` and fsmonitor disabled, digest-only retention, and every failure surfaced as explicit `UNAVAILABLE`.
 - Caught and fixed a real semantic defect during GREEN: without a discovery ceiling, temporary directories observed the enclosing repository; `GIT_CEILING_DIRECTORIES` now confines observation to the project's own working tree.
