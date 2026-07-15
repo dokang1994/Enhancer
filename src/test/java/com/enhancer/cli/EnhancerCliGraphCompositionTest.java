@@ -32,11 +32,11 @@ class EnhancerCliGraphCompositionTest {
 
         assertEquals(CliExitCode.COMPLETED.code(), first.exitCode());
         assertEquals(
-                Integer.toString(DOCUMENTS),
+                Integer.toString(DOCUMENTS + 3),
                 value(first.stdout(), "workspaceObservations"));
         assertEquals("2", value(first.stdout(), "graphDecisions"));
         assertEquals(
-                Integer.toString(DOCUMENTS + 2 + 2),
+                Integer.toString(DOCUMENTS + 1 + 2 + 2),
                 value(first.stdout(), "graphNodes"));
         assertEquals("2", value(first.stdout(), "graphEdges"));
         assertEquals("1", value(first.stdout(), "impactExecutions"));
@@ -48,10 +48,10 @@ class EnhancerCliGraphCompositionTest {
 
         assertEquals(CliExitCode.COMPLETED.code(), second.exitCode());
         assertEquals(
-                Integer.toString(DOCUMENTS + 1),
+                Integer.toString(DOCUMENTS + 3 + 1),
                 value(second.stdout(), "workspaceObservations"));
         assertEquals(
-                Integer.toString(DOCUMENTS + 2 + 2),
+                Integer.toString(DOCUMENTS + 1 + 2 + 2),
                 value(second.stdout(), "graphNodes"));
         assertEquals("1", value(second.stdout(), "impactExecutions"));
     }

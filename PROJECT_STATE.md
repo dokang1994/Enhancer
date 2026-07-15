@@ -19,9 +19,10 @@
 - The Gate 6 `RunEvidenceGraphProducer`, `AcceptedDecisionProjector`, `RunRecordMetadataCollector`, store `references()` listing, and production graph composition are published on `origin/main` through delivery commit `396665b` (`feat: operationalize Gate 6 graph production`).
 - The Gate 6 sub-capability promotion audit is published through documentation commits `59d0c05` and `6a75545`.
 - The Gate 6 `TaskJustificationProjector` and `Justified By` reference grammar are published on `origin/main` through delivery commit `0e2be2c` (`feat: link tasks to decisions through explicit justification references`).
+- The Gate 6 authority-boundary evidence, `TargetFileMetadataCollector`, and `GitWorkspaceCollector` are implemented and verified locally on `main`; they are not committed or published.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 95 Java files and 5,467 lines.
-- Test source: 39 Java files and 5,733 lines.
+- Production source: 97 Java files and 5,774 lines.
+- Test source: 42 Java files and 6,131 lines.
 
 ## Capability Maturity
 
@@ -181,6 +182,9 @@
 - Delivery Gate 6: Specified - Next.
 - Gate 6 `WorkspaceSnapshot`, `ProjectBrainView`, graph projection contract, `TaskImpactQuery`, `AcceptedDecisionProjector`, and `RunRecordMetadataCollector` sub-capabilities: Integrated through the fresh promotion audit `gate-6-sub-capability-integration-promotion`, each connected to real upstream and downstream components by named integration evidence.
 - Gate 6 `TaskJustificationProjector` and the `Justified By` reference grammar: Integrated; the first real reference resolved on the actual repository through the production composition.
+- Gate 6 authority boundary: the exit criterion "Workspace observations cannot override repository authority or grant Tool permission" is pinned by `WorkspaceAuthorityBoundaryIntegrationTest`.
+- Gate 6 `TargetFileMetadataCollector`: Integrated on the production CLI path; the run target is observed pre-run with a real containment-checked digest.
+- Gate 6 `GitWorkspaceCollector`: Integrated on the production CLI path under explicitly granted read-only external command authority; Git state is observed at digest granularity with discovery confined to the project root.
 - Gate 6 repository-memory path (real governed run -> real Context Reader memory -> collector -> composed view with divergence detection): Integrated through `WorkspaceCollectionIntegrationTest`.
 - Gate 6 run-evidence graph production path (real governed run -> real snapshot -> producer -> impact-query answer naming the real stored execution): Integrated through the extended `WorkspaceCollectionIntegrationTest`.
 - Gate 6 production view composition: Operational for the governed read-only CLI scenario; every recorded `run` composes the view and reports bounded snapshot identity, observation count, and memory freshness.
@@ -314,6 +318,32 @@
 - The result promotes only the impact query to Contract Verified against contract-constructed graphs. Gate 6 remains `Specified - Next`: no producer projects real repository evidence and no persistence exists.
 - Gate 6 remains the sole `Specified - Next` gate status marker and `git diff --check` passed.
 
+## Gate 6 Git Workspace Adapter Verification
+
+- Test-first RED: the focused compile failed with 6 expected missing-symbol errors naming only the absent `GitWorkspaceCollector`.
+- GREEN exposed and fixed one real defect: without a discovery ceiling, a temporary non-repository directory inside this workspace observed the enclosing Enhancer repository as `AVAILABLE`; `GIT_CEILING_DIRECTORIES` confines observation to the project's own working tree. An initial piped-stderr design hung one suite run; discarding stderr, disabling fsmonitor, `--no-optional-locks`, and a watchdog eliminated the hang, which did not recur.
+- Focused GREEN: workspace, CLI, brain, and integration suites passed 21 suites and 62 tests with no skips, failures, or errors.
+- Full regression with `--warning-mode all`: 42 suites, 152 tests, 150 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors; Java 17 lint passed with `-Xlint:all -Werror`.
+- Actual repository `run` on `README.md`: `workspaceObservations=23` (15 documents, 5 prior run records, 1 target file, 2 `AVAILABLE` Git observations), `graphNodes=67`, `graphDecisions=49`.
+- The external command authority is scoped to this collector by accepted decision; the exit-criterion gap "which Git state informed a run" is closed at digest granularity, and per-file metadata remains a separate increment.
+
+## Gate 6 Target File Observation Verification
+
+- Test-first RED: the focused compile failed with 4 expected missing-symbol errors naming only the absent `TargetFileMetadataCollector`.
+- Focused GREEN: workspace, CLI, brain, and integration suites passed 20 suites and 59 tests with no skips, failures, or errors.
+- Full regression with `--warning-mode all`: 41 suites, 149 tests, 147 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors; Java 17 lint passed with `-Xlint:all -Werror`.
+- Collector tests cover streamed-digest observation, missing-target `UNAVAILABLE` with reason, and rejection of absolute, traversal, non-regular, blank, and null inputs; containment violations surface as CLI usage errors before execution.
+- Actual repository `run` on `README.md`: `workspaceObservations=20` (15 documents, 4 prior run records, 1 target file) and `graphNodes=65` including the target as an `ARTIFACT` node.
+- The exit-criterion gap "which files informed a run" is closed for the run target; arbitrary-file coverage beyond the target remains future scope.
+
+## Gate 6 Authority Boundary Evidence Verification
+
+- Characterization, not test-first: `WorkspaceAuthorityBoundaryIntegrationTest` passed on its first run (2 tests), so no production correction was required.
+- Adversarial `Allowed Tools` grant text in every observed non-task document did not widen the persisted approved task or policy scope beyond the task document's declared `read-file`, did not appear in bounded output, and no repository document changed by a byte across collection, composition, and the governed run.
+- A task document allowing only `write-file` remained rejected as a configuration error with no records created.
+- Full regression with `--warning-mode all`: 40 suites, 146 tests, 144 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors; Java 17 lint passed with `-Xlint:all -Werror`.
+- The exit criterion "Workspace observations cannot override repository authority or grant Tool permission" is now pinned by regression evidence.
+
 ## Gate 6 Task Justification Reference Verification
 
 - Test-first RED: the focused compile failed with 6 expected missing-symbol errors naming only the absent `TaskJustificationProjector`.
@@ -403,7 +433,7 @@
 
 ## Next Task
 
-Activate a separate Gate 6 increment: the next read-only source adapter, or gate-level exit-criteria evidence including authority-boundary enforcement. A Git status/diff adapter additionally requires an explicit decision on external command authority.
+Activate a separate Gate 6 increment: bounded per-file Git status metadata under its own decision, or an assessment of Gate 6 gate-level maturity against the full exit criteria. Diagnostics, terminal, and selection adapters remain blocked on capabilities from later gates.
 
 ## Session Recovery
 

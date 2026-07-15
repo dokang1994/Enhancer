@@ -332,9 +332,11 @@ Current increment:
 - Integrated: the endpoint-checked graph projection contract and the task-to-decision-to-code-to-test impact query, populated and answered exclusively through the real producer chain naming the real stored execution;
 - Integrated: accepted-decision projection from the decision log's own status lines and run-record metadata observation over the real store with explicit corruption surfacing;
 - Integrated: the explicit `Justified By` task-document reference grammar projected into `JUSTIFIED_BY` edges, with the first real reference resolved on the actual repository;
-- Operational: the production CLI `run` path composes the view and the produced graph for every recorded run, observing prior run records, merging decision nodes and justification edges, and reporting bounded snapshot, freshness, graph, and impact metadata, evidenced by actual-repository runs;
-- next increment: the next read-only source adapter, or gate-level exit-criteria evidence including authority-boundary enforcement;
-- deferred: Git/diagnostics/selection/terminal adapters, payload capture, modifies/verified-by producers, persistence, and messaging.
+- Integrated: target-file observation with real pre-run containment-checked digests, and read-only Git status/diff observation at digest granularity under explicitly granted, decision-scoped external command authority with discovery confined to the project root;
+- Evidenced: the authority-boundary exit criterion is pinned by characterization — observed documents cannot grant Tool permission, widen policy, or be mutated by composition;
+- Operational: the production CLI `run` path composes the view and the produced graph for every recorded run, observing prior run records, the run target, and Git state, merging decision nodes and justification edges, and reporting bounded snapshot, freshness, graph, and impact metadata, evidenced by actual-repository runs;
+- next increment: bounded per-file Git status metadata under its own decision, or a gate-level maturity assessment against the full exit criteria;
+- deferred: diagnostics/selection/terminal adapters, payload capture, modifies/verified-by producers, persistence, and messaging.
 
 Dependencies:
 

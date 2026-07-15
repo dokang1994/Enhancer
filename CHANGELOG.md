@@ -2,6 +2,11 @@
 
 ## 2026-07-15
 
+- Added the `GitWorkspaceCollector` under explicitly granted read-only external command authority: two fixed git invocations (status/diff) with discovery confined to the project root, watchdog-enforced timeout, discarded stderr, `--no-optional-locks` and fsmonitor disabled, digest-only retention, and every failure surfaced as explicit `UNAVAILABLE`.
+- Caught and fixed a real semantic defect during GREEN: without a discovery ceiling, temporary directories observed the enclosing repository; `GIT_CEILING_DIRECTORIES` now confines observation to the project's own working tree.
+- Verified the Git adapter through 62 focused tests, the full 152-test regression, and an actual-repository run observing 23 sources including 2 `AVAILABLE` Git observations.
+- Added the `TargetFileMetadataCollector`: the governed run's target file is observed pre-run as a `REPOSITORY_FILE` snapshot observation with a real streamed containment-checked SHA-256, missing/oversized targets surface as explicit `UNAVAILABLE`, and containment violations fail early as usage errors; verified test-first through 59 focused tests, the full 149-test regression, and an actual-repository run observing README.md.
+- Pinned the Gate 6 authority boundary with `WorkspaceAuthorityBoundaryIntegrationTest`, passing on first run: adversarial tool-grant text in observed documents cannot widen the persisted task or policy scope, appear in bounded output, or mutate any repository document, and a task without `read-file` stays rejected; full 146-test regression passed with no production change.
 - Published the justification-reference increment to `origin/main` in delivery commit `0e2be2c`.
 - Adopted the optional `Justified By` task-document section and the `TaskJustificationProjector`: explicit references to accepted-decision headings become `JUSTIFIED_BY` edges with task-document provenance, strict rejection of malformed or unresolved references, and a bounded `impactDecisions` count on the production run output.
 - Resolved the first real justification on the actual repository: this increment's own task document reference surfaced as `impactDecisions=1` with 46 decision nodes and 18 observations.

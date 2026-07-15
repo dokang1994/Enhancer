@@ -37,13 +37,17 @@ import com.enhancer.tool.ToolFailureCode;
 import com.enhancer.tool.ToolRequest;
 import com.enhancer.verification.DeterministicReadFileVerifier;
 import com.enhancer.verification.VerificationRequest;
+import com.enhancer.workspace.GitWorkspaceCollector;
 import com.enhancer.workspace.RepositoryMemorySnapshotCollector;
 import com.enhancer.workspace.RunRecordMetadataCollector;
+import com.enhancer.workspace.TargetFileMetadataCollector;
 import com.enhancer.workspace.WorkspaceSnapshot;
+import com.enhancer.workspace.WorkspaceSourceObservation;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -87,12 +91,27 @@ public final class EnhancerCli {
         FileSystemRunRecordStore runRecordStore =
                 new FileSystemRunRecordStore(command.runRecordRoot());
         Instant capturedAt = Instant.now();
+        List<WorkspaceSourceObservation> additionalObservations = new ArrayList<>(
+                new RunRecordMetadataCollector().observe(runRecordStore, capturedAt));
+        try {
+            additionalObservations.add(new TargetFileMetadataCollector().observe(
+                    command.projectRoot(),
+                    command.targetPath(),
+                    capturedAt));
+        } catch (IllegalArgumentException exception) {
+            throw new CliUsageException(
+                    "target-path is invalid: " + safeMessage(exception),
+                    exception);
+        }
+        additionalObservations.addAll(new GitWorkspaceCollector().observe(
+                command.projectRoot(),
+                capturedAt));
         WorkspaceSnapshot snapshot = new RepositoryMemorySnapshotCollector().collect(
                 command.projectRoot(),
                 capturedAt,
                 approvedTask,
                 inputs.repositoryMemory(),
-                new RunRecordMetadataCollector().observe(runRecordStore, capturedAt));
+                additionalObservations);
         FileSystemEvidenceStore evidenceStore = new FileSystemEvidenceStore(
                 command.evidenceRoot(),
                 new EvidenceRetentionPolicy(

@@ -33,7 +33,7 @@ class EnhancerCliBrainCompositionTest {
         String snapshotId = value(captured.stdout(), "workspaceSnapshotId");
         assertTrue(snapshotId.matches("[0-9a-f]{64}"));
         assertEquals(
-                Integer.toString(RequiredProjectDocument.values().length),
+                Integer.toString(RequiredProjectDocument.values().length + 3),
                 value(captured.stdout(), "workspaceObservations"));
         assertEquals(
                 "matched=" + RequiredProjectDocument.values().length

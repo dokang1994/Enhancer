@@ -2,6 +2,89 @@
 
 ## Accepted Decisions
 
+### 2026-07-15: Grant Read-Only Git Observation Through Two Fixed Commands With Digest-Only Retention
+
+Status: Accepted Decision
+
+Context:
+
+- The Gate 6 exit criteria require snapshots to explain the Git state that informed a run, and the scope names read-only Git status and diff adapters.
+- Executing an external command is a new authority category never used by production code in this repository; the Constitution requires explicit user authority for such expansion.
+- The user explicitly approved this authority for the Git adapter on 2026-07-15 ("3번 승인할게"), scoped to read-only observation.
+- Parsing git internals directly would be fragile, and retaining status or diff content would widen the sensitive-data boundary the snapshot contract deliberately closed.
+
+Decision:
+
+- Add `GitWorkspaceCollector` executing exactly two fixed-argument read-only commands, `git status --porcelain` and `git diff`, with no shell interpretation, the project root as working directory, a five-second per-command timeout, and a four-MiB output cap.
+- Confine repository discovery to the project root itself via `GIT_CEILING_DIRECTORIES`, so the observation describes the project's own working tree and never an enclosing repository.
+- Harden the invocation against hangs and hidden writes: `--no-optional-locks` and an invocation-scoped `core.fsmonitor=false` keep the observation from touching the index or spawning daemons, stderr is discarded instead of piped so it can never deadlock, and a watchdog destroys any invocation that outlives the timeout while output is being read.
+- Store only the SHA-256 digest of each raw output as `GIT_STATUS`/`GIT_DIFF` observation metadata with `git-cli` provenance; never retain output, file lists, or diff content.
+- Surface every failure — launch failure, non-zero exit, timeout with process destruction, oversized output — as an explicit `UNAVAILABLE` observation with a bounded reason, so hosts without git degrade honestly.
+- Prohibit any mutating, remote, or configuration invocation in this collector; any future git capability requires its own decision and authority.
+- Restrict this authority to this collector; it does not extend the Tool policy, the approved-task scope, or any other component.
+
+Rationale:
+
+Two fixed read-only commands with digest-only retention observe the working-tree state at the minimum authority and data surface that the exit criterion permits: the digest is a content-addressed identity of the Git state, sufficient to detect change and divergence, while the actual paths and diffs stay out of snapshots, graphs, and bounded output. Explicit unavailability keeps absence of git distinguishable from a clean tree.
+
+Consequences:
+
+- Approval is not transitive: no other component may execute external commands on the basis of this decision.
+- A digest-only observation cannot say which files changed; bounded per-file metadata would be a separate increment with its own decision.
+- Runs in non-repository roots or on hosts without git carry two `UNAVAILABLE` Git observations by design.
+
+### 2026-07-15: Observe The Run Target With A Real Pre-Run Digest And Treat Containment Violations As Errors
+
+Status: Accepted Decision
+
+Context:
+
+- Snapshots observed only canonical documents and prior run records, so they could not explain which file the run was about.
+- The externally supplied expected digest is a claim, not an observation, and must not masquerade as observed provenance.
+- The Context Reader precedent already accepts bounded, containment-checked direct reads as normal governed infrastructure.
+
+Decision:
+
+- Add `TargetFileMetadataCollector`: one pre-run streamed SHA-256 of the relative target under real-path containment, emitted as a `REPOSITORY_FILE` observation with `target-file-reader` provenance; content is never retained.
+- Observe a missing or over-64-MiB target as explicit `UNAVAILABLE` with a bounded reason, preserving the run's own failure semantics.
+- Reject absolute, traversal, escaping, and non-regular targets as configuration errors surfaced by the CLI as usage errors before execution; violations are never observations.
+- Include the observation in the CLI-collected snapshot so the target appears as an `ARTIFACT` node through the existing producer.
+
+Rationale:
+
+A snapshot that explains a run must observe the run's subject with evidence of its own, and a real digest is the only observation that can later expose divergence from the externally claimed expectation. Keeping containment violations as errors preserves the distinction between an unhealthy source and an illegal request.
+
+Consequences:
+
+- The target is read twice per run (observation and Tool execution); both reads are bounded and read-only.
+- Snapshot identity now reflects the target's pre-run content revision.
+- Divergence between the observed digest and the verified expectation is visible across the snapshot and the RunRecord.
+
+### 2026-07-15: Pin The Workspace Authority Boundary With Characterization Evidence Instead Of New Mechanism
+
+Status: Accepted Decision
+
+Context:
+
+- The Gate 6 exit criteria require that Workspace observations cannot override repository authority or grant Tool permission, but no test stated those claims explicitly.
+- Tool scope enters execution only through the task document via `ApprovedTaskReader`, and observations carry digests and bounded metadata by construction, so the boundary should already hold.
+- The Gate 0 precedent promotes claims through characterization tests that pass on first run, without manufacturing production changes.
+
+Decision:
+
+- Characterize the boundary in `WorkspaceAuthorityBoundaryIntegrationTest`: adversarial tool-grant text inside every observed non-task document must not widen the persisted approved task or policy scope beyond the task document's declared tools, must not appear in bounded output, and must not survive into any repository document mutation.
+- Assert the converse: a task document that does not allow `read-file` is rejected as a configuration error regardless of grant text elsewhere.
+- Treat a first-run failure as a defect that stops the task; add no production mechanism for this evidence.
+
+Rationale:
+
+The boundary's strength comes from the existing single-entry design (task document to `ApprovedTaskReader` to policy), so the honest evidence is a test that tries to break it from the observation side and fails. Adding new enforcement code for an already-enforced property would obscure where authority actually enters.
+
+Consequences:
+
+- The exit criterion "Workspace observations cannot override repository authority or grant Tool permission" is now pinned by regression evidence.
+- Future adapters that introduce new observation kinds inherit the same test pattern for their sources.
+
 ### 2026-07-15: Link Tasks To Decisions Only Through An Explicit Justified By Section
 
 Status: Accepted Decision
