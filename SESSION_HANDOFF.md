@@ -49,7 +49,7 @@
 - `gate-6-repository-memory-snapshot-collection` is Completed; its record is preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
 - `gate-6-production-brain-composition` and `gate-6-graph-projection-contracts` are Completed; their records are preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
 - `CURRENT_TASK.md` is Completed for `gate-6-task-impact-query`.
-- The `com.enhancer.brain` sources (view, graph contract, impact query), the collector, the CLI composition change, their tests, and the synchronized documents are uncommitted local changes on `main`; nothing from these five increments is committed or published.
+- The five Gate 6 increments (view, collector, production composition, graph contract, impact query) and their synchronized documents are committed and published on `origin/main` through delivery commit `d3b6197`.
 - The actual-repository evidence run persisted `run-record/ca604c7c-23e8-4b1c-8aa2-38fb6bfed5cf` under the Git-ignored `.enhancer/run-records` directory.
 
 ## Fresh Verification
@@ -124,6 +124,6 @@ Activate a separate Gate 6 increment: the first graph producer projecting real r
 
 1. Read `.ai/` and every canonical startup document in repository order.
 2. Confirm Gate 6 is the sole `Specified - Next` gate status marker and `CURRENT_TASK.md` records `gate-6-task-impact-query` as Completed.
-3. Be aware that the `com.enhancer.brain` sources (view, graph contract, impact query), the collector, the CLI composition change, and synchronized documents are uncommitted local changes on `main`; do not discard them, and commit only when the user asks.
+3. The Gate 6 project brain foundations are published through `d3b6197`; the working tree should be clean apart from any newly activated work.
 4. Activate a bounded graph-producer or next-adapter task before editing production code; defer payload capture and messaging, and obtain explicit authority before any external command adapter.
 5. Do not commit or push unless explicitly requested.

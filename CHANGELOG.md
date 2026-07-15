@@ -2,6 +2,7 @@
 
 ## 2026-07-15
 
+- Published the five Gate 6 project brain foundation increments to `origin/main` in delivery commit `d3b6197`.
 - Added the Contract Verified Gate 6 task impact query: `TaskImpactQuery` answers the first rebuildable task-to-decision-to-code-to-test chain over one projected graph with snapshot-traceable immutable results.
 - Derived one rebuild-required status from every traversed node and edge so unrelated staleness does not taint the answer, deduplicated shared verifying artifacts, and rejected unknown or non-task identities.
 - Verified the query test-first with 9 expected RED missing-symbol errors, then 13 focused tests and the full 127-test regression with only the 2 existing Windows symbolic-link setup skips.
