@@ -24,7 +24,7 @@
 - Build system: Gradle 8.4 Wrapper with Java 17.
 - Production source: 113 Java files and 6,251 lines.
 - Test source: 44 Java files and 6,533 lines.
-- The Gate 7 in-process delivery surface, its delivery-failure and dead-letter handling, and the unrelated wall-clock test correction are implemented and verified locally but not yet committed or published.
+- The Gate 7 in-process delivery surface and its delivery-failure and dead-letter handling are published on `origin/main` through delivery commit `b278c53` (`feat: add Gate 7 in-process delivery with failure isolation and dead-letter`); the unrelated wall-clock test correction is published through `2a69182` (`fix: make RunRecordMetadataCollectorTest time-independent`).
 
 ## Capability Maturity
 

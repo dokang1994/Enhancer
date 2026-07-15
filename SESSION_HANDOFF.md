@@ -69,7 +69,7 @@
 - `gate-6-git-workspace-adapter` is Completed and published through `21e6230`; `gate-6-maturity-assessment` is Completed with its record preserved in `PROJECT_STATE.md`.
 - `gate-6-rescope-and-promotion` is Completed; its record is preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
 - `CURRENT_TASK.md` is Completed for `gate-7-delivery-failure-dead-letter`.
-- The Gate 7 in-process delivery surface, its delivery-failure and dead-letter handling, and the unrelated wall-clock test correction are implemented, verified locally, and synchronized in the documents, but NOT yet committed or published; the working tree carries the eight new `com.enhancer.bus` types (seven delivery types plus `DeadLetter`), the expanded `InProcessMessageBusTest`, the `RunRecordMetadataCollectorTest` fix, and the updated documents.
+- The Gate 7 in-process delivery surface and its delivery-failure and dead-letter handling are committed and published on `origin/main` through delivery commit `b278c53`; the unrelated wall-clock test correction is published through `2a69182`. The working tree is clean apart from this handoff/state publication note.
 - Local build note: this host had no JDK, so Java 17 was provisioned by junctioning `C:/Users/dokan/.jdks/corretto-17.0.14` into the Git-ignored `.tools/jdk17-runtime`; `scripts/gradle.ps1` then works normally.
 - The maturity assessment, the re-scope-and-promotion, and the Gate 7 envelope contract are committed and published on `origin/main` through delivery commit `3423201`.
 - The authority-boundary, target-file, and Git-adapter increments are committed and published on `origin/main` through delivery commit `21e6230`.
@@ -178,7 +178,7 @@ Activate the next Delivery Gate 7 increment under separate explicit activation: 
 
 1. Read `.ai/` and every canonical startup document in repository order.
 2. Confirm Gate 7 is the sole `Specified - Next` gate status marker and `CURRENT_TASK.md` records `gate-7-delivery-failure-dead-letter` as Completed.
-3. The Gate 7 in-process delivery surface, its delivery-failure and dead-letter handling, and the unrelated `RunRecordMetadataCollectorTest` correction are implemented, verified, and documented but NOT yet committed; the working tree carries them plus the synchronized documents. Everything through the Gate 7 envelope contract is published on `origin/main` through delivery commit `3423201`. Decide with the user whether to commit before continuing.
+3. The Gate 7 in-process delivery surface, its delivery-failure and dead-letter handling, and the unrelated `RunRecordMetadataCollectorTest` correction are committed and published on `origin/main` through delivery commit `b278c53` and fix commit `2a69182`; the working tree should be clean apart from any newly activated work.
 4. If the working tree is clean of a JDK, provision Java 17 by junctioning an existing local JDK 17 into `.tools/jdk17-runtime` (this session used `corretto-17.0.14`) or run `scripts/setup-dev.ps1`; the download is slow on this host.
 5. The only external command authority is the decision-scoped read-only Git adapter; any new external command capability requires its own explicit user approval.
 6. Activate a bounded retry-and-re-delivery task (then cancellation, ordering, backpressure) before editing production code; defer the IPC transport interface to a later increment.
