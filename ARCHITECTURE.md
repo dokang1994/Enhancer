@@ -370,6 +370,18 @@ The worker result retains the exact immutable `ExecutionPolicy` used by `AgentRu
 
 `RunRecord` mirrors the governed lifecycle rather than accepting merely type-correct combinations. A worker cannot report `COMPLETED`; awaiting-verification records require a successful Tool result and a performed verification decision; failed, stagnated, and iteration-limited records require a failed Tool result and verification Not Performed. Only Verified may promote `AWAITING_VERIFICATION` to `COMPLETED`.
 
+### Pre-Operational Foundation Hardening
+
+Before Gate 5 exposes the integrated path through a supported command, the existing Gate 1 through 4 boundaries are hardened without changing their maturity or authority.
+
+Each Tool invocation uses an isolated worker lifecycle. A timeout cancels and retires only that invocation so an interruption-ignoring Tool cannot prevent a later invocation from starting. `ExecutionPolicy` accepts only durations that remain positive when represented as audit milliseconds and fit the nanosecond execution API.
+
+Evidence and RunRecord binary envelopes integrity-protect their complete version, timestamp, declared-length, and payload/content fields rather than digesting content alone. RunRecord string persistence uses strict UTF-8 encoding and rejects malformed Unicode instead of replacing it.
+
+The Repository Context Reader applies a bounded startup-document size, strict UTF-8 decoding, and real-path containment within the real project root. The build declares its JUnit Platform runtime launcher explicitly and provides a workspace-local default test temporary directory so Gradle 9 compatibility and sandboxed test execution do not depend on implicit or user-profile state.
+
+The no-persistence `ReadFileTool` mode still cannot return truncated evidence without a complete-output reference. That condition is an execution/evidence-capability failure, not malformed caller input.
+
 ## Constitution Kernel Architecture
 
 `CONSTITUTION.md` is the stable normative Kernel, not the complete Codex guidebook. It defines identity, document authority, lifecycle states, authorization boundaries, verification principles, self-hosting safeguards, and amendment governance.

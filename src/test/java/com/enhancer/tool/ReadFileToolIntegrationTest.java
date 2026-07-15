@@ -73,6 +73,24 @@ class ReadFileToolIntegrationTest {
     }
 
     @Test
+    void reportsMissingEvidencePersistenceAsExecutionFailure() throws IOException {
+        Path projectRoot = Files.createDirectory(tempDirectory.resolve("project"));
+        Files.writeString(
+                projectRoot.resolve("large-output.txt"),
+                "x".repeat(VerificationEvidence.MAX_OUTPUT_TAIL_CHARACTERS + 1),
+                StandardCharsets.UTF_8);
+
+        ToolResult result = execute(
+                projectRoot,
+                "large-output.txt",
+                VerificationEvidence.MAX_OUTPUT_TAIL_CHARACTERS + 1);
+
+        assertEquals(ToolResultStatus.FAILURE, result.status());
+        assertEquals(ToolFailureCode.EXECUTION_FAILED, result.failureCode().orElseThrow());
+        assertTrue(result.evidence().outputTail().contains("persistence"));
+    }
+
+    @Test
     void rejectsASymbolicLinkThatEscapesTheRealProjectRoot() throws IOException {
         Path projectRoot = Files.createDirectory(tempDirectory.resolve("project"));
         Path outside = tempDirectory.resolve("outside.txt");

@@ -6,45 +6,45 @@ Completed
 
 ## Task
 
-Document provider-neutral Agent orchestration guidance derived from reviewed external harness patterns without changing the current implementation order or capability maturity.
+Harden the integrated Gradle build and Delivery Gate 1 through 4 implementation before beginning the first Operational CLI.
 
 ## Task ID
 
-multi-agent-orchestration-reference-alignment
+gradle9-foundation-hardening
 
 ## Context
 
-The user approved adding useful Multi-Agent orchestration guidance from the reviewed Archon and meta-harness repositories. Enhancer already requires typed messages, durable evidence, independent verification, bounded authority, and gate-owned implementation. The documentation must translate useful patterns into those existing contracts rather than importing either project as a runtime dependency.
+The user requested correction of every issue found during the Gradle 9 compatibility and implementation-source review. The review reproduced one Gradle 9 test-runtime blocker and multiple boundary defects in timeout isolation, duration representation, persisted-envelope integrity, UTF-8 preservation, startup-context containment, evidence-failure classification, test temporary-directory portability, and Java serialization lint hygiene.
 
-Reference snapshots:
-
-- Archon commit `263cf3658a7cadefa0c5fbe82cc527a00ffb4c16` (MIT), inspected for dynamic capability rosters, centralized execution profiles, dependency-ready work, run control, heartbeats, and operational visibility.
-- meta-harness commit `ccab9a677878f72b3316de464c99b36f56a3f2e7` (Apache-2.0), inspected for orchestration-pattern selection, deterministic handoffs, Producer-Reviewer flow, supervisor rules, validation scenarios, and removable provider-specific logic.
+This is a bounded hardening task over capabilities already Integrated. Delivery Gate 5 remains `Specified - Next`; this task does not add a CLI or promote capability maturity.
 
 ## Acceptance Criteria
 
-- Preserve `CONSTITUTION.md`, repository authority, lifecycle, approval, evidence, and independent-verification rules.
-- Keep Delivery Gate 5 First Operational CLI as `Specified - Next`; do not claim Agent Runtime or Multi-Agent implementation.
-- Record an accepted decision that treats both repositories as pinned references rather than dependencies.
-- Define the smallest-to-largest orchestration progression: single worker, sequential pipeline, Producer-Reviewer, bounded fan-out/fan-in, expert routing or supervisor allocation, and shallow hierarchy only when justified.
-- Require common immutable input snapshots, typed versioned handoffs, single final-state ownership, dependency validation, leases, idempotency, cancellation, replay, budgets, and preserved authorization context.
-- Define provider-neutral execution profiles, diagnostic-only heartbeats and quality telemetry, typed control/intervention decisions, and verified-only completion.
-- Assign every adopted pattern to its owning Delivery Gate and list rejected patterns explicitly.
-- Synchronize canonical Architecture, Roadmap, RFC-0009, Multi-Agent guidance, compact AI architecture, Project State, Changelog, and Session Handoff.
-- Run fresh structural, reference, Planner/Assisted Loop, and full regression checks, then review the final diff.
+- Declare the JUnit Platform launcher explicitly so Gradle does not rely on the test-framework implementation dependency that Gradle 9 removes.
+- Make the standard Gradle test task use a workspace-local temporary directory and remain overrideable by an explicit caller setting.
+- Prevent a timed-out interruption-ignoring Tool invocation from starving later Tool invocations.
+- Reject timeout values that cannot be represented consistently by execution and persisted policy records.
+- Cover envelope version, timestamp, declared length, and payload/content with the stored evidence and RunRecord integrity digest.
+- Reject malformed Unicode during RunRecord persistence rather than silently replacing characters.
+- Keep required startup documents within the real project root, reject symbolic-link escape where the host permits exercising it, enforce a bounded document size, and decode UTF-8 strictly.
+- Classify oversized output from the non-persisting `ReadFileTool` as an evidence-capability execution failure rather than an invalid request.
+- Remove production `javac -Xlint:all` serialization warnings without weakening checked failure types.
+- Add focused regression tests first, observe expected RED failures, then pass focused and full regression verification.
+- Run Gradle with `--warning-mode all`, inspect fresh test XML, run production `javac -Xlint:all -Werror`, and review the final diff.
+- Synchronize Architecture, Decision Log, Project State, Current Task, Session Handoff, and Changelog without changing roadmap maturity or Gate 5 ordering.
 
 ## Out Of Scope
 
-- Multi-Agent runtime, scheduler, Message Bus, Workspace, Model Gateway, Skill Engine, or UI implementation
-- New production or test code for orchestration
-- Installing, vendoring, or copying Archon or meta-harness packages, prompts, Skills, or directory layouts
-- Changing Skill schema, Tool authority, lifecycle state, or capability maturity
-- LLM calls, shell or Git mutation Tools, background execution, or autonomous self-improvement
-- Reordering Delivery Gates or displacing Delivery Gate 5
+- Delivery Gate 5 CLI implementation
+- Gradle Wrapper major-version upgrade
+- New Tool authority, shell or Git mutation, network access, LLM calls, or multi-agent execution
+- Signed, encrypted, or externally tamper-proof evidence storage
+- Backward migration of unpublished/local pre-hardening binary evidence or RunRecord artifacts
+- Commit, push, merge, release, or deployment
 
 ## Approval
 
-Approved by the user on 2026-07-14 through the request to add constitution-compatible orchestration guidance for future Multi-Agent implementation. The user separately authorized commit, push, and merge after successful verification.
+Approved by the user on 2026-07-15 through the explicit request to fix every issue reported by the Gradle 9 and implementation-source review.
 
 ## Allowed Tools
 
@@ -52,35 +52,39 @@ Approved by the user on 2026-07-14 through the request to add constitution-compa
 
 ## Verification Plan
 
-- Check that required orchestration invariants and both pinned reference commits appear in their canonical documents.
-- Confirm Delivery Gates remain sequential from 0 through 16 and exactly one `Specified - Next` marker remains at Gate 5.
-- Confirm no document promotes Agent Runtime, Message Bus, Scheduler, Skill Engine, or Multi-Agent capability beyond Planned.
-- Run focused Planner and Assisted Development Loop regression tests against the canonical Roadmap.
-- Run the full Gradle regression suite and inspect fresh test-result XML.
-- Run Markdown link/reference checks where available, `git diff --check`, and final diff review.
+- Run focused tests for Tool execution, policy decisions, evidence persistence, RunRecord persistence, and project-context loading.
+- Confirm new regression tests fail against the pre-fix implementation for the expected reasons.
+- Run the complete Gradle regression suite with `--warning-mode all` and inspect fresh XML counts.
+- Run production compilation with `javac -Xlint:all -Werror`.
+- Confirm Gradle emits no deprecation warning for automatic test-framework implementation dependency loading.
+- Run `git diff --check`, inspect changed files, and review the final diff.
 
 ## Implementation Result
 
-- Recorded an accepted decision that pins Archon `263cf3658a7cadefa0c5fbe82cc527a00ffb4c16` and meta-harness `ccab9a677878f72b3316de464c99b36f56a3f2e7` as design references rather than dependencies.
-- Added the smallest-sufficient orchestration progression, capability-roster and profile boundaries, common immutable snapshots, typed versioned handoffs, one Kernel terminal-state owner, Scheduler recovery controls, bounded budgets, and independent-verification rules.
-- Defined Producer-Reviewer as bounded workflow review rather than completion authority and kept heartbeat, quality, confidence, and prompt-adherence signals diagnostic only.
-- Assigned each adopted contract to Delivery Gates 6 through 15 and expanded the Planned Gate 13 scope without changing any capability maturity or implementation order.
-- Listed rejected provider, prompt, shared-worktree, file-queue, optional-verification, subjective-completion, unlimited-execution, and silent-evidence-loss patterns.
-- Synchronized `ARCHITECTURE.md`, `ROADMAP.md`, `docs/rfcs/RFC-0009-Multi-Agent.md`, `docs/08-Multi-Agent.md`, `.ai/architecture.md`, `DECISION_LOG.md`, `PROJECT_STATE.md`, `CHANGELOG.md`, and `SESSION_HANDOFF.md`.
-- Added no Multi-Agent production or test code and installed or copied no external packages, prompts, Skills, or directory layouts.
+- Added explicit `junit-platform-launcher` runtime resolution through the existing JUnit BOM and a workspace-local default Gradle test temp directory with `testTmpDir` override support.
+- Replaced the shared single Tool worker with invocation-isolated tracked daemon workers; timed-out interruption-ignoring work is retired without blocking a later invocation.
+- Rejected sub-millisecond and nanosecond-overflow timeout values during `ExecutionPolicy` construction.
+- Extended Evidence and RunRecord integrity digests across magic/version, timestamp, declared length, and complete content/payload.
+- Replaced lossy RunRecord string encoding with a strict UTF-8 encoder.
+- Added 1 MiB startup-document limits, strict UTF-8 decoding, and real-project-root containment to `ProjectContextReader`.
+- Classified a no-persistence truncated read as `EXECUTION_FAILED` with an evidence-persistence diagnostic rather than `INVALID_REQUEST`.
+- Added `serialVersionUID` to all seven production exception classes reported by `javac -Xlint:all`.
+- Synchronized Architecture, Tool and environment guides, RFC-0006, compact AI architecture, Decision Log, Project State, Changelog, and Session Handoff without changing Roadmap maturity or Gate 5 ordering.
 
 ## Verification
 
-- Both pinned GitHub tree links returned HTTP 200 on 2026-07-15.
-- Structural checks passed: Delivery Gates 0 through 16 are sequential, Gate 5 is the sole `Specified - Next` gate, and Gates 7, 8, 9, 10, and 13 remain Planned.
-- Required orchestration invariants and both pinned references are present in every required canonical/alignment document.
-- Focused command: `.\scripts\gradle.ps1 cleanTest test --tests "com.enhancer.planner.RepositoryTaskPlannerTest" --tests "com.enhancer.loop.AssistedDevelopmentLoopTest"`.
-- Focused result: 2 suites, 8 tests, 8 passed, 0 skipped, 0 failures, and 0 errors.
-- The first full regression attempt exposed an environment limitation: 8 file-path integration tests failed because the sandboxed Java child process received `AccessDeniedException` for JUnit temporary paths under the user profile.
-- Final command used the workspace-local JUnit temp root through `JAVA_TOOL_OPTIONS=-Djava.io.tmpdir=C:/Enhancer/build/tmp/junit` and ran `.\scripts\gradle.ps1 --no-daemon cleanTest test`.
-- Final result: 21 suites, 82 tests, 81 passed, 1 existing symbolic-link setup skip, 0 failures, and 0 errors.
-- Gradle 8.4 emitted its existing deprecation warning for future Gradle 9 compatibility.
+- Focused RED command covered Context Reader, Tool Executor, Execution Policy, ReadFileTool, Evidence Store, and RunRecord Store tests.
+- Focused RED result: 28 tests, 7 expected failures, 2 Windows symbolic-link setup skips; the failures matched every newly asserted defect.
+- An earlier launcher attempt with a non-existent manually selected temp directory failed before Gradle could start and was discarded as product evidence.
+- Focused GREEN result: 6 suites, 28 tests, 26 passed, 2 symbolic-link setup skips, 0 failures, and 0 errors.
+- Final command: `.\scripts\gradle.ps1 --no-daemon cleanTest test --warning-mode all`.
+- Final result: 21 suites, 90 tests, 88 passed, 2 Windows symbolic-link setup skips, 0 failures, and 0 errors.
+- The final Gradle output contained no deprecated automatic test-framework implementation dependency warning.
+- Dependency verification resolved `org.junit.platform:junit-platform-launcher:1.10.2` explicitly through the JUnit 5.10.2 BOM.
+- The standard suite passed without an external temp override; `.\scripts\gradle.ps1 --no-daemon test -PtestTmpDir=build/tmp/junit-override --tests 'com.enhancer.tool.ToolRequestTest' --rerun-tasks` also passed.
+- Java 17 compiled all 64 production source files with `javac -Xlint:all -Werror` and no warnings or errors.
+- `git diff --check` passed.
 
 ## Next Task
 
-Implement Delivery Gate 5 First Operational CLI after this documentation alignment is completed.
+After this hardening task is Completed, implement Delivery Gate 5 First Operational CLI.

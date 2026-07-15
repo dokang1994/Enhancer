@@ -78,6 +78,11 @@ public final class ReadFileTool implements Tool {
         }
 
         String content = decodeUtf8(bytes);
+        if (evidenceRecorder == null
+                && content.length() > VerificationEvidence.MAX_OUTPUT_TAIL_CHARACTERS) {
+            throw new IllegalStateException(
+                    "complete evidence persistence is required for truncated output");
+        }
         VerificationEvidence evidence = evidenceRecorder == null
                 ? VerificationEvidence.capture(
                         "Read file successfully",

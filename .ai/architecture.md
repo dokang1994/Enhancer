@@ -14,6 +14,7 @@ Current direction:
 - Delivery Gate 3 connects approved work and real Tool results to the bounded Agent Loop and stops success at `AWAITING_VERIFICATION`.
 - Gate 3 hardening derives structured task approval from active repository context, uses typed Tool failure codes and semantic evidence digests, and restricts state construction.
 - Delivery Gate 4 integrates sequential independent read-file verification, verified-only completion, controller-bound execution policy, and atomic lifecycle-valid replayable RunRecords.
+- Pre-operational hardening isolates each Tool invocation, constrains representable timeouts, integrity-protects complete Evidence and RunRecord envelopes, strictly preserves UTF-8, bounds and contains startup context, and removes the Gradle 9 JUnit runtime deprecation.
 - The next architecture slice is Delivery Gate 5 First Operational CLI.
 - The long-term OS substrate is Workspace and Project Brain -> Event/Message Bus with IPC adapters -> Agent Runtime and Scheduler -> MCP/Model Gateway -> Skill Engine and Plugin Marketplace.
 - Runtime Agents communicate by typed messages rather than direct Agent-to-Agent calls once the bus boundary exists.

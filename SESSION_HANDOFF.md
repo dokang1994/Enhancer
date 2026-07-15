@@ -6,6 +6,15 @@
 
 ## Completed Work
 
+- Completed the Gradle 9 and integrated-foundation hardening task before Gate 5.
+- Declared the JUnit Platform Launcher explicitly and moved the default test JVM temporary directory under `build/tmp/junit` with a `testTmpDir` override.
+- Isolated each Tool invocation so a timed-out Tool that ignores interruption cannot starve the next invocation.
+- Constrained execution timeouts to positive audit milliseconds and the supported nanosecond execution range.
+- Extended Evidence and RunRecord SHA-256 integrity across envelope version, timestamp, declared length, and payload/content.
+- Rejected malformed RunRecord Unicode instead of silently replacing it.
+- Added bounded, strict UTF-8, real-root-contained startup document loading.
+- Corrected no-persistence large-read failure classification and removed all production serialization lint warnings.
+- Added focused regressions for every reproduced boundary defect while preserving Gate 5 as `Specified - Next`.
 - Completed the provider-neutral Agent orchestration reference alignment from Archon `263cf365` and meta-harness `ccab9a6`.
 - Defined the smallest-sufficient topology ladder, immutable common snapshots, typed versioned handoffs, one Kernel terminal-state owner, bounded delegation and budgets, deterministic synthesis, and verified-only completion.
 - Assigned the adopted contracts to Delivery Gates 6 through 15 while preserving Gate 5 First Operational CLI as the sole `Specified - Next` gate.
@@ -80,18 +89,27 @@
 - Gate 3 hardening is published on `origin/main`.
 - Gate 4 is Integrated on `main` through delivery commit `f731afc`.
 - The Agent orchestration documentation alignment is Completed and published on `main`.
+- The Gradle 9 and integrated-foundation hardening task is Completed locally and is not committed or published.
 - No supported CLI or LLM integration exists.
 - Workspace, Event/Message Bus, IPC, Agent Runtime, MCP, Skill Engine, Model Gateway, Plugin Marketplace, multi-agent execution, and Cloud Sync remain planned rather than implemented.
 
 ## Fresh Verification
 
+- Hardening RED: 28 focused tests ran with 7 expected failures and 2 Windows symbolic-link setup skips.
+- Hardening focused GREEN: 28 tests, 26 passed, 2 symbolic-link setup skips, 0 failures, and 0 errors.
+- Hardening final regression: 21 suites, 90 tests, 88 passed, 2 symbolic-link setup skips, 0 failures, and 0 errors.
+- Final full command used the standard workspace-local test temp default with `--warning-mode all`; no Gradle 9 automatic test-framework dependency warning remained.
+- `testRuntimeClasspath` resolves explicit `junit-platform-launcher:1.10.2` from the JUnit 5.10.2 BOM.
+- The `testTmpDir` override smoke command passed.
+- Java 17 compiled all 64 production sources with `javac -Xlint:all -Werror` and no warnings or errors.
+- `git diff --check` passed.
 - Both pinned GitHub tree links returned HTTP 200.
 - Structural checks passed: Delivery Gates are sequential from 0 through 16, Gate 5 is the sole `Specified - Next` gate, and Gates 7, 8, 9, 10, and 13 remain Planned.
 - Required orchestration invariants and both pinned commits are present in every required canonical/alignment document.
 - Focused Planner and Assisted Development Loop tests passed 8 of 8 tests with no skips.
 - The first full regression attempt ran 82 tests with 8 failures and 1 skip because the sandboxed Java child process could not resolve JUnit temporary paths under `C:/Users/oneplatt/AppData/Local/Temp`; direct reproduction produced `AccessDeniedException`.
 - Rerunning with `JAVA_TOOL_OPTIONS=-Djava.io.tmpdir=C:/Enhancer/build/tmp/junit` passed 81 of 82 tests across 21 suites with 1 existing symbolic-link setup skip, 0 failures, and 0 errors.
-- Gradle 8.4 still reports deprecation warnings that require review before Gradle 9.
+- Before the current hardening task, Gradle 8.4 reported the automatic test-framework dependency deprecation that Gradle 9 removes.
 - Gate 4 policy-binding RED: focused compilation failed with 15 expected missing API errors.
 - Gate 4 lifecycle RED: 16 focused tests ran with 4 expected failures because impossible RunRecords were accepted.
 - Gate 4 result-construction RED: 1 focused test failed because `AgentRunResult` still exposed public construction.
@@ -156,8 +174,8 @@ Keep mutation Tools, Git writes, network, LLM behavior, and multi-agent routing 
 - Evidence integrity uses SHA-256 for corruption detection, not signatures or tamper-proof external storage.
 - The initial resolver is memory-bounded to 64 MiB and automatic retention cleanup is intentionally absent.
 - Symbolic-link escape behavior was not dynamically exercised on this Windows host because link creation requires unavailable privilege; traversal and real-path enforcement code are present and the conditional test remains active.
-- Gradle 8.4 reports deprecated features that require review before a future Gradle 9 upgrade.
-- A timed-out Tool is interrupted, but a Tool implementation that ignores interruption may occupy the single worker until it returns; only trusted registered Tools exist in Gate 1.
+- The Wrapper remains Gradle 8.4; a future Wrapper major-version upgrade still requires its own bounded compatibility task even though the known Gradle 9 test-runtime deprecation is removed.
+- Timed-out interruption-ignoring Tools may continue briefly on retired daemon workers, but they no longer block subsequent invocations; future process-backed Tools may require stronger operating-system isolation.
 - The standard retry policy intentionally retries only timeout and explicit temporary failure; future Tools must select typed codes deliberately.
 - Repository approval evidence and SHA-256 progress identities are provenance and diagnostic controls, not signatures or authorization tokens.
 - RunRecord envelopes detect corruption but are not signed, encrypted, remotely replicated, or automatically cleaned up.

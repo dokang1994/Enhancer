@@ -3,6 +3,7 @@ package com.enhancer.context;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -88,6 +89,53 @@ class ProjectContextReaderTest {
     }
 
     @Test
+    void rejectsAnOversizedRequiredDocument() throws IOException {
+        writeRequiredDocuments();
+        Files.writeString(
+                projectRoot.resolve(".ai/constitution.md"),
+                "x".repeat((int) ProjectContextReader.MAX_DOCUMENT_BYTES + 1),
+                StandardCharsets.UTF_8);
+
+        IOException exception = assertThrows(IOException.class, () -> reader.read(projectRoot));
+
+        assertTrue(exception.getMessage().contains("size"));
+    }
+
+    @Test
+    void rejectsARequiredDocumentSymbolicLinkOutsideTheRealProjectRoot() throws IOException {
+        writeRequiredDocuments();
+        Path outside = projectRoot.getParent().resolve("outside-constitution.md");
+        Files.writeString(outside, "outside", StandardCharsets.UTF_8);
+        Path required = projectRoot.resolve(".ai/constitution.md");
+        Files.delete(required);
+        try {
+            Files.createSymbolicLink(required, outside);
+        } catch (IOException | UnsupportedOperationException | SecurityException exception) {
+            assumeTrue(
+                    false,
+                    () -> "Symbolic-link creation is unavailable on this host: "
+                            + exception.getClass().getSimpleName());
+            return;
+        }
+
+        IOException exception = assertThrows(IOException.class, () -> reader.read(projectRoot));
+
+        assertTrue(exception.getMessage().contains("outside"));
+    }
+
+    @Test
+    void rejectsMalformedUtf8InARequiredDocument() throws IOException {
+        writeRequiredDocuments();
+        Files.write(
+                projectRoot.resolve(".ai/constitution.md"),
+                new byte[] {(byte) 0xC3, 0x28});
+
+        IOException exception = assertThrows(IOException.class, () -> reader.read(projectRoot));
+
+        assertTrue(exception.getMessage().contains("UTF-8"));
+    }
+
+    @Test
     void readsTheActualEnhancerBootstrapContext() throws IOException {
         Path actualProjectRoot = Path.of(System.getProperty("user.dir"));
 
@@ -97,5 +145,13 @@ class ProjectContextReaderTest {
         assertEquals(15, context.documents().size());
         assertTrue(context.documents().stream()
                 .anyMatch(document -> document.path().equals("ROADMAP.md")));
+    }
+
+    private void writeRequiredDocuments() throws IOException {
+        for (RequiredProjectDocument document : RequiredProjectDocument.values()) {
+            Path path = projectRoot.resolve(document.path());
+            Files.createDirectories(path.getParent());
+            Files.writeString(path, "content for " + document.path(), StandardCharsets.UTF_8);
+        }
     }
 }

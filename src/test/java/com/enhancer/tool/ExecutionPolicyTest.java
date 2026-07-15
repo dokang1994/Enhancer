@@ -56,7 +56,19 @@ class ExecutionPolicyTest {
                 () -> policy(10, Duration.ZERO, Set.of("read-file")));
         assertThrows(
                 IllegalArgumentException.class,
+                () -> policy(10, Duration.ofNanos(1), Set.of("read-file")));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> policy(10, Duration.ofSeconds(Long.MAX_VALUE), Set.of("read-file")));
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> policy(10, Duration.ofSeconds(1), Set.of(" ")));
+
+        ExecutionPolicy minimumRepresentable = policy(
+                10,
+                Duration.ofMillis(1),
+                Set.of("read-file"));
+        assertEquals(Duration.ofMillis(1), minimumRepresentable.timeout());
     }
 
     private ExecutionPolicy policy(

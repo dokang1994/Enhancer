@@ -131,6 +131,47 @@ class ToolExecutorTest {
     }
 
     @Test
+    void aTimedOutInterruptIgnoringToolDoesNotStarveTheNextInvocation() {
+        AtomicInteger fastInvocations = new AtomicInteger();
+        Tool stubborn = tool("stubborn", (request, policy) -> {
+            long deadline = System.nanoTime() + Duration.ofMillis(500).toNanos();
+            while (System.nanoTime() < deadline) {
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException ignored) {
+                    // Deliberately model a broken Tool that ignores cancellation.
+                }
+            }
+            return success("stubborn", "late");
+        });
+        Tool fast = tool("fast", (request, policy) -> {
+            fastInvocations.incrementAndGet();
+            return success("fast", "done");
+        });
+
+        try (ToolExecutor executor = new ToolExecutor(List.of(stubborn, fast))) {
+            ToolResult timedOut = executor.execute(
+                    request("stubborn"),
+                    policy(
+                            Set.of("stubborn"),
+                            Set.of(),
+                            CancellationToken.none(),
+                            Duration.ofMillis(20)));
+            ToolResult next = executor.execute(
+                    request("fast"),
+                    policy(
+                            Set.of("fast"),
+                            Set.of(),
+                            CancellationToken.none(),
+                            Duration.ofMillis(100)));
+
+            assertEquals(ToolFailureCode.TIMED_OUT, timedOut.failureCode().orElseThrow());
+            assertEquals(ToolResultStatus.SUCCESS, next.status());
+            assertEquals(1, fastInvocations.get());
+        }
+    }
+
+    @Test
     void rejectsDuplicateRegistrationAndContradictoryToolResults() {
         Tool first = tool("duplicate", (request, policy) -> success("duplicate", "first"));
         Tool second = tool("duplicate", (request, policy) -> success("duplicate", "second"));

@@ -2,6 +2,13 @@
 
 ## 2026-07-15
 
+- Removed the Gradle 9 automatic-test-framework dependency deprecation by declaring the JUnit Platform Launcher explicitly.
+- Made Gradle tests use a workspace-local default temporary directory with an explicit `testTmpDir` override.
+- Isolated Tool invocation workers so an interrupt-ignoring timed-out Tool cannot starve later work, and bounded timeout values to consistent execution/audit representations.
+- Extended Evidence and RunRecord integrity digests across envelope version, timestamp, declared length, and payload/content metadata.
+- Rejected malformed RunRecord Unicode instead of replacing it and added strict, bounded, real-root-contained startup context loading.
+- Corrected oversized no-persistence read failure classification and removed all production Java serialization lint warnings.
+- Added regression coverage for starvation, timeout edge values, metadata tampering, Unicode loss, startup-document size/encoding/containment, and evidence-capability errors.
 - Fast-forwarded the verified Gate 4 and Agent orchestration delivery commit `f731afc` into `main` and published it to `origin/main`.
 - Translated selected Archon `263cf365` and meta-harness `ccab9a6` orchestration patterns into provider-neutral Enhancer documentation without adding either repository as a dependency.
 - Defined the escalation path from one worker through sequential, Producer-Reviewer, bounded fan-out/fan-in, routing or supervision, and shallow hierarchy only when justified.

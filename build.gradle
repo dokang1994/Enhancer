@@ -19,8 +19,17 @@ dependencies {
     testImplementation platform('org.junit:junit-bom:5.10.2')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.mockito:mockito-core:5.12.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
+
+def testTempDirectory = providers.gradleProperty('testTmpDir')
+        .map { file(it) }
+        .getOrElse(layout.buildDirectory.dir('tmp/junit').get().asFile)
 
 test {
     useJUnitPlatform()
+    systemProperty 'java.io.tmpdir', testTempDirectory.absolutePath
+    doFirst {
+        testTempDirectory.mkdirs()
+    }
 }

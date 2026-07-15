@@ -6,16 +6,23 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public final class ToolExecutor implements AutoCloseable {
     private final Map<String, Tool> tools;
-    private final ExecutorService worker;
+    private final Set<ExecutorService> workers = ConcurrentHashMap.newKeySet();
+    private final AtomicBoolean closed = new AtomicBoolean();
+    private final AtomicInteger workerSequence = new AtomicInteger();
+    private final Object lifecycleLock = new Object();
 
     public ToolExecutor(Collection<? extends Tool> tools) {
         Objects.requireNonNull(tools, "tools must not be null");
@@ -32,11 +39,6 @@ public final class ToolExecutor implements AutoCloseable {
             }
         }
         this.tools = Map.copyOf(registry);
-        this.worker = Executors.newSingleThreadExecutor(runnable -> {
-            Thread thread = new Thread(runnable, "enhancer-tool-executor");
-            thread.setDaemon(true);
-            return thread;
-        });
     }
 
     public ToolResult execute(ToolRequest request, ExecutionPolicy policy) {
@@ -68,10 +70,28 @@ public final class ToolExecutor implements AutoCloseable {
                     "Cancellation was requested before Tool invocation");
         }
 
+        ExecutorService worker = createWorker();
         Future<ToolResult> future = worker.submit(() -> tool.execute(request, policy));
-        ToolResult result;
         try {
-            result = future.get(policy.timeout().toNanos(), TimeUnit.NANOSECONDS);
+            ToolResult result = future.get(policy.timeout().toNanos(), TimeUnit.NANOSECONDS);
+            if (policy.cancellationToken().isCancellationRequested()) {
+                return failure(
+                        request.toolName(),
+                        ToolFailureCode.CANCELLED,
+                        "Tool execution cancelled",
+                        "Cancellation was requested after Tool invocation");
+            }
+
+            if (result == null || !request.toolName().equals(result.toolName())) {
+                return failure(
+                        request.toolName(),
+                        ToolFailureCode.INVALID_RESULT,
+                        "Tool returned an invalid result",
+                        result == null
+                                ? "Tool returned null"
+                                : "Result Tool name does not match request: " + result.toolName());
+            }
+            return result;
         } catch (TimeoutException exception) {
             future.cancel(true);
             return failure(
@@ -94,31 +114,39 @@ public final class ToolExecutor implements AutoCloseable {
                     failureCode(cause),
                     "Tool execution failed",
                     diagnostic(cause));
+        } finally {
+            worker.shutdownNow();
+            if (worker.isTerminated()) {
+                workers.remove(worker);
+            }
         }
-
-        if (policy.cancellationToken().isCancellationRequested()) {
-            return failure(
-                    request.toolName(),
-                    ToolFailureCode.CANCELLED,
-                    "Tool execution cancelled",
-                    "Cancellation was requested after Tool invocation");
-        }
-
-        if (result == null || !request.toolName().equals(result.toolName())) {
-            return failure(
-                    request.toolName(),
-                    ToolFailureCode.INVALID_RESULT,
-                    "Tool returned an invalid result",
-                    result == null
-                            ? "Tool returned null"
-                            : "Result Tool name does not match request: " + result.toolName());
-        }
-        return result;
     }
 
     @Override
     public void close() {
-        worker.shutdownNow();
+        synchronized (lifecycleLock) {
+            if (closed.compareAndSet(false, true)) {
+                workers.forEach(ExecutorService::shutdownNow);
+            }
+        }
+    }
+
+    private ExecutorService createWorker() {
+        synchronized (lifecycleLock) {
+            if (closed.get()) {
+                throw new IllegalStateException("ToolExecutor is closed");
+            }
+            workers.removeIf(ExecutorService::isTerminated);
+            ExecutorService worker = Executors.newSingleThreadExecutor(runnable -> {
+                Thread thread = new Thread(
+                        runnable,
+                        "enhancer-tool-executor-" + workerSequence.incrementAndGet());
+                thread.setDaemon(true);
+                return thread;
+            });
+            workers.add(worker);
+            return worker;
+        }
     }
 
     private ToolResult failure(

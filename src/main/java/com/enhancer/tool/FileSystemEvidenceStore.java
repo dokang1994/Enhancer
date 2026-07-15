@@ -82,7 +82,7 @@ public final class FileSystemEvidenceStore implements EvidenceStore {
         String evidenceId = UUID.randomUUID().toString();
         String reference = reference(runId, evidenceId);
         Instant storedAt = Instant.now().truncatedTo(ChronoUnit.MILLIS);
-        byte[] digest = sha256(contentBytes);
+        byte[] digest = envelopeDigest(storedAt.toEpochMilli(), contentBytes.length, contentBytes);
         ByteBuffer envelope = ByteBuffer.allocate(HEADER_BYTES + contentBytes.length)
                 .putInt(ENVELOPE_MAGIC)
                 .putLong(storedAt.toEpochMilli())
@@ -168,9 +168,9 @@ public final class FileSystemEvidenceStore implements EvidenceStore {
         buffer.get(declaredDigest);
         byte[] contentBytes = new byte[(int) declaredLength];
         buffer.get(contentBytes);
-        byte[] actualDigest = sha256(contentBytes);
+        byte[] actualDigest = envelopeDigest(storedAtMillis, declaredLength, contentBytes);
         if (!MessageDigest.isEqual(declaredDigest, actualDigest)) {
-            throw corrupted(reference, "content digest does not match stored metadata");
+            throw corrupted(reference, "envelope digest does not match stored metadata");
         }
 
         String content = decodeUtf8(reference, contentBytes);
@@ -257,6 +257,16 @@ public final class FileSystemEvidenceStore implements EvidenceStore {
         } catch (NoSuchAlgorithmException exception) {
             throw new IllegalStateException("SHA-256 is unavailable", exception);
         }
+    }
+
+    private byte[] envelopeDigest(long storedAtMillis, long contentLength, byte[] contentBytes) {
+        return sha256(ByteBuffer.allocate(
+                        Integer.BYTES + Long.BYTES + Long.BYTES + contentBytes.length)
+                .putInt(ENVELOPE_MAGIC)
+                .putLong(storedAtMillis)
+                .putLong(contentLength)
+                .put(contentBytes)
+                .array());
     }
 
     private CorruptedEvidenceException corrupted(String reference, String reason) {

@@ -124,6 +124,25 @@ class FileSystemEvidenceStoreIntegrationTest {
         assertTrue(encodingFailure.getMessage().contains("UTF-8"));
     }
 
+    @Test
+    void rejectsTimestampMetadataTampering() throws IOException {
+        Path storageRoot = tempDirectory.resolve("evidence");
+        FileSystemEvidenceStore store = new FileSystemEvidenceStore(storageRoot, policy(1024));
+        String runId = store.createRun();
+        StoredEvidence stored = store.persist(runId, "trusted evidence");
+        Path artifact = artifactPath(storageRoot, stored);
+        byte[] envelope = Files.readAllBytes(artifact);
+        ByteBuffer buffer = ByteBuffer.wrap(envelope);
+        buffer.putLong(Integer.BYTES, buffer.getLong(Integer.BYTES) + 1);
+        Files.write(artifact, envelope);
+
+        CorruptedEvidenceException exception = assertThrows(
+                CorruptedEvidenceException.class,
+                () -> store.resolve(stored.reference()));
+
+        assertTrue(exception.getMessage().contains("digest"));
+    }
+
     private FileSystemEvidenceStore store(long maxContentBytes) {
         return new FileSystemEvidenceStore(
                 tempDirectory.resolve("evidence"),
@@ -147,10 +166,17 @@ class FileSystemEvidenceStoreIntegrationTest {
     }
 
     private byte[] envelope(byte[] payload) {
-        byte[] digest = sha256(payload);
+        long storedAt = System.currentTimeMillis();
+        byte[] digest = sha256(ByteBuffer.allocate(
+                        Integer.BYTES + Long.BYTES + Long.BYTES + payload.length)
+                .putInt(ENVELOPE_MAGIC)
+                .putLong(storedAt)
+                .putLong(payload.length)
+                .put(payload)
+                .array());
         return ByteBuffer.allocate(Integer.BYTES + Long.BYTES + Long.BYTES + digest.length + payload.length)
                 .putInt(ENVELOPE_MAGIC)
-                .putLong(System.currentTimeMillis())
+                .putLong(storedAt)
                 .putLong(payload.length)
                 .put(digest)
                 .put(payload)

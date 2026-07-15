@@ -13,8 +13,8 @@
 - Delivery Gates 1 through 3, self-hosting compatibility recovery, long-term vision, and documentation-alignment changes are published on `origin/main`.
 - Delivery Gate 4 sequential verification, RunRecord changes, and provider-neutral Agent orchestration reference alignment are merged into and published on `origin/main` through delivery commit `f731afc`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 64 Java files and 3,304 lines.
-- Test source: 21 Java files and 2,612 lines.
+- Production source: 64 Java files and 3,448 lines.
+- Test source: 21 Java files and 2,814 lines.
 
 ## Capability Maturity
 
@@ -56,6 +56,11 @@
 - Atomic versioned RunRecord envelopes with SHA-256 integrity and restart-safe replay.
 - Controller-bound execution policy retained in the non-publicly constructible `AgentRunResult`.
 - RunRecord lifecycle validation that rejects policy-history substitution and impossible worker, verification, result, and stop-reason combinations.
+- Gradle 9-compatible explicit JUnit Platform Launcher runtime and workspace-local default test temporary storage.
+- Invocation-isolated Tool workers that prevent interruption-ignoring timeout starvation.
+- Millisecond-positive and nanosecond-representable execution-policy timeouts.
+- Complete-envelope Evidence and RunRecord integrity digests covering version, timestamp, declared length, and content/payload.
+- Strict RunRecord UTF-8 encoding and bounded, real-root-contained, strict UTF-8 startup-context loading.
 
 ### Operational Governance
 
@@ -151,6 +156,18 @@
 - Delivery Gate 4: Integrated.
 - Delivery Gate 5: Specified - Next.
 - Enhancer is not yet Operational because no supported entry point exposes the independently verified and recorded run.
+
+## Pre-Operational Foundation Hardening Verification
+
+- The task remained a hardening change over Integrated Delivery Gates 1 through 4; Gate 5 remains the sole `Specified - Next` capability.
+- Focused RED verification ran 28 tests and produced the 7 expected failures for timeout starvation, duration representation, Evidence timestamp tampering, RunRecord timestamp tampering and malformed Unicode, startup-document size, and read evidence-capability classification; 2 Windows symbolic-link setup tests were skipped.
+- Focused GREEN verification ran the same 28 tests: 26 passed, 2 symbolic-link setup tests skipped, 0 failures, and 0 errors.
+- Final full command: `.\scripts\gradle.ps1 --no-daemon cleanTest test --warning-mode all`.
+- Final full result: 21 suites, 90 tests, 88 passed, 2 Windows symbolic-link setup skips, 0 failures, and 0 errors.
+- The final Gradle output contained no automatic test-framework implementation dependency deprecation; `testRuntimeClasspath` contains `junit-platform-launcher:1.10.2` through the JUnit 5.10.2 BOM.
+- The standard full suite passed without `JAVA_TOOL_OPTIONS`; an explicit `-PtestTmpDir=build/tmp/junit-override` test invocation also passed.
+- Java 17 production lint compiled all 64 source files with `javac -Xlint:all -Werror` and no warning or error.
+- `git diff --check` passed.
 
 ## Gate 4 Verification
 

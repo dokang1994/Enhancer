@@ -34,6 +34,12 @@ For later builds, run:
 .\scripts\gradle.ps1 test
 ```
 
+The test runtime declares `junit-platform-launcher` explicitly for Gradle 9 compatibility. Test JVM temporary files default to `build/tmp/junit` so sandboxed or restricted hosts do not depend on the user-profile temporary directory. An explicit alternate location can be selected with:
+
+```powershell
+.\scripts\gradle.ps1 test -PtestTmpDir=build/tmp/alternate-junit
+```
+
 ## Project Bootstrap Target
 
 The first buildable Java project should include:

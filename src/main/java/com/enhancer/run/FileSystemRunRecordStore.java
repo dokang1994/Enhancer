@@ -75,9 +75,9 @@ public final class FileSystemRunRecordStore implements RunRecordStore {
         if (payload.length > MAX_PAYLOAD_BYTES) {
             throw new IOException("RunRecord payload exceeds the supported size limit");
         }
-        byte[] digest = sha256(payload);
         String recordId = UUID.randomUUID().toString();
         Instant storedAt = Instant.now().truncatedTo(ChronoUnit.MILLIS);
+        byte[] digest = envelopeDigest(storedAt.toEpochMilli(), payload.length, payload);
         ByteBuffer envelope = ByteBuffer.allocate(HEADER_BYTES + payload.length)
                 .putInt(ENVELOPE_MAGIC)
                 .putLong(storedAt.toEpochMilli())
@@ -152,9 +152,9 @@ public final class FileSystemRunRecordStore implements RunRecordStore {
         buffer.get(declaredDigest);
         byte[] payload = new byte[declaredLength];
         buffer.get(payload);
-        byte[] actualDigest = sha256(payload);
+        byte[] actualDigest = envelopeDigest(storedAtMillis, declaredLength, payload);
         if (!MessageDigest.isEqual(declaredDigest, actualDigest)) {
-            throw corrupted(reference, "payload digest does not match stored metadata");
+            throw corrupted(reference, "envelope digest does not match stored metadata");
         }
 
         RunRecord record = decode(reference, payload);
@@ -305,8 +305,7 @@ public final class FileSystemRunRecordStore implements RunRecordStore {
     }
 
     private void writeString(DataOutputStream output, String value) throws IOException {
-        byte[] encoded = Objects.requireNonNull(value, "value must not be null")
-                .getBytes(StandardCharsets.UTF_8);
+        byte[] encoded = encodeUtf8(Objects.requireNonNull(value, "value must not be null"));
         if (encoded.length > MAX_STRING_BYTES) {
             throw new IOException("RunRecord string exceeds the supported size limit");
         }
@@ -451,6 +450,31 @@ public final class FileSystemRunRecordStore implements RunRecordStore {
             return MessageDigest.getInstance("SHA-256").digest(payload);
         } catch (NoSuchAlgorithmException exception) {
             throw new IllegalStateException("SHA-256 is unavailable", exception);
+        }
+    }
+
+    private byte[] envelopeDigest(long storedAtMillis, int payloadLength, byte[] payload) {
+        return sha256(ByteBuffer.allocate(
+                        Integer.BYTES + Long.BYTES + Integer.BYTES + payload.length)
+                .putInt(ENVELOPE_MAGIC)
+                .putLong(storedAtMillis)
+                .putInt(payloadLength)
+                .put(payload)
+                .array());
+    }
+
+    private byte[] encodeUtf8(String value) throws IOException {
+        try {
+            ByteBuffer encoded = StandardCharsets.UTF_8
+                    .newEncoder()
+                    .onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT)
+                    .encode(CharBuffer.wrap(value));
+            byte[] bytes = new byte[encoded.remaining()];
+            encoded.get(bytes);
+            return bytes;
+        } catch (CharacterCodingException exception) {
+            throw new IOException("RunRecord string is not valid Unicode text", exception);
         }
     }
 

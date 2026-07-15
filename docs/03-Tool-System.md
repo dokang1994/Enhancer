@@ -56,6 +56,8 @@ Integrated scope:
 
 `ReadFileTool` denies paths outside the approved real project root, enforces a bounded byte limit, decodes UTF-8 strictly, and returns bounded `VerificationEvidence`. It does not mutate the filesystem.
 
+Every invocation receives an isolated daemon worker lifecycle. A timed-out Tool is interrupted and retired so an implementation that ignores interruption cannot starve the next invocation. Policy timeouts must be representable as both positive audit milliseconds and execution nanoseconds.
+
 ## Delivery Gate 2
 
 Integrated scope:
@@ -63,7 +65,7 @@ Integrated scope:
 - `EvidenceStore` and `FileSystemEvidenceStore`;
 - UUID run and evidence identities;
 - opaque contained evidence references;
-- one versioned atomic envelope with timestamp, UTF-8 byte length, SHA-256 digest, and complete output;
+- one versioned atomic envelope whose SHA-256 digest covers the version, timestamp, UTF-8 byte length, and complete output;
 - bounded resolution with missing and corruption failures;
 - explicit maximum-content and retention-duration policy without automatic cleanup;
 - `EvidenceRecorder` integration with large `ReadFileTool` output.

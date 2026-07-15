@@ -30,6 +30,17 @@ public record ExecutionPolicy(
         if (timeout.isZero() || timeout.isNegative()) {
             throw new IllegalArgumentException("timeout must be positive");
         }
+        try {
+            if (timeout.toMillis() <= 0) {
+                throw new IllegalArgumentException(
+                        "timeout must be at least one millisecond");
+            }
+            timeout.toNanos();
+        } catch (ArithmeticException exception) {
+            throw new IllegalArgumentException(
+                    "timeout exceeds the supported execution range",
+                    exception);
+        }
 
         projectRoot = projectRoot.toAbsolutePath().normalize();
         allowedTools = validatedToolNames(allowedTools, "allowedTools");
