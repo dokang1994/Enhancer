@@ -2,6 +2,7 @@
 
 ## 2026-07-15
 
+- Published the Contract Verified Gate 6 WorkspaceSnapshot contract and synchronized project memory to `origin/main` in delivery commit `c5a16b9`.
 - Added the first Delivery Gate 6 contract: immutable metadata-only `WorkspaceSnapshot`, approved-task revision provenance, typed source observations, explicit freshness/availability, deterministic ordering, bounded metadata, and canonical SHA-256 identity.
 - Verified the Workspace contract test-first with 10 focused tests, then passed the 108-test full regression and Java 17 warning-as-error production lint without promoting Gate 6 beyond `Specified - Next`.
 - Recorded the Workspace snapshot sub-capability as Contract Verified and selected a minimal read-only `ProjectBrainView` as its next integration consumer.

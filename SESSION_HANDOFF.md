@@ -29,9 +29,9 @@
 
 - Root: `C:/Enhancer`.
 - Branch: `main`, tracking `origin/main`.
-- Published head before the current worktree changes: `b9a315e` (`docs: record Gate 0 and CLI publication`).
+- Published Gate 6 delivery commit: `c5a16b9` (`feat: add Gate 6 workspace snapshot contract`).
 - Gate 5, Gate 0 integration promotion, and the RED workflow clarification are committed and published on `origin/main`.
-- The Gate 6 WorkspaceSnapshot implementation and synchronized documents are ready for the user-authorized delivery commit and push.
+- The Gate 6 WorkspaceSnapshot implementation and synchronized documents are committed and published on `origin/main`.
 - `CURRENT_TASK.md` is Completed for `gate-6-workspace-snapshot-contract`.
 
 ## Fresh Verification

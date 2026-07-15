@@ -14,6 +14,7 @@
 - Delivery Gate 4 sequential verification, RunRecord changes, and provider-neutral Agent orchestration reference alignment are merged into and published on `origin/main` through delivery commit `f731afc`.
 - Pre-operational Gradle and execution hardening is published on `origin/main` through `b504ba4`.
 - Delivery Gate 5, Gate 0 integration promotion, and the RED workflow clarification are published on `origin/main` through delivery commit `ed901f3`.
+- Delivery Gate 6 metadata-only WorkspaceSnapshot contract and its Contract Verified evidence are published on `origin/main` through delivery commit `c5a16b9`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
 - Production source: 77 Java files and 3,697 lines.
 - Test source: 28 Java files and 3,354 lines.
