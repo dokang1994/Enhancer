@@ -34,7 +34,7 @@ The product evolves from V1 development experience, through V2 Agent/workflow pl
 
 ## Current Capability Maturity
 
-The core foundation contracts are **Contract Verified**, and the bounded read-only Tool, complete-evidence, Tool-driven loop, sequential verification, and RunRecord boundaries are **Integrated**. The repository is not Operational because no supported entry point executes the integrated run.
+The Gate 0 foundation contracts and the bounded read-only Tool, complete-evidence, Tool-driven loop, sequential verification, and RunRecord boundaries are **Integrated**. Delivery Gate 5 composes them into one **Operational** supported local read-only CLI scenario; the broader Agent Runtime remains planned.
 
 Capability maturity uses:
 

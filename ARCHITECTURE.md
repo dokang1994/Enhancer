@@ -2,7 +2,7 @@
 
 ## Status
 
-The first five foundation slices are contract-verified in a simple single Gradle project. The self-hosting context and planning path is verified against the current `.ai/` bootstrap set and canonical Roadmap grammar. Delivery Gates 1 through 4 integrate bounded read-only Tool execution, durable integrity-checked evidence, Tool-result-driven Agent Loop transitions, sequential independent verification, and replayable RunRecords. Enhancer is not yet an operational Agent runtime because no supported entry point exists.
+Delivery Gate 0 foundation contracts are Integrated through an authority-preserving planning-to-approved-execution lifecycle test. The self-hosting context and planning path is verified against the current `.ai/` bootstrap set and canonical Roadmap grammar. Delivery Gates 1 through 4 integrate bounded read-only Tool execution, durable integrity-checked evidence, Tool-result-driven Agent Loop transitions, sequential independent verification, and replayable RunRecords. Delivery Gate 5 makes that deliberately narrow read-only vertical slice Operational through a supported local CLI. The broader event-driven Agent Runtime remains planned.
 
 The accepted product direction is Self-hosting AI Development Operating System.
 
@@ -310,11 +310,19 @@ The slice is introduced in bounded increments:
 3. **Loop integration - Integrated:** make one Agent Loop iteration consume a Tool request and produce a `ToolResult`-backed state transition.
 4. **Sequential verification - Integrated:** evaluate the result outside the worker step and prevent worker claims from self-verifying.
 5. **Run record - Integrated:** persist request, decision, result, evidence, verification, and stop reason for replay and diagnosis.
-6. **Runnable entry point - Next:** expose the integrated path through a minimal CLI or application command.
+6. **Runnable entry point - Operational:** expose the integrated path through the supported `EnhancerCli` `run` and `replay` commands.
 
 The first operational scenario remains deliberately small: read a temporary repository file through an allowlisted Tool, retain bounded evidence, independently verify the expected result, stop explicitly, and persist a run record. Shell mutation, LLM calls, commits, pushes, and multi-agent routing remain outside that first scenario.
 
 No new foundation contract SHOULD be added unless it has an identified integration consumer in the current or immediately following delivery gate.
+
+### Delivery Gate 0 Integration Boundary
+
+Gate 0 integration is evidence over existing runtime layers. Its Context Reader, Planner, Assisted Development Loop, repeated Agent Loop, ToolResult, VerificationEvidence, and governance contracts have downstream consumers across Gates 1 through 5. `FoundationLifecycleIntegrationTest` makes those relationships observable in one governed temporary-repository lifecycle.
+
+The lifecycle has two phases separated by authority rather than hidden orchestration. A Completed task allows the read-only Assisted Development Loop to produce the current Roadmap Proposal while leaving every repository document unchanged. Execution before activation is rejected without evidence or RunRecord storage. Only an explicit external test-fixture transition creates an `In Progress` task containing task identity, approval evidence, and Tool scope. The resulting execution reuses the Gate 5 CLI and existing Gate 1 through 4 boundaries through independently verified completion, durable RunRecord persistence, target deletion, and restart-safe replay.
+
+No production component turns a Proposal into approval, mutates `CURRENT_TASK.md`, or infers Tool authority. The characterization test passed on its first run, proving the existing composition without a production correction or second orchestration path.
 
 ### Delivery Gate 1 Boundary
 
@@ -362,7 +370,7 @@ The first deterministic verifier supports the read-only file scenario. It verifi
 
 The executed `ToolRequest` remains part of terminal `AgentRunState` so verification and audit do not reconstruct inputs from prose or hashes. Only the sequential finalizer can create a `COMPLETED` state, and only from `AWAITING_VERIFICATION` plus a Verified decision. Rejected or Unverified decisions leave the run at the verification boundary.
 
-Every finalization attempt produces a typed `RunRecord` containing the approved task, Tool request, immutable policy snapshot and decision, Tool result and evidence, verification decision, iteration count, and worker/final stop reasons. The filesystem store writes a versioned length-prefixed binary payload inside a SHA-256 envelope and publishes it atomically. A completion result is not returned until the RunRecord is durable and replayable. Gate 4 adds no supported CLI and therefore promotes the vertical slice to Integrated, not Operational.
+Every finalization attempt produces a typed `RunRecord` containing the approved task, Tool request, immutable policy snapshot and decision, Tool result and evidence, verification decision, iteration count, and worker/final stop reasons. The filesystem store writes a versioned length-prefixed binary payload inside a SHA-256 envelope and publishes it atomically. A completion result is not returned until the RunRecord is durable and replayable. Gate 4 itself added no supported CLI and therefore promoted the vertical slice only to Integrated. Gate 5 now composes those unchanged boundaries behind the supported local command.
 
 #### Gate 4 RED Contract Hardening
 
@@ -372,7 +380,7 @@ The worker result retains the exact immutable `ExecutionPolicy` used by `AgentRu
 
 ### Pre-Operational Foundation Hardening
 
-Before Gate 5 exposes the integrated path through a supported command, the existing Gate 1 through 4 boundaries are hardened without changing their maturity or authority.
+Before Gate 5 exposed the integrated path through a supported command, the existing Gate 1 through 4 boundaries were hardened without changing their maturity or authority.
 
 Each Tool invocation uses an isolated worker lifecycle. A timeout cancels and retires only that invocation so an interruption-ignoring Tool cannot prevent a later invocation from starting. `ExecutionPolicy` accepts only durations that remain positive when represented as audit milliseconds and fit the nanosecond execution API.
 
@@ -381,6 +389,18 @@ Evidence and RunRecord binary envelopes integrity-protect their complete version
 The Repository Context Reader applies a bounded startup-document size, strict UTF-8 decoding, and real-path containment within the real project root. The build declares its JUnit Platform runtime launcher explicitly and provides a workspace-local default test temporary directory so Gradle 9 compatibility and sandboxed test execution do not depend on implicit or user-profile state.
 
 The no-persistence `ReadFileTool` mode still cannot return truncated evidence without a complete-output reference. That condition is an execution/evidence-capability failure, not malformed caller input.
+
+### Delivery Gate 5 CLI Boundary
+
+Gate 5 selects `com.enhancer.cli.EnhancerCli` as the first supported local entry point and exposes only `run` and `replay`. The Gradle application entry point is a thin composition boundary over the existing Context Reader, repository-derived `ApprovedTask`, read-only Tool execution, sequential verifier, finalizer, Evidence Store, and RunRecord Store.
+
+The implemented command is intentionally non-interactive. Every final worker outcome that reaches finalization is persisted before its stable exit code is returned; configuration errors and internal failures remain bounded diagnostics rather than fabricated records. This is the first Operational scenario, not the future multi-interface CLI of Gate 12.
+
+`run` requires explicit project root, task identity, relative target path, expected SHA-256 digest, evidence root, and RunRecord root. The supplied task identity must equal the active task read from the governed project context; it does not create or approve a task. The command registers only `read-file`, applies the existing 64 MiB ceiling and a five-second timeout, and performs at most five loop iterations with the existing three-transition stagnation threshold.
+
+Process results use stable exit codes for completed, usage/configuration error, verification failure, policy denial, Tool failure, stagnation, maximum iterations, and internal failure. Diagnostics are bounded and never include complete target content. A finalized run prints its opaque RunRecord reference and storage root.
+
+`replay` requires an explicit RunRecord root and reference, resolves the integrity-checked record through `FileSystemRunRecordStore`, and prints bounded typed task, request, policy, verification, and stop metadata. It does not re-execute the Tool or reinterpret the record as repository authority.
 
 ## Constitution Kernel Architecture
 
@@ -405,6 +425,5 @@ Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts bel
 
 ## Open Architecture Questions
 
-- CLI entry point is not selected yet.
 - Context size and token budgeting strategy are not selected yet.
 - Future LLM-backed Planner input/output schema is not selected yet.

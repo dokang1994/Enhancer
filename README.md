@@ -10,7 +10,7 @@ Enhancer는 AI Development Operating System을 만드는 Self-hosting 프로젝�
 
 ## Current Development Maturity
 
-The Java foundation contracts are **Contract Verified**, and Delivery Gates 1 through 4 integrate bounded read-only Tool execution, durable integrity-checked evidence, Tool-result-driven Agent Loop transitions, sequential independent verification, and replayable RunRecords. The executable context reads `.ai/` before the canonical root documents, and the deterministic Planner is tested against the current Enhancer Delivery Gate Roadmap. Enhancer is not yet an operational AI Development OS: a supported CLI and LLM invocation remain future delivery gates.
+Delivery Gates 0 through 4 are **Integrated** across authority-preserving planning, bounded read-only Tool execution, durable integrity-checked evidence, Tool-result-driven Agent Loop transitions, sequential independent verification, and replayable RunRecords. Delivery Gate 5 exposes that narrow vertical slice through an **Operational** local CLI. The executable context reads `.ai/` before the canonical root documents, and the deterministic Planner is tested against the current Enhancer Delivery Gate Roadmap. Enhancer is not yet the broader event-driven AI Development OS: LLM, Workspace, scheduler, messaging, and multi-agent capabilities remain future gates.
 
 Use `ROADMAP.md` for the canonical promotion path: Specified → Contract Verified → Integrated → Operational → Released. A completed contract task must not be presented as an operational product capability.
 
@@ -81,6 +81,23 @@ prompts/SESSION_START.md를 읽고 실행해라.
 - `.ai/prompt_rules.md`
 - `.ai/memory.md`
 - `.ai/skill_rules.md`
+
+## Operational Read-Only CLI
+
+The first supported command reads one UTF-8 file from a governed project, verifies its complete SHA-256 digest independently, persists evidence and a RunRecord, and prints only bounded metadata. `CURRENT_TASK.md` must be `In Progress`, its Task ID must match `--task-id`, and its Allowed Tools must contain `read-file`.
+
+```powershell
+$digest = (Get-FileHash -LiteralPath README.md -Algorithm SHA256).Hash.ToLowerInvariant()
+.\scripts\gradle.ps1 run --args="run --project-root C:\Enhancer --task-id <active-task-id> --target-path README.md --expected-sha256 $digest --evidence-root C:\Enhancer\.enhancer\evidence --run-record-root C:\Enhancer\.enhancer\run-records"
+```
+
+Replay the printed opaque reference without re-executing the Tool:
+
+```powershell
+.\scripts\gradle.ps1 run --args="replay --run-record-root C:\Enhancer\.enhancer\run-records --reference run-record/<uuid>"
+```
+
+Exit codes are stable: `0` completed, `2` usage/configuration, `10` verification failed, `20` policy denied, `21` Tool failed, `30` stagnated, `31` maximum iterations, and `70` internal failure. Output is capped at 4096 characters and never includes complete file evidence. The example `.enhancer/` runtime directory is Git-ignored and is not removed by Gradle `clean`. For recovery, correct the reported configuration or target, retain the evidence and RunRecord roots, and use `replay` for any printed record reference before retrying with a new run.
 
 ## Development Setup
 

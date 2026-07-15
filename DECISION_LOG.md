@@ -2,6 +2,67 @@
 
 ## Accepted Decisions
 
+### 2026-07-15: Promote Gate 0 Only Through An Authority-Preserving Lifecycle Integration Audit
+
+Status: Accepted Decision
+
+Context:
+
+- Gate 0 remains Contract Verified even though later Gates consume its Context, planning, loop, result, evidence, and governance contracts.
+- The original Gate 0 limitation says the pieces do not execute one connected Agent run, while Gate 5 now provides an Operational read-only run over most of those boundaries.
+- Planner proposals deliberately cannot approve themselves, so a valid integration test must not create an automatic Proposal-to-execution authority path.
+
+Decision:
+
+- Prepare one bounded Gate 0 promotion task that inventories each contract's real consumer and adds an end-to-end lifecycle integration test over a governed temporary repository.
+- Split the test into a read-only planning phase and an execution phase separated by an explicit external test-fixture activation of `CURRENT_TASK.md`.
+- Prove that planning leaves repository authority unchanged, execution before activation is rejected, and the activated read-only task reaches verified completion and restart-safe RunRecord replay through existing production boundaries.
+- Reuse the Gate 5 CLI composition rather than adding a second production orchestrator.
+- Allow the new characterization test to be initially GREEN if existing behavior already satisfies the accepted integration contract; create a RED cycle only for a genuine aligned behavior gap.
+- Promote Gate 0 from Contract Verified to Integrated only after focused, consumer, full-regression, lint, structural, and documentation evidence passes.
+- Keep Gate 6 as the sole `Specified - Next` product gate throughout this maturity-reconciliation task.
+
+Rationale:
+
+Integration maturity requires evidence that real collaborators are connected, not artificial new code or an authority shortcut. The explicit fixture transition models the human or governed approval boundary while allowing the full planning-to-verified-run lifecycle to be tested without mutating the actual repository.
+
+Consequences:
+
+- Gate 0 may be promoted without a new user interface because Operational entry is already owned by Gate 5.
+- A passing characterization test can justify a documentation-only maturity promotion when it proves that existing downstream integrations satisfy every Gate 0 contract.
+- Any uncovered defect remains subject to the active task, RED classification, and minimum-change rules.
+
+### 2026-07-15: Expose The Integrated Read-Only Run Through A Minimal Local CLI
+
+Status: Accepted Decision
+
+Context:
+
+- Delivery Gates 1 through 4 provide repository-derived approval, governed read-only Tool execution, complete evidence persistence, independent verification, and durable RunRecord replay, but no supported entry point connects them for a user.
+- Gate 5 requires explicit project, task, target, expected digest, evidence-root, and RunRecord-root inputs plus stable exit codes and documented recovery.
+- The future interface suite belongs to Gate 12; the first operational command should therefore remain deliberately small and dependency-free.
+
+Decision:
+
+- Add the Gradle `application` entry point `com.enhancer.cli.EnhancerCli` with two commands: `run` and `replay`.
+- Make `run` require six named inputs and match the explicit task identity against the `ApprovedTask` derived from the project's active `CURRENT_TASK.md`.
+- Wire only the existing `read-file` flow through `ExecutionPolicy`, `ToolExecutor`, `AgentRunController`, `DeterministicReadFileVerifier`, and `AgentRunFinalizer`.
+- Use fixed documented defaults of the existing 64 MiB evidence ceiling, a five-second Tool timeout, a five-iteration loop ceiling, a three-transition stagnation threshold, and a 30-day retention declaration without automatic cleanup.
+- Define stable process exit codes for completion, usage/configuration failure, verification failure, policy denial, Tool failure, stagnation, maximum iterations, and internal failure.
+- Bound CLI diagnostics, print no complete target content, and report the RunRecord root and opaque reference for replay.
+- Make `replay` accept only an explicit RunRecord root and opaque reference and print typed bounded metadata from the integrity-checked store.
+
+Rationale:
+
+This is the smallest supported control surface that proves the integrated vertical slice against a real repository without inventing a second execution path. Explicit arguments keep authority and expected results inspectable, while stable exit codes and replay make the command automatable and diagnosable.
+
+Consequences:
+
+- Successful Gate 5 evidence may promote the first read-only run to Operational, but it does not release a distribution or make the broader Agent Runtime Operational.
+- The command does not infer task approval, expected content, storage roots, or target paths from ambient state.
+- Interactive prompts, configuration discovery, shell/Git/network/LLM capabilities, and polished multi-interface behavior remain deferred.
+- Gate 6 becomes the next specified capability only after temporary-project and actual-repository run/replay evidence passes.
+
 ### 2026-07-15: Harden Integrated Boundaries Before The First Operational CLI
 
 Status: Accepted Decision

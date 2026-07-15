@@ -12,22 +12,22 @@
 - Pull request #2 has been merged into `main`.
 - Delivery Gates 1 through 3, self-hosting compatibility recovery, long-term vision, and documentation-alignment changes are published on `origin/main`.
 - Delivery Gate 4 sequential verification, RunRecord changes, and provider-neutral Agent orchestration reference alignment are merged into and published on `origin/main` through delivery commit `f731afc`.
+- Pre-operational Gradle and execution hardening is published on `origin/main` through `b504ba4`.
+- Delivery Gate 5 and Gate 0 integration promotion are verified locally and ready for the user-authorized commit and push.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 64 Java files and 3,448 lines.
-- Test source: 21 Java files and 2,814 lines.
+- Production source: 71 Java files and 3,403 lines.
+- Test source: 25 Java files and 2,947 lines.
 
 ## Capability Maturity
 
-### Contract Verified
+### Integrated
 
+- Delivery Gate 0 authority-preserving foundation lifecycle integration.
 - Repository Context Reader with seven `.ai/` documents followed by eight canonical root documents.
 - Deterministic Task Planner using Delivery Gate/Specified - Next grammar and explicit proposal state.
 - Single-pass Assisted Development Loop.
 - Repeated Agent Loop completion, failure, iteration, and stagnation exits.
 - Bounded `ToolResult` and `VerificationEvidence` invariants.
-
-### Integrated
-
 - Delivery Gate 1 bounded read-only Tool Execution Boundary.
 - Immutable `ToolRequest` with correlation identity and arguments.
 - Immutable `ExecutionPolicy` with deny-over-allow policy, project root, size, timeout, and cancellation boundaries.
@@ -62,11 +62,19 @@
 - Complete-envelope Evidence and RunRecord integrity digests covering version, timestamp, declared length, and content/payload.
 - Strict RunRecord UTF-8 encoding and bounded, real-root-contained, strict UTF-8 startup-context loading.
 
+### Operational
+
+- Delivery Gate 5 first supported local CLI over the integrated read-only vertical slice.
+- `EnhancerCli run` requires explicit governed project, active task identity, target, expected digest, evidence root, and RunRecord root inputs.
+- `EnhancerCli replay` resolves integrity-checked records without Tool re-execution or chat history.
+- Stable process exit codes, 4096-character diagnostics, verified-only completion, and persist-before-report behavior.
+
 ### Operational Governance
 
 - Constitution 1.1 Kernel and Document Driven Development.
 - Explicit lifecycle, authorization, fresh-evidence, self-hosting, recovery, and amendment rules.
 - Git-backed project memory and session handoff.
+- RED failures are classified against active task authority, accepted decisions, Architecture, and repository settings before aligned missing implementation proceeds to the minimum GREEN change.
 
 ## Accepted Product Direction
 
@@ -89,7 +97,6 @@
 
 ## Not Yet Integrated Or Operational
 
-- Supported CLI or application entry point.
 - Prompt and LLM invocation.
 - Workspace, Project Brain, Event/Message Bus, IPC, Agent Runtime, Scheduler, and Model Gateway.
 - Project Brain graph storage and impact reasoning, Dependency Analyzer, Workflow Engine, Agent Marketplace, and privacy-aware hybrid model routing.
@@ -133,7 +140,7 @@
 - Focused verification: 3 suites, 16 tests, all passed with no skips.
 - Full regression after roadmap synchronization: 16 suites, 58 tests, 57 passed, 1 existing symbolic-link setup skip, 0 failures, and 0 errors.
 - A governed temporary repository connects startup context, repository-derived approval, `ReadFileTool`, persisted evidence, and the Agent Loop transition in one integration test.
-- Separate actual-Enhancer regressions verify the 15-document startup context and canonical Roadmap proposal path; a full Agent run against the actual worktree is not yet Operational.
+- Separate actual-Enhancer regressions verified the 15-document startup context and canonical Roadmap proposal path before Gate 5; Gate 5 now supplies the supported actual-worktree run.
 - Real Tool success reaches `AWAITING_VERIFICATION`, not `COMPLETED`.
 - Terminal failure reaches `FAILED`; repeated identical retryable results reach `STAGNATED` through the existing threshold.
 - A denied fake Git mutation Tool records zero invocations and leaves its `.git/HEAD` sentinel unchanged.
@@ -149,17 +156,19 @@
 
 ## Current Delivery Position
 
-- Delivery Gate 0: Contract Verified.
+- Delivery Gate 0: Integrated.
 - Delivery Gate 1: Integrated.
 - Delivery Gate 2: Integrated.
 - Delivery Gate 3: Integrated.
 - Delivery Gate 4: Integrated.
-- Delivery Gate 5: Specified - Next.
-- Enhancer is not yet Operational because no supported entry point exposes the independently verified and recorded run.
+- Delivery Gate 5: Operational.
+- Delivery Gate 6: Specified - Next.
+- Enhancer has one Operational read-only scenario; the broader Agent Runtime remains planned.
+- Gate 0 integration audit is verified without a production correction or second orchestrator and does not displace Gate 6.
 
 ## Pre-Operational Foundation Hardening Verification
 
-- The task remained a hardening change over Integrated Delivery Gates 1 through 4; Gate 5 remains the sole `Specified - Next` capability.
+- During that historical task, the change remained hardening over Integrated Delivery Gates 1 through 4 and Gate 5 remained the sole `Specified - Next` capability.
 - Focused RED verification ran 28 tests and produced the 7 expected failures for timeout starvation, duration representation, Evidence timestamp tampering, RunRecord timestamp tampering and malformed Unicode, startup-document size, and read evidence-capability classification; 2 Windows symbolic-link setup tests were skipped.
 - Focused GREEN verification ran the same 28 tests: 26 passed, 2 symbolic-link setup tests skipped, 0 failures, and 0 errors.
 - Final full command: `.\scripts\gradle.ps1 --no-daemon cleanTest test --warning-mode all`.
@@ -185,9 +194,44 @@
 - Hardened focused verification passed 24 of 24 tests across 5 suites.
 - Hardened full regression passed 81 of 82 tests across 21 suites with 1 existing symbolic-link setup skip, 0 failures, and 0 errors.
 
+## Gate 5 Verification
+
+- Test-first RED: focused CLI compilation failed with 45 expected missing-symbol errors before production CLI types existed.
+- Focused command: `.\scripts\gradle.ps1 --no-daemon cleanTest test --tests 'com.enhancer.cli.*'`.
+- Focused result: 3 suites, 7 tests, 0 failures, 0 errors, and 0 skips.
+- The temporary-project integration covers verified completion, bounded output without complete evidence, durable replay, digest mismatch, task mismatch, and persisted/replayed Tool failure.
+- Full command: `.\scripts\gradle.ps1 --no-daemon clean test --warning-mode all`.
+- Full result: 24 suites, 97 tests, 95 passed, 2 Windows symbolic-link setup skips, 0 failures, and 0 errors; no Gradle deprecation was reported.
+- Java 17 production lint passed with `-Xlint:all -Werror` and no warning or error.
+- Actual-repository smoke read `README.md` under active task `gate-5-first-operational-cli`, independently verified the externally computed digest, and returned `COMPLETED`, exit code `0`, and RunRecord `run-record/0ff7b4ea-5d4a-4698-b9f7-642169262737`.
+- The `.enhancer/` record survived a subsequent Gradle `clean`; restart-safe replay returned the same task, allowed policy, worker verification wait, final completion, Verified decision, and one iteration without re-executing the Tool.
+
+## Gate-By-Gate Focused Verification
+
+- Gate 0 contracts: 6 suites, 35 tests, 34 passed, 1 Windows symbolic-link setup skip, 0 failures, and 0 errors.
+- Gate 1 Tool boundary: 4 suites, 15 tests, 14 passed, 1 Windows symbolic-link setup skip, 0 failures, and 0 errors.
+- Gate 2 evidence persistence: 4 suites, 10 tests, all passed with no skips.
+- Gate 3 Agent/Tool integration: 3 suites, 9 tests, all passed with no skips.
+- Gate 4 verification and RunRecord: 4 suites, 21 tests, all passed with no skips.
+- Gate 5 CLI: 3 suites, 7 tests, all passed with no skips, followed by actual-repository run and replay success.
+- Gates are dependency-ordered maturity increments, not six independent applications: Gate 0, Gate 1, and Gate 2 contracts can be exercised in isolation, while Gate 3 composes Gates 0 through 2, Gate 4 composes the worker path with verification and records, and Gate 5 is the supported cumulative entry point.
+
+## Gate 0 Integration Promotion Verification
+
+- `FoundationLifecycleIntegrationTest` was added before any production edit and passed on its first characterization run.
+- Planning over a governed temporary repository produced the Gate 6 Proposal while byte-for-byte preserving all required documents.
+- CLI execution before explicit activation returned usage/configuration failure and created neither evidence nor RunRecord storage.
+- Only external test-fixture setup created an active ApprovedTask; no production component converted the Proposal into authority.
+- The activated task reused Gate 5 and Gate 1 through 4 through large complete evidence, independent verification, Verified-only completion, durable RunRecord resolution, target deletion, and replay without Tool re-execution.
+- No production correction or second orchestration path was needed.
+- Combined focused verification passed 43 tests across 10 suites with 1 Windows symbolic-link setup skip, 0 failures, and 0 errors.
+- Full regression passed 98 tests across 25 suites: 96 passed, 2 Windows symbolic-link setup tests skipped, 0 failures, and 0 errors.
+- Gradle `--warning-mode all` emitted no deprecation warning, and Java 17 production lint passed with `-Xlint:all -Werror`.
+- Gate 6 remains the sole `Specified - Next` marker and `git diff --check` passed.
+
 ## Vision Documentation Verification
 
-- Canonical Roadmap contains sequential Delivery Gates 0 through 16 and exactly one `Specified - Next` marker at Gate 5.
+- At the time of the vision review, the canonical Roadmap contained sequential Delivery Gates 0 through 16 and exactly one `Specified - Next` marker at Gate 5.
 - V1, V2, V3 and Decision, Architecture, Dependency, Task, and Execution graph terms are present in Architecture and Roadmap.
 - Planner and Assisted Development Loop self-hosting regression passed 8 of 8 tests after the vision and roadmap update.
 - Full regression passed 62 of 63 tests with 1 existing Windows symbolic-link setup skip and no failures or errors.
@@ -202,7 +246,7 @@
 - Self-hosting development is explicitly separate from local or hybrid model execution.
 - The README entry point carries the same milestone and self-hosting terminology as the canonical Architecture and Roadmap.
 - The project overview now follows the `.ai/`-first bootstrap order and reports current foundation checklist state.
-- Structural review found sequential Delivery Gates 0 through 16, exactly one `Specified - Next` marker at Gate 5, and no superseded actual-worktree Gate 3 claim.
+- That historical structural review found sequential Delivery Gates 0 through 16, exactly one `Specified - Next` marker at Gate 5, and no superseded actual-worktree Gate 3 claim.
 - Full regression after the correction: 17 suites, 63 tests, 62 passed, 1 existing Windows symbolic-link setup skip, 0 failures, and 0 errors.
 
 ## Agent Orchestration Reference Alignment
@@ -211,14 +255,14 @@
 - Gate 6 owns the common immutable snapshot; Gate 7 typed delivery and control envelopes; Gate 8 dependency scheduling, fenced leases, idempotency, heartbeat ingestion, and recovery; Gate 9 provider-neutral execution profiles; Gate 10 validated workflow metadata; Gate 12 authenticated controls; Gate 13 dynamic rosters and bounded multi-worker patterns; Gate 15 bounded experiment baselines and rollback.
 - Direct peer control, prompt-only coordination, file polling as the canonical bus, shared-worktree parallel mutation, optional verification, subjective completion scores, unlimited execution, and silent evidence loss are explicitly rejected.
 - Both pinned GitHub tree links returned HTTP 200 on 2026-07-15.
-- Structural verification found sequential Delivery Gates 0 through 16, exactly one `Specified - Next` marker at Gate 5, and Planned status for Gates 7, 8, 9, 10, and 13.
+- That historical structural verification found sequential Delivery Gates 0 through 16, exactly one `Specified - Next` marker at Gate 5, and Planned status for Gates 7, 8, 9, 10, and 13.
 - Focused Planner and Assisted Development Loop verification passed 8 of 8 tests with no skips.
 - The first full regression attempt failed 8 tests because the sandboxed Java child process could not resolve JUnit temporary paths under the user profile. Reproduction showed `AccessDeniedException`; the same read path succeeded inside the workspace.
 - The full regression rerun with `java.io.tmpdir=C:/Enhancer/build/tmp/junit` passed 81 of 82 tests across 21 suites with 1 existing symbolic-link setup skip, 0 failures, and 0 errors.
 
 ## Next Task
 
-Implement Delivery Gate 5 First Operational CLI over the integrated Context, Tool, verification, and RunRecord path.
+Specify Delivery Gate 6 Workspace and Project Brain Foundation, then activate only an explicitly approved bounded implementation task.
 
 ## Session Recovery
 

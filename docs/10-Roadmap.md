@@ -18,9 +18,9 @@ These states do not replace the Constitution task lifecycle. A task can be Compl
 
 ## Current Boundary
 
-Delivery Gate 0 is Contract Verified. Delivery Gates 1 through 4 are Integrated: approved work passes through policy and the read-only Tool boundary into bounded, resolvable evidence, a Tool-result-driven loop transition, independent verification, and a replayable RunRecord.
+Delivery Gates 0 through 4 are Integrated: governed planning remains separate from explicit approval, and approved work passes through policy and the read-only Tool boundary into bounded, resolvable evidence, a Tool-result-driven loop transition, independent verification, and a replayable RunRecord. Delivery Gate 5 is Operational through the supported local `EnhancerCli` `run` and `replay` commands.
 
-Enhancer is not yet an operational Agent runtime. It has no supported CLI or LLM call.
+Enhancer now has one deliberately narrow Operational read-only scenario. It still has no LLM call, Workspace snapshot, event bus, scheduler, or broader Agent Runtime.
 
 ## Delivery Sequence
 
@@ -45,9 +45,9 @@ Enhancer is not yet an operational Agent runtime. It has no supported CLI or LLM
 
 ## Immediate Next Task
 
-Implement Delivery Gate 5 as the first supported local CLI over the existing Context, Tool, verification, and RunRecord pipeline. Keep the command read-only and require explicit project root, approved task, target path, expected digest, evidence root, and RunRecord root inputs. Map final stop reasons to stable exit codes and document replay and recovery.
+Specify and implement Delivery Gate 6 Workspace and Project Brain Foundation through a separately activated task. Preserve immutable snapshot identity, freshness, provenance, bounded context, and the rule that observations cannot grant Tool authority.
 
-Do not include shell mutation, Git writes, network access, LLM calls, or multi-agent routing in this task.
+Do not add command authority, network access, LLM calls, event delivery, scheduling, or multi-agent routing in that first Gate 6 task.
 
 V1, V2, and V3 are product milestones layered over delivery gates: V1 is the development experience, V2 is the Agent/workflow platform, and V3 is the AI Kernel and Project Brain operating system. They are not substitutes for verified maturity states.
 

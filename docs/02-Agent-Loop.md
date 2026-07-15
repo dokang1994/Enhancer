@@ -114,7 +114,7 @@ Cover:
 - LLM calls
 - Multi-agent routing
 - Git, shell, network, or browser mutation
-- CLI wiring
+- additional CLI surfaces beyond the Gate 5 read-only composition
 
 ## Prompt Book
 

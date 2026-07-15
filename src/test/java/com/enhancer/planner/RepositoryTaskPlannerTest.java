@@ -73,11 +73,11 @@ class RepositoryTaskPlannerTest {
                 "# Current Task\n\n## Status\n\nCompleted\n",
                 roadmap)).orElseThrow();
 
-        assertEquals("Delivery Gate 5: First Operational CLI", proposal.title());
+        assertEquals("Delivery Gate 6: Workspace And Project Brain Foundation", proposal.title());
         assertTrue(proposal.scope().contains(
-                "minimal Java CLI entry point over the existing Context, Tool, verification, and RunRecord boundaries;"));
+                "immutable WorkspaceSnapshot and source freshness metadata;"));
         assertTrue(proposal.acceptanceCriteria().contains(
-                "a documented CLI command runs against a temporary and the actual Enhancer repository;"));
+                "Workspace observations cannot override repository authority or grant Tool permission;"));
     }
 
     private ProjectContext context(String currentTask, String roadmap) {

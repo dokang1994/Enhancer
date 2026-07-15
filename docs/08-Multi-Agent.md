@@ -2,7 +2,7 @@
 
 ## Status And Sequence
 
-This chapter is accepted implementation guidance for a future capability. Multi-Agent execution remains **Planned** at Delivery Gate 13. Delivery Gate 5 First Operational CLI remains the next implementation task.
+This chapter is accepted implementation guidance for a future capability. Multi-Agent execution remains **Planned** at Delivery Gate 13. Delivery Gate 6 Workspace and Project Brain Foundation is the next implementation gate.
 
 The prerequisite path is:
 

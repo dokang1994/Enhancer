@@ -2,6 +2,20 @@
 
 ## 2026-07-15
 
+- Promoted Delivery Gate 0 Foundation Safety Contracts from Contract Verified to Integrated through a new authority-preserving lifecycle characterization test.
+- Proved Proposal non-mutation, pre-activation rejection, external-only task activation, verified Gate 5 execution, persist-before-completion RunRecord storage, and replay after target deletion.
+- The Gate 0 lifecycle test passed on its first run, so no production correction or second orchestrator was added.
+- Verified 43 focused tests and the full 98-test regression suite while preserving Gate 6 as the sole `Specified - Next` product gate.
+- Prepared the authority-preserving Gate 0 integration-promotion task, accepted decision, lifecycle test contract, and verification plan without changing Gate 0 maturity.
+- Kept Gate 6 as the sole `Specified - Next` product gate and prohibited automatic Proposal approval or a second production orchestrator in the Gate 0 audit.
+- Made Delivery Gate 5 Operational with the supported local `EnhancerCli` `run` and `replay` commands.
+- Added explicit governed inputs, stable outcome exit codes, bounded diagnostics, verified-only completion, and persist-before-report RunRecord behavior.
+- Added test-first CLI parsing, exit-code, temporary-project, mismatch, Tool-failure persistence, and restart-safe replay coverage.
+- Verified 7 focused CLI tests and the full 97-test regression suite, with only 2 existing Windows symbolic-link setup skips.
+- Completed and replayed an actual-repository `README.md` run with a Verified decision and exit code 0.
+- Promoted Delivery Gate 6 Workspace and Project Brain Foundation to the sole `Specified - Next` gate.
+- Clarified the RED-to-GREEN workflow: expected missing implementation proceeds when the test contract matches the active task, accepted decisions, Architecture, and repository settings; unrelated or authority-expanding failures are separated.
+- Published the Gradle 9 and integrated execution-foundation hardening to `origin/main` in commit `b504ba4`.
 - Removed the Gradle 9 automatic-test-framework dependency deprecation by declaring the JUnit Platform Launcher explicitly.
 - Made Gradle tests use a workspace-local default temporary directory with an explicit `testTmpDir` override.
 - Isolated Tool invocation workers so an interrupt-ignoring timed-out Tool cannot starve later work, and bounded timeout values to consistent execution/audit representations.

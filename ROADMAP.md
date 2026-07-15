@@ -16,18 +16,15 @@ The standalone label Implemented is no longer used for capability maturity. It m
 
 ## Current Position
 
-Status: Delivery Gate 4 Integrated; Delivery Gate 5 Specified - Next
+Status: Delivery Gate 5 Operational; Delivery Gate 6 Specified - Next
 
-Contract-verified capabilities:
+Integrated capabilities:
 
 - repository context reading with `.ai/` before canonical root documents;
 - deterministic next-task proposal from the canonical Delivery Gate grammar;
 - single-pass context-to-planner orchestration;
 - bounded repeated-loop termination and consecutive stagnation detection;
 - bounded Tool result and verification-evidence records.
-
-Integrated capabilities:
-
 - governed Tool request, policy, registry, and execution boundary;
 - one allowlisted UTF-8 read-only filesystem Tool;
 - bounded conversion of real Tool success and failure into `ToolResult`;
@@ -45,9 +42,12 @@ Operational repository governance:
 - Git-backed project memory and session handoff;
 - test and evidence requirements.
 
+Operational capability:
+
+- first supported local `run` and `replay` CLI over the governed read-only vertical slice.
+
 Not yet integrated or operational:
 
-- CLI or application entry point;
 - LLM invocation;
 - Workspace, Project Brain, Event/Message Bus, IPC, Agent Runtime, Scheduler, and Model Gateway;
 - Skill runtime, plugins, MCP, interfaces, multi-agent, background execution, Cloud Sync, and self-improvement.
@@ -78,7 +78,7 @@ In this roadmap, **self-hosting development** means Enhancer applies its governe
 
 ## Delivery Gate 0: Foundation Safety Contracts
 
-Status: Contract Verified
+Status: Integrated
 
 Delivered:
 
@@ -89,15 +89,15 @@ Delivered:
 - ToolResult and bounded VerificationEvidence;
 - Constitution 1.1 governance.
 
-Exit evidence:
+Integration evidence:
 
-- 6 JUnit suites and 25 tests;
-- explicit documented out-of-scope boundaries;
-- provider-neutral contracts.
-
-Remaining limitation:
-
-- these pieces do not yet execute one connected Agent run.
+- 6 focused foundation suites contain 35 tests covering Context, planning, Assisted Loop, repeated-loop termination, ToolResult, and VerificationEvidence contracts;
+- `FoundationLifecycleIntegrationTest` passed on its first characterization run without a production change or second orchestration path;
+- a governed temporary repository produces the Gate 6 Proposal without mutation, rejects execution before activation, and grants authority only after an explicit external fixture transition;
+- the activated task reuses the Gate 5 CLI and Gate 1 through 4 boundaries through complete evidence, independent verification, persist-before-completion RunRecord publication, target deletion, and restart-safe replay;
+- the combined Gate 0 and Gate 5 focused run passed 43 tests across 10 suites with 1 Windows symbolic-link setup skip;
+- the full regression passed 98 tests across 25 suites with 2 Windows symbolic-link setup skips, no failures, and no errors;
+- Java 17 production lint passed with `-Xlint:all -Werror`, and Gate 6 remains the sole `Specified - Next` product gate.
 
 Compatibility recovery evidence:
 
@@ -276,7 +276,7 @@ Hardening evidence:
 
 ## Delivery Gate 5: First Operational CLI
 
-Status: Specified - Next
+Status: Operational
 
 Goal:
 
@@ -310,9 +310,19 @@ Exit criteria:
 
 Operational Milestone 1 is reached only when Delivery Gate 5 exits.
 
+Exit evidence:
+
+- `com.enhancer.cli.EnhancerCli` exposes explicit `run` and `replay` commands through the Gradle application entry point;
+- the command derives the active `ApprovedTask`, permits only `read-file`, independently verifies complete content, and persists a RunRecord before reporting completion;
+- stable exit codes distinguish completion, usage/configuration, verification, policy, Tool, stagnation, iteration, and internal outcomes;
+- CLI output is bounded to 4096 characters and never prints complete file evidence;
+- 7 focused CLI tests passed, including temporary-project success, verification mismatch, Tool failure persistence, replay, argument validation, and exit-code mapping;
+- the full Gradle regression passed 97 tests across 24 suites with 2 Windows symbolic-link setup skips and no failures or errors;
+- a manual actual-repository `README.md` run and restart-safe replay completed with exit code 0 and a Verified decision.
+
 ## Delivery Gate 6: Workspace And Project Brain Foundation
 
-Status: Planned
+Status: Specified - Next
 
 Dependencies:
 

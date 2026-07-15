@@ -6,45 +6,49 @@ Completed
 
 ## Task
 
-Harden the integrated Gradle build and Delivery Gate 1 through 4 implementation before beginning the first Operational CLI.
+Execute the authority-preserving integration audit and promote Delivery Gate 0 Foundation Safety Contracts from Contract Verified to Integrated only after fresh evidence passes.
 
 ## Task ID
 
-gradle9-foundation-hardening
+gate-0-integration-promotion
 
 ## Context
 
-The user requested correction of every issue found during the Gradle 9 compatibility and implementation-source review. The review reproduced one Gradle 9 test-runtime blocker and multiple boundary defects in timeout isolation, duration representation, persisted-envelope integrity, UTF-8 preservation, startup-context containment, evidence-failure classification, test temporary-directory portability, and Java serialization lint hygiene.
+Gate 0 groups the Repository Context Reader, deterministic Task Planner, Assisted Development Loop, repeated Agent Loop termination, bounded ToolResult and VerificationEvidence, and Constitution governance. Later Gates consume these contracts, but Gate 0 still carries its original Contract Verified label because its integration evidence is distributed across later tasks.
 
-This is a bounded hardening task over capabilities already Integrated. Delivery Gate 5 remains `Specified - Next`; this task does not add a CLI or promote capability maturity.
+The promotion must prove the lifecycle through real consumers without creating an automatic Proposal-to-approval path. A Planner proposal remains non-authoritative; an explicit external test-fixture transition to an active approved task separates planning from execution.
+
+This maturity-reconciliation task does not displace Delivery Gate 6 as the sole `Specified - Next` product gate.
 
 ## Acceptance Criteria
 
-- Declare the JUnit Platform launcher explicitly so Gradle does not rely on the test-framework implementation dependency that Gradle 9 removes.
-- Make the standard Gradle test task use a workspace-local temporary directory and remain overrideable by an explicit caller setting.
-- Prevent a timed-out interruption-ignoring Tool invocation from starving later Tool invocations.
-- Reject timeout values that cannot be represented consistently by execution and persisted policy records.
-- Cover envelope version, timestamp, declared length, and payload/content with the stored evidence and RunRecord integrity digest.
-- Reject malformed Unicode during RunRecord persistence rather than silently replacing characters.
-- Keep required startup documents within the real project root, reject symbolic-link escape where the host permits exercising it, enforce a bounded document size, and decode UTF-8 strictly.
-- Classify oversized output from the non-persisting `ReadFileTool` as an evidence-capability execution failure rather than an invalid request.
-- Remove production `javac -Xlint:all` serialization warnings without weakening checked failure types.
-- Add focused regression tests first, observe expected RED failures, then pass focused and full regression verification.
-- Run Gradle with `--warning-mode all`, inspect fresh test XML, run production `javac -Xlint:all -Werror`, and review the final diff.
-- Synchronize Architecture, Decision Log, Project State, Current Task, Session Handoff, and Changelog without changing roadmap maturity or Gate 5 ordering.
+- Inventory every Gate 0 delivered contract and identify its real upstream and downstream integration consumer.
+- Add `FoundationLifecycleIntegrationTest` or an equivalently named test over a governed temporary repository before any production edit.
+- In the planning phase, load the complete governed context, produce the current Gate 6 proposal from a Completed task state, and prove that planning does not mutate repository documents or create approval.
+- Prove execution before explicit task activation is rejected and cannot report completion or fabricate a RunRecord.
+- Represent approval only as an explicit external test-fixture transition to an `In Progress` task containing task identity, approval evidence, and `read-file` Tool scope; production code must not perform that transition.
+- In the execution phase, derive `ApprovedTask` from the active repository context and connect it through the existing read-only Tool, evidence, Agent Loop, independent verification, finalization, durable RunRecord, and restart-safe replay boundaries.
+- Prove that verified execution completes only after RunRecord persistence and that replay does not re-execute the Tool.
+- Reuse existing production APIs and the Gate 5 CLI composition; add no second orchestration path unless an aligned RED test demonstrates a real missing boundary.
+- Treat an initially GREEN characterization test as valid integration evidence when no production behavior change is required; do not manufacture a failing test solely to satisfy RED terminology.
+- If a genuine aligned behavior gap is found, follow the repository RED classification workflow and implement only the minimum scoped correction.
+- Run the Gate 0 focused suites, the lifecycle integration test, the Gate 5 CLI suite, and the complete Gradle regression with `--warning-mode all`.
+- Inspect fresh XML results, run Java 17 production lint with `-Xlint:all -Werror`, and report every skip and limitation.
+- Promote Gate 0 to Integrated only after fresh evidence passes, remove the stale remaining limitation, and synchronize all maturity documents.
+- Preserve Delivery Gate 6 Workspace and Project Brain Foundation as the sole `Specified - Next` gate.
 
 ## Out Of Scope
 
-- Delivery Gate 5 CLI implementation
-- Gradle Wrapper major-version upgrade
-- New Tool authority, shell or Git mutation, network access, LLM calls, or multi-agent execution
-- Signed, encrypted, or externally tamper-proof evidence storage
-- Backward migration of unpublished/local pre-hardening binary evidence or RunRecord artifacts
-- Commit, push, merge, release, or deployment
+- Automatic conversion of a Planner Proposal into an Accepted Decision, Active Task, or Tool authority
+- A new `plan` CLI command, interactive approval UI, or mutation of the actual repository during tests
+- New Context, Planner, Agent Loop, Tool, Evidence, verifier, RunRecord, or orchestration abstractions without a demonstrated integration gap
+- Delivery Gate 6 implementation
+- Shell, terminal, Git mutation by product code, network, LLM, MCP, plugin, Skill, scheduler, event bus, or multi-agent behavior
+- PR, merge, release, deployment, or publication beyond the separately user-authorized commit and push
 
 ## Approval
 
-Approved by the user on 2026-07-15 through the explicit request to fix every issue reported by the Gradle 9 and implementation-source review.
+Approved by the user on 2026-07-15 through the explicit request to continue the prepared Gate 0 promotion work.
 
 ## Allowed Tools
 
@@ -52,39 +56,35 @@ Approved by the user on 2026-07-15 through the explicit request to fix every iss
 
 ## Verification Plan
 
-- Run focused tests for Tool execution, policy decisions, evidence persistence, RunRecord persistence, and project-context loading.
-- Confirm new regression tests fail against the pre-fix implementation for the expected reasons.
-- Run the complete Gradle regression suite with `--warning-mode all` and inspect fresh XML counts.
-- Run production compilation with `javac -Xlint:all -Werror`.
-- Confirm Gradle emits no deprecation warning for automatic test-framework implementation dependency loading.
-- Run `git diff --check`, inspect changed files, and review the final diff.
+- Add the lifecycle integration test before any production edit.
+- Run it once against the existing implementation and classify the result: initial GREEN proves existing integration, aligned RED identifies the minimum missing boundary, and unrelated RED is separated under the repository workflow.
+- Run focused Gate 0 Context, Planner, Assisted Loop, Agent Loop, ToolResult, and VerificationEvidence tests.
+- Run the Gate 5 CLI suite as the supported real consumer.
+- Run the complete Gradle suite with `--warning-mode all` and inspect fresh XML counts.
+- Run Java 17 production compilation with `-Xlint:all -Werror`.
+- Confirm exactly one `Specified - Next` marker remains at Gate 6 and run `git diff --check`.
+- Review the final diff before promotion, commit, and push.
 
 ## Implementation Result
 
-- Added explicit `junit-platform-launcher` runtime resolution through the existing JUnit BOM and a workspace-local default Gradle test temp directory with `testTmpDir` override support.
-- Replaced the shared single Tool worker with invocation-isolated tracked daemon workers; timed-out interruption-ignoring work is retired without blocking a later invocation.
-- Rejected sub-millisecond and nanosecond-overflow timeout values during `ExecutionPolicy` construction.
-- Extended Evidence and RunRecord integrity digests across magic/version, timestamp, declared length, and complete content/payload.
-- Replaced lossy RunRecord string encoding with a strict UTF-8 encoder.
-- Added 1 MiB startup-document limits, strict UTF-8 decoding, and real-project-root containment to `ProjectContextReader`.
-- Classified a no-persistence truncated read as `EXECUTION_FAILED` with an evidence-persistence diagnostic rather than `INVALID_REQUEST`.
-- Added `serialVersionUID` to all seven production exception classes reported by `javac -Xlint:all`.
-- Synchronized Architecture, Tool and environment guides, RFC-0006, compact AI architecture, Decision Log, Project State, Changelog, and Session Handoff without changing Roadmap maturity or Gate 5 ordering.
+- Added `FoundationLifecycleIntegrationTest` over a governed temporary repository without changing production code.
+- Proved read-only planning produces the current Gate 6 Proposal while preserving every required document byte-for-byte.
+- Proved execution is rejected before explicit activation and creates no evidence or RunRecord storage.
+- Used only an external test-fixture transition to create the active task and derive `ApprovedTask` authority.
+- Reused the Gate 5 CLI and Gate 1 through 4 boundaries through complete evidence, independent verification, durable completion, target deletion, and restart-safe replay.
+- The characterization test passed on its first run, so no production correction or second orchestrator was introduced.
+- Promoted Gate 0 from Contract Verified to Integrated and synchronized maturity documentation while retaining Gate 6 as the sole next product gate.
 
 ## Verification
 
-- Focused RED command covered Context Reader, Tool Executor, Execution Policy, ReadFileTool, Evidence Store, and RunRecord Store tests.
-- Focused RED result: 28 tests, 7 expected failures, 2 Windows symbolic-link setup skips; the failures matched every newly asserted defect.
-- An earlier launcher attempt with a non-existent manually selected temp directory failed before Gradle could start and was discarded as product evidence.
-- Focused GREEN result: 6 suites, 28 tests, 26 passed, 2 symbolic-link setup skips, 0 failures, and 0 errors.
-- Final command: `.\scripts\gradle.ps1 --no-daemon cleanTest test --warning-mode all`.
-- Final result: 21 suites, 90 tests, 88 passed, 2 Windows symbolic-link setup skips, 0 failures, and 0 errors.
-- The final Gradle output contained no deprecated automatic test-framework implementation dependency warning.
-- Dependency verification resolved `org.junit.platform:junit-platform-launcher:1.10.2` explicitly through the JUnit 5.10.2 BOM.
-- The standard suite passed without an external temp override; `.\scripts\gradle.ps1 --no-daemon test -PtestTmpDir=build/tmp/junit-override --tests 'com.enhancer.tool.ToolRequestTest' --rerun-tasks` also passed.
-- Java 17 compiled all 64 production source files with `javac -Xlint:all -Werror` and no warnings or errors.
+- Initial lifecycle characterization: 1 suite, 1 test, passed on the first run with no production edit.
+- Combined Gate 0 lifecycle and Gate 5 consumer verification: 10 suites, 43 tests, 42 passed, 1 Windows symbolic-link setup skip, 0 failures, and 0 errors.
+- Full command: `.\scripts\gradle.ps1 --no-daemon clean test --warning-mode all`.
+- Full result: 25 suites, 98 tests, 96 passed, 2 Windows symbolic-link setup skips, 0 failures, and 0 errors.
+- Java 17 production compilation passed with `-Xlint:all -Werror` and no warning or error.
+- Roadmap retains exactly one `Specified - Next` marker at Delivery Gate 6.
 - `git diff --check` passed.
 
 ## Next Task
 
-After this hardening task is Completed, implement Delivery Gate 5 First Operational CLI.
+After verified Gate 0 promotion and publication, Delivery Gate 6 Workspace and Project Brain Foundation remains the next product implementation gate.

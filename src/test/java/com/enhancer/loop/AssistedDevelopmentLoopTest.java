@@ -67,7 +67,7 @@ class AssistedDevelopmentLoopTest {
         if (normalizedCurrentTask.contains("## Status\n\nCompleted")) {
             assertEquals(AssistedDevelopmentOutcome.PROPOSAL_AVAILABLE, result.outcome());
             assertEquals(
-                    "Delivery Gate 5: First Operational CLI",
+                    "Delivery Gate 6: Workspace And Project Brain Foundation",
                     result.proposal().orElseThrow().title());
         } else {
             assertEquals(AssistedDevelopmentOutcome.ACTIVE_TASK_PRESERVED, result.outcome());

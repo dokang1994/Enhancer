@@ -11,11 +11,12 @@ Use this prompt when implementing the current task.
 5. Confirm the active task from `CURRENT_TASK.md`.
 6. Inspect the relevant code and tests.
 7. Make the smallest coherent change that satisfies the task.
-8. For observable feature or bug-fix behavior, add a failing focused test first and confirm its expected failure. For excluded changes, record the alternative verification.
-9. Implement the minimum scoped change and run fresh relevant verification commands.
-10. Update project documents if state, architecture, roadmap, task, or decisions changed.
-11. Promote lifecycle state only when fresh evidence supports the promotion.
-12. Report changed files, fresh verification evidence, checks not run, and remaining risks.
+8. For observable feature or bug-fix behavior, add a failing focused test first and confirm its expected failure. Classify every RED failure against the active task, accepted decisions, Architecture, and repository build/runtime settings. For excluded changes, record the alternative verification.
+9. If the RED contract is in scope and configuration-compatible, proceed directly with the minimum implementation needed to turn it GREEN. Missing production types or symbols are acceptable expected RED evidence. Do not absorb unrelated failures, flaky behavior, scope expansion, configuration conflicts, or work requiring new external/destructive authority; report those separately.
+10. Run fresh relevant verification commands.
+11. Update project documents if state, architecture, roadmap, task, or decisions changed.
+12. Promote lifecycle state only when fresh evidence supports the promotion.
+13. Report changed files, fresh verification evidence, checks not run, and remaining risks.
 
 ## Scope Rules
 
@@ -23,4 +24,5 @@ Use this prompt when implementing the current task.
 - Do not convert proposals into decisions unless the user accepts them.
 - Do not infer destructive or external-action authority from permission to implement.
 - Do not treat the implementing Agent's claim as independent verification.
+- Do not treat an expected missing-implementation RED failure as a blocker after its contract has passed the scope and configuration checks.
 - Do not push without explicit user approval.

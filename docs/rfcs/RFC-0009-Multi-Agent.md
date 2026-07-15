@@ -4,7 +4,7 @@ Status: Accepted
 
 ## Maturity And Sequence
 
-This RFC accepts the target contracts and implementation order. It does not claim that a Multi-Agent runtime exists. Multi-Agent execution remains Planned at Delivery Gate 13, and Delivery Gate 5 First Operational CLI remains the next implementation task.
+This RFC accepts the target contracts and implementation order. It does not claim that a Multi-Agent runtime exists. Multi-Agent execution remains Planned at Delivery Gate 13, and Delivery Gate 6 Workspace and Project Brain Foundation is the next implementation gate.
 
 The dependency path is:
 
