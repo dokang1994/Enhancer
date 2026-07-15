@@ -19,6 +19,7 @@ import com.enhancer.verification.VerificationDecision;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -29,7 +30,12 @@ import org.junit.jupiter.api.io.TempDir;
 
 class RunRecordMetadataCollectorTest {
     private static final Instant RECORDED_AT = Instant.parse("2026-07-15T10:00:00Z");
-    private static final Instant OBSERVED_AT = RECORDED_AT.plusSeconds(60);
+
+    // Records are stamped with the wall-clock time at persist(), so the observation time must be
+    // derived from that same clock rather than hardcoded; otherwise an AVAILABLE record's stored
+    // time can fall after a fixed observation time and its sourceUpdatedAt is dropped as future.
+    private final Instant observedAt =
+            Instant.now().plusSeconds(60).truncatedTo(ChronoUnit.MILLIS);
 
     @TempDir
     Path temporaryRoot;
@@ -49,13 +55,13 @@ class RunRecordMetadataCollectorTest {
         assertEquals(references.stream().sorted().toList(), references);
 
         List<WorkspaceSourceObservation> observations = new RunRecordMetadataCollector()
-                .observe(store, OBSERVED_AT);
+                .observe(store, observedAt);
 
         assertEquals(2, observations.size());
         for (WorkspaceSourceObservation observation : observations) {
             assertEquals(WorkspaceSourceKind.RUN_RECORD, observation.kind());
             assertEquals("run-record-store", observation.provenance());
-            assertEquals(OBSERVED_AT, observation.observedAt());
+            assertEquals(observedAt, observation.observedAt());
             assertEquals(WorkspaceSourceState.AVAILABLE, observation.state());
             assertTrue(observation.contentSha256().isPresent());
             assertTrue(observation.sourceUpdatedAt().isPresent());
@@ -78,7 +84,7 @@ class RunRecordMetadataCollectorTest {
         Files.write(artifact, bytes);
 
         List<WorkspaceSourceObservation> observations = new RunRecordMetadataCollector()
-                .observe(store, OBSERVED_AT);
+                .observe(store, observedAt);
 
         assertEquals(1, observations.size());
         WorkspaceSourceObservation observation = observations.get(0);
@@ -95,7 +101,7 @@ class RunRecordMetadataCollectorTest {
         assertEquals(List.of(), missing.references());
         assertEquals(
                 List.of(),
-                new RunRecordMetadataCollector().observe(missing, OBSERVED_AT));
+                new RunRecordMetadataCollector().observe(missing, observedAt));
     }
 
     @Test
@@ -104,12 +110,12 @@ class RunRecordMetadataCollectorTest {
         FileSystemRunRecordStore store = new FileSystemRunRecordStore(storageRoot);
         store.persist(record("logical-run-1"));
         List<WorkspaceSourceObservation> runObservations = new RunRecordMetadataCollector()
-                .observe(store, OBSERVED_AT);
+                .observe(store, observedAt);
         WorkspaceSourceObservation document = new WorkspaceSourceObservation(
                 WorkspaceSourceKind.REPOSITORY_DOCUMENT,
                 "ARCHITECTURE.md",
                 "context-reader",
-                OBSERVED_AT,
+                observedAt,
                 Optional.empty(),
                 WorkspaceSourceState.AVAILABLE,
                 Optional.of("a".repeat(64)),
@@ -117,7 +123,7 @@ class RunRecordMetadataCollectorTest {
 
         WorkspaceSnapshot snapshot = WorkspaceSnapshot.capture(
                 temporaryRoot,
-                OBSERVED_AT,
+                observedAt,
                 new ApprovedTaskRevision(
                         "gate-6-run-record-observation-test",
                         "CURRENT_TASK.md",
@@ -139,7 +145,7 @@ class RunRecordMetadataCollectorTest {
         FileSystemRunRecordStore store = new FileSystemRunRecordStore(
                 temporaryRoot.resolve("null-records"));
 
-        assertThrows(NullPointerException.class, () -> collector.observe(null, OBSERVED_AT));
+        assertThrows(NullPointerException.class, () -> collector.observe(null, observedAt));
         assertThrows(NullPointerException.class, () -> collector.observe(store, null));
     }
 
