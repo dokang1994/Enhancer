@@ -58,7 +58,7 @@
 - `gate-6-production-graph-composition` is Completed; its record is preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
 - `gate-6-sub-capability-integration-promotion` is Completed; the audit is published through documentation commits `59d0c05` and `6a75545`.
 - `CURRENT_TASK.md` is Completed for `gate-6-task-justification-references`.
-- The justification-reference increment (projector, producer overload, CLI change, tests, and synchronized documents) is an uncommitted local change on `main`.
+- The justification-reference increment is committed and published on `origin/main` through delivery commit `0e2be2c`.
 - The actual-repository evidence run persisted `run-record/4eec43bf-62e8-4ed8-bc2b-b94a67ff432b` under the Git-ignored `.enhancer/run-records` directory.
 - The first five Gate 6 increments (view, collector, production composition, graph contract, impact query) are published on `origin/main` through delivery commit `d3b6197`.
 - The four later increments (run-evidence producer, decision projection, run-record observation with store listing, production graph composition) are committed and published on `origin/main` through delivery commit `396665b`.
@@ -150,6 +150,6 @@ Activate a separate Gate 6 increment: the next read-only source adapter, or gate
 
 1. Read `.ai/` and every canonical startup document in repository order.
 2. Confirm Gate 6 is the sole `Specified - Next` gate status marker and `CURRENT_TASK.md` records `gate-6-task-justification-references` as Completed.
-3. Earlier Gate 6 work is published through `d3b6197`, `396665b`, `59d0c05`, and `6a75545`; the justification-reference increment is an uncommitted local change on `main` — do not discard it, and commit only when the user asks.
+3. All Gate 6 work through the justification-reference increment is published on `origin/main`, most recently through delivery commit `0e2be2c`; the working tree should be clean apart from any newly activated work.
 4. Activate a bounded next-adapter or gate-exit-evidence task before editing production code; defer payload capture and messaging, and obtain explicit authority before any external command adapter.
 5. Do not commit or push unless explicitly requested.

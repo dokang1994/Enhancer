@@ -2,6 +2,7 @@
 
 ## 2026-07-15
 
+- Published the justification-reference increment to `origin/main` in delivery commit `0e2be2c`.
 - Adopted the optional `Justified By` task-document section and the `TaskJustificationProjector`: explicit references to accepted-decision headings become `JUSTIFIED_BY` edges with task-document provenance, strict rejection of malformed or unresolved references, and a bounded `impactDecisions` count on the production run output.
 - Resolved the first real justification on the actual repository: this increment's own task document reference surfaced as `impactDecisions=1` with 46 decision nodes and 18 observations.
 - Verified the reference grammar test-first with 6 expected RED missing-symbol errors, then 54 focused tests and the full 144-test regression with only the 2 existing Windows symbolic-link setup skips.

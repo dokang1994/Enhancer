@@ -18,7 +18,7 @@
 - The Gate 6 read-only `ProjectBrainView` aggregate, `RepositoryMemorySnapshotCollector`, production CLI composition, graph projection contract, and task impact query are published on `origin/main` through delivery commit `d3b6197` (`feat: integrate Gate 6 project brain foundations`).
 - The Gate 6 `RunEvidenceGraphProducer`, `AcceptedDecisionProjector`, `RunRecordMetadataCollector`, store `references()` listing, and production graph composition are published on `origin/main` through delivery commit `396665b` (`feat: operationalize Gate 6 graph production`).
 - The Gate 6 sub-capability promotion audit is published through documentation commits `59d0c05` and `6a75545`.
-- The Gate 6 `TaskJustificationProjector` and `Justified By` reference grammar are implemented and verified locally on `main`; they are not committed or published.
+- The Gate 6 `TaskJustificationProjector` and `Justified By` reference grammar are published on `origin/main` through delivery commit `0e2be2c` (`feat: link tasks to decisions through explicit justification references`).
 - Build system: Gradle 8.4 Wrapper with Java 17.
 - Production source: 95 Java files and 5,467 lines.
 - Test source: 39 Java files and 5,733 lines.
