@@ -66,7 +66,7 @@
 - `gate-6-git-workspace-adapter` is Completed and published through `21e6230`; `gate-6-maturity-assessment` is Completed with its record preserved in `PROJECT_STATE.md`.
 - `gate-6-rescope-and-promotion` is Completed; its record is preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
 - `CURRENT_TASK.md` is Completed for `gate-7-message-envelope-contract`.
-- The maturity assessment, the re-scope-and-promotion, and the Gate 7 envelope contract are uncommitted local changes on `main`.
+- The maturity assessment, the re-scope-and-promotion, and the Gate 7 envelope contract are committed and published on `origin/main` through delivery commit `3423201`.
 - The authority-boundary, target-file, and Git-adapter increments are committed and published on `origin/main` through delivery commit `21e6230`.
 - The external read-only command authority for the Git adapter was explicitly granted by the user on 2026-07-15 ("3번 승인할게") and is scoped to `GitWorkspaceCollector` by accepted decision.
 - The actual-repository evidence runs persisted records under the Git-ignored `.enhancer/run-records` directory, most recently `run-record/4f0d3da1-e8a8-412f-a513-79338d47b2b7`.
@@ -169,7 +169,7 @@ Activate the next Delivery Gate 7 increment under separate explicit activation: 
 
 1. Read `.ai/` and every canonical startup document in repository order.
 2. Confirm Gate 7 is the sole `Specified - Next` gate status marker and `CURRENT_TASK.md` records `gate-7-message-envelope-contract` as Completed.
-3. Work through `21e6230` is published; the assessment, re-scope-and-promotion, and envelope-contract changes are uncommitted local changes on `main` — do not discard them, and commit only when the user asks.
+3. All work through the Gate 7 envelope contract is published on `origin/main`, most recently through delivery commit `3423201`; the working tree should be clean apart from any newly activated work.
 4. The only external command authority is the decision-scoped read-only Git adapter; any new external command capability requires its own explicit user approval.
 5. Activate a bounded in-process delivery task before editing production code; defer retry, dead-letter, ordering, backpressure, and IPC transport to later increments.
 6. Do not commit or push unless explicitly requested.

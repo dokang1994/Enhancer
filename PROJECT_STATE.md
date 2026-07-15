@@ -20,7 +20,7 @@
 - The Gate 6 sub-capability promotion audit is published through documentation commits `59d0c05` and `6a75545`.
 - The Gate 6 `TaskJustificationProjector` and `Justified By` reference grammar are published on `origin/main` through delivery commit `0e2be2c` (`feat: link tasks to decisions through explicit justification references`).
 - The Gate 6 authority-boundary evidence, `TargetFileMetadataCollector`, and `GitWorkspaceCollector` are published on `origin/main` through delivery commit `21e6230` (`feat: complete Gate 6 workspace observation surface`).
-- The Gate 6 maturity assessment, the re-scope-and-promotion, and the Gate 7 `MessageEnvelope` contract are implemented and verified locally on `main`; they are not committed or published.
+- The Gate 6 maturity assessment, the re-scope-and-promotion, and the Gate 7 `MessageEnvelope` contract are published on `origin/main` through delivery commit `3423201` (`feat: promote Gate 6 and open Gate 7 with the message envelope contract`).
 - Build system: Gradle 8.4 Wrapper with Java 17.
 - Production source: 105 Java files and 5,974 lines.
 - Test source: 43 Java files and 6,267 lines.
