@@ -2,6 +2,29 @@
 
 ## 2026-07-15
 
+- Added the Contract Verified Gate 6 task impact query: `TaskImpactQuery` answers the first rebuildable task-to-decision-to-code-to-test chain over one projected graph with snapshot-traceable immutable results.
+- Derived one rebuild-required status from every traversed node and edge so unrelated staleness does not taint the answer, deduplicated shared verifying artifacts, and rejected unknown or non-task identities.
+- Verified the query test-first with 9 expected RED missing-symbol errors, then 13 focused tests and the full 127-test regression with only the 2 existing Windows symbolic-link setup skips.
+- Deferred transitive `DEPENDS_ON` closure, graph producers, and persistence by recorded decision; the next producer increment gives the query real project evidence.
+- Added the Contract Verified Gate 6 graph projection contract: five typed node kinds, six endpoint-checked edge kinds over the Decision, Architecture, Dependency, Task, and Execution relationship domains, and immutable element provenance with source, optional SHA-256 revision, explicit freshness, and derived rebuild status.
+- Keyed each `ProjectBrainGraph` projection to one Workspace snapshot identity with an explicit projection time and version, deterministic ordering, and duplicate/self-loop/unknown-endpoint/bound rejection.
+- Verified the graph contract test-first with 100 expected RED missing-symbol errors, then 9 focused tests and the full 123-test regression with only the 2 existing Windows symbolic-link setup skips.
+- Named the task-to-decision-to-code-to-test impact query as the contract's consumer and kept Gate 6 `Specified - Next` with no producer, query, or persistence.
+- Composed the `ProjectBrainView` on the production CLI `run` path from the already-loaded repository memory, the collected snapshot, and the persisted RunRecord, for every outcome that produces a record.
+- Reported bounded `workspaceSnapshotId`, `workspaceObservations`, and `memoryFreshness` metadata in the run output without changing commands, arguments, exit codes, the RunRecord schema, or replay.
+- Promoted the production repository-memory composition to Operational with an actual-repository run (`README.md`, exit code 0, snapshot identity, 15 matched documents) and its unchanged replay.
+- Verified the composition test-first (expected missing-output RED, 29 focused tests GREEN) and passed the full 119-test regression with only the 2 existing Windows symbolic-link setup skips.
+- Added the first Workspace source adapter: the read-only `RepositoryMemorySnapshotCollector` deriving a real `WorkspaceSnapshot` from Context Reader repository memory with computed digests, `context-reader` provenance, and an `ApprovedTaskRevision` digested from the same memory.
+- Integrated the Gate 6 repository-memory path end to end: a real governed CLI run, its persisted RunRecord, really-loaded repository memory, the collector, and the composed `ProjectBrainView` with all documents `SNAPSHOT_MATCHED` and exact `SNAPSHOT_DIVERGED` detection after the active task document changed.
+- Verified the collector test-first with 6 expected RED missing-symbol errors, then 20 focused tests and the full 117-test regression with only the 2 existing Windows symbolic-link setup skips.
+- Kept Gate 6 `Specified - Next`: no production caller composes the view during an actual run, and Git, diagnostics, selection, and terminal adapters plus graph projections remain unimplemented.
+- Added the read-only Gate 6 `ProjectBrainView` aggregate under `com.enhancer.brain`, giving the Contract Verified `WorkspaceSnapshot` its first consumer.
+- Composed the view from one real Workspace snapshot, one real repository-memory `ProjectContext`, and one real `RunRecord`, keyed to the existing canonical snapshot identity.
+- Projected repository memory to path, read order, and computed SHA-256 with explicit `SNAPSHOT_MATCHED`, `SNAPSHOT_DIVERGED`, and `NOT_OBSERVED` freshness, retaining no document content.
+- Projected RunRecords to logical run identity, record time, approved task identity, and verification status, excluding Tool payloads, evidence bodies, and chat history.
+- Rejected runs whose approved task identity or source document does not match the snapshot revision, so the aggregate cannot misattribute provenance.
+- Verified the aggregate test-first with 19 expected RED missing-symbol errors, then 15 focused tests and the full 113-test regression with only the 2 existing Windows symbolic-link setup skips.
+- Recorded `ProjectBrainView` as Contract Verified and kept Gate 6 `Specified - Next`, because no adapter collects a live snapshot and no production path composes the view.
 - Published the Contract Verified Gate 6 WorkspaceSnapshot contract and synchronized project memory to `origin/main` in delivery commit `c5a16b9`.
 - Added the first Delivery Gate 6 contract: immutable metadata-only `WorkspaceSnapshot`, approved-task revision provenance, typed source observations, explicit freshness/availability, deterministic ordering, bounded metadata, and canonical SHA-256 identity.
 - Verified the Workspace contract test-first with 10 focused tests, then passed the 108-test full regression and Java 17 warning-as-error production lint without promoting Gate 6 beyond `Specified - Next`.

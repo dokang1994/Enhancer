@@ -2,6 +2,160 @@
 
 ## Accepted Decisions
 
+### 2026-07-15: Answer The First Impact Query Over One Graph With Explicit Rebuild Status And No Transitive Closure
+
+Status: Accepted Decision
+
+Context:
+
+- The graph projection contract is Contract Verified and the roadmap names the task-to-decision-to-code-to-test impact query as its first consumer.
+- No producer projects real graphs yet, so the query can only be proven against contract-constructed projections.
+- Transitive dependency propagation over `DEPENDS_ON` would answer a broader "what else is affected" question, but its semantics (direction, depth, cycles) deserve their own decision once real dependency projections exist.
+- A query answer detached from its graph's snapshot identity could not say when it must be recomputed.
+
+Decision:
+
+- Add `TaskImpactQuery` and the immutable `TaskImpact` result under `com.enhancer.brain`, answering over exactly one `ProjectBrainGraph`.
+- Traverse only the named chain from the queried task: `JUSTIFIED_BY` to decisions, `MODIFIES` to artifacts, `VERIFIED_BY` from those modified artifacts to verifying artifacts, and `RECORDED_AS` to executions.
+- Carry the graph's source snapshot identity in the result and derive one rebuild-required status that is true exactly when the task node, any traversed edge, or any returned node requires rebuild.
+- Keep result ordering derived from the graph's canonical ordering, deduplicate shared verifying artifacts, return empty collections for an edgeless task, and reject unknown or non-task identities.
+- Defer transitive `DEPENDS_ON` closure, multi-graph answering, producers, persistence, caching, and indexing to separate approved tasks.
+
+Rationale:
+
+The named chain is the exact question the roadmap commits to answering first, and answering it over one snapshot-keyed graph keeps the result reproducible: the same graph always yields the same answer, and the snapshot identity plus rebuild status say precisely when that answer stops being trustworthy. Deriving one aggregate rebuild flag from element provenance keeps staleness visible without inventing a second freshness model.
+
+Consequences:
+
+- The query is only as complete as the projected graph; missing projections yield empty results rather than inferred impact.
+- Impact through dependency chains is not yet visible; that closure arrives with real dependency projections and its own decision.
+- Producers must later construct graphs from repository evidence before the query answers anything about the actual project.
+
+### 2026-07-15: Constrain The First Graph Projection Contract To Typed Endpoint-Checked Metadata Keyed To One Snapshot
+
+Status: Accepted Decision
+
+Context:
+
+- The Gate 6 scope requires graph projection contracts for Decision, Architecture, Dependency, Task, and Execution relationships, and its exit criteria require nodes and edges to retain source, freshness, version, and rebuild status.
+- The Architecture defines Project Brain graphs as rebuildable projections that must never silently overwrite their authoritative sources.
+- No projection producer, query, or persistence exists yet; the first consumer is the task-to-decision-to-code-to-test impact query in a later increment.
+- An unconstrained stringly-typed graph would accept relationships that the impact query could not interpret and that no source could justify.
+
+Decision:
+
+- Add the projection contract under `com.enhancer.brain` with five node kinds (task, decision, component, artifact, execution) and six endpoint-checked edge kinds: `JUSTIFIED_BY` task-to-decision, `SUPERSEDES` decision-to-decision, `DEPENDS_ON` between components and artifacts, `MODIFIES` task-to-artifact, `VERIFIED_BY` artifact-to-artifact, and `RECORDED_AS` task-to-execution.
+- Give every node and edge an immutable provenance of bounded source reference, optional lowercase SHA-256 source revision, and an explicit freshness state (`CURRENT`, `STALE`, `SOURCE_MISSING`) whose rebuild-required status is derived, not stored separately.
+- Require a source revision for Current and Stale provenance and prohibit it for Source-Missing provenance, mirroring the Workspace observation digest rules.
+- Key each `ProjectBrainGraph` to one valid source snapshot identity with an explicit projection time and a versioned projection identifier, so projections are traceable and rebuildable rather than free-floating.
+- Enforce deterministic ordering, duplicate and self-loop rejection, unknown-endpoint rejection, and 4096-entry bounds in the contract itself.
+- Defer projection producers, the impact query, traversal, persistence, rebuild execution, and confidence metadata to separate approved tasks.
+
+Rationale:
+
+Endpoint-kind checking makes the six relationships carry their meaning in the type system, so a later impact query can traverse task-to-decision-to-code-to-test chains without interpreting conventions. Deriving rebuild status from freshness avoids two fields that could contradict each other. Keying to the snapshot identity reuses the already-verified content-addressed boundary instead of inventing a second projection identity source.
+
+Consequences:
+
+- Producers must later justify every node and edge from repository documents, RunRecords, or snapshot observations through separate approved tasks.
+- The five graph domains share one contract; a domain needing a new relationship must extend the edge taxonomy through a recorded decision rather than reusing a loosely-fitting kind.
+- Graph identity intentionally does not exist yet; equality is structural, and a persisted graph identity would arrive with persistence work.
+
+### 2026-07-15: Compose The Project Brain View On The Existing CLI Run Path Without Widening Its Surface
+
+Status: Accepted Decision
+
+Context:
+
+- The repository-memory path is Integrated in a temporary-project test, but no production caller composes the `ProjectBrainView` during an actual governed run.
+- The `EnhancerCli` `run` command already loads the full `ProjectContext` to derive and validate the approved task, then discards it.
+- Reloading memory after the run would create a second read of the same sources and could disagree with the memory that actually informed approval.
+- Persisting the snapshot identity would change the RunRecord schema, which carries its own compatibility and replay obligations.
+
+Decision:
+
+- On the `run` path, keep the already-loaded `ProjectContext`, collect the `WorkspaceSnapshot` through `RepositoryMemorySnapshotCollector` with a capture time taken before worker execution, and compose the `ProjectBrainView` after finalization with the persisted `RunRecord`.
+- Compose for every run outcome that produces a record, since the view explains what informed the run regardless of how the run stopped.
+- Report only bounded metadata in the existing output: the snapshot identity, the observation count, and a matched/diverged/notObserved freshness summary; never document content, digest lists, or evidence.
+- Keep exit codes, existing output lines, persist-before-report ordering, replay behavior, and the output bound unchanged, and add no command, argument, or authority.
+- Defer persisting the snapshot identity in the RunRecord to the Gate 7 envelope work that already owns cross-handoff identity.
+
+Rationale:
+
+Composing from the memory that produced the approved task makes the reported snapshot describe exactly the inputs the run was approved against, at no additional authority or read cost. Reporting identity and freshness counts keeps the bounded-diagnostics contract intact while making the composition externally observable, which is what an Operational claim needs.
+
+Consequences:
+
+- The reported freshness is trivially all-matched unless repository documents change between context load and composition, because the same in-memory context is both the snapshot source and the comparison input; real divergence reporting arrives when snapshots persist or sources are re-observed.
+- Replay does not reproduce the snapshot identity because the RunRecord does not store it; that linkage is explicitly deferred.
+- A composition failure after the record is persisted surfaces as an internal error while the durable record remains replayable.
+
+### 2026-07-15: Collect The First Real Workspace Snapshot From Already-Loaded Repository Memory
+
+Status: Accepted Decision
+
+Context:
+
+- The `WorkspaceSnapshot` and `ProjectBrainView` contracts are Contract Verified, but every snapshot so far was hand-written by tests, so no real source informs the aggregate.
+- The two named paths toward Gate 6 integration are an explicit source adapter or a production composition path; the adapter is the smaller increment.
+- The Context Reader already loads bounded, containment-checked, UTF-8-validated repository documents, and the Gate 0 lifecycle test already produces a real persisted RunRecord in a governed temporary project.
+- Giving the first collector its own filesystem access would duplicate the Context Reader's containment and bounds enforcement and widen the authority surface without need.
+
+Decision:
+
+- Add a read-only `RepositoryMemorySnapshotCollector` under `com.enhancer.workspace` that derives a snapshot from a project root, an explicit caller-supplied capture time, an `ApprovedTask`, and an already-loaded `ProjectContext`.
+- Derive the `ApprovedTaskRevision` inside the collector by digesting the approved task's source document content out of the same loaded memory, so the revision provably describes the memory that was actually read; reject a memory without that document.
+- Emit one `AVAILABLE` `REPOSITORY_DOCUMENT` observation per loaded document with the document path as source identity, `context-reader` provenance, and a computed lowercase SHA-256 content digest; retain no content.
+- Reuse `WorkspaceSnapshot.capture` for ordering, duplicates, bounds, and canonical identity instead of adding a second identity computation.
+- Take the capture time as an explicit parameter rather than reading a clock inside the collector, keeping collection deterministic and testable.
+- Prove the end-to-end path in an integration test that combines a real governed CLI run, the real Context Reader, the collector, and the view, including a divergence check after the source document changes.
+- Defer Git, diagnostics, selection, terminal, and RunRecord-source adapters, and any production composition path, to separate approved tasks.
+
+Rationale:
+
+Deriving observations from memory the Context Reader already loaded keeps the collector free of filesystem authority and reuses the hardened containment path instead of duplicating it. Deriving the task revision from the same memory closes the gap where a caller could claim a revision digest unrelated to what was actually read. An explicit capture time avoids a hidden clock dependency, which keeps snapshots reproducible in tests and later replayable.
+
+Consequences:
+
+- The collector observes only what the Context Reader loads; unfetched sources are absent from the snapshot rather than marked `STALE` or `UNAVAILABLE`, and those states first appear with real per-source adapters.
+- Observation time equals capture time for every document because loading time is not tracked per document in `ProjectContext`.
+- The end-to-end evidence integrates the repository-memory path only; Gate 6 stays `Specified - Next` until its remaining scope exists.
+
+### 2026-07-15: Compose The First ProjectBrainView As A Derived Read-Only Aggregate Keyed To One Snapshot
+
+Status: Accepted Decision
+
+Context:
+
+- The Gate 6 `WorkspaceSnapshot` contract is Contract Verified but has no consumer, so Gate 6 cannot claim Integrated maturity.
+- Architecture defines Project Brain as the reasoning-facing aggregate of repository memory, Workspace snapshots, decisions, and RunRecords that preserves source identity and freshness.
+- The Context Reader already produces `ProjectContext` repository memory with document content, and the RunRecord Store already produces verified `RunRecord` run history.
+- Carrying document content, Tool payloads, or evidence bodies into the aggregate would widen the sensitive-data boundary that the snapshot contract deliberately closed.
+
+Decision:
+
+- Add the first Project Brain aggregate as `ProjectBrainView` under a new provider-neutral `com.enhancer.brain` package that depends on `com.enhancer.workspace`, `com.enhancer.context`, and `com.enhancer.run`.
+- Compose the view from exactly one `WorkspaceSnapshot`, one `ProjectContext`, and one `RunRecord`; the view derives its content and never collects sources itself.
+- Key the view to the snapshot's canonical identity rather than recomputing a second identity.
+- Project repository memory to document path, read order, and a computed lowercase SHA-256 of the document content; retain no document content in the aggregate.
+- Derive explicit repository-memory freshness by comparing each document digest against the snapshot's `REPOSITORY_DOCUMENT` observation with the same source identity: equal digests are `SNAPSHOT_MATCHED`, differing digests are `SNAPSHOT_DIVERGED`, and an unobserved document is `NOT_OBSERVED`.
+- Require the RunRecord's approved task identity and source document to equal the snapshot's `ApprovedTaskRevision`; reject a mismatched or unrelated run instead of silently aggregating it.
+- Project the RunRecord to metadata-only provenance of logical run identity, record time, approved task identity, and verification status; exclude Tool requests, results, evidence bodies, and chat history.
+- Expose the snapshot's Available, Stale, and Unavailable observations unchanged rather than collapsing or defaulting them.
+- Add no persistence, graph projection, source adapter, or Tool authority in this increment.
+
+Rationale:
+
+Deriving the aggregate from existing verified inputs proves the snapshot contract is consumable without inventing a second collection path or a competing identity. Comparing loaded repository memory against the snapshot's observed digests turns divergence into an explicit, inspectable state rather than an unnoticed inconsistency, which is what the Gate 6 exit criterion about explaining a run actually requires. Requiring the run and snapshot to name the same approved task keeps provenance honest, because an aggregate that mixes unrelated work would misattribute the evidence it presents.
+
+Consequences:
+
+- The view is only as complete as the snapshot it is given; a snapshot without observations yields `NOT_OBSERVED` memory freshness rather than an error.
+- Repository-memory digests are computed from already-loaded `ProjectContext` content, so this increment adds no new filesystem access or Tool authority.
+- Freshness derivation is metadata comparison only; it does not prove that either revision is correct, authorized, or safe.
+- Later graph projections and source adapters must extend this aggregate through separate approved tasks.
+- Gate 6 may claim Integrated maturity only if fresh evidence shows the real snapshot, Context, and RunRecord contracts connected through this view.
+
 ### 2026-07-15: Start Gate 6 With A Metadata-Only Content-Addressed Workspace Snapshot
 
 Status: Accepted Decision

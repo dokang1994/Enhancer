@@ -106,7 +106,43 @@ The first Gate 6 increment is a metadata-only immutable snapshot under `com.enha
 
 `WorkspaceSnapshot` normalizes the absolute project root, sorts observations canonically, rejects duplicate kind/identity pairs and more than 4096 observations, and computes its own SHA-256 identity over every identity-bearing metadata field. Caller order cannot change the identity. Source payloads, Tool scope, policy, approval creation, and command authority are absent by construction.
 
-This metadata contract is Contract Verified but is not a collection adapter and does not make Gate 6 Integrated. The immediate integration consumer is a later read-only `ProjectBrainView` combining repository memory and RunRecord provenance; Gate 7 message envelopes later carry the same snapshot identity across handoffs.
+This metadata contract is Contract Verified but is not a collection adapter and does not make Gate 6 Integrated. Its first consumer is the read-only `ProjectBrainView` below; Gate 7 message envelopes later carry the same snapshot identity across handoffs.
+
+### Gate 6 Project Brain View
+
+The second Gate 6 increment is the read-only `ProjectBrainView` aggregate under `com.enhancer.brain`. It composes exactly one `WorkspaceSnapshot`, one `ProjectContext` repository memory, and one `RunRecord`, and derives everything it exposes from those inputs. It performs no collection of its own.
+
+The view is keyed to the snapshot's canonical identity rather than computing a second one. Repository memory is projected to `RepositoryMemoryEntry` metadata of document path, read order, and a computed lowercase SHA-256 of the document content; no document content is retained. Each entry carries an explicit `MemoryFreshness` derived by comparing that digest against the snapshot's `REPOSITORY_DOCUMENT` observation with the same source identity: `SNAPSHOT_MATCHED` for equal digests, `SNAPSHOT_DIVERGED` when the snapshot observed a different or unconfirmed revision, and `NOT_OBSERVED` when the snapshot never observed the document. `RunProvenance` projects the RunRecord to logical run identity, record time, approved task identity, and verification status only; Tool requests, results, evidence bodies, and chat history are absent by construction.
+
+The view requires the RunRecord's approved task identity and source document to equal the snapshot's `ApprovedTaskRevision` and rejects an unrelated run rather than aggregating misattributed provenance. Workspace Available, Stale, and Unavailable states pass through unchanged.
+
+This aggregate is Contract Verified and is now composed from really-collected snapshots by the integration path below.
+
+### Gate 6 Repository Memory Collection
+
+The third Gate 6 increment is the read-only `RepositoryMemorySnapshotCollector`, the first Workspace source adapter. It derives a real `WorkspaceSnapshot` from repository memory that the Context Reader already loaded: one `AVAILABLE` `REPOSITORY_DOCUMENT` observation per document with `context-reader` provenance and a computed content digest, plus an `ApprovedTaskRevision` digested from the approved task's source document in the same memory. It reads no files itself, reuses `WorkspaceSnapshot.capture` for identity and bounds, takes its capture time as an explicit parameter, and rejects memory that lacks the approved task source document.
+
+The repository-memory path is Integrated: an integration test connects a real governed CLI run, the real persisted RunRecord, the real Context Reader, the collector, and `ProjectBrainView.compose`, including an explicit `SNAPSHOT_DIVERGED` observation after the source document changes. Because the collector observes only loaded memory, `STALE` and `UNAVAILABLE` observations first appear with real per-source adapters.
+
+### Gate 6 Production Composition
+
+The `EnhancerCli` `run` path composes the view in production. The CLI keeps the `ProjectContext` it already loads for task approval, collects the snapshot with a capture time taken before worker execution, composes the view after finalization with the persisted RunRecord for every outcome that produces a record, and appends `workspaceSnapshotId`, `workspaceObservations`, and a `memoryFreshness` summary to the bounded run output. No content, digest list, or evidence is printed; no command, argument, exit code, or authority was added. The RunRecord does not store the snapshot identity; carrying that identity across handoffs belongs to the Gate 7 envelope contracts.
+
+This makes the repository-memory composition Operational for the governed read-only CLI scenario. Gate 6 remains `Specified - Next`: Git, diagnostics, selection, and terminal adapters, graph producers, persistence, and the impact query remain deferred.
+
+### Gate 6 Graph Projection Contract
+
+The graph projection contract under `com.enhancer.brain` types the Project Brain graph model without producing, persisting, or querying graphs. `GraphNode` carries a bounded identity and one of five kinds (task, decision, component, artifact, execution). `GraphEdge` carries one of six endpoint-checked kinds covering the five roadmap relationship domains: `JUSTIFIED_BY` task-to-decision, `SUPERSEDES` decision-to-decision, `DEPENDS_ON` between components and artifacts, `MODIFIES` task-to-artifact, `VERIFIED_BY` artifact-to-artifact, and `RECORDED_AS` task-to-execution. Each edge kind declares its valid endpoints in the type, so a later impact query traverses meaning rather than convention.
+
+Every element carries `GraphProvenance`: a bounded source reference, an optional lowercase SHA-256 source revision, and explicit `CURRENT`/`STALE`/`SOURCE_MISSING` freshness with derived rebuild-required status; Current and Stale require a revision and Source-Missing prohibits one. `ProjectBrainGraph.project` keys the projection to one valid Workspace snapshot identity with an explicit projection time and the `project-brain-graph-v1` version, orders nodes and edges deterministically, and rejects duplicates, self-loops, unknown endpoints, endpoint-kind violations, and more than 4096 elements per collection.
+
+This contract is Contract Verified and is consumed by the impact query below. Producers that justify nodes and edges from repository documents, RunRecords, and snapshot observations remain deferred.
+
+### Gate 6 Task Impact Query
+
+`TaskImpactQuery` answers the first rebuildable task-to-decision-to-code-to-test question over exactly one projected graph. From the queried task node it traverses only the named chain — `JUSTIFIED_BY` to decisions, `MODIFIES` to artifacts, `VERIFIED_BY` from those modified artifacts to their verifying artifacts, and `RECORDED_AS` to executions — and returns an immutable `TaskImpact` carrying the graph's source snapshot identity and one derived rebuild-required status. The status is true exactly when the task node, a traversed edge, or a returned node requires rebuild, so the answer says when it stops being trustworthy; unrelated stale elements do not taint it. Transitive `DEPENDS_ON` closure is deliberately deferred until real dependency projections exist.
+
+The query is Contract Verified against contract-constructed graphs. It answers nothing about the actual project until a producer projects real repository evidence into the graph contract; that producer is the query's remaining upstream.
 
 ## Agent Runtime Model
 

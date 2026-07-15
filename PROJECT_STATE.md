@@ -15,9 +15,10 @@
 - Pre-operational Gradle and execution hardening is published on `origin/main` through `b504ba4`.
 - Delivery Gate 5, Gate 0 integration promotion, and the RED workflow clarification are published on `origin/main` through delivery commit `ed901f3`.
 - Delivery Gate 6 metadata-only WorkspaceSnapshot contract and its Contract Verified evidence are published on `origin/main` through delivery commit `c5a16b9`.
+- The Gate 6 read-only `ProjectBrainView` aggregate, `RepositoryMemorySnapshotCollector`, production CLI composition, graph projection contract, and task impact query are implemented and verified locally on `main`; they are not committed or published.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 77 Java files and 3,697 lines.
-- Test source: 28 Java files and 3,354 lines.
+- Production source: 91 Java files and 4,932 lines.
+- Test source: 34 Java files and 4,827 lines.
 
 ## Capability Maturity
 
@@ -26,10 +27,21 @@
 - Delivery Gate 6 metadata-only immutable Workspace snapshot contract under `com.enhancer.workspace`.
 - Approved task source revision provenance, typed repository/editor/Git/diagnostic/terminal/RunRecord source metadata, and explicit Available/Stale/Unavailable states.
 - Normalized absolute project roots, deterministic observation ordering, duplicate and 4096-entry bounds, temporal validation, and versioned canonical SHA-256 snapshot identity.
-- Source payloads, adapters, authority, persistence, and Project Brain aggregation remain outside this verified contract.
+- Source payloads, adapters, authority, and persistence remain outside this verified contract.
+- Delivery Gate 6 read-only `ProjectBrainView` aggregate under `com.enhancer.brain`, composed from one real `WorkspaceSnapshot`, one real `ProjectContext`, and one real `RunRecord`.
+- Repository-memory projection to path, read order, and computed SHA-256 with derived `SNAPSHOT_MATCHED`, `SNAPSHOT_DIVERGED`, and `NOT_OBSERVED` freshness; document content is not retained.
+- RunRecord projection to logical run identity, record time, approved task identity, and verification status; approved-task mismatch against the snapshot revision is rejected.
+- Git/diagnostics/selection/terminal adapters, a production composition path, graph producers, and persistence remain outside this verified contract.
+- Delivery Gate 6 graph projection contract under `com.enhancer.brain`: five typed node kinds, six endpoint-checked edge kinds over the Decision, Architecture, Dependency, Task, and Execution relationship domains, and element provenance with source reference, optional SHA-256 revision, explicit freshness, and derived rebuild status.
+- `ProjectBrainGraph.project` keys each projection to one valid snapshot identity with an explicit projection time and version, orders elements deterministically, and rejects duplicates, self-loops, unknown endpoints, endpoint-kind violations, and more than 4096 elements.
+- Graph producers, persistence, and confidence metadata remain outside this verified contract.
+- Delivery Gate 6 task impact query: `TaskImpactQuery` answers the task-to-decision-to-code-to-test chain over one projected graph, returning an immutable `TaskImpact` with the graph's source snapshot identity and a rebuild-required status derived from every traversed element.
+- The query deduplicates shared verifying artifacts, restricts `VERIFIED_BY` traversal to artifacts the task modifies, returns empty collections for edgeless tasks, and rejects unknown or non-task identities; transitive `DEPENDS_ON` closure is deferred by decision.
 
 ### Integrated
 
+- Delivery Gate 6 repository-memory Workspace path: `RepositoryMemorySnapshotCollector` derives a real snapshot from really-loaded Context Reader memory, and the composed `ProjectBrainView` explains a real governed run including explicit divergence detection.
+- The collector reads no files, retains no content, derives the `ApprovedTaskRevision` from the same loaded memory, and reuses `WorkspaceSnapshot.capture` for identity and bounds.
 - Delivery Gate 0 authority-preserving foundation lifecycle integration.
 - Repository Context Reader with seven `.ai/` documents followed by eight canonical root documents.
 - Deterministic Task Planner using Delivery Gate/Specified - Next grammar and explicit proposal state.
@@ -171,7 +183,12 @@
 - Delivery Gate 4: Integrated.
 - Delivery Gate 5: Operational.
 - Delivery Gate 6: Specified - Next.
-- Gate 6 `WorkspaceSnapshot` sub-capability: Contract Verified; it is not yet consumed by a Project Brain integration path.
+- Gate 6 `WorkspaceSnapshot` sub-capability: Contract Verified; it is collected from really-loaded repository memory by `RepositoryMemorySnapshotCollector`.
+- Gate 6 `ProjectBrainView` sub-capability: Contract Verified.
+- Gate 6 repository-memory path (real governed run -> real Context Reader memory -> collector -> composed view with divergence detection): Integrated through `WorkspaceCollectionIntegrationTest`.
+- Gate 6 production composition: Operational for the governed read-only CLI scenario; every recorded `run` composes the view and reports bounded snapshot identity, observation count, and memory freshness.
+- Gate 6 graph projection contract: Contract Verified; consumed by the task impact query against contract-constructed graphs.
+- Gate 6 task impact query: Contract Verified; no producer projects real repository evidence yet, so the query has no evidence over the actual project. The remaining Gate 6 scope keeps the gate `Specified - Next`.
 - Enhancer has one Operational read-only scenario; the broader Agent Runtime remains planned.
 - Gate 0 integration audit is verified without a production correction or second orchestrator and does not displace Gate 6.
 
@@ -248,6 +265,59 @@
 - Contract tests cover bounds, state invariants, temporal consistency, collection immutability, deterministic order-independent identity, field sensitivity, and duplicate rejection.
 - The result promotes only the Workspace snapshot sub-capability to Contract Verified. Gate 6 remains `Specified - Next` pending a read-only Project Brain consumer.
 
+## Gate 6 ProjectBrainView Verification
+
+- Test-first RED: focused Project Brain compilation failed with 19 expected missing-symbol errors naming only `ProjectBrainView`, `RepositoryMemoryEntry`, `RunProvenance`, and `MemoryFreshness`; no error came from the existing Workspace, Context, or RunRecord contracts.
+- Focused GREEN: `.\scripts\gradle.ps1 --no-daemon cleanTest test --tests 'com.enhancer.brain.*' --tests 'com.enhancer.workspace.*'` passed 4 suites and 15 tests with no skips, failures, or errors.
+- Full regression with `--warning-mode all`: 29 suites, 113 tests, 111 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors.
+- The 2 skips are `ProjectContextReaderTest.rejectsARequiredDocumentSymbolicLinkOutsideTheRealProjectRoot` and `ReadFileToolIntegrationTest.rejectsASymbolicLinkThatEscapesTheRealProjectRoot`, which need a link-creation privilege this Windows host lacks.
+- Gradle emitted no deprecation warning; Java 17 production lint passed with `-Xlint:all -Werror` on javac 17.0.19.
+- Tests cover composition without content, derived memory freshness across matched/diverged/unobserved documents, pass-through of Available/Stale/Unavailable states, approved-task mismatch rejection for both task identity and source document, null rejection, and collection immutability.
+- The result promotes only the `ProjectBrainView` sub-capability to Contract Verified. Gate 6 remains `Specified - Next`: no adapter collects a snapshot from live sources, no production path composes the view, and the graph projections and impact query in the Gate 6 scope are not implemented.
+- Gate 6 remains the sole `Specified - Next` gate status marker and `git diff --check` passed.
+
+## Gate 6 Repository Memory Collection Verification
+
+- Test-first RED: the focused compile failed with 6 expected missing-symbol errors, all naming only the absent `RepositoryMemorySnapshotCollector`.
+- Focused GREEN: Workspace, Project Brain, and integration suites passed 7 suites and 20 tests with no skips, failures, or errors.
+- Full regression with `--warning-mode all`: 31 suites, 117 tests, 115 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors.
+- Gradle emitted no deprecation warning; Java 17 production lint passed with `-Xlint:all -Werror`.
+- `WorkspaceCollectionIntegrationTest` connected a real governed CLI run, the real persisted RunRecord, the real Context Reader, the collector, and the composed view: all 15 documents were `SNAPSHOT_MATCHED`, run provenance was `VERIFIED` under the matching task, and editing the active task document made exactly `CURRENT_TASK.md` report `SNAPSHOT_DIVERGED` against the earlier snapshot.
+- The result promotes the repository-memory collection-to-view path to Integrated. Gate 6 remains `Specified - Next`: no production caller composes the view during an actual repository run, and Git, diagnostics, selection, and terminal adapters plus graph projections and the impact query are not implemented.
+- Gate 6 remains the sole `Specified - Next` gate status marker and `git diff --check` passed.
+
+## Gate 6 Production Composition Verification
+
+- Test-first RED: both focused CLI composition tests failed with the expected missing-output assertion (`output does not contain workspaceSnapshotId=`) while the underlying runs still completed and were recorded; no other behavior changed.
+- Focused GREEN: CLI, Workspace, Project Brain, and integration suites passed 11 suites and 29 tests with no skips, failures, or errors.
+- Full regression with `--warning-mode all`: 32 suites, 119 tests, 117 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors.
+- Gradle emitted no deprecation warning; Java 17 production lint passed with `-Xlint:all -Werror`.
+- Actual repository `run`: `README.md` under active task `gate-6-production-brain-composition` returned exit code 0, `COMPLETED`, `VERIFIED`, one iteration, RunRecord `run-record/ca604c7c-23e8-4b1c-8aa2-38fb6bfed5cf`, `workspaceSnapshotId=b729514d272701e8f46d32b282f24570a75147470a6b82c0bd21bb0e97e9f39f`, `workspaceObservations=15`, and `memoryFreshness=matched=15,diverged=0,notObserved=0`.
+- Actual repository `replay` of the same record returned exit code 0 with unchanged replay output; the RunRecord does not store the snapshot identity by accepted decision.
+- The composition covers completed and failed-but-recorded outcomes; freshness is trivially all-matched on this path because the same loaded memory is both snapshot source and comparison input.
+- The result promotes the production repository-memory composition to Operational for the governed read-only CLI scenario. Gate 6 remains `Specified - Next` pending its remaining adapters, graph projections, and impact query.
+- Gate 6 remains the sole `Specified - Next` gate status marker and `git diff --check` passed.
+
+## Gate 6 Graph Projection Contract Verification
+
+- Test-first RED: the first focused compile failed with 100 expected missing-symbol errors naming only the seven intentionally absent graph types.
+- Focused GREEN: the Project Brain suites passed 2 suites and 9 tests with no skips, failures, or errors.
+- Full regression with `--warning-mode all`: 33 suites, 123 tests, 121 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors.
+- Gradle emitted no deprecation warning; Java 17 production lint passed with `-Xlint:all -Werror`.
+- Contract tests cover deterministic order-independent projection, collection immutability, endpoint-kind acceptance and rejection for all six edge kinds, duplicate-node, duplicate-edge, self-loop, unknown-endpoint, snapshot-identity, and bound rejection, and freshness/revision provenance invariants with derived rebuild status.
+- The result promotes only the graph projection contract to Contract Verified. Gate 6 remains `Specified - Next`: no producer, impact query, traversal, or persistence exists, and no end-to-end graph evidence was claimed.
+- Gate 6 remains the sole `Specified - Next` gate status marker and `git diff --check` passed.
+
+## Gate 6 Task Impact Query Verification
+
+- Test-first RED: the first focused compile failed with 9 expected missing-symbol errors naming only the absent `TaskImpactQuery` and `TaskImpact`.
+- Focused GREEN: the Project Brain suites passed 3 suites and 13 tests with no skips, failures, or errors.
+- Full regression with `--warning-mode all`: 34 suites, 127 tests, 125 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors.
+- Gradle emitted no deprecation warning; Java 17 production lint passed with `-Xlint:all -Werror`.
+- Query tests cover the full deterministic chain with shared-test deduplication and unrelated-edge exclusion, rebuild-status derivation from stale nodes and stale edges with unrelated staleness ignored, empty-result behavior, result immutability, and null/unknown/non-task rejection.
+- The result promotes only the impact query to Contract Verified against contract-constructed graphs. Gate 6 remains `Specified - Next`: no producer projects real repository evidence and no persistence exists.
+- Gate 6 remains the sole `Specified - Next` gate status marker and `git diff --check` passed.
+
 ## Vision Documentation Verification
 
 - At the time of the vision review, the canonical Roadmap contained sequential Delivery Gates 0 through 16 and exactly one `Specified - Next` marker at Gate 5.
@@ -281,7 +351,7 @@
 
 ## Next Task
 
-Activate and implement the next Gate 6 increment that consumes the Contract Verified `WorkspaceSnapshot` in a minimal read-only `ProjectBrainView` with repository-memory and RunRecord provenance.
+Activate a separate Gate 6 increment: the first graph producer projecting real repository evidence (documents, RunRecords, snapshot observations) into the graph contract, or the next read-only source adapter. A Git status/diff adapter additionally requires an explicit decision on external command authority.
 
 ## Session Recovery
 

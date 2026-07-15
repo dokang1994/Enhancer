@@ -1,5 +1,8 @@
 package com.enhancer.cli;
 
+import com.enhancer.brain.MemoryFreshness;
+import com.enhancer.brain.ProjectBrainView;
+import com.enhancer.brain.RepositoryMemoryEntry;
 import com.enhancer.context.ProjectContext;
 import com.enhancer.context.ProjectContextReader;
 import com.enhancer.loop.AgentLoop;
@@ -26,9 +29,12 @@ import com.enhancer.tool.ToolFailureCode;
 import com.enhancer.tool.ToolRequest;
 import com.enhancer.verification.DeterministicReadFileVerifier;
 import com.enhancer.verification.VerificationRequest;
+import com.enhancer.workspace.RepositoryMemorySnapshotCollector;
+import com.enhancer.workspace.WorkspaceSnapshot;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -67,7 +73,13 @@ public final class EnhancerCli {
     }
 
     private int executeRun(RunCliCommand command, PrintStream stdout) throws IOException {
-        ApprovedTask approvedTask = approvedTask(command);
+        GovernedRunInputs inputs = governedRunInputs(command);
+        ApprovedTask approvedTask = inputs.approvedTask();
+        WorkspaceSnapshot snapshot = new RepositoryMemorySnapshotCollector().collect(
+                command.projectRoot(),
+                Instant.now(),
+                approvedTask,
+                inputs.repositoryMemory());
         FileSystemEvidenceStore evidenceStore = new FileSystemEvidenceStore(
                 command.evidenceRoot(),
                 new EvidenceRetentionPolicy(
@@ -111,6 +123,10 @@ public final class EnhancerCli {
                 new FileSystemRunRecordStore(command.runRecordRoot()))
                 .finalizeRun(workerRun, verificationRequest);
         CliExitCode exitCode = exitCode(finalized.record());
+        ProjectBrainView view = ProjectBrainView.compose(
+                snapshot,
+                inputs.repositoryMemory(),
+                finalized.record());
 
         writeBounded(stdout, String.join("\n",
                 "status=" + finalized.stopReason(),
@@ -120,8 +136,27 @@ public final class EnhancerCli {
                 "verificationCode=" + finalized.verification().code(),
                 "iterations=" + finalized.record().iterations(),
                 "runRecordRoot=" + safeValue(command.runRecordRoot().toString()),
-                "runRecordReference=" + finalized.storedRecord().reference()) + "\n");
+                "runRecordReference=" + finalized.storedRecord().reference(),
+                "workspaceSnapshotId=" + view.snapshotId(),
+                "workspaceObservations=" + view.workspaceObservations().size(),
+                "memoryFreshness=" + freshnessSummary(view)) + "\n");
         return exitCode.code();
+    }
+
+    private String freshnessSummary(ProjectBrainView view) {
+        int matched = 0;
+        int diverged = 0;
+        int notObserved = 0;
+        for (RepositoryMemoryEntry entry : view.repositoryMemory()) {
+            if (entry.freshness() == MemoryFreshness.SNAPSHOT_MATCHED) {
+                matched++;
+            } else if (entry.freshness() == MemoryFreshness.SNAPSHOT_DIVERGED) {
+                diverged++;
+            } else {
+                notObserved++;
+            }
+        }
+        return "matched=" + matched + ",diverged=" + diverged + ",notObserved=" + notObserved;
     }
 
     private int executeReplay(ReplayCliCommand command, PrintStream stdout) throws IOException {
@@ -150,7 +185,7 @@ public final class EnhancerCli {
         return exitCode.code();
     }
 
-    private ApprovedTask approvedTask(RunCliCommand command) {
+    private GovernedRunInputs governedRunInputs(RunCliCommand command) {
         try {
             ProjectContext context = new ProjectContextReader().read(command.projectRoot());
             ApprovedTask approvedTask = new ApprovedTaskReader().read(context);
@@ -161,7 +196,7 @@ public final class EnhancerCli {
             if (!approvedTask.allows(ReadFileTool.NAME)) {
                 throw new CliUsageException("active task does not allow read-file");
             }
-            return approvedTask;
+            return new GovernedRunInputs(approvedTask, context);
         } catch (CliUsageException exception) {
             throw exception;
         } catch (IOException | IllegalArgumentException exception) {
@@ -169,6 +204,11 @@ public final class EnhancerCli {
                     "project configuration is invalid: " + safeMessage(exception),
                     exception);
         }
+    }
+
+    private record GovernedRunInputs(
+            ApprovedTask approvedTask,
+            ProjectContext repositoryMemory) {
     }
 
     private CliExitCode exitCode(RunRecord record) {

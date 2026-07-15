@@ -328,8 +328,13 @@ Current increment:
 
 - Contract Verified: metadata-only immutable `WorkspaceSnapshot` with canonical identity;
 - Contract Verified: approved task source revision, typed source metadata, explicit freshness/availability, deterministic ordering, and bounded observations without authority or payload capture;
-- next increment: consume the contract in a minimal read-only `ProjectBrainView` with repository-memory and RunRecord provenance before claiming Integration;
-- deferred: source adapters, payload capture, graph projections, persistence, and messaging.
+- Contract Verified: read-only `ProjectBrainView` composing one snapshot, repository-memory metadata with derived freshness, and RunRecord provenance under a matching approved task;
+- Integrated: the repository-memory path from a real governed run and really-loaded repository memory through `RepositoryMemorySnapshotCollector` into the composed view, including explicit divergence detection;
+- Operational: the production CLI `run` path composes the view for every recorded run and reports bounded snapshot identity, observation count, and memory-freshness summary, evidenced by an actual-repository run;
+- Contract Verified: typed endpoint-checked graph projection contract for the Decision, Architecture, Dependency, Task, and Execution relationship domains with source, freshness, version, and rebuild-status provenance keyed to one snapshot identity;
+- Contract Verified: the first rebuildable task-to-decision-to-code-to-test impact query returning snapshot-traceable immutable results with derived rebuild status;
+- next increment: the first graph producer projecting real repository evidence, or the next read-only source adapter;
+- deferred: Git/diagnostics/selection/terminal adapters, payload capture, graph producers, persistence, and messaging.
 
 Dependencies:
 
