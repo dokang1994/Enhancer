@@ -367,8 +367,10 @@ Status: Specified - Next
 Current increment:
 
 - Contract Verified: versioned reference-only `MessageEnvelope` with canonical message/causation identities, bounded correlation/run/producer identities, and the sealed four-kind payload hierarchy carrying task revisions, snapshot identities, authorization scopes, run-record references, verification status, and control signals as data;
-- next increment: deterministic in-process topic and queue delivery over these envelopes with idempotency and replay contracts;
-- deferred: retry, cancellation propagation, dead-letter, ordering, backpressure, and the IPC transport interface.
+- Contract Verified: deterministic in-process `InProcessMessageBus` with topic fan-out and single-consumer queue delivery, typed `DeliveryOutcome`/`DeliveryStatus` results, per-subscription idempotency, and an ordered journal that supports deterministic replay without duplicate side effects;
+- Contract Verified: delivery-failure isolation and dead-letter capture — a throwing handler yields a `FAILED` outcome and an ordered immutable `DeadLetter` record while fan-out continues, and a failed delivery is idempotent and terminal;
+- next increment: automatic retry with a bounded attempt policy and re-delivery from the dead-letter record, then cancellation propagation, ordering, and backpressure;
+- deferred: the IPC transport interface and any local-process or remote adapter.
 
 Dependencies:
 

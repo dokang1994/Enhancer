@@ -2,6 +2,78 @@
 
 ## Accepted Decisions
 
+### 2026-07-15: Isolate Delivery Failures To A Terminal Dead-Letter Before Adding Retry
+
+Status: Accepted Decision
+
+Context:
+
+- `InProcessMessageBus` delivered synchronously with per-subscription idempotency but had no failure semantics: a throwing handler aborted fan-out to the remaining subscribers, propagated out of `publish`, and left the failure unrecorded even though the idempotency key was already consumed.
+- Retry, cancellation, ordering, and backpressure are the Roadmap's next Gate 7 concerns, but bundling them into one change would exceed the smallest-coherent-increment discipline.
+
+Decision:
+
+- Catch a subscriber handler's `RuntimeException` inside dispatch, record a `FAILED` `DeliveryOutcome`, capture an immutable `DeadLetter` (destination, subscriber, unmodified envelope, bounded reason), continue delivering to the remaining subscribers, and never let the exception escape `publish` or `replay`.
+- Consume the idempotency key on a failed delivery so it is terminal for this increment: no automatic re-delivery, and re-publishing or replaying reports `DUPLICATE` with no further dead letter.
+- Defer automatic retry, re-delivery from the dead-letter record, cancellation propagation, ordering, backpressure, and persistence to later increments.
+
+Rationale:
+
+Failure isolation plus a terminal dead-letter is the smallest change that makes delivery total — every subscriber gets a deterministic outcome and no failure is silently lost — while keeping the bus deterministic and free of any re-delivery policy the contract does not yet define. Consuming the idempotency key keeps the current at-most-once guarantee intact; the later retry increment will layer explicit bounded re-delivery on top of the dead-letter record rather than reinterpreting existing keys.
+
+Consequences:
+
+- A handler that must not lose work has to be idempotent or externally durable until the retry increment adds bounded re-delivery.
+- The dead-letter record is in-memory and process-local; durability and replay-from-dead-letter wait for the persistence and transport increments.
+- Only `RuntimeException` is isolated; `Error` still propagates, because it signals a condition the bus should not swallow.
+
+### 2026-07-15: Deliver Gate 7 In-Process Messaging As A Deterministic Journal-Replayable Bus
+
+Status: Accepted Decision
+
+Context:
+
+- The envelope contract named deterministic in-process topic and queue delivery with idempotency and replay as its next consumer, and the orchestration invariants require authorization and provenance to survive every hop.
+- Competing queue consumers, retry, dead-letter, ordering, backpressure, threading, and IPC transport introduce non-determinism or scope the envelope contract does not yet need.
+
+Decision:
+
+- Add `InProcessMessageBus` under `com.enhancer.bus`: synchronous, single-threaded, deterministic delivery over `MessageEnvelope`, with a typed `DeliveryDestination` (`TOPIC` fan-out in registration order, `QUEUE` point-to-point to a single consumer that rejects a second consumer).
+- Return an immutable ordered list of per-subscriber `DeliveryOutcome`s with a typed `DeliveryStatus` (`DELIVERED`, `DUPLICATE`, `UNROUTED`).
+- Make delivery idempotent per `(destination, subscriber, message identity)` using a collision-free record key, and record every publication in an ordered immutable journal whose `replay` re-dispatches deterministically without appending, reproducing outcomes on a fresh bus and yielding only `DUPLICATE` with no side effect against a bus that already processed them.
+- Defer retry, cancellation propagation, dead-letter, ordering beyond registration, backpressure, competing consumers, threading, journal persistence, and the IPC transport interface to later increments.
+
+Rationale:
+
+Synchronous single-threaded fan-out with a per-subscription idempotency key is the smallest surface that demonstrates deterministic delivery and replay without duplicate side effects, exactly the exit criterion, while carrying whole envelopes unchanged so consumers still validate authority against repository state rather than trusting the sender. Restricting a queue to one consumer keeps point-to-point delivery deterministic without a load-balancing policy the contract does not need yet.
+
+Consequences:
+
+- Multiple competing queue consumers require an explicit deterministic selection policy introduced through a later recorded decision.
+- The in-memory idempotency and journal state is unbounded and process-local; durability, retention bounds, and cross-restart replay wait for the persistence and transport increments.
+- Possessing or delivering an envelope still grants no authority; the bus never creates or widens task or Tool scope.
+
+### 2026-07-15: Make RunRecord Observation Test Time-Independent
+
+Status: Accepted Decision
+
+Context:
+
+- `FileSystemRunRecordStore.persist()` stamps `storedAt` with `Instant.now()`, but `RunRecordMetadataCollectorTest` hardcoded its observation time to `2026-07-15T10:01:00Z`.
+- When the wall clock is past 10:01 UTC, an AVAILABLE record's stored time falls after the fixed observation time, the collector correctly drops `sourceUpdatedAt` as future, and the test fails; this defect is unrelated to the Gate 7 delivery increment that surfaced it.
+
+Decision:
+
+- Derive the test's observation time from the same run clock as `persist()` (`Instant.now().plusSeconds(60)`) instead of a hardcoded instant, keeping the correction confined to the test and separate from the delivery increment.
+
+Rationale:
+
+The observation contract is that `sourceUpdatedAt` is present only when the stored time is not after the observation time; a correct test must observe at or after the clock that stamped the record rather than assume a fixed relationship to wall-clock time. Injecting a deterministic clock into the store would be a larger production change than the defect warrants.
+
+Consequences:
+
+- The test now passes regardless of wall-clock time of day; a future deterministic-clock refactor of the store may replace this run-clock derivation.
+
 ### 2026-07-15: Start Gate 7 With Reference-Only Versioned Envelopes And Exactly Four Payload Kinds
 
 Status: Accepted Decision

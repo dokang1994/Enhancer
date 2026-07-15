@@ -6,6 +6,9 @@
 
 ## Completed Work
 
+- Implemented the third Delivery Gate 7 increment: Contract Verified delivery-failure isolation and dead-letter capture on `InProcessMessageBus` — a subscriber handler that throws yields a `FAILED` outcome and an ordered immutable `DeadLetter` while fan-out continues, and a failed delivery consumes the idempotency key and is terminal (no automatic retry), reporting `DUPLICATE` with no further dead letter on re-publish or replay.
+- Implemented the second Delivery Gate 7 increment: the Contract Verified `InProcessMessageBus` under `com.enhancer.bus` — synchronous single-threaded deterministic topic fan-out and single-consumer queue delivery over `MessageEnvelope`, typed `DeliveryOutcome`/`DeliveryStatus` results, per-`(destination, subscriber, message identity)` idempotency, and an ordered immutable journal supporting deterministic replay without duplicate side effects; envelopes are carried unmutated so authorization and provenance survive every hop.
+- Fixed a pre-existing wall-clock-dependent defect (unrelated to the delivery increment) in `RunRecordMetadataCollectorTest`: it hardcoded the observation time to `10:01 UTC` while `persist()` stamps `storedAt` with `Instant.now()`, so it failed whenever the wall clock passed that time; the observation time is now derived from the run clock. Recorded as a separate accepted decision.
 - Implemented the first Delivery Gate 7 increment: the Contract Verified `MessageEnvelope` under `com.enhancer.bus` — versioned reference-only envelopes with canonical identities and the sealed four-kind payload hierarchy carrying authorization and snapshot references as data.
 - Executed the user-approved Gate 6 re-scope and promotion: editor-dependent observations moved to Gate 12, Gate 6 promoted to Integrated, the `Specified - Next` marker advanced to Gate 7, and the two actual-roadmap test contracts updated in the same change.
 - Completed the Gate 6 maturity assessment: every scope item and exit criterion mapped to fresh evidence or its later-gate blocker, with the re-scope-and-promote recommendation (Option B) recorded pending explicit user approval; documentation-only, gate status unchanged.
@@ -65,7 +68,9 @@
 - `gate-6-task-justification-references` (published through `0e2be2c`), `gate-6-authority-boundary-evidence`, and `gate-6-target-file-observation` are Completed; their records are preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
 - `gate-6-git-workspace-adapter` is Completed and published through `21e6230`; `gate-6-maturity-assessment` is Completed with its record preserved in `PROJECT_STATE.md`.
 - `gate-6-rescope-and-promotion` is Completed; its record is preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
-- `CURRENT_TASK.md` is Completed for `gate-7-message-envelope-contract`.
+- `CURRENT_TASK.md` is Completed for `gate-7-delivery-failure-dead-letter`.
+- The Gate 7 in-process delivery surface, its delivery-failure and dead-letter handling, and the unrelated wall-clock test correction are implemented, verified locally, and synchronized in the documents, but NOT yet committed or published; the working tree carries the eight new `com.enhancer.bus` types (seven delivery types plus `DeadLetter`), the expanded `InProcessMessageBusTest`, the `RunRecordMetadataCollectorTest` fix, and the updated documents.
+- Local build note: this host had no JDK, so Java 17 was provisioned by junctioning `C:/Users/dokan/.jdks/corretto-17.0.14` into the Git-ignored `.tools/jdk17-runtime`; `scripts/gradle.ps1` then works normally.
 - The maturity assessment, the re-scope-and-promotion, and the Gate 7 envelope contract are committed and published on `origin/main` through delivery commit `3423201`.
 - The authority-boundary, target-file, and Git-adapter increments are committed and published on `origin/main` through delivery commit `21e6230`.
 - The external read-only command authority for the Git adapter was explicitly granted by the user on 2026-07-15 ("3번 승인할게") and is scoped to `GitWorkspaceCollector` by accepted decision.
@@ -77,9 +82,13 @@
 
 ## Fresh Verification
 
-- Envelope RED: 38 expected missing-symbol errors naming only the seven absent bus types (after replacing a Java 17 preview switch pattern in the test); focused GREEN passed 4 bus tests.
+- Failure/dead-letter RED: 8 expected errors naming only the absent `DeliveryStatus.FAILED` constant, `DeadLetter` type, and `deadLetters()` accessor with no non-bus error; classified as aligned missing implementation.
+- Failure/dead-letter focused GREEN: `InProcessMessageBusTest` passed 10 tests (7 prior plus 3 new) with no skips, failures, or errors, confirmed against fresh XML.
 - Current full command: `.\scripts\gradle.ps1 --no-daemon clean test --warning-mode all`.
-- Current full result: 43 suites, 156 tests, 154 passed, 2 Windows symbolic-link setup skips, 0 failures, and 0 errors; Java 17 lint passed with `-Xlint:all -Werror`.
+- Current full result: 44 suites, 166 tests, 164 passed, 2 Windows symbolic-link setup skips, 0 failures, and 0 errors; Gradle emitted no deprecation warning; Java 17 production compilation of all 113 sources passed with `-Xlint:all -Werror`.
+- Structural: exactly one `Specified - Next` gate status marker at Gate 7; `git diff --check` passed for tracked and newly added files.
+- Earlier delivery RED: 54 expected missing-symbol errors naming only the five absent delivery types; focused GREEN passed 11 bus tests.
+- Earlier envelope RED: 38 expected missing-symbol errors (after replacing a Java 17 preview switch pattern in the test); focused GREEN passed 4 bus tests.
 - Rescope verification: focused planner and Assisted Loop suites passed 8 tests against the actual roadmap proposing Gate 7; the marker moved with exactly one `Specified - Next` remaining.
 - Git adapter RED: 6 expected missing-symbol errors; GREEN caught and fixed the discovery-ceiling defect; focused GREEN passed 21 suites and 62 tests.
 - Target-file RED: 4 expected missing-symbol errors; focused GREEN passed 20 suites and 59 tests.
@@ -140,7 +149,7 @@
 - Gates 1 through 4: Integrated.
 - Gate 5: Operational for one governed read-only local CLI scenario.
 - Gate 6: Integrated by the user-approved re-scope-and-promotion decision; the production view and graph composition remain Operational sub-capabilities.
-- Gate 7: Specified - Next; its `MessageEnvelope` contract is Contract Verified with no delivery, topic, queue, or transport implementation.
+- Gate 7: Specified - Next; its `MessageEnvelope` contract, its `InProcessMessageBus` deterministic topic/queue delivery with idempotency and journal replay, and its delivery-failure isolation with dead-letter capture are Contract Verified, with no automatic retry, cancellation, ordering, backpressure, persistence, or IPC transport, and no wiring into the CLI or Agent Loop.
 - Gate 6 repository-memory path (real governed run -> real memory -> collector -> composed view with divergence detection): Integrated.
 - Gate 6 production composition: Operational for the governed read-only CLI scenario; every recorded `run` reports bounded snapshot identity, observation count, and memory freshness.
 - Gate 6 `WorkspaceSnapshot`, `ProjectBrainView`, graph projection contract, `TaskImpactQuery`, `AcceptedDecisionProjector`, and `RunRecordMetadataCollector`: Integrated through the fresh promotion audit against named pre-existing integration evidence.
@@ -154,7 +163,7 @@
 
 ## Next Task
 
-Activate the next Delivery Gate 7 increment under separate explicit activation: deterministic in-process topic and queue delivery over the Contract Verified envelopes with idempotency and replay contracts; retry, dead-letter, ordering, backpressure, and IPC transport remain later increments.
+Activate the next Delivery Gate 7 increment under separate explicit activation: automatic retry with a bounded attempt policy and re-delivery from the Contract Verified dead-letter record, then cancellation propagation, ordering, and backpressure over `InProcessMessageBus`, and finally the IPC transport interface for later local-process or remote adapters.
 
 ## Remaining Risks
 
@@ -168,8 +177,9 @@ Activate the next Delivery Gate 7 increment under separate explicit activation: 
 ## Instructions For Next Agent
 
 1. Read `.ai/` and every canonical startup document in repository order.
-2. Confirm Gate 7 is the sole `Specified - Next` gate status marker and `CURRENT_TASK.md` records `gate-7-message-envelope-contract` as Completed.
-3. All work through the Gate 7 envelope contract is published on `origin/main`, most recently through delivery commit `3423201`; the working tree should be clean apart from any newly activated work.
-4. The only external command authority is the decision-scoped read-only Git adapter; any new external command capability requires its own explicit user approval.
-5. Activate a bounded in-process delivery task before editing production code; defer retry, dead-letter, ordering, backpressure, and IPC transport to later increments.
-6. Do not commit or push unless explicitly requested.
+2. Confirm Gate 7 is the sole `Specified - Next` gate status marker and `CURRENT_TASK.md` records `gate-7-delivery-failure-dead-letter` as Completed.
+3. The Gate 7 in-process delivery surface, its delivery-failure and dead-letter handling, and the unrelated `RunRecordMetadataCollectorTest` correction are implemented, verified, and documented but NOT yet committed; the working tree carries them plus the synchronized documents. Everything through the Gate 7 envelope contract is published on `origin/main` through delivery commit `3423201`. Decide with the user whether to commit before continuing.
+4. If the working tree is clean of a JDK, provision Java 17 by junctioning an existing local JDK 17 into `.tools/jdk17-runtime` (this session used `corretto-17.0.14`) or run `scripts/setup-dev.ps1`; the download is slow on this host.
+5. The only external command authority is the decision-scoped read-only Git adapter; any new external command capability requires its own explicit user approval.
+6. Activate a bounded retry-and-re-delivery task (then cancellation, ordering, backpressure) before editing production code; defer the IPC transport interface to a later increment.
+7. Do not commit or push unless explicitly requested.

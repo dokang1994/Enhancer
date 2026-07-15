@@ -178,6 +178,16 @@ The first Gate 7 increment is the reference-only envelope contract under `com.en
 
 This contract is Contract Verified. Its named consumer is deterministic in-process topic and queue delivery; topics, queues, retry, idempotency, dead-letter, replay, ordering, backpressure, and IPC transport arrive in later increments over this contract.
 
+## Gate 7 In-Process Delivery
+
+The second Gate 7 increment is `InProcessMessageBus` under `com.enhancer.bus`: a synchronous, single-threaded, deterministic delivery surface over `MessageEnvelope`. A `DeliveryDestination` is a typed `DeliveryDestinationKind` (`TOPIC` or `QUEUE`) plus a bounded name; a topic publication fans out to every subscriber in registration order, and a queue publication is delivered point-to-point to a single consumer, rejecting a second consumer. Each publication returns an immutable ordered list of per-subscriber `DeliveryOutcome`s carrying a `DeliveryStatus` of `DELIVERED`, `DUPLICATE`, or `UNROUTED`.
+
+Delivery is idempotent per `(destination, subscriber, message identity)`: re-publishing the same envelope invokes the handler at most once and reports `DUPLICATE`. Every publication is appended to an ordered immutable journal of `JournaledMessage` entries, and `replay` re-dispatches a journal deterministically without appending to it, reproducing the original outcomes on a fresh bus and producing only `DUPLICATE` with no duplicate side effect when replayed against a bus that already processed them. The bus carries whole envelopes without mutation, so authorization and provenance survive every hop; it never creates authority.
+
+The bus also isolates delivery failures: when a subscriber's handler throws, the bus records a `FAILED` `DeliveryOutcome` for that subscriber, captures an immutable `DeadLetter` (destination, subscriber, unmodified envelope, and a bounded reason derived from the exception) into an ordered `deadLetters()` record, and continues delivering to the remaining subscribers. A failed delivery consumes the idempotency key and is terminal for now — it is not automatically re-delivered, and re-publishing or replaying it reports `DUPLICATE` and adds no further dead letter.
+
+This delivery and its failure handling are Contract Verified. Automatic retry and re-delivery from the dead-letter record, cancellation propagation, ordering beyond registration, backpressure, competing queue consumers, threading, persistence, and the IPC transport interface remain later increments over this surface.
+
 ## Agent Runtime Model
 
 The target runtime is a persisted, event-driven state machine:
