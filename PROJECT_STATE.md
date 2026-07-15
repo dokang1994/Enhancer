@@ -23,27 +23,15 @@
 
 ## Capability Maturity
 
-### Contract Verified
-
-- Delivery Gate 6 metadata-only immutable Workspace snapshot contract under `com.enhancer.workspace`.
-- Approved task source revision provenance, typed repository/editor/Git/diagnostic/terminal/RunRecord source metadata, and explicit Available/Stale/Unavailable states.
-- Normalized absolute project roots, deterministic observation ordering, duplicate and 4096-entry bounds, temporal validation, and versioned canonical SHA-256 snapshot identity.
-- Source payloads, adapters, authority, and persistence remain outside this verified contract.
-- Delivery Gate 6 read-only `ProjectBrainView` aggregate under `com.enhancer.brain`, composed from one real `WorkspaceSnapshot`, one real `ProjectContext`, and one real `RunRecord`.
-- Repository-memory projection to path, read order, and computed SHA-256 with derived `SNAPSHOT_MATCHED`, `SNAPSHOT_DIVERGED`, and `NOT_OBSERVED` freshness; document content is not retained.
-- RunRecord projection to logical run identity, record time, approved task identity, and verification status; approved-task mismatch against the snapshot revision is rejected.
-- Git/diagnostics/selection/terminal adapters, a production composition path, graph producers, and persistence remain outside this verified contract.
-- Delivery Gate 6 graph projection contract under `com.enhancer.brain`: five typed node kinds, six endpoint-checked edge kinds over the Decision, Architecture, Dependency, Task, and Execution relationship domains, and element provenance with source reference, optional SHA-256 revision, explicit freshness, and derived rebuild status.
-- `ProjectBrainGraph.project` keys each projection to one valid snapshot identity with an explicit projection time and version, orders elements deterministically, and rejects duplicates, self-loops, unknown endpoints, endpoint-kind violations, and more than 4096 elements.
-- Graph producers, persistence, and confidence metadata remain outside this verified contract.
-- Delivery Gate 6 task impact query: `TaskImpactQuery` answers the task-to-decision-to-code-to-test chain over one projected graph, returning an immutable `TaskImpact` with the graph's source snapshot identity and a rebuild-required status derived from every traversed element.
-- The query deduplicates shared verifying artifacts, restricts `VERIFIED_BY` traversal to artifacts the task modifies, returns empty collections for edgeless tasks, and rejects unknown or non-task identities; transitive `DEPENDS_ON` closure is deferred by decision.
-- Delivery Gate 6 `RunEvidenceGraphProducer`: evidence-only projection of one task node, observed repository artifact nodes with one-to-one state-to-freshness mapping, one execution node with the stored envelope SHA-256, and one `RECORDED_AS` edge, keyed to the snapshot identity with task-mismatch rejection.
-- Delivery Gate 6 `AcceptedDecisionProjector`: accepted decisions parsed from the decision log's own status lines into unlinked `DECISION` nodes with snapshot-relative freshness.
-- Delivery Gate 6 `RunRecordMetadataCollector` and store `references()` listing: one `RUN_RECORD` observation per stored record with the envelope SHA-256, and explicit `UNAVAILABLE` observations for corrupted or missing records.
-- Modifies, verified-by, justified-by, supersedes, and depends-on projection remains unimplemented; each requires its own evidence source and producer.
-
 ### Integrated
+
+- Delivery Gate 6 metadata-only immutable Workspace snapshot contract under `com.enhancer.workspace`: approved task source revision provenance, typed source metadata, explicit Available/Stale/Unavailable states, deterministic ordering, bounds, temporal validation, and versioned canonical SHA-256 identity; connected to the real Context Reader upstream and the view, producer, and query downstream through `WorkspaceCollectionIntegrationTest` and the production CLI suites.
+- Delivery Gate 6 read-only `ProjectBrainView` aggregate: composed from one real snapshot, one real `ProjectContext`, and the real persisted `RunRecord` of a real governed run, with derived memory freshness and approved-task mismatch rejection.
+- Delivery Gate 6 graph projection contract: five typed node kinds, six endpoint-checked edge kinds over the Decision, Architecture, Dependency, Task, and Execution relationship domains, snapshot-keyed versioned projections, and element provenance with derived rebuild status; populated exclusively through the real producer chain in integration and production-CLI tests.
+- Delivery Gate 6 `TaskImpactQuery`: answers the task-to-decision-to-code-to-test chain over really-produced graphs, naming the real stored execution, with deduplication, modified-artifact-restricted `VERIFIED_BY` traversal, and rebuild status derived from every traversed element; transitive `DEPENDS_ON` closure remains deferred by decision.
+- Delivery Gate 6 `AcceptedDecisionProjector`: accepted decisions parsed from a real decision log through the real Context Reader and merged into the production graph output.
+- Delivery Gate 6 `RunRecordMetadataCollector` and store `references()` listing: observations produced against the real filesystem RunRecord store, with a really-persisted prior record observed on the production CLI path and corruption surfaced as explicit `UNAVAILABLE`.
+- Gate 6 boundaries that remain outside these integrations: source payloads, Git/diagnostics/selection/terminal adapters, graph persistence, confidence metadata, and modifies/verified-by/justified-by/supersedes/depends-on projection, each requiring its own evidence source.
 
 - Delivery Gate 6 repository-memory Workspace path: `RepositoryMemorySnapshotCollector` derives a real snapshot from really-loaded Context Reader memory, and the composed `ProjectBrainView` explains a real governed run including explicit divergence detection.
 - The collector reads no files, retains no content, derives the `ApprovedTaskRevision` from the same loaded memory, and reuses `WorkspaceSnapshot.capture` for identity and bounds.
@@ -188,14 +176,10 @@
 - Delivery Gate 4: Integrated.
 - Delivery Gate 5: Operational.
 - Delivery Gate 6: Specified - Next.
-- Gate 6 `WorkspaceSnapshot` sub-capability: Contract Verified; it is collected from really-loaded repository memory by `RepositoryMemorySnapshotCollector`.
-- Gate 6 `ProjectBrainView` sub-capability: Contract Verified.
+- Gate 6 `WorkspaceSnapshot`, `ProjectBrainView`, graph projection contract, `TaskImpactQuery`, `AcceptedDecisionProjector`, and `RunRecordMetadataCollector` sub-capabilities: Integrated through the fresh promotion audit `gate-6-sub-capability-integration-promotion`, each connected to real upstream and downstream components by named integration evidence.
 - Gate 6 repository-memory path (real governed run -> real Context Reader memory -> collector -> composed view with divergence detection): Integrated through `WorkspaceCollectionIntegrationTest`.
-- Gate 6 production composition: Operational for the governed read-only CLI scenario; every recorded `run` composes the view and reports bounded snapshot identity, observation count, and memory freshness.
-- Gate 6 graph projection contract: Contract Verified; consumed by the task impact query against contract-constructed graphs.
-- Gate 6 task impact query: Contract Verified; it now also answers over really-produced graphs in the integration path.
 - Gate 6 run-evidence graph production path (real governed run -> real snapshot -> producer -> impact-query answer naming the real stored execution): Integrated through the extended `WorkspaceCollectionIntegrationTest`.
-- Gate 6 accepted-decision projection and run-record metadata observation: Contract Verified and consumed by the production graph composition.
+- Gate 6 production view composition: Operational for the governed read-only CLI scenario; every recorded `run` composes the view and reports bounded snapshot identity, observation count, and memory freshness.
 - Gate 6 production graph composition: Operational for the governed read-only CLI scenario; every recorded `run` observes prior run records into the snapshot, merges decision nodes into the produced graph, and reports bounded graph and impact counts. Decisions remain unlinked in impact answers. The remaining Gate 6 scope keeps the gate `Specified - Next`.
 - Enhancer has one Operational read-only scenario; the broader Agent Runtime remains planned.
 - Gate 0 integration audit is verified without a production correction or second orchestrator and does not displace Gate 6.
@@ -324,6 +308,16 @@
 - Gradle emitted no deprecation warning; Java 17 production lint passed with `-Xlint:all -Werror`.
 - Query tests cover the full deterministic chain with shared-test deduplication and unrelated-edge exclusion, rebuild-status derivation from stale nodes and stale edges with unrelated staleness ignored, empty-result behavior, result immutability, and null/unknown/non-task rejection.
 - The result promotes only the impact query to Contract Verified against contract-constructed graphs. Gate 6 remains `Specified - Next`: no producer projects real repository evidence and no persistence exists.
+- Gate 6 remains the sole `Specified - Next` gate status marker and `git diff --check` passed.
+
+## Gate 6 Sub-Capability Integration Promotion Verification
+
+- The promotion audit changed no production or test code; the diff for this task contains documentation only.
+- Fresh focused verification across the workspace, brain, run, CLI, and integration suites passed 19 suites and 59 tests with no skips, failures, or errors.
+- The named connecting suites each passed fresh: `WorkspaceCollectionIntegrationTest` (1), `EnhancerCliBrainCompositionTest` (2), `EnhancerCliGraphCompositionTest` (1), `RunRecordMetadataCollectorTest` (5), `RunEvidenceGraphProducerTest` (3), `AcceptedDecisionProjectorTest` (4), and `TaskImpactQueryTest` (4).
+- Fresh full regression with `--warning-mode all`: 38 suites, 140 tests, 138 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors; Java 17 lint passed with `-Xlint:all -Werror`.
+- All six audited sub-capabilities qualified: each is connected to real upstream and downstream components by evidence that predates the promotion task, so `WorkspaceSnapshot`, `ProjectBrainView`, the graph projection contract, `TaskImpactQuery`, `AcceptedDecisionProjector`, and `RunRecordMetadataCollector` are Integrated.
+- Gate 6 remains `Specified - Next`: the reference grammar, modifies/verified-by producers, remaining source adapters, and persistence are unimplemented, and gate-level exit criteria are not fully evidenced.
 - Gate 6 remains the sole `Specified - Next` gate status marker and `git diff --check` passed.
 
 ## Gate 6 Production Graph Composition Verification

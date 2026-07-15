@@ -326,16 +326,12 @@ Status: Specified - Next
 
 Current increment:
 
-- Contract Verified: metadata-only immutable `WorkspaceSnapshot` with canonical identity;
-- Contract Verified: approved task source revision, typed source metadata, explicit freshness/availability, deterministic ordering, and bounded observations without authority or payload capture;
-- Contract Verified: read-only `ProjectBrainView` composing one snapshot, repository-memory metadata with derived freshness, and RunRecord provenance under a matching approved task;
+- Integrated: the metadata-only immutable `WorkspaceSnapshot` contract with canonical identity, typed source metadata, explicit freshness/availability, deterministic ordering, and bounded observations, connected to the real Context Reader and its downstream consumers;
+- Integrated: the read-only `ProjectBrainView` composing one real snapshot, repository-memory metadata with derived freshness, and real RunRecord provenance under a matching approved task;
 - Integrated: the repository-memory path from a real governed run and really-loaded repository memory through `RepositoryMemorySnapshotCollector` into the composed view, including explicit divergence detection;
-- Operational: the production CLI `run` path composes the view for every recorded run and reports bounded snapshot identity, observation count, and memory-freshness summary, evidenced by an actual-repository run;
-- Contract Verified: typed endpoint-checked graph projection contract for the Decision, Architecture, Dependency, Task, and Execution relationship domains with source, freshness, version, and rebuild-status provenance keyed to one snapshot identity;
-- Contract Verified: the first rebuildable task-to-decision-to-code-to-test impact query returning snapshot-traceable immutable results with derived rebuild status;
-- Integrated: the run-evidence graph production path from a real governed run and really-collected snapshot through `RunEvidenceGraphProducer` into an impact-query answer naming the real stored execution;
-- Contract Verified: accepted-decision projection from the decision log's own status lines and run-record metadata observation with explicit corruption surfacing;
-- Operational: production graph composition on the CLI `run` path with prior-run-record observation, merged decision nodes, and bounded graph/impact counts, evidenced by an actual-repository run;
+- Integrated: the endpoint-checked graph projection contract and the task-to-decision-to-code-to-test impact query, populated and answered exclusively through the real producer chain naming the real stored execution;
+- Integrated: accepted-decision projection from the decision log's own status lines and run-record metadata observation over the real store with explicit corruption surfacing;
+- Operational: the production CLI `run` path composes the view and the produced graph for every recorded run, observing prior run records, merging decision nodes, and reporting bounded snapshot, freshness, graph, and impact metadata, evidenced by actual-repository runs;
 - next increment: a task-to-decision reference grammar with `JUSTIFIED_BY` projection, or the next read-only source adapter;
 - deferred: Git/diagnostics/selection/terminal adapters, payload capture, modifies/verified-by producers, persistence, and messaging.
 

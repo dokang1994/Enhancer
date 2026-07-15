@@ -106,7 +106,7 @@ The first Gate 6 increment is a metadata-only immutable snapshot under `com.enha
 
 `WorkspaceSnapshot` normalizes the absolute project root, sorts observations canonically, rejects duplicate kind/identity pairs and more than 4096 observations, and computes its own SHA-256 identity over every identity-bearing metadata field. Caller order cannot change the identity. Source payloads, Tool scope, policy, approval creation, and command authority are absent by construction.
 
-This metadata contract is Contract Verified but is not a collection adapter and does not make Gate 6 Integrated. Its first consumer is the read-only `ProjectBrainView` below; Gate 7 message envelopes later carry the same snapshot identity across handoffs.
+This metadata contract is Integrated: the real Context Reader feeds it through the repository-memory collector and the view, producer, and query consume it, but it is not itself a collection adapter and does not make Gate 6 Integrated. Gate 7 message envelopes later carry the same snapshot identity across handoffs.
 
 ### Gate 6 Project Brain View
 
@@ -116,7 +116,7 @@ The view is keyed to the snapshot's canonical identity rather than computing a s
 
 The view requires the RunRecord's approved task identity and source document to equal the snapshot's `ApprovedTaskRevision` and rejects an unrelated run rather than aggregating misattributed provenance. Workspace Available, Stale, and Unavailable states pass through unchanged.
 
-This aggregate is Contract Verified and is now composed from really-collected snapshots by the integration path below.
+This aggregate is Integrated: it is composed from really-collected snapshots, really-loaded memory, and really-persisted RunRecords by the integration path below and on the production CLI run path.
 
 ### Gate 6 Repository Memory Collection
 
@@ -136,13 +136,13 @@ The graph projection contract under `com.enhancer.brain` types the Project Brain
 
 Every element carries `GraphProvenance`: a bounded source reference, an optional lowercase SHA-256 source revision, and explicit `CURRENT`/`STALE`/`SOURCE_MISSING` freshness with derived rebuild-required status; Current and Stale require a revision and Source-Missing prohibits one. `ProjectBrainGraph.project` keys the projection to one valid Workspace snapshot identity with an explicit projection time and the `project-brain-graph-v1` version, orders nodes and edges deterministically, and rejects duplicates, self-loops, unknown endpoints, endpoint-kind violations, and more than 4096 elements per collection.
 
-This contract is Contract Verified and is consumed by the impact query below. Producers that justify nodes and edges from repository documents, RunRecords, and snapshot observations remain deferred.
+This contract is Integrated: real producers populate it exclusively and the impact query consumes it. Modifies, verified-by, justified-by, supersedes, and depends-on producers remain deferred to their own evidence sources.
 
 ### Gate 6 Task Impact Query
 
 `TaskImpactQuery` answers the first rebuildable task-to-decision-to-code-to-test question over exactly one projected graph. From the queried task node it traverses only the named chain — `JUSTIFIED_BY` to decisions, `MODIFIES` to artifacts, `VERIFIED_BY` from those modified artifacts to their verifying artifacts, and `RECORDED_AS` to executions — and returns an immutable `TaskImpact` carrying the graph's source snapshot identity and one derived rebuild-required status. The status is true exactly when the task node, a traversed edge, or a returned node requires rebuild, so the answer says when it stops being trustworthy; unrelated stale elements do not taint it. Transitive `DEPENDS_ON` closure is deliberately deferred until real dependency projections exist.
 
-The query is Contract Verified against contract-constructed graphs and now answers over really-produced graphs through the producer below.
+The query is Integrated: it answers over really-produced graphs through the producer below, naming the real stored execution, on both the integration path and the production CLI run path.
 
 ### Gate 6 Run Evidence Graph Producer
 

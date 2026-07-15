@@ -6,6 +6,7 @@
 
 ## Completed Work
 
+- Completed the Gate 6 sub-capability integration promotion audit: all six Contract Verified sub-capabilities promoted to Integrated against named, fresh-run, pre-existing integration evidence, with no production or test code change and Gate 6 preserved as `Specified - Next`.
 - Implemented the tenth Delivery Gate 6 increment: production graph composition on the CLI `run` path — prior run records observed into the snapshot, accepted-decision nodes merged into the run-evidence graph, the task impact query answered in process, and bounded `graphNodes`/`graphEdges`/`graphDecisions`/`impactExecutions` output.
 - Implemented the ninth Delivery Gate 6 increment: `RunRecordMetadataCollector` plus the store's read-only ordered `references()` listing, with corrupted or missing records surfaced as explicit `UNAVAILABLE` observations.
 - Implemented the eighth Delivery Gate 6 increment: `AcceptedDecisionProjector` parsing accepted decisions from the decision log's own status lines into unlinked `DECISION` nodes with snapshot-relative freshness.
@@ -53,7 +54,9 @@
 - `gate-6-project-brain-view-integration` is Completed; its record is preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
 - `gate-6-repository-memory-snapshot-collection` is Completed; its record is preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
 - `gate-6-run-evidence-graph-producer`, `gate-6-accepted-decision-projection`, and `gate-6-run-record-metadata-observation` are Completed; their records are preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
-- `CURRENT_TASK.md` is Completed for `gate-6-production-graph-composition`.
+- `gate-6-production-graph-composition` is Completed; its record is preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
+- `CURRENT_TASK.md` is Completed for `gate-6-sub-capability-integration-promotion`.
+- The promotion audit is a documentation-only uncommitted local change on `main`.
 - The first five Gate 6 increments (view, collector, production composition, graph contract, impact query) are published on `origin/main` through delivery commit `d3b6197`.
 - The four later increments (run-evidence producer, decision projection, run-record observation with store listing, production graph composition) are committed and published on `origin/main` through delivery commit `396665b`.
 - The actual-repository evidence runs persisted `run-record/ca604c7c-23e8-4b1c-8aa2-38fb6bfed5cf` and `run-record/69977403-1cfb-45ba-ba0f-9239ad26a8c1` under the Git-ignored `.enhancer/run-records` directory.
@@ -61,6 +64,8 @@
 
 ## Fresh Verification
 
+- Promotion audit: fresh focused verification across workspace, brain, run, CLI, and integration suites passed 19 suites and 59 tests with no skips, failures, or errors; each named connecting suite passed individually.
+- Promotion audit full regression: 38 suites, 140 tests, 138 passed, 2 Windows symbolic-link setup skips, 0 failures, 0 errors; Java 17 lint passed with `-Xlint:all -Werror`; the audit diff is documentation-only.
 - Composition RED: both focused CLI graph-composition tests failed with the expected `output does not contain graphDecisions=` assertion while the runs completed.
 - Composition focused GREEN: CLI, workspace, brain, and integration suites passed 17 suites and 50 tests with no skips, failures, or errors.
 - Actual repository `run`: `README.md`, task `gate-6-production-graph-composition`, exit code 0, `COMPLETED`, `VERIFIED`, snapshot `d5bd10cb...a44632`, 17 observations (15 documents plus 2 prior run records), `graphNodes=61`, `graphEdges=1`, `graphDecisions=44` matching the decision log exactly, `impactExecutions=1`.
@@ -113,15 +118,11 @@
 - Gates 1 through 4: Integrated.
 - Gate 5: Operational for one governed read-only local CLI scenario.
 - Gate 6: Specified - Next.
-- Gate 6 metadata-only `WorkspaceSnapshot` sub-capability: Contract Verified.
-- Gate 6 read-only `ProjectBrainView` sub-capability: Contract Verified.
 - Gate 6 repository-memory path (real governed run -> real memory -> collector -> composed view with divergence detection): Integrated.
 - Gate 6 production composition: Operational for the governed read-only CLI scenario; every recorded `run` reports bounded snapshot identity, observation count, and memory freshness.
-- Gate 6 graph projection contract: Contract Verified; consumed by the impact query and the run-evidence producer.
-- Gate 6 task impact query: Contract Verified; it answers over really-produced graphs in the integration path.
-- Gate 6 run-evidence graph production path: Integrated.
-- Gate 6 accepted-decision projection and run-record metadata observation: Contract Verified; consumed by the production graph composition.
-- Gate 6 production graph composition: Operational for the governed read-only CLI scenario; decisions remain unlinked in impact answers, and modifies/verified-by producers do not exist.
+- Gate 6 `WorkspaceSnapshot`, `ProjectBrainView`, graph projection contract, `TaskImpactQuery`, `AcceptedDecisionProjector`, and `RunRecordMetadataCollector`: Integrated through the fresh promotion audit against named pre-existing integration evidence.
+- Gate 6 repository-memory and run-evidence production paths: Integrated.
+- Gate 6 production view and graph composition: Operational for the governed read-only CLI scenario; decisions remain unlinked in impact answers, and modifies/verified-by producers do not exist.
 - Gate 0 integration proves planning, explicit external activation, verified execution, persistence, and replay without changing Proposal authority.
 - Workspace source adapters and live collection, LLM invocation, Event/Message Bus, IPC, Scheduler, broader Agent Runtime, MCP, Skills, plugins, multi-agent execution, background execution, and release packaging remain unimplemented.
 
@@ -141,7 +142,7 @@ Activate a separate Gate 6 increment: a task-to-decision reference grammar with 
 ## Instructions For Next Agent
 
 1. Read `.ai/` and every canonical startup document in repository order.
-2. Confirm Gate 6 is the sole `Specified - Next` gate status marker and `CURRENT_TASK.md` records `gate-6-production-graph-composition` as Completed.
-3. All nine post-contract Gate 6 increments are published on `origin/main` through delivery commits `d3b6197` and `396665b`; the working tree should be clean apart from any newly activated work.
+2. Confirm Gate 6 is the sole `Specified - Next` gate status marker and `CURRENT_TASK.md` records `gate-6-sub-capability-integration-promotion` as Completed.
+3. All nine post-contract Gate 6 increments are published on `origin/main` through delivery commits `d3b6197` and `396665b`; the documentation-only promotion audit is an uncommitted local change on `main` — do not discard it, and commit only when the user asks.
 4. Activate a bounded reference-grammar or next-adapter task before editing production code; defer payload capture and messaging, and obtain explicit authority before any external command adapter.
 5. Do not commit or push unless explicitly requested.

@@ -2,6 +2,8 @@
 
 ## 2026-07-15
 
+- Promoted all six Contract Verified Gate 6 sub-capabilities to Integrated through a documentation-only audit: `WorkspaceSnapshot`, `ProjectBrainView`, the graph projection contract, `TaskImpactQuery`, `AcceptedDecisionProjector`, and `RunRecordMetadataCollector`, each mapped to named pre-existing integration evidence re-run fresh (59 focused tests, full 140-test regression, no failures).
+- Kept Delivery Gate 6 `Specified - Next`; gate-level promotion still requires the reference grammar, remaining producers and adapters, and full exit-criteria evidence.
 - Published the run-evidence producer, decision projection, run-record observation, and production graph composition increments to `origin/main` in delivery commit `396665b`.
 - Composed the Project Brain graph on the production CLI `run` path: prior run records observed into the snapshot, accepted-decision nodes merged into the run-evidence graph, and the task impact query answered in process, reporting bounded `graphNodes`, `graphEdges`, `graphDecisions`, and `impactExecutions` counts.
 - Promoted the production graph composition to Operational with an actual-repository run: 17 observations including 2 prior run records, 61 graph nodes, and 44 decision nodes matching the decision log's 44 accepted decisions exactly.
