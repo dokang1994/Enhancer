@@ -2,6 +2,7 @@
 
 ## 2026-07-15
 
+- Fast-forwarded the verified Gate 4 and Agent orchestration delivery commit `f731afc` into `main` and published it to `origin/main`.
 - Translated selected Archon `263cf365` and meta-harness `ccab9a6` orchestration patterns into provider-neutral Enhancer documentation without adding either repository as a dependency.
 - Defined the escalation path from one worker through sequential, Producer-Reviewer, bounded fan-out/fan-in, routing or supervision, and shallow hierarchy only when justified.
 - Added immutable common snapshots, typed handoffs, single terminal-state ownership, dependency and lease controls, idempotency, replay, bounded budgets, diagnostic-only telemetry, and verified-only completion invariants.

@@ -68,7 +68,7 @@
 
 ## Current State
 
-- Branch: `agent/document-agent-orchestration-guidance`.
+- Branch: `main`, tracking `origin/main`.
 - Gate 1-3 delivery commit: `3fcda4c` (`feat: integrate governed agent execution foundations`).
 - Pull request #2 is merged.
 - Gate 1 through Gate 3, self-hosting recovery, long-term vision, and documentation-alignment work is published on `origin/main`.
@@ -78,8 +78,8 @@
 - Gate 2 is Integrated but not Operational.
 - Gate 3 is Integrated but not Operational.
 - Gate 3 hardening is published on `origin/main`.
-- Gate 4 is Integrated in the current feature-branch delivery.
-- The Agent orchestration documentation alignment is Completed in the current feature-branch delivery.
+- Gate 4 is Integrated on `main` through delivery commit `f731afc`.
+- The Agent orchestration documentation alignment is Completed and published on `main`.
 - No supported CLI or LLM integration exists.
 - Workspace, Event/Message Bus, IPC, Agent Runtime, MCP, Skill Engine, Model Gateway, Plugin Marketplace, multi-agent execution, and Cloud Sync remain planned rather than implemented.
 

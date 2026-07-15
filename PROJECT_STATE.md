@@ -7,11 +7,11 @@
 ## Repository State
 
 - Repository root: `C:/Enhancer`.
-- Current branch: `agent/document-agent-orchestration-guidance`.
+- Current branch: `main` tracking `origin/main`.
 - Gate 1-3 delivery commit: `3fcda4c` (`feat: integrate governed agent execution foundations`).
 - Pull request #2 has been merged into `main`.
 - Delivery Gates 1 through 3, self-hosting compatibility recovery, long-term vision, and documentation-alignment changes are published on `origin/main`.
-- Delivery Gate 4 sequential verification, RunRecord changes, and provider-neutral Agent orchestration reference alignment are included in the current feature-branch delivery.
+- Delivery Gate 4 sequential verification, RunRecord changes, and provider-neutral Agent orchestration reference alignment are merged into and published on `origin/main` through delivery commit `f731afc`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
 - Production source: 64 Java files and 3,304 lines.
 - Test source: 21 Java files and 2,612 lines.
