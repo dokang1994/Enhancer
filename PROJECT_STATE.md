@@ -16,7 +16,7 @@
 - Delivery Gate 5, Gate 0 integration promotion, and the RED workflow clarification are published on `origin/main` through delivery commit `ed901f3`.
 - Delivery Gate 6 metadata-only WorkspaceSnapshot contract and its Contract Verified evidence are published on `origin/main` through delivery commit `c5a16b9`.
 - The Gate 6 read-only `ProjectBrainView` aggregate, `RepositoryMemorySnapshotCollector`, production CLI composition, graph projection contract, and task impact query are published on `origin/main` through delivery commit `d3b6197` (`feat: integrate Gate 6 project brain foundations`).
-- The Gate 6 `RunEvidenceGraphProducer`, `AcceptedDecisionProjector`, `RunRecordMetadataCollector`, store `references()` listing, and production graph composition are implemented and verified locally on `main`; they are not committed or published.
+- The Gate 6 `RunEvidenceGraphProducer`, `AcceptedDecisionProjector`, `RunRecordMetadataCollector`, store `references()` listing, and production graph composition are published on `origin/main` through delivery commit `396665b` (`feat: operationalize Gate 6 graph production`).
 - Build system: Gradle 8.4 Wrapper with Java 17.
 - Production source: 94 Java files and 5,301 lines.
 - Test source: 38 Java files and 5,537 lines.

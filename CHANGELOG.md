@@ -2,6 +2,7 @@
 
 ## 2026-07-15
 
+- Published the run-evidence producer, decision projection, run-record observation, and production graph composition increments to `origin/main` in delivery commit `396665b`.
 - Composed the Project Brain graph on the production CLI `run` path: prior run records observed into the snapshot, accepted-decision nodes merged into the run-evidence graph, and the task impact query answered in process, reporting bounded `graphNodes`, `graphEdges`, `graphDecisions`, and `impactExecutions` counts.
 - Promoted the production graph composition to Operational with an actual-repository run: 17 observations including 2 prior run records, 61 graph nodes, and 44 decision nodes matching the decision log's 44 accepted decisions exactly.
 - Verified the composition test-first (expected missing-output RED, 50 focused tests GREEN) and passed the full 140-test regression with only the 2 existing Windows symbolic-link setup skips.
