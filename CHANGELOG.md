@@ -2,6 +2,7 @@
 
 ## 2026-07-15
 
+- Published the Operational Gate 5 CLI, Integrated Gate 0 lifecycle evidence, and RED workflow clarification to `origin/main` in commit `ed901f3`.
 - Promoted Delivery Gate 0 Foundation Safety Contracts from Contract Verified to Integrated through a new authority-preserving lifecycle characterization test.
 - Proved Proposal non-mutation, pre-activation rejection, external-only task activation, verified Gate 5 execution, persist-before-completion RunRecord storage, and replay after target deletion.
 - The Gate 0 lifecycle test passed on its first run, so no production correction or second orchestrator was added.

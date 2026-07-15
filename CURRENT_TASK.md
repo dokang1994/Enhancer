@@ -84,6 +84,7 @@ Approved by the user on 2026-07-15 through the explicit request to continue the 
 - Java 17 production compilation passed with `-Xlint:all -Werror` and no warning or error.
 - Roadmap retains exactly one `Specified - Next` marker at Delivery Gate 6.
 - `git diff --check` passed.
+- Delivery commit `ed901f3` was pushed to `origin/main`; the publication-state documentation is recorded separately.
 
 ## Next Task
 

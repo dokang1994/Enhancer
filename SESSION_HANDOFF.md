@@ -23,8 +23,8 @@
 
 - Root: `C:/Enhancer`.
 - Branch: `main`, tracking `origin/main`.
-- Published hardening head: `b504ba4` (`fix: harden Gradle and execution foundations`).
-- Gate 5 changes are verified but uncommitted and unpushed; the user has not requested either operation for this task.
+- Published delivery head: `ed901f3` (`feat: operationalize CLI and integrate Gate 0`).
+- Gate 5, Gate 0 integration promotion, and the RED workflow clarification are committed and published on `origin/main`.
 - `CURRENT_TASK.md` is Completed for `gate-0-integration-promotion`.
 
 ## Fresh Verification

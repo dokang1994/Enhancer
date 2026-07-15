@@ -13,7 +13,7 @@
 - Delivery Gates 1 through 3, self-hosting compatibility recovery, long-term vision, and documentation-alignment changes are published on `origin/main`.
 - Delivery Gate 4 sequential verification, RunRecord changes, and provider-neutral Agent orchestration reference alignment are merged into and published on `origin/main` through delivery commit `f731afc`.
 - Pre-operational Gradle and execution hardening is published on `origin/main` through `b504ba4`.
-- Delivery Gate 5 and Gate 0 integration promotion are verified locally and ready for the user-authorized commit and push.
+- Delivery Gate 5, Gate 0 integration promotion, and the RED workflow clarification are published on `origin/main` through delivery commit `ed901f3`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
 - Production source: 71 Java files and 3,403 lines.
 - Test source: 25 Java files and 2,947 lines.
