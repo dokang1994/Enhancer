@@ -56,7 +56,7 @@
 - `gate-6-run-evidence-graph-producer`, `gate-6-accepted-decision-projection`, and `gate-6-run-record-metadata-observation` are Completed; their records are preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
 - `gate-6-production-graph-composition` is Completed; its record is preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
 - `CURRENT_TASK.md` is Completed for `gate-6-sub-capability-integration-promotion`.
-- The promotion audit is a documentation-only uncommitted local change on `main`.
+- The promotion audit is published on `origin/main` through documentation commit `59d0c05`.
 - The first five Gate 6 increments (view, collector, production composition, graph contract, impact query) are published on `origin/main` through delivery commit `d3b6197`.
 - The four later increments (run-evidence producer, decision projection, run-record observation with store listing, production graph composition) are committed and published on `origin/main` through delivery commit `396665b`.
 - The actual-repository evidence runs persisted `run-record/ca604c7c-23e8-4b1c-8aa2-38fb6bfed5cf` and `run-record/69977403-1cfb-45ba-ba0f-9239ad26a8c1` under the Git-ignored `.enhancer/run-records` directory.
@@ -143,6 +143,6 @@ Activate a separate Gate 6 increment: a task-to-decision reference grammar with 
 
 1. Read `.ai/` and every canonical startup document in repository order.
 2. Confirm Gate 6 is the sole `Specified - Next` gate status marker and `CURRENT_TASK.md` records `gate-6-sub-capability-integration-promotion` as Completed.
-3. All nine post-contract Gate 6 increments are published on `origin/main` through delivery commits `d3b6197` and `396665b`; the documentation-only promotion audit is an uncommitted local change on `main` — do not discard it, and commit only when the user asks.
+3. All nine post-contract Gate 6 increments and the promotion audit are published on `origin/main` through commits `d3b6197`, `396665b`, and `59d0c05`; the working tree should be clean apart from any newly activated work.
 4. Activate a bounded reference-grammar or next-adapter task before editing production code; defer payload capture and messaging, and obtain explicit authority before any external command adapter.
 5. Do not commit or push unless explicitly requested.
