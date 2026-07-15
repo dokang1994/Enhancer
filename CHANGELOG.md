@@ -2,6 +2,7 @@
 
 ## 2026-07-15
 
+- Published the authority-boundary evidence, target-file observation, and Git adapter increments to `origin/main` in delivery commit `21e6230`.
 - Added the `GitWorkspaceCollector` under explicitly granted read-only external command authority: two fixed git invocations (status/diff) with discovery confined to the project root, watchdog-enforced timeout, discarded stderr, `--no-optional-locks` and fsmonitor disabled, digest-only retention, and every failure surfaced as explicit `UNAVAILABLE`.
 - Caught and fixed a real semantic defect during GREEN: without a discovery ceiling, temporary directories observed the enclosing repository; `GIT_CEILING_DIRECTORIES` now confines observation to the project's own working tree.
 - Verified the Git adapter through 62 focused tests, the full 152-test regression, and an actual-repository run observing 23 sources including 2 `AVAILABLE` Git observations.

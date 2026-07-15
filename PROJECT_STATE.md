@@ -19,7 +19,7 @@
 - The Gate 6 `RunEvidenceGraphProducer`, `AcceptedDecisionProjector`, `RunRecordMetadataCollector`, store `references()` listing, and production graph composition are published on `origin/main` through delivery commit `396665b` (`feat: operationalize Gate 6 graph production`).
 - The Gate 6 sub-capability promotion audit is published through documentation commits `59d0c05` and `6a75545`.
 - The Gate 6 `TaskJustificationProjector` and `Justified By` reference grammar are published on `origin/main` through delivery commit `0e2be2c` (`feat: link tasks to decisions through explicit justification references`).
-- The Gate 6 authority-boundary evidence, `TargetFileMetadataCollector`, and `GitWorkspaceCollector` are implemented and verified locally on `main`; they are not committed or published.
+- The Gate 6 authority-boundary evidence, `TargetFileMetadataCollector`, and `GitWorkspaceCollector` are published on `origin/main` through delivery commit `21e6230` (`feat: complete Gate 6 workspace observation surface`).
 - Build system: Gradle 8.4 Wrapper with Java 17.
 - Production source: 97 Java files and 5,774 lines.
 - Test source: 42 Java files and 6,131 lines.

@@ -61,7 +61,7 @@
 - `gate-6-production-graph-composition` is Completed; its record is preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
 - `gate-6-task-justification-references` (published through `0e2be2c`), `gate-6-authority-boundary-evidence`, and `gate-6-target-file-observation` are Completed; their records are preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
 - `CURRENT_TASK.md` is Completed for `gate-6-git-workspace-adapter`.
-- The authority-boundary, target-file, and Git-adapter increments are uncommitted local changes on `main`.
+- The authority-boundary, target-file, and Git-adapter increments are committed and published on `origin/main` through delivery commit `21e6230`.
 - The external read-only command authority for the Git adapter was explicitly granted by the user on 2026-07-15 ("3번 승인할게") and is scoped to `GitWorkspaceCollector` by accepted decision.
 - The actual-repository evidence runs persisted records under the Git-ignored `.enhancer/run-records` directory, most recently `run-record/4f0d3da1-e8a8-412f-a513-79338d47b2b7`.
 - The first five Gate 6 increments (view, collector, production composition, graph contract, impact query) are published on `origin/main` through delivery commit `d3b6197`.
@@ -159,7 +159,7 @@ Activate a separate Gate 6 increment: bounded per-file Git status metadata under
 
 1. Read `.ai/` and every canonical startup document in repository order.
 2. Confirm Gate 6 is the sole `Specified - Next` gate status marker and `CURRENT_TASK.md` records `gate-6-git-workspace-adapter` as Completed.
-3. Work through `0e2be2c` is published; the boundary-evidence, target-file, and Git-adapter increments are uncommitted local changes on `main` — do not discard them, and commit only when the user asks.
+3. All Gate 6 work is published on `origin/main`, most recently through delivery commit `21e6230`; the working tree should be clean apart from any newly activated work.
 4. The only external command authority is the decision-scoped read-only Git adapter; any new external command capability requires its own explicit user approval.
 5. Activate a bounded per-file-Git-metadata or gate-maturity-assessment task before editing production code; defer payload capture and messaging.
 6. Do not commit or push unless explicitly requested.
