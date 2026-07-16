@@ -2,6 +2,98 @@
 
 ## Accepted Decisions
 
+### 2026-07-16: Order Delivery By Running Each Publication To Completion Before Its Cascade
+
+Status: Accepted Decision
+
+Context:
+
+- Topic fan-out already follows registration order, the journal already follows publication order, and replay already re-dispatches in journal order, so the ordering the Roadmap names has no content unless it addresses the one real hazard left.
+- That hazard is re-entrant publication: `publish` dispatches synchronously, so a handler that publishes during its own delivery causes a nested dispatch. The child is delivered in full before the parent's fan-out finishes, and every subscriber registered after the publishing one observes the effect before its cause.
+- The bus is synchronous and single-threaded, so ordering can only be established by the order in which the bus itself admits work, not by any scheduler.
+
+Decision:
+
+- Give the bus a pending queue and a single drain loop. A publication is appended to the queue; a top-level call drains the queue to exhaustion, and a call made while a drain is already running only enqueues.
+- Add `DeliveryStatus.ENQUEUED` for a re-entrant publication accepted for later delivery, and return the whole ordered cascade from the top-level `publish` or `replay` that drained it, so no outcome is lost.
+- Route `publish` and `replay` through the same submission and drain path, distinguishing them only by whether the entry is journaled, so ordering holds identically on both.
+- Move admission — the cancellation check and the journal append — into the drain loop, so an entry is journaled at the moment it is admitted for delivery and the journal's order is the bus's own total delivery order.
+- Generalize the scope-level status concept onto `DeliveryStatus.isScopeLevel()`, now covering `UNROUTED`, `CANCELLED`, and `ENQUEUED`, and keep `DeliveryOutcome` validating that exactly the scope-level statuses name no subscriber.
+- Abandon a cascade entirely if an `Error` escapes a drain, clearing the queue rather than leaking a dead cascade into an unrelated later publication.
+
+Rationale:
+
+Run-to-completion is the only ordering a synchronous bus can offer that means anything: it makes delivery order equal publication order and guarantees that a cause is delivered to every subscriber before any of its effects reaches one. Draining from a queue rather than recursing also removes unbounded stack growth from a deep cascade. Journaling at admission rather than at the `publish` call keeps the invariant established by the cancellation decision — the journal records exactly what was admitted, so a fresh-bus replay reproduces exactly the side effects that occurred — and it lets a cancellation raised mid-cascade refuse work already queued behind it, which enqueue-time checking alone could not do.
+
+Consequences:
+
+- A handler observes `ENQUEUED` rather than a delivery result for its own publication, so a handler that needs its child's outcome must read it from the cascade the top-level caller receives.
+- A publication is admitted or refused as a whole, so a cancellation raised during a fan-out cannot stop that fan-out; it stops only entries still queued behind it.
+- The pending queue is unbounded, which is precisely the gap the backpressure increment will close; it joins the idempotency keys, journal, and cancellation state as process-local in-memory state.
+- Re-delivery is unaffected: it targets exactly one subscription, so a publication from its handler has no fan-out to be nested inside and drains normally.
+- Ordering remains registration order within a destination; competing consumers and priority ordering stay out of scope.
+
+### 2026-07-16: Propagate Cancellation As A Terminal Correlation-Scoped Delivery Refusal
+
+Status: Accepted Decision
+
+Context:
+
+- The bus delivers, retries, dead-letters, and replays deterministically, but nothing can abandon work in flight: every published envelope is delivered regardless of whether its run was cancelled, and a dead letter stays re-deliverable forever.
+- The Roadmap names cancellation propagation as the next Gate 7 concern, before ordering and backpressure.
+- The bus is synchronous and single-threaded, so there is no concurrently executing handler to interrupt; cancellation can only decide whether a delivery is admitted at all.
+- `ControlSignal.CANCEL` already exists, but it is a consumer-facing payload semantic. Making the bus interpret `ControlPayload` would turn the bus into a consumer and break the sealed-payload decision's intent that consumers, not the transport, exhaust payload kinds.
+
+Decision:
+
+- Key the cancellation scope on the envelope's own `correlationId`, the identity the envelope contract already defines for grouping related messages across hops.
+- Add `cancel(String correlationId)` and `isCancelled(String correlationId)` to `InProcessMessageBus`. Cancellation is idempotent and monotonic: once a correlation is cancelled it stays cancelled, and there is no resume.
+- Add `DeliveryStatus.CANCELLED` and treat cancellation as admission control that runs before subscription lookup, idempotency, and dispatch: a publication into a cancelled correlation invokes no handler, consumes no idempotency key, creates no dead letter, is not journaled, and reports one scope-level `CANCELLED` outcome.
+- Propagate the refusal to every delivery path: `replay` reports `CANCELLED` and skips a journal entry whose correlation is cancelled, and `redeliver` reports `CANCELLED` without invoking the handler while retaining the dead-letter record.
+- Generalize the `DeliveryOutcome` invariant from "`UNROUTED` carries no subscriberId" to "a scope-level status (`UNROUTED` or `CANCELLED`) carries no subscriberId; every other status must name the subscription it targeted".
+- Keep the bus free of payload interpretation: a handler that receives a `CANCEL` `ControlPayload` may call `cancel(correlationId)` itself, but the bus never reads a payload to decide delivery.
+
+Rationale:
+
+Correlation-scoped refusal is the only cancellation a deterministic single-threaded bus can honestly express, and it is genuine propagation rather than a per-destination flag: one `cancel` reaches every topic, queue, replay, and re-delivery that shares the correlation, and a caused child carrying the parent's correlation inherits it without the bus tracking a causation graph. Refusing admission before journaling is forced by the existing replay contract — journaling a cancelled publication would make a fresh-bus replay produce a side effect that never originally happened, breaking the determinism the journal exists to guarantee. Monotonic cancellation keeps replay reproducible, because a scope's admission decision can never differ between two passes over the same journal.
+
+Consequences:
+
+- Cancellation is terminal: resuming an abandoned correlation requires a new correlation identity, and `ControlSignal.PAUSE`/`RESUME` therefore remain consumer-level semantics with no bus behavior.
+- A cancelled publication is invisible to the journal, so the journal records exactly the publications that were admitted for delivery and replay reproduces exactly the side effects that occurred.
+- Cancelling mid-fan-out is impossible by construction: a publication is admitted or refused as a whole, so subscribers never observe a partially delivered envelope.
+- Cancellation state joins the idempotency keys and journal as unbounded, process-local, in-memory state; bounds and durability wait for the persistence increment.
+- Cancellation is scoped to the correlation, not the logical run; cancelling every correlation of a run is the caller's composition until a run-scoped control surface exists.
+
+### 2026-07-16: Add Bounded Synchronous Retry And Explicit Dead-Letter Re-Delivery
+
+Status: Accepted Decision
+
+Context:
+
+- The dead-letter increment made a failed delivery deterministic and terminal: the idempotency key is consumed, re-publishing reports `DUPLICATE`, and no automatic re-delivery exists, so a transiently failing handler permanently loses the delivery.
+- The Roadmap names automatic retry with a bounded attempt policy and re-delivery from the dead-letter record as the next Gate 7 increment, before cancellation propagation, ordering, and backpressure.
+- The bus is synchronous, single-threaded, and deterministic; timers, delays, and asynchronous scheduling remain out of Gate 7 scope.
+
+Decision:
+
+- Add an immutable `RetryPolicy(maxAttempts)` bounded to 1 through 10 attempts; the bus keeps its no-argument constructor at a single attempt so every existing behavior is unchanged, and accepts a policy through a new constructor.
+- Retry synchronously and immediately inside dispatch: a handler `RuntimeException` is retried until the policy's attempts are exhausted, in the same deterministic order with no delay between attempts; success within the policy yields `DELIVERED` with no dead letter, and exhaustion yields one `FAILED` outcome and one dead letter.
+- Record the failed attempt count on the dead letter: `DeadLetter` gains a positive `attempts` component naming how many handler invocations failed for that delivery.
+- Add explicit re-delivery from the dead-letter record: `redeliver(DeadLetter)` accepts only a dead letter this bus currently records, re-invokes the subscription's handler under the same bounded policy, resolves the dead letter on success (`DELIVERED`, entry removed), and on renewed exhaustion replaces the entry in place with the accumulated attempt count and latest reason (`FAILED`).
+- Keep re-delivery outside the journal and outside idempotency: the original publication is already journaled, and the consumed idempotency key stays consumed, so publish and replay still report `DUPLICATE` after a successful re-delivery.
+
+Rationale:
+
+Immediate bounded synchronous retry is the only retry the deterministic single-threaded contract can express without timers, and it composes with the existing failure isolation rather than reinterpreting it: the dead letter remains the terminal record of an exhausted policy, and re-delivery is an explicit, auditable operator action over that record instead of an implicit reinterpretation of consumed idempotency keys. Bounding attempts at ten keeps a pathological policy from turning one publish into unbounded synchronous work.
+
+Consequences:
+
+- Retry storms are impossible by construction: one publish invokes one handler at most `maxAttempts` times, and re-delivery requires an explicit call per dead letter.
+- There is no backoff or delay between attempts; a handler needing time-based recovery must wait for a later scheduling increment.
+- A successful re-delivery leaves the idempotency key consumed, preserving at-most-once publish semantics; the dead-letter record is the sole re-delivery authority.
+- `DeadLetter` gains an `attempts` component, so the record itself proves the bounded policy was applied.
+
 ### 2026-07-15: Isolate Delivery Failures To A Terminal Dead-Letter Before Adding Retry
 
 Status: Accepted Decision
