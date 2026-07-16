@@ -139,6 +139,7 @@
 - The Gate 8 `WorkItem` admission contract, named Gate 7 integration path, and product-quality specifications are published through `c40e31e`.
 - The completed documentation-only Gate 7 Integrated maturity assessment, implemented/verified Gate 8 dependency-ready single-worker queue, and subsequent runtime hardening are delivered through `1151fc5`.
 - The completed Gate 8 durable Goal/AgentRun lifecycle and fenced lease work are delivered through `ed1c41c`.
+- The Integrated durable queue-to-AgentRun dispatch path is delivered through `4ada41c`.
 - The Gate 7 in-process delivery surface and its delivery-failure and dead-letter handling are committed and published on `origin/main` through delivery commit `b278c53`; the unrelated wall-clock test correction is published through `2a69182`.
 - Local build note: this host had no JDK, so Java 17 was provisioned by junctioning `C:/Users/dokan/.jdks/corretto-17.0.14` into the Git-ignored `.tools/jdk17-runtime`; `scripts/gradle.ps1` then works normally.
 - The maturity assessment, the re-scope-and-promotion, and the Gate 7 envelope contract are committed and published on `origin/main` through delivery commit `3423201`.
@@ -299,7 +300,7 @@ Couple matching fence-checked AgentRun execution completion to durable queue ack
 
 1. Read `.ai/` and every canonical startup document in repository order.
 2. Confirm Gate 7 is `Contract Verified`, Gate 8 is the sole `Specified - Next` gate, and `CURRENT_TASK.md` records durable queue-to-AgentRun dispatch as Completed.
-3. Inspect `git status --short` and the current `main`/`origin/main` log; delivery commit `ed1c41c` is the implementation baseline for the completed Gate 8 lifecycle and fenced-lease work above.
+3. Inspect `git status --short` and the current `main`/`origin/main` log; delivery commit `4ada41c` is the implementation baseline for the Integrated Gate 8 queue-to-AgentRun dispatch path above.
 4. If the host has no JDK, provision Java 17 through `.tools/jdk17` (this host already has `jdk-17.0.19+10` there) or run `scripts/setup-dev.ps1`; `scripts/gradle.ps1` then works normally.
 5. The only external command authority is the decision-scoped read-only Git adapter; any new external command capability requires its own explicit user approval.
 6. Activate the next Gate 8 fence-checked execution-acknowledgement increment; retain separate durable boundaries and do not combine worker execution, result handling, or effects.
