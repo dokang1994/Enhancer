@@ -19,16 +19,7 @@ public record AgentRunLease(
     private static final Duration MIN_DURATION = Duration.ofMillis(1);
 
     public AgentRunLease {
-        Objects.requireNonNull(ownerId, "ownerId must not be null");
-        if (ownerId.isBlank()) {
-            throw new IllegalArgumentException(
-                    "ownerId must not be blank");
-        }
-        if (ownerId.length() > MAX_OWNER_CHARACTERS) {
-            throw new IllegalArgumentException(
-                    "ownerId must not exceed "
-                            + MAX_OWNER_CHARACTERS + " characters");
-        }
+        validateOwner(ownerId);
         if (fenceToken <= 0) {
             throw new IllegalArgumentException(
                     "fenceToken must be positive");
@@ -36,6 +27,13 @@ public record AgentRunLease(
         Objects.requireNonNull(issuedAt, "issuedAt must not be null");
         Objects.requireNonNull(expiresAt, "expiresAt must not be null");
         validateDuration(Duration.between(issuedAt, expiresAt));
+    }
+
+    static void validateRequest(
+            String ownerId,
+            Duration duration) {
+        validateOwner(ownerId);
+        validateDuration(duration);
     }
 
     static AgentRunLease issue(
@@ -100,6 +98,19 @@ public record AgentRunLease(
                 || duration.compareTo(MAX_DURATION) > 0) {
             throw new IllegalArgumentException(
                     "lease duration must be between 1 millisecond and 24 hours");
+        }
+    }
+
+    private static void validateOwner(String ownerId) {
+        Objects.requireNonNull(ownerId, "ownerId must not be null");
+        if (ownerId.isBlank()) {
+            throw new IllegalArgumentException(
+                    "ownerId must not be blank");
+        }
+        if (ownerId.length() > MAX_OWNER_CHARACTERS) {
+            throw new IllegalArgumentException(
+                    "ownerId must not exceed "
+                            + MAX_OWNER_CHARACTERS + " characters");
         }
     }
 }

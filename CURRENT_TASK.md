@@ -6,62 +6,64 @@ Completed
 
 ## Task
 
-Add a persisted fenced single-owner lease to the Gate 8 AgentRun lifecycle without connecting worker execution.
+Connect one durable Scheduler queue claim to one recoverable durable Goal/AgentRun planning, readiness, and fenced lease-acquisition path without worker execution.
 
 ## Task ID
 
-gate-8-fenced-agent-run-lease
+gate-8-durable-queue-runtime-dispatch
 
 ## Justified By
 
-- 2026-07-16: Fence One AgentRun Owner Before Worker Execution
+- 2026-07-16: Bridge One Durable Queue Claim Into One Recoverable Leased AgentRun
 
 ## Context
 
-The durable Goal/AgentRun lifecycle can reach `EXECUTING`, but no owner, expiry, or fence protects that state. The next bounded increment gives one owner a time-bounded lease, rejects stale lifecycle writes, and durably returns expired execution to `READY` before any worker or external effect is introduced.
+Gate 8 has separate Contract Verified durable queue and fenced AgentRun lifecycle contracts. The next bounded integration must retain the exact claimed WorkItem, persist each existing boundary, and recover from any intermediate prefix without pretending that the two stores form one atomic transaction.
 
 ## Acceptance Criteria
 
-- Add immutable `AgentRunLease` with bounded owner identity, positive fence token, issue time, and exclusive expiry.
-- Accept lease durations from 1 millisecond through 24 hours using an injected `Clock`.
-- Permit acquisition only from `READY`, move to `EXECUTING`, and increment a persisted monotonic fence token.
-- Require matching owner and fence for renewal and execution completion; reject stale, mismatched, or expired writes.
-- Require renewal to extend the current expiry while preserving the fence token.
-- Preserve an unexpired lease and executing state across restart.
-- On recovery or explicit reclaim at/after expiry, persistently clear the lease and return the AgentRun to `READY`.
-- Ensure the next acquisition after reclaim receives a strictly greater fence and the former owner remains stale.
-- Persist acquisition, renewal, completion, and reclaim before exposure; persistence failure must retain the previous state.
-- Extend filesystem state encoding with strict validation and exact lease/fence recovery.
-- Preserve the existing exact WorkItem, result matching, Verified-only completion, authority boundaries, and schema-v1 lifecycle behavior.
-- Run focused runtime tests, full regression, Java 17 strict lint, actual-document self-hosting, structural/reference, and whitespace checks.
+- Add one durable queue-to-runtime coordinator and one immutable dispatch result.
+- Validate caller-supplied Goal ID, AgentRun ID, lease owner, and lease duration before queue mutation.
+- Use an existing active WorkItem or persistently claim the next ready WorkItem; return empty when no work is active or ready.
+- Create a missing Goal from the exact claimed WorkItem or recover an existing matching Goal.
+- Advance only the missing lifecycle prefix through named AgentRun planning, readiness, and fenced lease acquisition.
+- Repeated calls with the same WorkItem, Goal, AgentRun, and current owner return the existing unexpired lease without renewal or extra revision.
+- Reject mismatched retained WorkItem, different AgentRun identity, different unexpired owner, Awaiting-Verification state, and terminal state.
+- At lease expiry, recover the runtime to `READY` and permit a new owner to acquire a strictly greater fence.
+- If queue claim persistence fails, create no runtime state.
+- If any runtime persistence step fails, retain the active queue claim and durable runtime prefix so a later call resumes safely.
+- Preserve exact WorkItem authority/provenance and add no Tool permission, worker execution, external effect, queue completion, or retry.
+- Verify with focused in-memory and filesystem integration tests, full regression, Java 17 strict lint, actual-document self-hosting, structural/reference, and whitespace checks.
 
 ## Out Of Scope
 
-- Worker/Tool execution or process isolation
-- Heartbeat or progress telemetry
+- Tool or worker process execution
+- Queue completion or acknowledgement coupling
+- Result messages, verification, or RunRecord resolution
 - Retry or more than one AgentRun per Goal
 - Cancellation, pause/resume, reassignment, priority, fairness, or budgets
 - External-effect idempotency, compensation, effect records, or effect fencing
-- RunRecord lookup or Message Bus production wiring
-- Multi-process locking, distributed clock-skew handling, or remote lease service
-- Schema migration beyond v1, snapshot history, cleanup, or parent-directory fsync
+- Cross-store transactions, rollback, multi-process locking, or distributed clock-skew handling
+- Schema migration, history cleanup, or parent-directory fsync
+- CLI/API/Message Bus production wiring
 - Commit, push, PR, merge, release, or deployment
 
 ## Approval
 
-Approved by the user's 2026-07-16 request to continue the project from the documented fenced-lease next task.
+Approved by the user's 2026-07-16 request to continue from the documented durable queue-to-lifecycle integration task.
 
 ## Verification
 
-- RED: production compilation passed and test compilation failed with 46 aligned errors naming only the missing lease type, Clock overloads, and owner/fence lifecycle operations.
-- Focused GREEN: 68 tests across 10 runtime, bus, store, queue, and package-boundary suites passed with no skips, failures, or errors.
-- Full regression: 55 suites and 243 tests; 241 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors under `--warning-mode all`.
-- Java 17 strict lint passed across all 147 production sources with `-Xlint:all -Werror`.
-- Acquire, renew, complete, and reclaim persistence-failure regressions each retained the previous revision and lease.
-- Cross-instance filesystem tests preserved an unexpired lease, reclaimed it at exact expiry, and recovered exact Unicode owner/fence/timestamps.
-- Post-document Context Reader, Planner, Assisted Loop, package-boundary, lifecycle, and filesystem-store verification passed 31 of 32 tests with 1 existing Windows symbolic-link setup skip and no failure or error.
-- Structural checks retained exactly one `Status: Specified - Next` marker at Gate 8, resolved the active task's accepted-decision reference, and passed `git diff --check`.
+- RED: production compilation passed and test compilation failed with 13 aligned errors naming only the missing dispatcher and dispatch-result contracts.
+- Focused GREEN: 31 tests across 7 dispatcher, durable queue/runtime, filesystem-store, and package-boundary suites passed with no skips, failures, or errors.
+- Full regression: 57 suites and 251 tests; 249 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors under `--warning-mode all`.
+- Java 17 strict lint passed across all 149 production sources with `-Xlint:all -Werror`.
+- Queue claim failure created no runtime, while failures at each of four runtime persistence boundaries retained a recoverable active claim and durable prefix.
+- Cross-instance filesystem recovery requeued and reclaimed the same WorkItem and returned the exact existing Unicode-bearing unexpired lease.
+- Mismatch, different AgentRun/owner, post-execution, caller-metadata, expiry/new-fence, and public result-identity invariants passed.
+- Post-document Context Reader, Planner, Assisted Loop, package-boundary, dispatcher, lifecycle, queue, and filesystem integration verification passed 36 of 37 tests with 1 existing Windows symbolic-link setup skip and no failure or error.
+- Structural checks resolved the active task's accepted decision, retained exactly one Gate 8 `Status: Specified - Next` marker, and passed tracked/untracked whitespace validation.
 
 ## Next
 
-Connect one durable Scheduler queue claim to one durable Goal/AgentRun planning, readiness, and fenced lease-acquisition path without adding a worker or external effect.
+Couple matching fence-checked AgentRun execution completion to durable queue acknowledgement with recoverable ordering, without adding Tool execution, result handling, or external effects.

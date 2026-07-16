@@ -13,6 +13,7 @@
 - Gate 8 `WorkItem` admission, the named Gate 6-to-Gate 7-to-Gate 8 integration path, and the cross-cutting Product Journey, Evaluation, shared-interface, Scheduler-delivery, and default-security specifications are published on `origin/main` through `c40e31e` (`feat: integrate runtime admission and product quality tracks`).
 - The completed Gate 7 assessment, Gate 8 queue/durable-state increments, Unicode/file-bound correction, bounded Tool-isolation capacity, and runtime package-cycle extraction are delivered through `1151fc5` (`feat: harden durable runtime scheduling`).
 - The bounded Gate 8 durable Goal/AgentRun lifecycle and fenced single-owner lease/expiry recovery contract are delivered through `ed1c41c` (`feat: add durable fenced agent runtime lifecycle`).
+- The current uncommitted work integrates one durable queue claim with exact Goal/AgentRun persisted-prefix recovery and fenced lease acquisition; it has no commit or push authority.
 - Gate 1-3 delivery commit: `3fcda4c` (`feat: integrate governed agent execution foundations`).
 - Pull request #2 has been merged into `main`.
 - Delivery Gates 1 through 3, self-hosting compatibility recovery, long-term vision, and documentation-alignment changes are published on `origin/main`.
@@ -27,8 +28,8 @@
 - The Gate 6 authority-boundary evidence, `TargetFileMetadataCollector`, and `GitWorkspaceCollector` are published on `origin/main` through delivery commit `21e6230` (`feat: complete Gate 6 workspace observation surface`).
 - The Gate 6 maturity assessment, the re-scope-and-promotion, and the Gate 7 `MessageEnvelope` contract are published on `origin/main` through delivery commit `3423201` (`feat: promote Gate 6 and open Gate 7 with the message envelope contract`).
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 147 Java files.
-- Test source: 55 Java files.
+- Production source: 149 Java files.
+- Test source: 57 Java files.
 - The Gate 7 in-process delivery surface and its delivery-failure and dead-letter handling are published on `origin/main` through delivery commit `b278c53` (`feat: add Gate 7 in-process delivery with failure isolation and dead-letter`); the unrelated wall-clock test correction is published through `2a69182` (`fix: make RunRecordMetadataCollectorTest time-independent`).
 - PR #3 published bounded retry/dead-letter re-delivery, cancellation, and ordering through `52987f2`; replay-cascade correction followed through `2585a10`, and backpressure plus the four reliability/security corrections were published through `b3be720`.
 
@@ -54,6 +55,7 @@
 
 ### Integrated
 
+- Gate 8 durable queue-to-AgentRun dispatch under `com.enhancer.runtime`: one existing active WorkItem or newly persisted ready claim flows through `DurableAgentRunDispatcher` into the exact matching durable Goal, named AgentRun planning/readiness prefix, and current fenced lease; partial runtime persistence is recoverable by idempotent re-entry, both filesystem stores recover the same WorkItem and lease, mismatches fail closed before runtime mutation where applicable, and no worker, queue completion, result, effect, or cross-store transaction is claimed.
 - Runtime package boundary: neutral verification lifecycle values in `com.enhancer.kernel`, application-layer AgentRun finalization, package-private AgentRunState completion behind an explicit transition port, and an enforced acyclic application/run/verification/loop/kernel dependency direction with unchanged RunRecord schema and behavior.
 - Gate 1 in-process Tool isolation capacity: default ToolExecutor instances share a process-wide ceiling of 64 actual live workers, hold capacity until real thread termination, and fail closed with typed terminal evidence before creating another thread when saturated; this bounds accumulation but does not terminate stuck code or replace future process isolation.
 - Runtime text and mutable-file resource boundaries: valid supplementary Unicode survives every bounded Evidence/Tool/CLI/Workspace truncation point, while governed file and persisted-artifact reads enforce configured byte ceilings during consumption rather than trusting mutable preflight size metadata.
@@ -211,7 +213,7 @@
 - Delivery Gate 5: Operational.
 - Delivery Gate 6: Integrated by the 2026-07-15 re-scope-and-promotion decision; diagnostics, terminal-session, and active/selected-file observation moved to Gate 12.
 - Delivery Gate 7: Contract Verified after a fresh Integrated maturity assessment. The work-message queue/journal/replay/idempotency path is Integrated, but result/control/handoff and non-empty-causation flows, topic and failure/retry/dead-letter/cancellation/cascade-ordering/backpressure branches, and `MessageTransport` remain contract-only. No concrete adapter, durable bus, or supported messaging entry point exists.
-- Delivery Gate 8: Specified - Next; `WorkItem` admission, the dependency-ready single-worker queue, durable schema-v1 queue state/restart recovery, the durable one-Goal/one-AgentRun lifecycle, and fenced single-owner lease/expiry recovery are Contract Verified, while queue-to-lifecycle integration, effect records/fencing, retries, workers, and production wiring do not yet exist.
+- Delivery Gate 8: Specified - Next; `WorkItem` admission, the dependency-ready single-worker queue, durable schema-v1 queue state/restart recovery, the durable one-Goal/one-AgentRun lifecycle, and fenced single-owner lease/expiry recovery are Contract Verified; the durable queue-to-lifecycle dispatch path is Integrated, while execution acknowledgement, effect records/fencing, retries, workers, and production wiring do not yet exist.
 - Gate 6 `WorkspaceSnapshot`, `ProjectBrainView`, graph projection contract, `TaskImpactQuery`, `AcceptedDecisionProjector`, and `RunRecordMetadataCollector` sub-capabilities: Integrated through the fresh promotion audit `gate-6-sub-capability-integration-promotion`, each connected to real upstream and downstream components by named integration evidence.
 - Gate 6 `TaskJustificationProjector` and the `Justified By` reference grammar: Integrated; the first real reference resolved on the actual repository through the production composition.
 - Gate 6 authority boundary: the exit criterion "Workspace observations cannot override repository authority or grant Tool permission" is pinned by `WorkspaceAuthorityBoundaryIntegrationTest`.
@@ -789,11 +791,26 @@ This assessment itself changed no production or test code and did not change Gat
 - Java 17 production compilation passed `-Xlint:all -Werror` across all 147 production sources.
 - Post-document self-hosting and boundary verification passed 31 of 32 Context Reader, Planner, Assisted Loop, package-boundary, lifecycle, and filesystem-store tests with 1 existing Windows symbolic-link setup skip and no failure or error.
 - Structural/reference checks retained exactly one Gate 8 `Status: Specified - Next` marker, resolved `CURRENT_TASK.md` to its accepted decision, and passed `git diff --check`.
-- Gate 8 remains `Specified - Next`; the next bounded integration connects one durable queue claim to Goal/AgentRun planning, readiness, and lease acquisition without worker or Tool execution.
+- At completion of the fenced-lease increment, Gate 8 remained `Specified - Next` and the queue-to-lifecycle dispatch recorded below was the next bounded integration.
+
+## Gate 8 Durable Queue-To-AgentRun Dispatch Integration
+
+- Test-first RED preserved successful production compilation and failed test compilation with exactly 13 aligned errors naming only the absent `DurableAgentRunDispatcher` and `AgentRunDispatch` contracts.
+- Added caller-metadata preflight, active-work reuse or persist-first ready claim, exact WorkItem Goal creation/recovery, and missing-prefix advancement through named AgentRun planning, readiness, and lease acquisition.
+- Repeated same-owner calls return the existing unexpired lease without queue/runtime revision changes; expiry recovery returns `READY` and a new owner receives a greater fence.
+- Queue claim persistence failure creates no runtime. Failures at Goal creation, AgentRun creation, readiness, and lease acquisition leave the active claim and durable prefix available for successful re-entry.
+- Existing WorkItem mismatch is checked before runtime expiry reclamation; different AgentRun, different unexpired owner, Awaiting-Verification, and terminal state all fail closed.
+- Real filesystem queue/runtime stores survived cross-instance recovery: the queue requeued and reclaimed the same WorkItem while the runtime returned the exact existing Unicode-bearing lease.
+- Focused verification passed 31 of 31 tests across 7 dispatcher, queue, runtime, filesystem-store, and package-boundary suites with no skips, failures, or errors.
+- Fresh full regression passed 57 suites and 251 tests: 249 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors; Gradle emitted no deprecation warning.
+- Java 17 production compilation passed `-Xlint:all -Werror` across all 149 production sources.
+- Post-document self-hosting and boundary verification passed 36 of 37 Context Reader, Planner, Assisted Loop, package-boundary, dispatcher, lifecycle, queue, and filesystem integration tests with 1 existing Windows symbolic-link setup skip and no failure or error.
+- Structural/reference checks resolved the active task decision, retained exactly one Gate 8 `Status: Specified - Next` marker, and passed tracked/untracked whitespace validation.
+- This named queue-to-lifecycle path is Integrated. Gate 8 remains `Specified - Next`; the next bounded integration couples fence-checked execution completion to durable queue acknowledgement without executing a Tool.
 
 ## Next Task
 
-Connect one durable Gate 8 Scheduler queue claim to one durable Goal/AgentRun planning, readiness, and fenced lease-acquisition path. Do not combine it with Tool worker execution, external effects, retry, or parent-directory power-loss durability.
+Couple matching fence-checked AgentRun execution completion to durable queue acknowledgement with recoverable cross-store ordering. Do not combine it with Tool worker execution, result messages, external effects, retry, or parent-directory power-loss durability.
 
 ## Session Recovery
 

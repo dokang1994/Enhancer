@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-07-16 - Integrate Durable Queue Claims With Fenced AgentRuns
+
+- Added `DurableAgentRunDispatcher` and immutable `AgentRunDispatch`, connecting one active or newly claimed exact WorkItem to Goal creation/recovery, named AgentRun planning/readiness, and fenced lease acquisition.
+- Kept queue and runtime artifacts as separate durable boundaries: queue claim persists first, runtime prefixes persist independently, and partial runtime failures retain a recoverable active claim instead of claiming unsupported cross-store atomicity or rollback.
+- Added idempotent same-owner re-entry, exact WorkItem matching before recovery mutation, strict AgentRun/owner/post-execution mismatch refusal, and expiry recovery that permits a new owner only with a greater fence.
+- Verified all four runtime persistence interruption points, queue-claim failure with no runtime creation, exact filesystem restart recovery, Unicode lease preservation, and authority/provenance retention without Tool execution or queue completion.
+- Proved the missing contract through 13 aligned test-compilation errors, then passed 31 focused runtime/store/boundary tests and the complete 57-suite/251-test regression (249 passed, 2 existing Windows symbolic-link skips).
+- Passed Java 17 strict lint across 149 production sources; retained execution acknowledgement, workers, results, retry, effects, cross-store transactions, multi-process coordination, and power-loss directory durability as future work.
+
 ## 2026-07-16 - Fence Durable Gate 8 AgentRun Ownership
 
 - Added immutable bounded `AgentRunLease` ownership to the durable schema-v1 AgentRun lifecycle with injected time, exclusive expiry, and a persisted monotonic last-issued fence token.

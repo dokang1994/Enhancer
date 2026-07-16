@@ -1,5 +1,10 @@
 # Session Handoff
 
+- Gate 8 now has an Integrated durable queue-to-AgentRun dispatch path: one active or ready exact WorkItem reaches Goal creation/recovery, named AgentRun planning/readiness, and fenced lease acquisition through persisted-prefix re-entry.
+- Queue and runtime remain separate durable artifacts. Claim failure creates no runtime; later runtime failure leaves an intentional recoverable active claim, and repeated same-owner calls resume without renewing an existing lease.
+- Fresh dispatch evidence includes 31/31 focused tests, a 57-suite/251-test full regression (249 passed, 2 existing Windows symbolic-link skips), and strict lint across 149 production sources.
+- Post-document self-hosting and boundary verification passed 36 of 37 tests with 1 existing Windows symbolic-link setup skip; the task decision, sole Gate 8 next marker, and whitespace checks are consistent.
+- The real filesystem integration requeues and reclaims the same WorkItem after restart and returns the exact existing Unicode-bearing lease; no worker, queue completion, result message, external effect, or cross-store transaction is added.
 - Gate 8 fenced AgentRun ownership is now Contract Verified locally: acquisition from `READY` issues one bounded owner and persisted monotonic fence, renew/complete require the current unexpired lease, and recovery at expiry durably returns the run to `READY`.
 - Lease acquisition, renewal, completion, and reclaim all persist before exposure; injected storage failures retain the prior revision and lease, and restart preserves an unexpired owner or reclaims exactly at expiry.
 - Fresh lease evidence includes 68/68 focused runtime/bus/boundary tests, a 55-suite/243-test full regression (241 passed, 2 existing Windows symbolic-link skips), and strict lint across 147 production sources.
@@ -43,6 +48,7 @@
 
 ## Completed Work
 
+- Integrated one durable queue active/ready claim with exact Goal/AgentRun persisted-prefix recovery and fenced lease acquisition without worker execution or queue acknowledgement.
 - Implemented and verified the Gate 8 durable one-Goal/one-AgentRun lifecycle with exact WorkItem provenance, typed terminal result matching, persist-before-exposure state, and restart-safe filesystem recovery.
 - Implemented and verified fenced single-owner AgentRun lease acquisition, renewal, completion, expiry reclamation, monotonic persisted fence history, and restart behavior without adding worker execution.
 - Removed the runtime package cycle through neutral Kernel verification values, application-layer finalization, and an executable dependency-direction regression.
@@ -264,7 +270,7 @@
 - Gate 5: Operational for one governed read-only local CLI scenario.
 - Gate 6: Integrated by the user-approved re-scope-and-promotion decision; the production view and graph composition remain Operational sub-capabilities.
 - Gate 7: Contract Verified after fresh assessment. The work-message queue path is Integrated; result/control/handoff, non-empty causation, topic and remaining reliability branches, and `MessageTransport` remain contract-only. Durable messaging, a concrete adapter, and a supported production entry point do not exist.
-- Gate 8: Specified - Next; immutable `WorkItem` admission, the dependency-ready single-worker queue, durable schema-v1 queue state/restart recovery, the durable one-Goal/one-AgentRun lifecycle, and fenced single-owner lease/expiry recovery are Contract Verified, while queue-to-lifecycle integration, retry, effect records/fencing, workers, and production wiring do not yet exist.
+- Gate 8: Specified - Next; immutable `WorkItem` admission, the dependency-ready single-worker queue, durable schema-v1 queue state/restart recovery, the durable one-Goal/one-AgentRun lifecycle, and fenced single-owner lease/expiry recovery are Contract Verified; durable queue-to-lifecycle dispatch is Integrated, while execution acknowledgement, retry, effect records/fencing, workers, and production wiring do not yet exist.
 - Gate 6 repository-memory path (real governed run -> real memory -> collector -> composed view with divergence detection): Integrated.
 - Gate 6 production composition: Operational for the governed read-only CLI scenario; every recorded `run` reports bounded snapshot identity, observation count, and memory freshness.
 - Gate 6 `WorkspaceSnapshot`, `ProjectBrainView`, graph projection contract, `TaskImpactQuery`, `AcceptedDecisionProjector`, and `RunRecordMetadataCollector`: Integrated through the fresh promotion audit against named pre-existing integration evidence.
@@ -278,7 +284,7 @@
 
 ## Next Task
 
-Connect one durable Scheduler queue claim to one durable Goal/AgentRun planning, readiness, and fenced lease acquisition path. Do not combine Tool execution, retry, effect records, or power-loss directory durability.
+Couple matching fence-checked AgentRun execution completion to durable queue acknowledgement with recoverable ordering. Do not combine Tool execution, result messages, retry, effect records, or power-loss directory durability.
 
 ## Remaining Risks
 
@@ -292,9 +298,9 @@ Connect one durable Scheduler queue claim to one durable Goal/AgentRun planning,
 ## Instructions For Next Agent
 
 1. Read `.ai/` and every canonical startup document in repository order.
-2. Confirm Gate 7 is `Contract Verified`, Gate 8 is the sole `Specified - Next` gate, and `CURRENT_TASK.md` records the fenced AgentRun lease as Completed.
+2. Confirm Gate 7 is `Contract Verified`, Gate 8 is the sole `Specified - Next` gate, and `CURRENT_TASK.md` records durable queue-to-AgentRun dispatch as Completed.
 3. Inspect `git status --short` and the current `main`/`origin/main` log; delivery commit `ed1c41c` is the implementation baseline for the completed Gate 8 lifecycle and fenced-lease work above.
 4. If the host has no JDK, provision Java 17 through `.tools/jdk17` (this host already has `jdk-17.0.19+10` there) or run `scripts/setup-dev.ps1`; `scripts/gradle.ps1` then works normally.
 5. The only external command authority is the decision-scoped read-only Git adapter; any new external command capability requires its own explicit user approval.
-6. Activate the next Gate 8 durable queue-to-lifecycle integration increment; retain the fenced ownership boundary and do not combine worker execution or effects.
+6. Activate the next Gate 8 fence-checked execution-acknowledgement increment; retain separate durable boundaries and do not combine worker execution, result handling, or effects.
 7. Do not commit or push future changes without a new explicit user request.

@@ -54,14 +54,45 @@ public final class DurableAgentRuntime {
             String goalId,
             AgentRuntimeStateStore store,
             Clock clock) throws IOException {
+        return recoverLoaded(goalId, Optional.empty(), store, clock);
+    }
+
+    static DurableAgentRuntime recoverMatching(
+            String goalId,
+            WorkItem expectedWorkItem,
+            AgentRuntimeStateStore store,
+            Clock clock) throws IOException {
+        return recoverLoaded(
+                goalId,
+                Optional.of(Objects.requireNonNull(
+                        expectedWorkItem,
+                        "expectedWorkItem must not be null")),
+                store,
+                clock);
+    }
+
+    private static DurableAgentRuntime recoverLoaded(
+            String goalId,
+            Optional<WorkItem> expectedWorkItem,
+            AgentRuntimeStateStore store,
+            Clock clock) throws IOException {
         Objects.requireNonNull(store, "store must not be null");
         Objects.requireNonNull(clock, "clock must not be null");
+        Objects.requireNonNull(
+                expectedWorkItem, "expectedWorkItem must not be null");
         String canonicalGoalId =
                 AgentRuntimeState.requireCanonicalGoalId(goalId);
+        AgentRuntimeState loaded = store.resolve(canonicalGoalId);
+        expectedWorkItem.ifPresent(expected -> {
+            if (!loaded.goal().workItem().equals(expected)) {
+                throw new IllegalStateException(
+                        "existing Goal WorkItem does not match expected work");
+            }
+        });
         DurableAgentRuntime runtime = new DurableAgentRuntime(
                 store,
                 clock,
-                store.resolve(canonicalGoalId));
+                loaded);
         runtime.reclaimExpiredLease();
         return runtime;
     }
