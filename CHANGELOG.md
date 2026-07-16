@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-16 - Align Gate 8 Connection And Completion Boundaries
+
+- Cross-checked the seven `.ai/` bootstrap documents, canonical governance and architecture documents, and the implemented Gate 8 queue/runtime state contracts.
+- Corrected the conflicting next-step wording: fence-checked execution completion persists `AWAITING_VERIFICATION`, while queue completion satisfies dependencies, so the two operations cannot be coupled directly.
+- Made durable terminal queue disposition the next bounded contract, with verified completion and failed disposition kept distinct before Scheduler capacity or dependency state changes.
+- Added an ordered, gate-owned connection backlog for RunRecord-backed results, process-isolated workers and local IPC, controls, effects, retry, and later multi-agent handoffs.
+- Corrected stale RFC and blanket-unimplemented wording without changing production code, capability maturity, Constitution text, Agent rules, or external authority.
+- Passed 24 focused actual-document tests (23 passed, 1 existing Windows symbolic-link skip), the full 57-suite/251-test regression (249 passed, 2 existing skips), and structural/reference/whitespace checks with no failure or error.
+- Added a next-session design brief describing the semantic collision, the recommended conservative implementation, the higher-throughput waiting-state alternative, the rejected unsafe shortcut, and the unresolved schema/failure/identity decisions.
+
 ## 2026-07-16 - Integrate Durable Queue Claims With Fenced AgentRuns
 
 - Added `DurableAgentRunDispatcher` and immutable `AgentRunDispatch`, connecting one active or newly claimed exact WorkItem to Goal creation/recovery, named AgentRun planning/readiness, and fenced lease acquisition.
@@ -7,7 +17,7 @@
 - Added idempotent same-owner re-entry, exact WorkItem matching before recovery mutation, strict AgentRun/owner/post-execution mismatch refusal, and expiry recovery that permits a new owner only with a greater fence.
 - Verified all four runtime persistence interruption points, queue-claim failure with no runtime creation, exact filesystem restart recovery, Unicode lease preservation, and authority/provenance retention without Tool execution or queue completion.
 - Proved the missing contract through 13 aligned test-compilation errors, then passed 31 focused runtime/store/boundary tests and the complete 57-suite/251-test regression (249 passed, 2 existing Windows symbolic-link skips).
-- Passed Java 17 strict lint across 149 production sources; retained execution acknowledgement, workers, results, retry, effects, cross-store transactions, multi-process coordination, and power-loss directory durability as future work.
+- Passed Java 17 strict lint across 149 production sources; retained terminal queue disposition, workers, results, retry, effects, cross-store transactions, multi-process coordination, and power-loss directory durability as future work.
 
 ## 2026-07-16 - Fence Durable Gate 8 AgentRun Ownership
 

@@ -14,6 +14,7 @@
 - The completed Gate 7 assessment, Gate 8 queue/durable-state increments, Unicode/file-bound correction, bounded Tool-isolation capacity, and runtime package-cycle extraction are delivered through `1151fc5` (`feat: harden durable runtime scheduling`).
 - The bounded Gate 8 durable Goal/AgentRun lifecycle and fenced single-owner lease/expiry recovery contract are delivered through `ed1c41c` (`feat: add durable fenced agent runtime lifecycle`).
 - The durable queue-to-AgentRun dispatch integration is delivered through `4ada41c` (`feat: integrate durable agent run dispatch`).
+- The durable-dispatch delivery documents are synchronized on `main` and `origin/main` through `7dbf38b` (`docs: synchronize durable dispatch delivery state`).
 - Gate 1-3 delivery commit: `3fcda4c` (`feat: integrate governed agent execution foundations`).
 - Pull request #2 has been merged into `main`.
 - Delivery Gates 1 through 3, self-hosting compatibility recovery, long-term vision, and documentation-alignment changes are published on `origin/main`.
@@ -147,7 +148,7 @@
 ## Not Yet Integrated Or Operational
 
 - Prompt and LLM invocation.
-- Remaining Workspace adapters, Project Brain graph persistence, Event/Message Bus production wiring, concrete IPC adapters, Agent Runtime, Scheduler, and Model Gateway.
+- Remaining Workspace adapters, Project Brain graph persistence, Event/Message Bus production wiring, concrete IPC adapters, broader Agent Runtime and Scheduler production paths, and Model Gateway.
 - Project Brain graph storage and impact reasoning, Dependency Analyzer, Workflow Engine, Agent Marketplace, and privacy-aware hybrid model routing.
 - Skill loading runtime, plugins, MCP, multi-agent, background execution, Cloud Sync, and governed self-improvement.
 - CI/CD and released distribution.
@@ -213,7 +214,7 @@
 - Delivery Gate 5: Operational.
 - Delivery Gate 6: Integrated by the 2026-07-15 re-scope-and-promotion decision; diagnostics, terminal-session, and active/selected-file observation moved to Gate 12.
 - Delivery Gate 7: Contract Verified after a fresh Integrated maturity assessment. The work-message queue/journal/replay/idempotency path is Integrated, but result/control/handoff and non-empty-causation flows, topic and failure/retry/dead-letter/cancellation/cascade-ordering/backpressure branches, and `MessageTransport` remain contract-only. No concrete adapter, durable bus, or supported messaging entry point exists.
-- Delivery Gate 8: Specified - Next; `WorkItem` admission, the dependency-ready single-worker queue, durable schema-v1 queue state/restart recovery, the durable one-Goal/one-AgentRun lifecycle, and fenced single-owner lease/expiry recovery are Contract Verified; the durable queue-to-lifecycle dispatch path is Integrated, while execution acknowledgement, effect records/fencing, retries, workers, and production wiring do not yet exist.
+- Delivery Gate 8: Specified - Next; `WorkItem` admission, the dependency-ready single-worker queue, durable schema-v1 queue state/restart recovery, the durable one-Goal/one-AgentRun lifecycle, and fenced single-owner lease/expiry recovery are Contract Verified; the durable queue-to-lifecycle dispatch path is Integrated. Fence-checked execution completion currently reaches only `AWAITING_VERIFICATION`; queue terminal disposition, result/RunRecord production wiring, effect records/fencing, retries, workers, and broader production wiring do not yet exist.
 - Gate 6 `WorkspaceSnapshot`, `ProjectBrainView`, graph projection contract, `TaskImpactQuery`, `AcceptedDecisionProjector`, and `RunRecordMetadataCollector` sub-capabilities: Integrated through the fresh promotion audit `gate-6-sub-capability-integration-promotion`, each connected to real upstream and downstream components by named integration evidence.
 - Gate 6 `TaskJustificationProjector` and the `Justified By` reference grammar: Integrated; the first real reference resolved on the actual repository through the production composition.
 - Gate 6 authority boundary: the exit criterion "Workspace observations cannot override repository authority or grant Tool permission" is pinned by `WorkspaceAuthorityBoundaryIntegrationTest`.
@@ -806,11 +807,23 @@ This assessment itself changed no production or test code and did not change Gat
 - Java 17 production compilation passed `-Xlint:all -Werror` across all 149 production sources.
 - Post-document self-hosting and boundary verification passed 36 of 37 Context Reader, Planner, Assisted Loop, package-boundary, dispatcher, lifecycle, queue, and filesystem integration tests with 1 existing Windows symbolic-link setup skip and no failure or error.
 - Structural/reference checks resolved the active task decision, retained exactly one Gate 8 `Status: Specified - Next` marker, and passed tracked/untracked whitespace validation.
-- This named queue-to-lifecycle path is Integrated. Gate 8 remains `Specified - Next`; the next bounded integration couples fence-checked execution completion to durable queue acknowledgement without executing a Tool.
+- This named queue-to-lifecycle path is Integrated. Gate 8 remains `Specified - Next`; documentation review later established that fence-checked execution completion reaches only `AWAITING_VERIFICATION` and cannot be coupled directly to queue completion because queue completion satisfies dependencies.
+
+## Gate 8 Connection Boundary Documentation Verification
+
+- Cross-checked all seven `.ai/` bootstrap documents, the canonical Constitution and operating documents, the Gate 8 production queue/runtime contracts, and the current Roadmap sequence.
+- Confirmed the conflict: `DurableAgentRuntime.completeExecution` persists `AWAITING_VERIFICATION`, while `SingleWorkerSchedulerQueue.completeActive` writes the dependency-satisfaction set. The prior direct acknowledgement wording could therefore conflate execution receipt with verified completion.
+- Replaced that wording with an explicit terminal-disposition boundary and a gate-owned ordered backlog for result finalization, process worker/local IPC, controls, effects, retry, and later handoff/multi-agent work.
+- Corrected the stale Roadmap RFC statement so it no longer says the already-active bounded Gate 8 track must wait for a future RFC; detailed RFC work remains required before process workers, concrete IPC production wiring, broader policies, or Operational promotion.
+- Changed no production/test code, capability maturity, Constitution text, Agent rules, external authority, or release state.
+- Focused actual-document verification passed 24 tests across 5 suites: 23 passed, 1 existing Windows symbolic-link setup skip, 0 failures, and 0 errors.
+- Full regression passed 57 suites and 251 tests: 249 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors under `--warning-mode all`.
+- Structural/reference checks found one Gate 8 next marker, one accepted-decision heading, one matching active-task reference, zero withdrawn directive/RFC wording occurrences, and no whitespace error.
+- `SESSION_HANDOFF.md` now explains the conflict's incremental origin and preserves three next-session choices: keep the active slot through verification (recommended minimum), add a durable non-terminal verification-wait state later for throughput, or reject execution acknowledgement as queue completion.
 
 ## Next Task
 
-Couple matching fence-checked AgentRun execution completion to durable queue acknowledgement with recoverable cross-store ordering. Do not combine it with Tool worker execution, result messages, external effects, retry, or parent-directory power-loss durability.
+Define the Gate 8 durable queue terminal-disposition contract so execution acknowledgement remains distinct from verified completion, failed work cannot satisfy dependencies, and later ResultPayload integration has an unambiguous recoverable target.
 
 ## Session Recovery
 

@@ -49,7 +49,7 @@ Operational capability:
 Not yet integrated or operational:
 
 - LLM invocation;
-- remaining Workspace adapters, Project Brain graph persistence, Event/Message Bus production wiring, concrete IPC adapters, Agent Runtime, Scheduler, and Model Gateway;
+- remaining Workspace adapters, Project Brain graph persistence, Event/Message Bus production wiring, concrete IPC adapters, broader Agent Runtime and Scheduler production paths, and Model Gateway;
 - Skill runtime, plugins, MCP, interfaces, multi-agent, background execution, Cloud Sync, and self-improvement.
 
 ## Contract Continuation Rule
@@ -457,8 +457,23 @@ Current increment:
 - Contract Verified: one exact-WorkItem `RuntimeGoal`, one schema-v1 `RuntimeAgentRun`, deterministic forward-only lifecycle transitions, matching typed terminal result envelopes, Verified-only completion, monotonic persist-before-exposure revisions, bounded integrity-checked filesystem state, and exact restart recovery without invented ownership;
 - Contract Verified: a bounded fenced single-owner `AgentRunLease` acquired only from `READY`, with injected time, persisted monotonic fence tokens, matching unexpired owner/fence checks for renewal and execution completion, and durable expiry reclamation back to `READY` across restart;
 - Integrated sub-path: one durable queue active/ready WorkItem is connected to the exact durable Goal, named AgentRun planning/readiness prefix, and current fenced lease through idempotent persisted-prefix recovery across both filesystem stores;
-- next increment: couple matching fence-checked execution completion to durable queue acknowledgement with recoverable ordering, without Tool execution, result-message handling, or external effects;
+- corrected boundary: fence-checked execution completion persists only `AWAITING_VERIFICATION`; it does not complete the queue, satisfy dependencies, or imply Verified/Completed;
+- next increment: define durable queue terminal disposition so verified completion and failure release or retain Scheduler capacity explicitly, and only verified completion enters the dependency-satisfaction set;
 - deferred: general forward-reference graph/cycle handling, multiple AgentRuns and retry, cancellation/pause/resume, priority/fairness, budgets, external-effect idempotency/fencing, checkpoints beyond current snapshots, worker execution, schema migration beyond v1, power-loss directory durability, multi-process coordination, distributed clock-skew handling, and production wiring.
+
+Ordered connection backlog:
+
+| Order | Connection | Owner and prerequisite |
+|---|---|---|
+| 1 | terminal queue disposition | Gate 8; distinguish verified completion from failure before changing dependency satisfaction |
+| 2 | RunRecord-backed result finalization | Gate 7 result delivery and Gate 8 runtime; persist/resolve RunRecord, persist terminal runtime state, then persist matching queue disposition |
+| 3 | process-isolated worker and local IPC | Gate 7 transport, Gate 8 worker runtime, and Gate 11 Tool controls; requires a separately selected adapter and process lifecycle |
+| 4 | durable cancel/pause/resume | Gate 7 control delivery, Gate 8 state, and Gate 12 authenticated controls |
+| 5 | external-effect ledger and fencing | Gate 8 plus the owning Tool/adapter gate; stable effect identity and explicit applied/deduplicated/compensated/recovery states |
+| 6 | retry through additional AgentRuns | Gate 8; preserve terminal history and bound attempts, budgets, stagnation, and orphan recovery |
+| 7 | typed handoff and multi-agent execution | Gate 13; requires an Operational single-agent runtime and measured baseline |
+
+This order records dependencies, not activation authority. Each item still requires its own accepted task, focused failure contract, fresh evidence, and named real integration path.
 
 Dependencies:
 
@@ -732,7 +747,7 @@ Status: Accepted
 
 RFC acceptance does not imply Contract Verified, Integrated, Operational, or Released capability maturity.
 
-Future detailed RFC work is required for the Agent Runtime and Scheduler, concrete IPC adapters, MCP and Model Gateway, and Cloud Sync before those implementation tracks become active.
+Future detailed RFC work is required before process workers, concrete IPC production adapters, broader Scheduler control/effect/retry policy, MCP and Model Gateway, Cloud Sync, or Gate 8 Operational promotion become active. The already accepted bounded Gate 8 queue, lifecycle, lease, and dispatch increments remain valid and do not imply those broader capabilities.
 
 ## Selective Agent Harness Pattern Adoption
 

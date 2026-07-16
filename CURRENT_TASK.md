@@ -6,64 +6,56 @@ Completed
 
 ## Task
 
-Connect one durable Scheduler queue claim to one recoverable durable Goal/AgentRun planning, readiness, and fenced lease-acquisition path without worker execution.
+Align the documented Gate 8 connection backlog with the verified queue, AgentRun, verification, and `.ai/` operating contracts without changing production behavior.
 
 ## Task ID
 
-gate-8-durable-queue-runtime-dispatch
+gate-8-connection-boundary-doc-alignment
 
 ## Justified By
 
-- 2026-07-16: Bridge One Durable Queue Claim Into One Recoverable Leased AgentRun
+- 2026-07-16: Separate Execution Acknowledgement From Verified Queue Completion And Sequence Remaining Connections
 
 ## Context
 
-Gate 8 has separate Contract Verified durable queue and fenced AgentRun lifecycle contracts. The next bounded integration must retain the exact claimed WorkItem, persist each existing boundary, and recover from any intermediate prefix without pretending that the two stores form one atomic transaction.
+The documented next increment currently couples fence-checked AgentRun execution completion directly to durable queue acknowledgement. The implemented runtime transition stops at `AWAITING_VERIFICATION`, while queue completion records the WorkItem as completed and releases its dependents. Treating those operations as equivalent would make the connection order ambiguous and could allow Scheduler dependency completion to be inferred before independent verification.
+
+The canonical Roadmap also says detailed Agent Runtime and Scheduler RFC work is required before those tracks become active even though bounded Gate 8 contracts and one Integrated path already exist. The connection backlog needs one authoritative sequence, explicit gate ownership, and a compact `.ai/architecture.md` mirror.
 
 ## Acceptance Criteria
 
-- Add one durable queue-to-runtime coordinator and one immutable dispatch result.
-- Validate caller-supplied Goal ID, AgentRun ID, lease owner, and lease duration before queue mutation.
-- Use an existing active WorkItem or persistently claim the next ready WorkItem; return empty when no work is active or ready.
-- Create a missing Goal from the exact claimed WorkItem or recover an existing matching Goal.
-- Advance only the missing lifecycle prefix through named AgentRun planning, readiness, and fenced lease acquisition.
-- Repeated calls with the same WorkItem, Goal, AgentRun, and current owner return the existing unexpired lease without renewal or extra revision.
-- Reject mismatched retained WorkItem, different AgentRun identity, different unexpired owner, Awaiting-Verification state, and terminal state.
-- At lease expiry, recover the runtime to `READY` and permit a new owner to acquire a strictly greater fence.
-- If queue claim persistence fails, create no runtime state.
-- If any runtime persistence step fails, retain the active queue claim and durable runtime prefix so a later call resumes safely.
-- Preserve exact WorkItem authority/provenance and add no Tool permission, worker execution, external effect, queue completion, or retry.
-- Verify with focused in-memory and filesystem integration tests, full regression, Java 17 strict lint, actual-document self-hosting, structural/reference, and whitespace checks.
+- Record the execution-acknowledgement versus verified-completion distinction as an accepted decision.
+- Correct the immediate Gate 8 next increment so `AWAITING_VERIFICATION` cannot be treated as queue completion or dependency satisfaction.
+- Add an ordered connection backlog covering queue terminal disposition, Result/RunRecord integration, workers and local IPC, controls, external effects, retry, and later handoff/multi-agent work.
+- Name the owning gate and prerequisite for each connection without changing capability maturity.
+- Correct stale RFC-activation and blanket unimplemented-state wording that conflicts with the current Gate 8 maturity.
+- Synchronize canonical Architecture, Roadmap, Project State, Session Handoff, Changelog, and `.ai/architecture.md`.
+- Leave a next-session design brief explaining why the conflict occurred, which alternatives remain, and which choice is currently safest for Enhancer.
+- Verify actual-document loading, planning, handoff/reference consistency, the sole `Specified - Next` marker, forbidden ambiguous wording, and whitespace.
 
 ## Out Of Scope
 
-- Tool or worker process execution
-- Queue completion or acknowledgement coupling
-- Result messages, verification, or RunRecord resolution
-- Retry or more than one AgentRun per Goal
-- Cancellation, pause/resume, reassignment, priority, fairness, or budgets
-- External-effect idempotency, compensation, effect records, or effect fencing
-- Cross-store transactions, rollback, multi-process locking, or distributed clock-skew handling
-- Schema migration, history cleanup, or parent-directory fsync
-- CLI/API/Message Bus production wiring
+- Production or test code changes
+- Queue schema or runtime lifecycle changes
+- Result-message, Tool/worker, IPC-adapter, control, retry, or effect implementation
+- Capability maturity promotion
+- Constitution or Agent operating-rule amendments
 - Commit, push, PR, merge, release, or deployment
 
 ## Approval
 
-Approved by the user's 2026-07-16 request to continue from the documented durable queue-to-lifecycle integration task.
+Approved by the user's 2026-07-16 request to validate `.ai/` conflicts and add the missing connection documentation.
 
 ## Verification
 
-- RED: production compilation passed and test compilation failed with 13 aligned errors naming only the missing dispatcher and dispatch-result contracts.
-- Focused GREEN: 31 tests across 7 dispatcher, durable queue/runtime, filesystem-store, and package-boundary suites passed with no skips, failures, or errors.
-- Full regression: 57 suites and 251 tests; 249 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors under `--warning-mode all`.
-- Java 17 strict lint passed across all 149 production sources with `-Xlint:all -Werror`.
-- Queue claim failure created no runtime, while failures at each of four runtime persistence boundaries retained a recoverable active claim and durable prefix.
-- Cross-instance filesystem recovery requeued and reclaimed the same WorkItem and returned the exact existing Unicode-bearing unexpired lease.
-- Mismatch, different AgentRun/owner, post-execution, caller-metadata, expiry/new-fence, and public result-identity invariants passed.
-- Post-document Context Reader, Planner, Assisted Loop, package-boundary, dispatcher, lifecycle, queue, and filesystem integration verification passed 36 of 37 tests with 1 existing Windows symbolic-link setup skip and no failure or error.
-- Structural checks resolved the active task's accepted decision, retained exactly one Gate 8 `Status: Specified - Next` marker, and passed tracked/untracked whitespace validation.
+- Focused actual-document verification passed 24 tests across 5 Context Reader, Planner, Assisted Loop, decision-projector, and task-justification suites: 23 passed, 1 existing Windows symbolic-link setup skip, 0 failures, and 0 errors.
+- Full regression passed 57 suites and 251 tests: 249 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors under `--warning-mode all`.
+- Structural checks found exactly one Gate 8 `Status: Specified - Next` marker, one accepted-decision heading, and one matching `CURRENT_TASK.md` justification reference.
+- Repository-wide Markdown search found zero instances of the withdrawn direct execution-completion-to-queue-acknowledgement directive and zero instances of the stale Gate 8 RFC-activation wording.
+- `git diff --check` passed.
+- No production or test code changed; Java behavior and capability maturity remain unchanged.
+- `SESSION_HANDOFF.md` records the conflict cause, rejected unsafe interpretation, recommended minimum implementation, higher-throughput alternative, and the questions the next session must decide before code work.
 
 ## Next
 
-Couple matching fence-checked AgentRun execution completion to durable queue acknowledgement with recoverable ordering, without adding Tool execution, result handling, or external effects.
+Define the Gate 8 durable queue terminal-disposition contract so execution acknowledgement remains distinct from verified completion and failed work cannot satisfy dependencies.

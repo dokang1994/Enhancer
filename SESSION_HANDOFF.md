@@ -1,5 +1,86 @@
 # Session Handoff
 
+- The Gate 8 connection backlog is now aligned with the implemented queue/runtime contracts and `.ai/` rules: fence-checked execution completion reaches `AWAITING_VERIFICATION` only and cannot directly complete the queue or satisfy dependencies.
+- The next bounded Gate 8 contract is durable queue terminal disposition, distinguishing verified completion from failure before releasing Scheduler capacity or changing the dependency-satisfaction set.
+- Remaining connections are ordered and gate-owned: RunRecord-backed result finalization; process-isolated worker/local IPC; durable controls; effect ledger/fencing; retry through additional AgentRuns; and Gate 13 typed handoff/multi-agent execution.
+- The stale Roadmap RFC wording is corrected: existing bounded Gate 8 work remains valid, while detailed RFC work is still required before process workers, concrete IPC production wiring, broader Scheduler policy, or Operational promotion.
+- This documentation alignment changes no production/test code, capability maturity, Constitution text, Agent operating rules, external authority, or release state.
+- Fresh verification passed 24 focused actual-document tests (23 passed, 1 existing Windows symbolic-link skip) and the full 57-suite/251-test regression (249 passed, 2 existing skips), with no failure or error; structural/reference and whitespace checks also passed.
+
+## Next-Session Design Brief: Why The Completion Conflict Happened
+
+The conflict was caused by one word, `completion`, naming three different lifecycle facts that were implemented in separate increments:
+
+1. Worker execution completion: the fenced owner has stopped executing and the runtime moves to `AWAITING_VERIFICATION`.
+2. Verified runtime completion: an independently supported `ResultPayload` completes or fails the AgentRun and Goal.
+3. Scheduler queue completion: `completeActive` adds the WorkItem to `completedWorkItemIds`, releases the active slot, and allows dependent work to become ready.
+
+Each individual contract was internally consistent. The conflict appeared when the previous next-task sentence proposed connecting fact 1 directly to fact 3 without re-checking fact 2. That wording was written after the dispatch and lease increments, while queue completion still carried its earlier dependency-satisfaction meaning. The compact `.ai/architecture.md` described current contracts but did not contain an ordered connection backlog, so it did not expose the missing middle transition. A separate stale Roadmap sentence also still said Agent Runtime and Scheduler could not become active before detailed RFC work, even though bounded Gate 8 work was already Contract Verified or Integrated.
+
+The unsafe interpretation is now rejected:
+
+- `EXECUTING -> AWAITING_VERIFICATION` must not call `completeActive`.
+- A worker acknowledgement must not add a WorkItem to the dependency-satisfaction set.
+- Releasing capacity must not be represented as successful completion merely because the current queue has only pending, active, and completed states.
+
+## Next-Session Design Choices
+
+### Option A: Keep The Queue Item Active Through Verification
+
+Current recommendation for the next bounded implementation.
+
+Advantages:
+
+- smallest change consistent with the current schema-v1 queue and single-worker design;
+- preserves Verified-only completion without a new intermediate queue state;
+- keeps crash recovery and cross-store ordering easier to prove;
+- prevents another WorkItem from starting while the current result is unresolved, which is conservative and deterministic.
+
+Cost:
+
+- verification latency occupies the single Scheduler slot and reduces throughput;
+- a slow or unavailable verifier blocks unrelated ready work in that queue.
+
+### Option B: Add A Non-Terminal Awaiting-Verification Queue State
+
+Potential later throughput improvement.
+
+Advantages:
+
+- releases the execution slot while verification proceeds;
+- permits another independent WorkItem to execute without falsely satisfying dependencies.
+
+Required additional design:
+
+- a durable queue-state/schema change and recovery rules for the waiting set;
+- separate execution and verification capacity limits/backpressure;
+- ordering and fairness between pending execution and pending verification;
+- cancellation, timeout, restart, and orphan behavior for both stages;
+- a rule that waiting work remains outside the dependency-satisfaction set.
+
+This is more scalable but is not the smallest safe next increment.
+
+### Option C: Mark The Queue Completed At Execution Acknowledgement
+
+Rejected.
+
+It is simple and releases capacity, but it lets dependent work start before independent verification and makes a worker receipt equivalent to completion authority. That conflicts with the Constitution-backed verification model, existing Gate 3/4 behavior, Runtime AgentRun states, and Gate 8 Verified-only terminal contract.
+
+## Recommended Implementation Order To Discuss
+
+1. Add terminal queue dispositions such as verified-completed and failed, replacing the assumption that every released active item belongs to one success-only completed set.
+2. Keep the active WorkItem occupied through verification for the first contract.
+3. For the result path, persist and resolve the RunRecord first, produce the matching `ResultPayload`, persist AgentRun/Goal terminal state second, and persist the matching queue disposition last.
+4. Make restart recovery idempotently finish the missing suffix of that order without claiming a cross-store transaction.
+5. Decide failure dependency behavior explicitly. The safest initial rule is that failed work never satisfies a dependency and dependents remain blocked with an inspectable reason; automatic dependent failure or failure-tolerant dependencies require later policy.
+6. Reconsider Option B only after the terminal-disposition and result paths are Contract Verified and verification throughput is a demonstrated bottleneck.
+
+Questions for the next session:
+
+- Should the first terminal-disposition contract keep the active slot through verification as recommended, or is concurrent execution during verification already a required user scenario?
+- Should a failed dependency leave dependents blocked for user action, or durably propagate a failure disposition to them?
+- Should the queue format advance to schema v2, or may the unreleased schema-v1 format be revised with an explicit local-artifact compatibility decision?
+- What exact durable identity links one RunRecord, ResultPayload, AgentRun terminal transition, and queue disposition during recovery?
 - Gate 8 now has an Integrated durable queue-to-AgentRun dispatch path: one active or ready exact WorkItem reaches Goal creation/recovery, named AgentRun planning/readiness, and fenced lease acquisition through persisted-prefix re-entry.
 - Queue and runtime remain separate durable artifacts. Claim failure creates no runtime; later runtime failure leaves an intentional recoverable active claim, and repeated same-owner calls resume without renewing an existing lease.
 - Fresh dispatch evidence includes 31/31 focused tests, a 57-suite/251-test full regression (249 passed, 2 existing Windows symbolic-link skips), and strict lint across 149 production sources.
@@ -271,7 +352,7 @@
 - Gate 5: Operational for one governed read-only local CLI scenario.
 - Gate 6: Integrated by the user-approved re-scope-and-promotion decision; the production view and graph composition remain Operational sub-capabilities.
 - Gate 7: Contract Verified after fresh assessment. The work-message queue path is Integrated; result/control/handoff, non-empty causation, topic and remaining reliability branches, and `MessageTransport` remain contract-only. Durable messaging, a concrete adapter, and a supported production entry point do not exist.
-- Gate 8: Specified - Next; immutable `WorkItem` admission, the dependency-ready single-worker queue, durable schema-v1 queue state/restart recovery, the durable one-Goal/one-AgentRun lifecycle, and fenced single-owner lease/expiry recovery are Contract Verified; durable queue-to-lifecycle dispatch is Integrated, while execution acknowledgement, retry, effect records/fencing, workers, and production wiring do not yet exist.
+- Gate 8: Specified - Next; immutable `WorkItem` admission, the dependency-ready single-worker queue, durable schema-v1 queue state/restart recovery, the durable one-Goal/one-AgentRun lifecycle, and fenced single-owner lease/expiry recovery are Contract Verified; durable queue-to-lifecycle dispatch is Integrated. Execution acknowledgement exists only as `AWAITING_VERIFICATION`; terminal queue disposition, Result/RunRecord production wiring, retry, effect records/fencing, workers, and broader production wiring do not yet exist.
 - Gate 6 repository-memory path (real governed run -> real memory -> collector -> composed view with divergence detection): Integrated.
 - Gate 6 production composition: Operational for the governed read-only CLI scenario; every recorded `run` reports bounded snapshot identity, observation count, and memory freshness.
 - Gate 6 `WorkspaceSnapshot`, `ProjectBrainView`, graph projection contract, `TaskImpactQuery`, `AcceptedDecisionProjector`, and `RunRecordMetadataCollector`: Integrated through the fresh promotion audit against named pre-existing integration evidence.
@@ -285,7 +366,7 @@
 
 ## Next Task
 
-Couple matching fence-checked AgentRun execution completion to durable queue acknowledgement with recoverable ordering. Do not combine Tool execution, result messages, retry, effect records, or power-loss directory durability.
+Define the Gate 8 durable queue terminal-disposition contract so execution acknowledgement remains distinct from verified completion, failed work cannot satisfy dependencies, and later ResultPayload integration has an unambiguous recoverable target.
 
 ## Remaining Risks
 
@@ -303,5 +384,5 @@ Couple matching fence-checked AgentRun execution completion to durable queue ack
 3. Inspect `git status --short` and the current `main`/`origin/main` log; delivery commit `4ada41c` is the implementation baseline for the Integrated Gate 8 queue-to-AgentRun dispatch path above.
 4. If the host has no JDK, provision Java 17 through `.tools/jdk17` (this host already has `jdk-17.0.19+10` there) or run `scripts/setup-dev.ps1`; `scripts/gradle.ps1` then works normally.
 5. The only external command authority is the decision-scoped read-only Git adapter; any new external command capability requires its own explicit user approval.
-6. Activate the next Gate 8 fence-checked execution-acknowledgement increment; retain separate durable boundaries and do not combine worker execution, result handling, or effects.
+6. Activate the Gate 8 terminal queue-disposition contract; preserve the distinction among execution acknowledgement, independently verified terminal state, and dependency satisfaction.
 7. Do not commit or push future changes without a new explicit user request.

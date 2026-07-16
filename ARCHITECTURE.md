@@ -299,7 +299,27 @@ This sub-capability and its fenced single-owner lease are Contract Verified. Lea
 
 The queue and runtime stores remain separate atomic artifacts. Queue claim occurs first, so a claim failure creates no runtime state. A later runtime-store failure intentionally leaves the queue item active and retains any durable runtime prefix. Re-entry with the same WorkItem, Goal, AgentRun, and current owner resumes that prefix; an existing unexpired same-owner lease is returned without renewal or revision, while mismatched WorkItem, AgentRun, owner, or post-execution state fails closed. Runtime recovery checks exact WorkItem equality before expiry reclamation, so mismatched state is not mutated.
 
-The filesystem integration recovers both real stores: queue recovery requeues the interrupted active item, the dispatcher claims that same admission-ordered WorkItem again, and runtime recovery returns the exact existing Unicode-bearing unexpired lease. This named path is Integrated, but it does not complete the queue, invoke a Tool or worker, consume a result message, record or fence an external effect, add retry, or claim cross-store atomicity. The next bounded integration couples fence-checked execution completion to queue acknowledgement without executing a Tool.
+The filesystem integration recovers both real stores: queue recovery requeues the interrupted active item, the dispatcher claims that same admission-ordered WorkItem again, and runtime recovery returns the exact existing Unicode-bearing unexpired lease. This named path is Integrated, but it does not complete the queue, invoke a Tool or worker, consume a result message, record or fence an external effect, add retry, or claim cross-store atomicity.
+
+### Gate 8 Connection Sequence And Completion Boundary
+
+Fence-checked execution completion and Scheduler queue completion are different facts. `DurableAgentRuntime.completeExecution` persists `EXECUTING -> AWAITING_VERIFICATION` and releases the lease; it proves that the current fenced owner finished its execution phase, not that independent verification passed. `SingleWorkerSchedulerQueue.completeActive` adds the WorkItem to `completedWorkItemIds`, and that set is the dependency-satisfaction source used to release dependent work. The runtime transition therefore MUST NOT directly invoke queue completion or be described as verified completion, logical completion, or dependency satisfaction.
+
+Under the current schema-v1 contracts, a queue item remains active while its AgentRun is `AWAITING_VERIFICATION`. Releasing the single active slot earlier would require a separately accepted durable waiting state that remains outside `completedWorkItemIds`. The next bounded Gate 8 contract is therefore terminal queue disposition: verified completion may satisfy dependencies, while failed disposition must remain explicit and cannot satisfy dependents merely to release capacity.
+
+The remaining production connections follow this dependency order:
+
+| Order | Connection | Owning boundary | Required durable ordering |
+|---|---|---|---|
+| 1 | terminal queue disposition | Gate 8 Scheduler | distinguish verified completion from failure before changing the dependency-satisfaction set |
+| 2 | RunRecord-backed result finalization | Gate 7 result delivery + Gate 8 runtime | durable RunRecord resolution -> matching `ResultPayload` -> persisted AgentRun/Goal terminal state -> matching queue disposition |
+| 3 | process-isolated worker and local IPC | Gate 7 transport + Gate 8 worker runtime + Gate 11 Tool controls | select the adapter and process lifecycle before allowing long-running Tool execution; transport acceptance never means bus delivery or work completion |
+| 4 | durable cancel/pause/resume | Gate 7 control delivery + Gate 8 state + Gate 12 authenticated controls | persist the accepted control state before exposing it; control cannot create scope or authority |
+| 5 | external-effect ledger | Gate 8 Scheduler, with the owning Tool/adapter gate | fence-check and idempotently record applied, deduplicated, compensated, or user-recovery outcomes |
+| 6 | retry and replacement AgentRuns | Gate 8 Scheduler | preserve terminal history and create a new immutable AgentRun under bounded policy rather than rewriting a failed run |
+| 7 | typed handoff and multi-agent execution | Gate 13 over Gates 7 and 8 | require an Operational single-agent baseline, isolated ownership, deterministic synthesis, and one Kernel terminal-state coordinator |
+
+Each cross-store step persists its earlier authoritative artifact before the later derived artifact. Recovery re-enters idempotently from the durable prefix; it does not claim an atomic transaction. A concrete IPC adapter, process worker, result consumer, control consumer, effect ledger, retry policy, and handoff coordinator remain unimplemented until their own bounded tasks and fresh integration evidence exist.
 
 ### Gate 8 Scheduler Delivery Semantics
 
