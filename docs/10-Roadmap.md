@@ -20,7 +20,7 @@ These states do not replace the Constitution task lifecycle. A task can be Compl
 
 Delivery Gates 0 through 4 are Integrated: governed planning remains separate from explicit approval, and approved work passes through policy and the read-only Tool boundary into bounded, resolvable evidence, a Tool-result-driven loop transition, independent verification, and a replayable RunRecord. Delivery Gate 5 is Operational through the supported local `EnhancerCli` `run` and `replay` commands.
 
-Enhancer now has one deliberately narrow Operational read-only scenario and a Contract Verified metadata-only Workspace snapshot contract. It still has no Workspace collection or Project Brain integration, LLM call, event bus, scheduler, or broader Agent Runtime.
+Enhancer now has one deliberately narrow Operational read-only scenario. Gate 6 Workspace and Project Brain is Integrated, with the production CLI composing its view and graph Operationally. Gate 7 is Specified - Next: its reference-only envelope and deterministic in-process delivery contracts cover topic/queue delivery, idempotency, replay, failure isolation, bounded retry, dead letters, cancellation, and run-to-completion ordering. It still has no backpressure, durable or IPC transport, LLM call, scheduler, broader Agent Runtime, or multi-agent runtime.
 
 ## Delivery Sequence
 
@@ -45,9 +45,9 @@ Enhancer now has one deliberately narrow Operational read-only scenario and a Co
 
 ## Immediate Next Task
 
-Activate the next Delivery Gate 6 task and consume the Contract Verified `WorkspaceSnapshot` in a minimal read-only `ProjectBrainView` with repository-memory and RunRecord provenance. Preserve immutable snapshot identity, bounded context, and the rule that observations cannot grant Tool authority.
+Activate the next Delivery Gate 7 task and define bounded backpressure over the in-process bus's explicit pending queue. Preserve run-to-completion ordering, cancellation admission, replay non-journaling, idempotency, failure isolation, and envelope authority.
 
-Do not add source adapters, command authority, network access, LLM calls, event delivery, scheduling, or multi-agent routing in that integration task.
+Do not add threading, persistence, IPC transport, production wiring, network access, LLM calls, scheduling, or multi-agent routing in that increment.
 
 V1, V2, and V3 are product milestones layered over delivery gates: V1 is the development experience, V2 is the Agent/workflow platform, and V3 is the AI Kernel and Project Brain operating system. They are not substitutes for verified maturity states.
 

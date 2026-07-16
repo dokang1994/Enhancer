@@ -8,6 +8,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -16,12 +17,20 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Read-only Workspace source adapter over the Git working tree. Under the explicitly granted
  * external command authority it executes exactly two fixed read-only commands with no shell,
- * a hard timeout, and a bounded output cap, and stores only a digest of each output. Every
- * failure is an explicit Unavailable observation; no mutating invocation exists here, and this
- * authority does not extend to any other component.
+ * inherited Git overrides, external diff helpers, or text conversion. It applies a hard timeout
+ * and bounded output cap, and stores only a digest of each output. Every failure is an explicit
+ * Unavailable observation; no mutating invocation exists here, and this authority does not
+ * extend to any other component.
  */
 public final class GitWorkspaceCollector {
     public static final int MAX_OUTPUT_BYTES = 4 * 1024 * 1024;
+
+    static final List<String> STATUS_COMMAND = List.of(
+            "git", "--no-optional-locks", "-c", "core.fsmonitor=false",
+            "status", "--porcelain");
+    static final List<String> DIFF_COMMAND = List.of(
+            "git", "--no-optional-locks", "-c", "core.fsmonitor=false",
+            "diff", "--no-ext-diff", "--no-textconv");
 
     private static final String PROVENANCE = "git-cli";
     private static final long TIMEOUT_SECONDS = 5;
@@ -38,15 +47,13 @@ public final class GitWorkspaceCollector {
                         observedAt,
                         WorkspaceSourceKind.GIT_STATUS,
                         "working-tree",
-                        "git", "--no-optional-locks", "-c", "core.fsmonitor=false",
-                        "status", "--porcelain"),
+                        STATUS_COMMAND),
                 observe(
                         projectRoot,
                         observedAt,
                         WorkspaceSourceKind.GIT_DIFF,
                         "working-tree-diff",
-                        "git", "--no-optional-locks", "-c", "core.fsmonitor=false",
-                        "diff"));
+                        DIFF_COMMAND));
     }
 
     private WorkspaceSourceObservation observe(
@@ -54,7 +61,7 @@ public final class GitWorkspaceCollector {
             Instant observedAt,
             WorkspaceSourceKind kind,
             String sourceId,
-            String... command) {
+            List<String> command) {
         try {
             return available(kind, sourceId, observedAt, digest(projectRoot, command));
         } catch (IOException exception) {
@@ -65,11 +72,12 @@ public final class GitWorkspaceCollector {
         }
     }
 
-    private String digest(Path projectRoot, String... command)
+    private String digest(Path projectRoot, List<String> command)
             throws IOException, InterruptedException {
         ProcessBuilder builder = new ProcessBuilder(command)
                 .directory(projectRoot.toFile())
                 .redirectError(ProcessBuilder.Redirect.DISCARD);
+        sanitizeEnvironment(builder.environment());
         Path parent = projectRoot.toAbsolutePath().normalize().getParent();
         if (parent != null) {
             builder.environment().put("GIT_CEILING_DIRECTORIES", parent.toString());
@@ -106,6 +114,12 @@ public final class GitWorkspaceCollector {
             process.destroyForcibly();
             watchdog.interrupt();
         }
+    }
+
+    static void sanitizeEnvironment(Map<String, String> environment) {
+        Objects.requireNonNull(environment, "environment must not be null");
+        environment.keySet().removeIf(key ->
+                key.regionMatches(true, 0, "GIT_", 0, "GIT_".length()));
     }
 
     private static Thread watchdog(Process process, AtomicBoolean timedOut) {

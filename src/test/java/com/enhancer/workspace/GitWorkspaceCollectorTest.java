@@ -1,6 +1,7 @@
 package com.enhancer.workspace;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
@@ -10,7 +11,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
@@ -86,6 +89,58 @@ class GitWorkspaceCollectorTest {
             assertEquals(Optional.empty(), observation.contentSha256());
             assertTrue(observation.reason().isPresent());
         }
+    }
+
+    @Test
+    void disablesARepositoryConfiguredExternalDiffHelper() throws Exception {
+        assumeTrue(gitAvailable(), "git is not available on this host");
+        Path repository = Files.createDirectories(temporaryRoot.resolve("external-diff-repository"));
+        git(repository, "init");
+        Files.writeString(
+                repository.resolve("tracked.txt"),
+                "original\n",
+                StandardCharsets.UTF_8);
+        git(repository, "add", "tracked.txt");
+        git(repository, "config", "diff.external", "enhancer-helper-that-does-not-exist");
+        Files.writeString(
+                repository.resolve("tracked.txt"),
+                "changed\n",
+                StandardCharsets.UTF_8);
+
+        List<WorkspaceSourceObservation> observations = new GitWorkspaceCollector().observe(
+                repository,
+                OBSERVED_AT);
+
+        assertEquals(WorkspaceSourceState.AVAILABLE, observations.get(0).state());
+        assertEquals(WorkspaceSourceState.AVAILABLE, observations.get(1).state(),
+                "the fixed read-only diff must not execute a repository-configured helper");
+    }
+
+    @Test
+    void removesInheritedGitOverridesWithoutRemovingTheExecutablePath() {
+        Map<String, String> environment = new HashMap<>();
+        environment.put("PATH", "expected-path");
+        environment.put("GIT_DIR", "outside.git");
+        environment.put("GIT_WORK_TREE", "outside-work-tree");
+        environment.put("GIT_EXTERNAL_DIFF", "external-helper");
+        environment.put("GIT_CONFIG_COUNT", "1");
+        environment.put("GIT_CONFIG_KEY_0", "diff.external");
+        environment.put("GIT_CONFIG_VALUE_0", "injected-helper");
+
+        GitWorkspaceCollector.sanitizeEnvironment(environment);
+
+        assertEquals("expected-path", environment.get("PATH"));
+        assertFalse(environment.keySet().stream().anyMatch(key -> key.startsWith("GIT_")),
+                "the child process must not inherit Git repository or helper overrides");
+    }
+
+    @Test
+    void fixedDiffCommandDisablesExternalDiffAndTextConversion() {
+        assertTrue(GitWorkspaceCollector.DIFF_COMMAND.contains("--no-ext-diff"));
+        assertTrue(GitWorkspaceCollector.DIFF_COMMAND.contains("--no-textconv"));
+        assertEquals(2, List.of(
+                GitWorkspaceCollector.STATUS_COMMAND,
+                GitWorkspaceCollector.DIFF_COMMAND).size());
     }
 
     @Test

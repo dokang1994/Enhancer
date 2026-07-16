@@ -57,6 +57,7 @@ public final class InProcessMessageBus {
     private final Deque<Pending> pending = new ArrayDeque<>();
     private final RetryPolicy retryPolicy;
     private boolean draining;
+    private boolean journalCausedPublications = true;
 
     /** Creates a bus that invokes every handler exactly once and never retries. */
     public InProcessMessageBus() {
@@ -126,10 +127,8 @@ public final class InProcessMessageBus {
     public List<DeliveryOutcome> publish(DeliveryDestination destination, MessageEnvelope envelope) {
         Objects.requireNonNull(destination, "destination must not be null");
         Objects.requireNonNull(envelope, "envelope must not be null");
-        if (isCancelled(envelope.correlationId())) {
-            return List.of(cancelled(destination, envelope));
-        }
-        return submit(List.of(new Pending(destination, envelope, true)));
+        boolean journal = !draining || journalCausedPublications;
+        return submit(List.of(new Pending(destination, envelope, journal)));
     }
 
     /**
@@ -231,11 +230,18 @@ public final class InProcessMessageBus {
                 if (next.journal()) {
                     journal.add(new JournaledMessage(next.destination(), next.envelope()));
                 }
-                outcomes.addAll(dispatch(next.destination(), next.envelope()));
+                boolean previousJournalMode = journalCausedPublications;
+                journalCausedPublications = next.journal();
+                try {
+                    outcomes.addAll(dispatch(next.destination(), next.envelope()));
+                } finally {
+                    journalCausedPublications = previousJournalMode;
+                }
             }
             return List.copyOf(outcomes);
         } finally {
             draining = false;
+            journalCausedPublications = true;
             pending.clear();
         }
     }

@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-07-16 - Synchronize PR #3 And Current Repository State
+
+- Verified local `main` and `origin/main` already match PR #3 merge commit `52987f2`; no checkout or pull was necessary.
+- Replaced stale current-state claims that retry, cancellation, and ordering were uncommitted or that `e74be87` was the published tip.
+- Aligned canonical and compact guidance with Gate 6 Integrated, Gate 7 Specified - Next, current delivery and Git boundaries, and backpressure next.
+
+## 2026-07-16 - Harden Git Workspace Observation Authority
+
+- Removed inherited `GIT_*` overrides from the two authorized Git child processes while preserving unrelated process environment.
+- Disabled external diff and text-conversion helpers explicitly without adding another command or widening authority.
+- Added focused security regression coverage and passed the 186-test full suite plus Java 17 strict lint.
+
+## 2026-07-16 - Correct Gate 7 Replay Cascades
+
+- Reproduced and fixed replay-caused publications appending to the live journal.
+- Routed every publication through drain-owned admission so cancelled re-entrant work remains visible in the ordered cascade without delivery or journaling.
+- Added focused regression coverage and passed the 183-test full suite plus Java 17 strict lint.
+
 ## 2026-07-16
 
 - Added Contract Verified Gate 7 run-to-completion delivery ordering on `InProcessMessageBus`: a pending queue and a single drain loop replace nested dispatch, so a publication made from inside a handler is queued and reports the new scope-level `ENQUEUED` status while the draining top-level `publish` or `replay` returns the whole ordered cascade; delivery order now equals publication order and no subscriber observes an effect before its cause. Admission and journaling moved into the drain loop, so the journal's order is the bus's own delivery order and a correlation cancelled mid-cascade refuses entries queued behind it while an in-flight fan-out stays atomic; an `Error` abandons the cascade entirely.

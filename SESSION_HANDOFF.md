@@ -6,6 +6,10 @@
 
 ## Completed Work
 
+- Corrected the Gate 7 replay cascade: handler publications caused by replay inherit non-journaling mode, and every publication reaches drain-owned cancellation admission.
+- Hardened `GitWorkspaceCollector` by removing inherited `GIT_*` overrides and explicitly disabling external diff and text-conversion helpers without widening its two-command authority.
+- Synchronized canonical and compact current-state guidance with PR #3 merge commit `52987f2`, Gate 6 Integrated, Gate 7 Specified - Next, and backpressure as the next separately activated increment.
+
 - Implemented the sixth Delivery Gate 7 increment: Contract Verified run-to-completion delivery ordering on `InProcessMessageBus` — a pending queue and a single drain loop replace nested dispatch, so a publication made from inside a handler is queued and reports the scope-level `ENQUEUED` status while the draining top-level `publish` or `replay` returns the whole ordered cascade; delivery order equals publication order, no subscriber observes an effect before its cause, admission and journaling happen in the drain loop so the journal's order is the bus's delivery order, a correlation cancelled mid-cascade refuses entries queued behind it while an in-flight fan-out stays atomic, and an `Error` abandons the cascade entirely. The ordering defect was proven real behaviourally before the fix.
 - Implemented the fifth Delivery Gate 7 increment: Contract Verified correlation-scoped cancellation propagation on `InProcessMessageBus` — `cancel(correlationId)` is idempotent and monotonic with no resume, and a cancelled correlation is refused admission before subscription lookup, idempotency, and dispatch on every path (publish, replay, and dead-letter re-delivery), reporting a scope-level `CANCELLED` outcome that names no subscription, invoking no handler, consuming no idempotency key, creating no dead letter, and appending nothing to the journal so fresh-bus replay stays deterministic; cancellation dominates both `UNROUTED` and `DUPLICATE`, and the bus reads no payload to decide delivery, keeping `ControlSignal.CANCEL` a consumer semantic.
 - Implemented the fourth Delivery Gate 7 increment: Contract Verified bounded synchronous retry and explicit dead-letter re-delivery on `InProcessMessageBus` — an immutable `RetryPolicy` (1-10 attempts; the default bus keeps a single attempt) retries a failing handler immediately with no delay before dead-lettering it with its failed attempt count (`DeadLetter.attempts`), and `redeliver` accepts only a currently recorded dead letter, resolves it on success, and on renewed exhaustion replaces it in place with the accumulated attempt count and latest reason, never appending to the journal or releasing the consumed idempotency key.
@@ -71,8 +75,8 @@
 - `gate-6-task-justification-references` (published through `0e2be2c`), `gate-6-authority-boundary-evidence`, and `gate-6-target-file-observation` are Completed; their records are preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
 - `gate-6-git-workspace-adapter` is Completed and published through `21e6230`; `gate-6-maturity-assessment` is Completed with its record preserved in `PROJECT_STATE.md`.
 - `gate-6-rescope-and-promotion` is Completed; its record is preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
-- `CURRENT_TASK.md` is Completed for `gate-7-delivery-ordering`; the prior `gate-7-cancellation-propagation`, `gate-7-bounded-retry-redelivery`, and `gate-7-delivery-failure-dead-letter` records are preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
-- Three increments are implemented and verified in the working tree and NOT committed: bounded retry and re-delivery (`RetryPolicy`, `DeadLetter.attempts`, `redeliver`), cancellation propagation (`DeliveryStatus.CANCELLED`, `cancel`, `isCancelled`), and delivery ordering (`DeliveryStatus.ENQUEUED`, `isScopeLevel`, the pending queue and drain loop), plus their tests and synchronized documents. Committing and publishing require an explicit user request.
+- PR #3 published bounded retry/re-delivery, cancellation propagation, and delivery ordering on `origin/main`; local `main` and `origin/main` both point at merge commit `52987f2`.
+- The replay-cascade correction, Git Workspace authority hardening, and repository-state synchronization are the current local uncommitted changes. Committing and publishing require an explicit user request.
 - The Gate 7 in-process delivery surface and its delivery-failure and dead-letter handling are committed and published on `origin/main` through delivery commit `b278c53`; the unrelated wall-clock test correction is published through `2a69182`.
 - Local build note: this host had no JDK, so Java 17 was provisioned by junctioning `C:/Users/dokan/.jdks/corretto-17.0.14` into the Git-ignored `.tools/jdk17-runtime`; `scripts/gradle.ps1` then works normally.
 - The maturity assessment, the re-scope-and-promotion, and the Gate 7 envelope contract are committed and published on `origin/main` through delivery commit `3423201`.
@@ -90,7 +94,7 @@
 - Ordering RED, second pass: after adding only those two symbols so the suite could run, three focused tests failed behaviourally against the real defect — two observed `[first, child, second]` where `[first, second, child]` was required, proving a cascaded child was delivered inside its parent's fan-out, and one observed `DELIVERED` where `ENQUEUED` was required; classified as aligned missing implementation.
 - Ordering focused GREEN: `InProcessMessageBusTest` passed 25 tests (20 prior plus 5 new) and `MessageEnvelopeTest` 4 with no skips, failures, or errors, confirmed against fresh XML.
 - Current full command: `.\scripts\gradle.ps1 --no-daemon clean test --warning-mode all`.
-- Current full result: 44 suites, 181 tests, 179 passed, 2 Windows symbolic-link setup skips, 0 failures, and 0 errors; Gradle emitted no deprecation warning; Java 17 production compilation of all 114 sources passed with `-Xlint:all -Werror`.
+- Current full result: 44 suites, 186 tests, 184 passed, 2 Windows symbolic-link setup skips, 0 failures, and 0 errors; Gradle emitted no deprecation warning; Java 17 production compilation of all 114 sources passed with `-Xlint:all -Werror`.
 - Earlier cancellation RED: 19 expected errors naming only the absent `CANCELLED` constant and the `cancel`/`isCancelled` operations; focused GREEN passed 20 `InProcessMessageBusTest` tests and the full 176-test regression.
 - Earlier retry/re-delivery RED: 16 expected errors naming only the absent `RetryPolicy` type, policy constructor, `redeliver` operation, `DeadLetter.attempts()` accessor, and five-component `DeadLetter` constructor; focused GREEN passed 15 `InProcessMessageBusTest` tests and the full 171-test regression.
 - Earlier failure/dead-letter RED: 8 expected errors naming only the absent `DeliveryStatus.FAILED` constant, `DeadLetter` type, and `deadLetters()` accessor with no non-bus error; focused GREEN passed 10 `InProcessMessageBusTest` tests.
@@ -158,17 +162,17 @@
 - Gates 1 through 4: Integrated.
 - Gate 5: Operational for one governed read-only local CLI scenario.
 - Gate 6: Integrated by the user-approved re-scope-and-promotion decision; the production view and graph composition remain Operational sub-capabilities.
-- Gate 7: Specified - Next; its `MessageEnvelope` contract, its `InProcessMessageBus` deterministic topic/queue delivery with idempotency and journal replay, its delivery-failure isolation with dead-letter capture, its bounded synchronous retry with explicit dead-letter re-delivery, its correlation-scoped cancellation propagation, and its run-to-completion delivery ordering are Contract Verified, with no backoff, pause/resume, priority ordering, backpressure, persistence, or IPC transport, and no wiring into the CLI or Agent Loop.
+- Gate 7: Specified - Next; its `MessageEnvelope` contract, its `InProcessMessageBus` deterministic topic/queue delivery with idempotency and journal replay, its delivery-failure isolation with dead-letter capture, its bounded synchronous retry with explicit dead-letter re-delivery, its correlation-scoped cancellation propagation, and its run-to-completion delivery ordering are Contract Verified. Replay cascades remain non-journaling and all publications reach drain-owned admission; there is still no backoff, pause/resume, priority ordering, backpressure, persistence, IPC transport, or wiring into the CLI or Agent Loop.
 - Gate 6 repository-memory path (real governed run -> real memory -> collector -> composed view with divergence detection): Integrated.
 - Gate 6 production composition: Operational for the governed read-only CLI scenario; every recorded `run` reports bounded snapshot identity, observation count, and memory freshness.
 - Gate 6 `WorkspaceSnapshot`, `ProjectBrainView`, graph projection contract, `TaskImpactQuery`, `AcceptedDecisionProjector`, and `RunRecordMetadataCollector`: Integrated through the fresh promotion audit against named pre-existing integration evidence.
 - Gate 6 `TaskJustificationProjector` and the `Justified By` reference grammar: Integrated; the first real reference resolved on the actual repository.
-- Gate 6 `TargetFileMetadataCollector` and `GitWorkspaceCollector`: Integrated on the production CLI path; Git observation runs under explicitly granted, decision-scoped read-only external command authority.
+- Gate 6 `TargetFileMetadataCollector` and `GitWorkspaceCollector`: Integrated on the production CLI path; Git observation runs under explicitly granted, decision-scoped read-only external command authority with inherited Git overrides removed and external diff/text-conversion helpers disabled.
 - Gate 6 authority-boundary exit criterion: pinned by `WorkspaceAuthorityBoundaryIntegrationTest`.
 - Gate 6 repository-memory and run-evidence production paths: Integrated.
 - Gate 6 production view and graph composition: Operational for the governed read-only CLI scenario; impact answers carry executions and explicitly justified decisions, and modifies/verified-by producers do not exist.
 - Gate 0 integration proves planning, explicit external activation, verified execution, persistence, and replay without changing Proposal authority.
-- Workspace source adapters and live collection, LLM invocation, Event/Message Bus, IPC, Scheduler, broader Agent Runtime, MCP, Skills, plugins, multi-agent execution, background execution, and release packaging remain unimplemented.
+- Remaining editor/diagnostic Workspace adapters, LLM invocation, production Event/Message Bus wiring, IPC, Scheduler, broader Agent Runtime, MCP, Skills, plugins, multi-agent execution, background execution, and release packaging remain unimplemented.
 
 ## Next Task
 
@@ -186,8 +190,8 @@ Activate the next Delivery Gate 7 increment under separate explicit activation: 
 ## Instructions For Next Agent
 
 1. Read `.ai/` and every canonical startup document in repository order.
-2. Confirm Gate 7 is the sole `Specified - Next` gate status marker and `CURRENT_TASK.md` records `gate-7-delivery-ordering` as Completed.
-3. The Gate 7 bounded retry/re-delivery, cancellation-propagation, and delivery-ordering increments are implemented and verified but NOT committed; the last published commit on `origin/main` is `e74be87`. Committing and publishing the working tree require an explicit user request.
+2. Confirm Gate 7 is the sole `Specified - Next` gate status marker and `CURRENT_TASK.md` records `repository-state-synchronization` as Completed.
+3. Confirm local `main` and `origin/main` remain at PR #3 merge commit `52987f2`. Only the replay-cascade correction, Git Workspace authority hardening, and synchronized documents are local uncommitted work; commit or publish them only on an explicit user request.
 4. If the host has no JDK, provision Java 17 through `.tools/jdk17` (this host already has `jdk-17.0.19+10` there) or run `scripts/setup-dev.ps1`; `scripts/gradle.ps1` then works normally.
 5. The only external command authority is the decision-scoped read-only Git adapter; any new external command capability requires its own explicit user approval.
 6. Activate a backpressure task over the pending queue before editing production code; defer the IPC transport interface to a later increment.

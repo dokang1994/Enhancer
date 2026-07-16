@@ -124,6 +124,32 @@ class InProcessMessageBusTest {
     }
 
     @Test
+    void replayedCascadeDoesNotAppendCausedPublicationsToTheLiveJournal() {
+        InProcessMessageBus bus = new InProcessMessageBus();
+        DeliveryDestination parent = DeliveryDestination.topic("parent-events");
+        DeliveryDestination child = DeliveryDestination.topic("child-events");
+        MessageEnvelope childEnvelope = envelope("00000000-0000-0000-0000-00000000000b");
+        List<String> received = new ArrayList<>();
+
+        bus.subscribe(parent, "parent-worker", envelope -> {
+            received.add("parent");
+            bus.publish(child, childEnvelope);
+        });
+        bus.subscribe(child, "child-worker", envelope -> received.add("child"));
+
+        List<DeliveryOutcome> outcomes = bus.replay(List.of(new JournaledMessage(
+                parent,
+                envelope("00000000-0000-0000-0000-00000000000a"))));
+
+        assertEquals(List.of("parent", "child"), received);
+        assertEquals(2, outcomes.size(), "the replaying caller must receive the whole cascade");
+        assertTrue(outcomes.stream()
+                .allMatch(outcome -> outcome.status() == DeliveryStatus.DELIVERED));
+        assertTrue(bus.journal().isEmpty(),
+                "a publication caused by replay must inherit replay's non-journaling mode");
+    }
+
+    @Test
     void preservesAuthorizationAndProvenanceAcrossHop() {
         InProcessMessageBus bus = new InProcessMessageBus();
         DeliveryDestination topic = DeliveryDestination.topic("work");
@@ -589,6 +615,36 @@ class InProcessMessageBusTest {
         assertEquals(List.of(parent),
                 bus.journal().stream().map(JournaledMessage::destination).toList(),
                 "a refused cascade entry must not be journaled");
+    }
+
+    @Test
+    void admitsAnAlreadyCancelledReentrantPublicationThroughTheDrain() {
+        InProcessMessageBus bus = new InProcessMessageBus();
+        DeliveryDestination parent = DeliveryDestination.topic("parent-events");
+        DeliveryDestination child = DeliveryDestination.topic("child-events");
+        MessageEnvelope childEnvelope = envelope("00000000-0000-0000-0000-00000000000b");
+        List<DeliveryOutcome> nested = new ArrayList<>();
+        List<String> received = new ArrayList<>();
+
+        bus.subscribe(child, "child-worker", envelope -> received.add("child"));
+        bus.subscribe(parent, "parent-worker", envelope -> {
+            received.add("parent");
+            bus.cancel(childEnvelope.correlationId());
+            nested.addAll(bus.publish(child, childEnvelope));
+        });
+
+        List<DeliveryOutcome> outcomes = bus.publish(
+                parent,
+                envelopeIn("00000000-0000-0000-0000-00000000000a", "parent-correlation"));
+
+        assertEquals(List.of("parent"), received, "the cancelled child must not be delivered");
+        assertEquals(DeliveryStatus.ENQUEUED, nested.get(0).status(),
+                "a re-entrant call only submits work; the drain owns admission");
+        assertEquals(2, outcomes.size(), "the draining caller must observe the refusal");
+        assertEquals(DeliveryStatus.CANCELLED, outcomes.get(1).status());
+        assertEquals(List.of(parent),
+                bus.journal().stream().map(JournaledMessage::destination).toList(),
+                "the cancelled child must not be journaled");
     }
 
     @Test
