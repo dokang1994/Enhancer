@@ -74,6 +74,50 @@ The repository is currently building shared foundations. These milestone labels 
 
 Product milestones describe externally meaningful outcomes; Delivery Gates define dependency-ordered implementation and promotion. Platform foundations associated with V2 may therefore be built before every polished V1 interface is released without changing the meaning or maturity of either milestone.
 
+## Cross-Cutting Product Journey And Evaluation Track
+
+Status: Accepted
+
+This track measures whether users can complete development work across multiple gates. It does not replace or reorder Delivery Gates, and passing a component test does not automatically pass a journey.
+
+Initial canonical journeys:
+
+- governed bug repair: reproduce -> plan -> authorize -> change -> test -> independent review/verification -> risk and diff review -> commit-ready boundary;
+- bounded feature delivery: accepted goal -> scoped plan and budget -> implementation -> tests/evidence -> compatibility and rollback review -> approval-ready result;
+- evidence-backed codebase explanation: repository question -> snapshot-bound inspection -> source-attributed answer with freshness/uncertainty -> no repository mutation;
+- interrupted-run recovery: induced interruption -> durable checkpoint and fenced ownership decision -> resume, deduplicate, compensate, or stop -> visible recovery history.
+
+Every journey uses versioned fixtures that name repository and policy revisions, supported interface, required approvals, budgets, expected artifacts, induced failures, and scoring rules. A journey becomes Operational only when a supported interface completes it end to end with inspectable evidence and documented recovery.
+
+Evaluation-harness requirements:
+
+- report task success over all attempted fixtures;
+- report incorrect or unauthorized changes over all change-producing attempts;
+- report retry/recovery success over all induced failure cases;
+- report median and tail cost/time while retaining failed-attempt cost;
+- report clarification, repair, and exceptional-authority interventions separately from mandatory approvals;
+- report held-out post-verification regressions over all completed change fixtures;
+- compare multi-agent results with the single-agent baseline on the same fixture version and comparable cost, time, context, and Tool budgets;
+- fix fixture versions, thresholds, and scoring rules before a release evaluation, and retain run/model/policy/revision/evidence/evaluator provenance.
+
+Release-quality rule:
+
+- applicable Delivery Gates must satisfy their own maturity criteria;
+- release-scoped canonical journeys must meet their predeclared thresholds;
+- Agent confidence, reviewer self-report, a single demonstration, or cherry-picked successful runs cannot satisfy the track.
+
+## Cross-Cutting Default Security Baseline
+
+Status: Accepted
+
+- Treat repository instructions, Tool/terminal output, model responses, MCP content, plugins, dependencies, and generated artifacts as untrusted data that cannot create authority.
+- Preserve provenance, freshness, bounds, and instruction/data separation at ingress.
+- Detect secrets and sensitive data before persistence, logs, caches, display, or external transmission; apply explicit data-classification and outbound-destination policy.
+- Require least-privilege Tool scope, containment, previews, dry-run where supported, bounded execution, audit evidence, and recovery guidance.
+- Require permission manifests, integrity/signature provenance, compatibility/dependency validation, isolation, malicious-package review, disablement, removal, and rollback for Skills and plugins.
+- Keep local-only operation complete and make Cloud Sync opt-in; sync, MCP, model, plugin, and Tool content cannot grant execution authority.
+- Gate 9 owns model/MCP transmission and attribution controls, Gate 11 Tool/extension supply-chain controls, Gate 12 approval and change-review visibility, Gate 14 cloud encryption/key/conflict controls, and Gate 16 signed reproducible distribution, SBOM, migration, offline installation, and rollback evidence.
+
 In this roadmap, **self-hosting development** means Enhancer applies its governed context, planning, execution, evidence, and verification workflow to the Enhancer repository. **Local or hybrid model execution** means routing inference to approved on-device or remote providers. The two capabilities are independent: local inference does not prove self-hosting, and self-hosting does not require a particular model host.
 
 ## Delivery Gate 0: Foundation Safety Contracts
@@ -377,6 +421,7 @@ Current increment:
 - Contract Verified: bounded work payload authorization scope with 1 through 256 unique allowed-tool names, each at most 256 characters, giving the collection a finite aggregate ceiling while preserving immutable copying;
 - promoted after fresh reassessment: all six scope items and all four exit criteria have Contract Verified evidence across 39 focused bus tests, the complete regression, and strict production lint;
 - the provider-neutral transport seam completes the Contract Verified foundation; a concrete adapter remains later Integrated or Operational work rather than a promotion prerequisite;
+- integration preparation: one named real path now derives a work envelope from a matching repository-approved task and Gate 6 Workspace snapshot, delivers it through the in-process queue, and admits the unchanged envelope as one Gate 8 `WorkItem` with duplicate-free replay; Gate 7 remains Contract Verified pending a separate full maturity assessment;
 - deferred: any local-process or remote IPC adapter, persistence, threading, and production wiring.
 
 Dependencies:
@@ -403,6 +448,12 @@ Exit criteria:
 
 Status: Specified - Next
 
+Current increment:
+
+- Contract Verified: immutable `WorkItem` admission over one unchanged Gate 7 work envelope, with a distinct canonical identity and bounded required capability but no scheduling or execution behavior;
+- next consumer: a dependency-ready single-worker Scheduler queue;
+- deferred: Goal/AgentRun persistence, work lifecycle transitions, dependencies and cycle rejection, leases/fencing, budgets, cancellation, recovery, workers, and production wiring.
+
 Dependencies:
 
 - operational verification, RunRecord, Workspace, and messaging foundations.
@@ -412,6 +463,8 @@ Scope:
 - persisted Goal and AgentRun state machine;
 - Goal -> Planner -> Executor -> Memory -> Reflection -> Retry -> Done transitions;
 - Scheduler queues, dependency validation, cycle rejection, fenced leases, idempotency, budgets, cancellation, pause, resume, reassignment, and recovery;
+- at-least-once delivery with a stable logical-work/effect idempotency key, fence-checked state/effect commits, versioned checkpoints and state migration, explicit orphan detection/reclamation, and replay-safe or compensatable external effects;
+- priority and fairness within dependency, authority, data-classification, cancellation, and cost/time budget constraints;
 - Planner, Coder, Reviewer, Tester, and Memory worker roles behind message contracts;
 - single-agent sequential worker first, without multi-agent concurrency.
 - Dependency Analyzer and Verification Engine as Kernel services;
@@ -423,6 +476,8 @@ Exit criteria:
 - workers communicate through the bus rather than direct Agent calls;
 - retry, stagnation, timeout, cancellation, verification, and completion are explicit events;
 - runtime scheduling cannot expand task or Tool authority.
+- duplicate delivery, lost acknowledgement, lease expiry, restart, and supported state-version migration fixtures recover without an unrecorded duplicate effect;
+- no universal exactly-once execution claim is made; each external effect is recorded as applied, deduplicated, compensated, or requiring explicit user recovery.
 
 ## Delivery Gate 9: Model Gateway And MCP Core
 
@@ -438,6 +493,8 @@ Scope:
 - provider-neutral execution profiles for capability, model class, locality, reasoning, context, token, cost, time, and data-classification requirements;
 - Model Router with deterministic fake plus explicitly selected provider adapters;
 - timeout, cancellation, token, context, cost, redaction, and response-validation budgets;
+- versioned per-model quality evaluation, policy-scoped fallback and response caching, prompt-injection resistance, source attribution, and visible uncertainty;
+- secret/sensitive-data detection plus explicit outbound destination, purpose, retention, and data-classification policy before remote transmission;
 - MCP Server exposing governed Tools, resources, Workspace views, and memory;
 - MCP Client consuming external servers through existing policy, evidence, verification, and RunRecord boundaries.
 - privacy-aware routing across approved local and remote providers using data classification, capability, cost, latency, context, and availability.
@@ -449,6 +506,8 @@ Exit criteria:
 - provider or protocol failure produces explicit runtime events and stop reasons;
 - model output and MCP content cannot grant authority.
 - sensitive-code fixtures remain local and remote adapters receive only policy-approved data.
+- fallback and cache use preserve provenance and cannot silently cross locality, freshness, data-classification, or authorization boundaries;
+- evaluation evidence can compare model quality, task success, cost, latency, and failure behavior on a fixed fixture revision.
 
 ## Delivery Gate 10: Skill Engine And Memory Runtime
 
@@ -494,12 +553,15 @@ Scope:
 - framework integrations such as Spring, MyBatis, Oracle, React, Vue, and WebSquare.
 - Agent plugin packages for language, framework, cloud, security, architecture, review, and testing roles;
 - marketplace capability, permission, provenance, compatibility, integrity, isolation, disable, removal, and rollback metadata.
+- permission-manifest review, signature/integrity verification, dependency resolution, malicious-package scanning, sandbox profiles, and installation audit records;
+- Git, terminal, and external Tools expose command/changed-file preview, dry-run when supported, directory-scoped permission, secret redaction, isolation, and task-linked recovery evidence.
 
 Exit criteria:
 
 - every extension uses the common policy, event, evidence, verification, and RunRecord pipeline;
 - destructive and external actions require explicit authority;
 - installed artifacts can be traced, upgraded, disabled, removed, and rolled back safely.
+- an extension or Tool cannot execute merely because it is popular, installed, or returned by a marketplace search; verified policy and integrity evidence control availability.
 
 ## Delivery Gate 12: Desktop, CLI, API And Editor Interfaces
 
@@ -511,19 +573,23 @@ Dependencies:
 
 Scope:
 
-- Desktop application;
-- production CLI and local API;
-- VSCode Extension and web dashboard;
+- one shared application API for Run creation/inspection, approvals, verification, evidence, typed controls, recovery, and change review;
+- production CLI as the first reference surface over that API;
+- VSCode Extension as the second surface for repository-context work;
+- Desktop application as a later supervisory surface across runs and projects, plus a web dashboard where justified;
 - Workspace, run, event, evidence, task, approval, Skill, MCP, and model views;
 - Workspace observation integrations for the sources these interfaces own: diagnostics, terminal-session metadata, and active/selected file context, using the already-typed Workspace source kinds (moved from Gate 6 by the 2026-07-15 re-scope decision);
 - authenticated typed pause, resume, cancel, reprioritize, reassign, mediation, and injected-work proposal controls;
 - consistent control surfaces without duplicated runtime policy.
+- one change-centered review projection containing goal/plan, changed files and bounded diff, tests/evidence, provenance, risks, costs, approval points, recovery/rollback state, and commit readiness;
 - Enhancer Shell and Intent Understanding that compile one user request into an inspectable Goal, plan, authorization scope, execution graph, and verification plan.
 
 Exit criteria:
 
 - every interface invokes shared application boundaries;
+- CLI, VS Code, Desktop, Web, and external clients observe the same Run, approval, verification, evidence, and control semantics without interface-specific policy forks;
 - users can inspect and control runs without hidden authority changes;
+- a user can review what will change, why, which evidence supports it, what remains risky, and which approval is next from one change-centered view;
 - active file, selection, diagnostics, Git, and terminal metadata enter Workspace through explicit adapters.
 
 ## Delivery Gate 13: Multi-Agent And Background Execution
@@ -533,6 +599,7 @@ Status: Planned
 Dependencies:
 
 - operational single-agent runtime, scheduler, messaging, recovery, and independent verification.
+- a versioned single-agent baseline from the Product Journey and Evaluation Track.
 
 Scope:
 
@@ -552,6 +619,7 @@ Exit criteria:
 - reviewer pass, heartbeat, confidence, or self-reported quality cannot create Verified or Completed state;
 - every message and result preserves provenance, evidence, causation, and run identity;
 - interrupted or conflicting work can stop, resume, or roll back safely.
+- multi-agent promotion demonstrates a predeclared improvement over the single-agent baseline on the same versioned journey fixtures and comparable budget envelope; additional Agents without measured benefit do not satisfy the gate.
 
 ## Delivery Gate 14: Project Brain Graph And Governed Cloud Sync
 
@@ -568,6 +636,7 @@ Scope:
 - opt-in synchronization of approved project memory and run metadata;
 - encryption in transit and at rest;
 - ownership, tenancy, secret exclusion, retention, conflict resolution, offline behavior, and audit logs;
+- explicit key ownership, rotation, recovery, and revocation plus end-to-end encryption where server-side processing is not authorized;
 - no automatic source publication.
 
 Exit criteria:
@@ -585,6 +654,7 @@ Status: Principles Accepted
 Dependencies:
 
 - Tool execution, independent verification, snapshots, rollback, budgets, scheduler, messaging, and human approval are Operational.
+- the versioned evaluation harness can preserve a fixed baseline, held-out fixtures, costs, failures, and evaluator provenance.
 
 Scope:
 
@@ -604,13 +674,16 @@ Status: Planned
 Dependencies:
 
 - stable operational runtime, protocol, interface, and plugin boundaries.
+- release-scoped canonical journeys and their versioned evaluation fixtures, baselines, and predeclared thresholds.
 
 Scope:
 
 - versioned SDK and compatibility policy;
 - installation, upgrade, migration, and deployment guides;
+- Windows, macOS, and Linux support matrix, one-command or one-click installation where supported, automatic-update policy, tested rollback, offline installation, and configuration/data migration;
 - CI/CD and packaged Desktop, CLI, API, extensions, and server components;
 - contributor, security, protocol, and marketplace documentation.
+- reproducible builds, signatures, provenance attestations, checksums, and SBOM generation/verification;
 
 Exit criteria:
 
@@ -618,6 +691,8 @@ Exit criteria:
 - release artifacts have provenance and checksums;
 - compatibility and migration behavior are tested and documented;
 - release checks pass in CI.
+- every release-scoped canonical journey meets its versioned predeclared quality threshold, and results include failures rather than only successful demonstrations;
+- update rollback and offline installation are verified on every supported platform class claimed by the release.
 
 ## Six-Month Delivery Outlook
 

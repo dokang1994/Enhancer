@@ -2,6 +2,99 @@
 
 ## Accepted Decisions
 
+### 2026-07-16: Add Product Journeys Evaluation And Layered Security Across Delivery Gates
+
+Status: Accepted Decision
+
+Context:
+
+- Delivery gates describe dependency-ordered capabilities, but a collection of mature components does not by itself prove that a user can complete a development job safely and understand the result.
+- The Roadmap names interfaces, runtime reliability, multi-agent work, security controls, and release packaging in separate gates without one cross-cutting evaluation contract.
+- Universal exactly-once execution cannot be guaranteed across arbitrary external Tools and side effects; truthful reliability comes from at-least-once delivery combined with stable idempotency, fenced ownership, replay-safe effects, and recovery evidence.
+- The Constitution already establishes authority, untrusted-input, verification, and amendment rules. Detailed product security, journey, UX, and evaluation guidance belongs in supporting Architecture and Roadmap documents, so no constitutional amendment is needed for this clarification.
+
+Decision:
+
+- Add a cross-cutting Product Journey and Evaluation Track alongside, not in place of, Delivery Gates.
+- Begin with four canonical journeys: governed bug repair, bounded feature delivery, evidence-backed codebase explanation, and interrupted-run recovery. Each journey must define its user-visible outcome, approvals, evidence, recovery behavior, supported surfaces, and versioned evaluation fixtures.
+- Add a fifth product priority: a repeatable evaluation and release-quality harness that records task success, incorrect changes, recovery, cost, duration, user intervention, post-verification regression, and multi-agent delta using explicit denominators and immutable result provenance.
+- Require thresholds to be selected and versioned before a release evaluation run. Agent confidence, reviewer self-report, or a single passing test cannot substitute for journey evidence.
+- Define Gate 8 delivery as at-least-once with stable idempotency keys, fenced leases, checkpointed recovery, versioned state migration, orphan reclamation, and replay-safe external effects. Do not claim universal exactly-once execution.
+- Require all user interfaces to consume one shared Run, approval, verification, evidence, and control API. Use the CLI as the reference surface, add VS Code next for in-context work, and add Desktop later as a supervisory and cross-run view.
+- Require a common change-review projection showing plan, changed files and diff, tests/evidence, risks, approvals, recovery, and commit readiness rather than exposing internal Agent topology as the primary UX.
+- Treat repository instructions, Tool output, model responses, MCP content, plugins, dependencies, and terminal output as untrusted data at the Architecture layer. Assign concrete enforcement to the owning gates for secret detection, outbound data control, permission manifests, isolation, audit, provenance, disablement, and rollback.
+- Require Gate 13 multi-agent promotion to demonstrate improvement over a single-agent baseline on the same versioned task set and comparable budget envelope. Require Gate 16 release evidence to meet versioned journey thresholds in addition to packaging checks.
+
+Rationale:
+
+This keeps capability maturity technically precise while adding a second, user-centered proof dimension. The cross-cutting track prevents isolated features from being mistaken for a usable product, makes reliability claims implementable, and gives every interface and extension the same evidence, approval, and security model.
+
+Consequences:
+
+- Delivery Gate numbers, dependencies, and current maturity states do not change.
+- A gate may pass its technical maturity criteria while a product journey remains incomplete; release claims require both applicable gate evidence and journey-quality evidence.
+- Numeric thresholds remain unspecified until the evaluation fixtures and baseline measurement task is activated.
+- The Constitution remains unchanged. Any future change to its authority or safety semantics still requires the full amendment process and separate explicit user approval.
+
+### 2026-07-16: Prepare Gate 7 Integration Through The First Runtime Admission Path
+
+Status: Accepted Decision
+
+Context:
+
+- Gate 7 is Contract Verified, but Architecture requires a capability to connect real upstream and downstream collaborators in an integration test before it can be called Integrated.
+- Gate 6 already produces a real repository-derived `ApprovedTask` and immutable `WorkspaceSnapshot`; Gate 8 now admits one unchanged Gate 7 work envelope as an immutable `WorkItem`.
+- Wiring the bus into the supported CLI merely to exercise delivery would add behavior without a Scheduler consumer, while selecting a concrete IPC adapter would prematurely decide endpoint, serialization, authentication, and threading policy.
+
+Decision:
+
+- Add a small production publisher that derives one `WorkPayload` from a matching `ApprovedTask` and `WorkspaceSnapshot`, constructs one existing versioned envelope from explicit deterministic metadata, and publishes it through `InProcessMessageBus` to an explicit destination.
+- Reject task-identity or source-document mismatch before publication. Allowed Tools come only from the repository-derived approved task; the publisher creates no approval or authority.
+- Add a production `MessageHandler` adapter that turns one delivered work envelope into one `WorkItem` using an injected work-identity supplier, a bounded required capability, and an injected downstream sink.
+- Prove the path in a named integration test using the real Context Reader, snapshot collector, bus, journal/replay behavior, admission adapter, and WorkItem contract.
+- Keep Gate 7 at Contract Verified during this implementation task. A separate fresh maturity assessment decides whether the evidence supports gate-level Integrated promotion.
+
+Rationale:
+
+This is the narrowest real vertical connection available now: Gate 6 supplies approved provenance and authority scope, Gate 7 carries and delivers it unchanged, and Gate 8 admits it without widening authority. Explicit metadata and injected boundaries keep the integration deterministic and avoid inventing a Scheduler, production CLI behavior, or transport policy.
+
+Consequences:
+
+- Gate 7 gains named integration evidence with real upstream and downstream production collaborators, but no maturity claim changes automatically.
+- The publisher is an in-process application boundary, not a supported entry point or a concrete transport adapter.
+- The admission handler does not store, order, execute, retry, or recover work; the dependency-ready single-worker Scheduler queue remains a separate Gate 8 task.
+- Any mismatch or invalid envelope fails before downstream admission; bus retry and dead-letter behavior remains unchanged.
+
+### 2026-07-16: Start Gate 8 With Immutable WorkItem Admission Over Gate 7 Envelopes
+
+Status: Accepted Decision
+
+Context:
+
+- Gate 8 owns `WorkItem`, dependency scheduling, leases, recovery, and the single worker first, while Gate 7 already owns the versioned envelope and work payload that carry task, snapshot, logical-run, provenance, and allowed-Tool data.
+- The existing Gate 3 `AgentRunState` governs one pre-authorized Tool request through execution and verification. Reusing or duplicating it as the Scheduler's durable work identity would mix bootstrap execution state with the later event-driven runtime.
+- A full Goal/AgentRun store, dependency queue, lease protocol, or recovery mechanism would exceed the smallest coherent first Gate 8 increment.
+
+Decision:
+
+- Add immutable `com.enhancer.runtime.WorkItem` as the first Gate 8 contract.
+- Give each work item a canonical UUID identity distinct from the retained envelope's canonical message identity and one required-capability name bounded to 256 characters.
+- Admit only an existing `MessageEnvelope` whose payload is `WorkPayload`; retain the exact envelope rather than copying or flattening its authority and provenance fields.
+- Expose logical run identity, approved task revision, snapshot identity, and allowed Tools only as projections of the retained work payload and envelope.
+- Create no approval, policy decision, Tool grant, queue state, lifecycle transition, lease, persistence, or worker execution behavior.
+- Name the dependency-ready single-worker Scheduler queue as the immediate integration consumer in the next Gate 8 increment.
+
+Rationale:
+
+A Scheduler needs a stable work identity separate from a delivery attempt, but the Gate 7 envelope must remain the authoritative handoff container. Wrapping one unchanged work envelope creates that separation without reopening the message schema or inventing runtime state before queue, persistence, and recovery semantics are decided. Keeping authority fields as projections makes it impossible for the work item constructor to widen them.
+
+Consequences:
+
+- One logical work item may later be delivered or retried through multiple message identities without conflating work identity with transport identity; this first contract admits one initial work message only.
+- Non-work result, control, and handoff envelopes cannot enter the Scheduler work-item path.
+- Dependencies, states, versions, budgets, deadlines, attempts, leases, fencing, checkpoints, and persistence remain required later Gate 8 increments rather than implicit fields.
+- The Gate 8 gate remains `Specified - Next`; only the `WorkItem` admission sub-capability may reach Contract Verified in this task.
+
 ### 2026-07-16: Promote Gate 7 To Contract Verified And Advance Gate 8
 
 Status: Accepted Decision

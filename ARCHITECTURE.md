@@ -18,6 +18,33 @@ Roadmap capability maturity is separate from the task lifecycle defined by the C
 
 `Implemented` MUST NOT be used by itself for roadmap capability state because it hides the difference between a contract and an operational product. `PROJECT_STATE.md` records verified current maturity; `ROADMAP.md` records the next promotion gate.
 
+## Product Journey And Evaluation Model
+
+Capability maturity proves that a component is specified, tested, connected, operable, or released. It does not by itself prove that a user can finish a development job. Enhancer therefore maintains a cross-cutting Product Journey and Evaluation Track alongside the delivery gates. The track never weakens a gate's technical exit criteria; a product or release claim requires both the applicable gate evidence and the applicable journey evidence.
+
+The initial canonical journeys are:
+
+| Journey | User-visible outcome | Required proof |
+|---|---|---|
+| Governed bug repair | an inspectable, commit-ready correction without an automatic commit | reproduced defect, approved plan and scope, bounded diff, relevant tests, independent review/verification, risks, and explicit commit boundary |
+| Bounded feature delivery | a scoped feature reaches review-ready completion | accepted goal, authorization and budget, changed files/diff, tests and evidence, compatibility risks, approval points, and rollback or recovery guidance |
+| Evidence-backed codebase explanation | the user receives an answer without repository mutation | cited repository sources, snapshot/freshness identity, uncertainty and missing evidence, no Tool-authority expansion, and no changed files |
+| Interrupted-run recovery | an interrupted job resumes or stops safely without hidden duplication | durable checkpoint, state/schema version, lease/fence evidence, reclaimed-orphan decision, replay-safe effects, final status, and user-visible recovery history |
+
+Every journey fixture is versioned and records the supported surface, repository revision, task and policy, budgets, expected approvals, expected artifacts, induced failures, and scoring rules. A journey is not Operational merely because its participating components are Operational; it must pass end to end through a supported interface.
+
+The evaluation harness reports at least these measures with explicit denominators:
+
+- task success rate: attempts satisfying every required journey outcome divided by all attempted fixtures;
+- incorrect-change rate: change-producing attempts containing an unauthorized, out-of-scope, or functionally incorrect change divided by all change-producing attempts;
+- retry and recovery success rate: induced retry/interruption cases restored to a valid resumable or terminal state divided by all induced cases;
+- cost and elapsed time: median and tail values per successful attempt, with failed attempts reported separately rather than discarded;
+- user intervention: clarification, repair, and exceptional-authority interventions per attempted journey, with mandatory approvals reported separately;
+- post-verification regression rate: completed change fixtures that fail held-out regression checks divided by all completed change fixtures;
+- multi-agent delta: quality, success, cost, time, and intervention difference against the single-agent baseline on the same fixture revision and comparable budget envelope.
+
+Evaluation thresholds, fixture versions, and scoring rules are fixed before an evaluation run. Results retain run, model/provider, policy, code revision, evidence, and evaluator provenance. Agent confidence, reviewer pass, anecdotal demonstrations, and cherry-picked successful runs are not release evidence.
+
 ## Target Architecture
 
 Enhancer will evolve toward these major components:
@@ -36,6 +63,7 @@ Enhancer will evolve toward these major components:
 - Tool System: exposes file, terminal, search, Git, browser, and external capabilities behind policy.
 - Plugin SDK and Marketplace: installs traceable, owned, versioned, integrity-checked extensions.
 - Desktop, CLI, API, VSCode Extension, and Web Dashboard: user-facing control surfaces over shared application boundaries.
+- Evaluation Harness: runs versioned product-journey fixtures, records comparable quality/cost/recovery evidence, and enforces release thresholds.
 - Cloud Sync: optional governed synchronization with encryption, conflict, ownership, and secret-exclusion rules.
 
 ## Operating System Model
@@ -212,6 +240,12 @@ The run-to-completion pending queue is bounded by immutable `BackpressurePolicy`
 
 Transport acceptance is deliberately not Message Bus delivery. `ACCEPTED` means only that the configured adapter accepted responsibility for attempting one hop; it does not mean a receiving bus admitted, journaled, dispatched, or delivered the envelope. A transport refusal consumes no bus journal, idempotency, cancellation, failure, or dead-letter state, and higher-level scheduling owns any retry timing. The interface contains no provider endpoint, serialization, protocol, authentication, lifecycle, threading, persistence, or authority type. This boundary is Contract Verified; no concrete adapter exists and no process boundary has been crossed.
 
+### Gate 7 Runtime Integration Preparation
+
+`WorkMessagePublisher` is the first authority-preserving application boundary that connects real Gate 6 input to the Gate 7 bus. It accepts one matching repository-derived `ApprovedTask` and `WorkspaceSnapshot`, derives the existing `WorkPayload` task revision, snapshot identity, and allowed-Tool scope, constructs a versioned envelope from explicit deterministic metadata, and publishes it to an explicit in-process queue. Task-identity, source-document, or pre-snapshot-time mismatch is rejected before bus admission.
+
+`WorkItemAdmissionHandler` is the matching Gate 7-to-Gate 8 adapter. It retains the delivered envelope unchanged inside one `WorkItem` using injected identity generation, required capability, and downstream sink. It creates no approval, storage, ordering, execution, or Scheduler semantics. A named integration test connects the real Context Reader and Workspace collector through the real bus, journal, and replay path to this admission boundary and proves unchanged authorization/provenance projections plus duplicate-free replay. This is integration evidence for a later Gate 7 maturity assessment; Gate 7 remains Contract Verified until that separate assessment maps every scope item and exit criterion.
+
 ## Agent Runtime Model
 
 The target runtime is a persisted, event-driven state machine:
@@ -222,6 +256,18 @@ Goal -> Planner -> Queue -> Executor -> Evidence
 ```
 
 Planner, Coder, Reviewer, Tester, and Memory are roles or workers behind message contracts, not hard-coded direct-call chains. Single-agent sequential execution is implemented first. Multi-agent concurrency begins only after queue, idempotency, cancellation, RunRecord, recovery, and independent verification are operational.
+
+### Gate 8 WorkItem Admission Contract
+
+The first Gate 8 increment is an immutable scheduler-facing `WorkItem` under `com.enhancer.runtime`. A work-item identity is a canonical UUID distinct from the Gate 7 message identity because logical work and one delivery attempt are different identities. The item retains exactly one existing `MessageEnvelope` carrying `WorkPayload` plus one bounded required-capability name; logical run identity, approved task revision, Workspace snapshot identity, and allowed Tools are projections of that unchanged envelope rather than caller-supplied copies.
+
+Admission rejects non-work payloads, malformed or reused identities, and blank or oversized capabilities. It creates no approval, Tool permission, state transition, dependency, queue, lease, persistence, or execution authority. This admission sub-capability is Contract Verified; the dependency-ready single-worker Scheduler queue is the immediate next consumer. Goal/AgentRun persistence, lifecycle states, budgets, cancellation, recovery, and worker execution remain later Gate 8 increments.
+
+### Gate 8 Scheduler Delivery Semantics
+
+The Scheduler provides at-least-once work delivery; it does not claim universal exactly-once execution across arbitrary Tools or external systems. Near-exactly-once user-visible behavior is composed from a stable idempotency key per logical work/effect, durable state transitions, fenced leases that reject stale owners, checkpointed recovery, versioned state migration, explicit orphan detection and reclamation, and replay-safe or compensatable external effects.
+
+A worker may repeat after timeout, crash, lost acknowledgement, or lease expiry. The current fence token must accompany every state write and effect commit, stale tokens must fail closed, and the durable result must record whether an effect was applied, deduplicated, compensated, or left for user recovery. Priority and fairness cannot bypass dependency readiness, authority, data classification, cost/time budgets, or cancellation. Recovery must be testable across process restart and supported schema versions before the Scheduler is Operational.
 
 ## Agent Orchestration Contract
 
@@ -259,6 +305,30 @@ Archon commit `263cf3658a7cadefa0c5fbe82cc527a00ffb4c16` and meta-harness commit
 MCP is a core interoperability layer, not a late plugin detail. The MCP Server exposes approved Enhancer Tools, resources, Workspace views, and memory; the MCP Client consumes external servers through the same policy, evidence, and verification pipeline.
 
 Skills are validated workflow packages whose metadata loads before full instructions. Skills may compose into explicit chains, but composition intersects rather than unions Tool permissions. The Model Gateway remains provider-neutral and routes bounded requests without allowing model output to grant authority.
+
+## Default Product Security Model
+
+Repository instructions, source comments, Tool and terminal output, model responses, MCP content, plugins, dependencies, generated artifacts, and remote service responses are untrusted data. They may supply evidence or propose work, but they cannot grant authority, change policy, approve an action, or override the Constitution and active task.
+
+The shared security baseline requires:
+
+- provenance, freshness, content bounds, and data/instruction separation at every ingress;
+- secret and sensitive-data detection before persistence, display, logging, caching, or external transmission;
+- an explicit outbound-data policy keyed by data classification, destination, purpose, user authority, and retention;
+- least-privilege Tool scope, project-root containment, command and changed-file preview, dry-run when the Tool can support it, bounded execution, audit evidence, and a named recovery path;
+- MCP and model adapters that preserve source attribution, isolate provider instructions from authority, validate responses, and make fallback or cache use visible and policy-scoped;
+- plugin and Skill permission manifests, integrity/signature provenance, compatibility and dependency checks, isolation, malicious-package review, disablement, removal, and rollback;
+- local-only operation as a complete mode, with cloud synchronization opt-in and unable to grant execution authority.
+
+Enforcement remains with the owning gates: Gate 8 owns runtime isolation and replay safety; Gate 9 owns model/MCP classification, redaction, outbound policy, attribution, fallback, and cache controls; Gate 11 owns Tool and extension supply-chain controls; Gate 12 owns previews, approval UX, and audit visibility; Gate 14 owns cloud encryption, keys, exclusion, and conflict recovery; Gate 16 owns signed reproducible release artifacts, SBOM, installation, update, migration, offline use, and rollback evidence.
+
+## Shared Application API And Change-Centered UX
+
+CLI, VS Code, Desktop, Web, and external API clients consume the same application contracts for Run creation and inspection, approvals, verification, evidence, control commands, and recovery. Interface adapters may change presentation and interaction, but they cannot duplicate or reinterpret runtime policy.
+
+The implementation order is shared application API first, CLI as the reference surface, VS Code second for repository-context work, and Desktop later as a supervisory view across runs and projects. Web and other clients follow the same contracts rather than creating another orchestration path.
+
+The primary user projection is a change review, not the internal Agent topology. One review presents the goal and plan, changed files and bounded diff, tests and verification evidence, source provenance, risks and unresolved questions, budget/cost/time, approval points, recovery or rollback state, and commit readiness. Internal messages, workers, and retries remain inspectable diagnostics but do not replace this user-facing explanation.
 
 ## Product Evolution: V1 To V3
 

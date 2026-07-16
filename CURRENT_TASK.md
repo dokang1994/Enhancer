@@ -6,70 +6,73 @@ Completed
 
 ## Task
 
-Reassess Delivery Gate 7 against fresh evidence, promote it to Contract Verified if every recorded scope item and exit criterion remains satisfied, and advance the sole `Specified - Next` marker to Delivery Gate 8.
+Add a cross-cutting product-journey and evaluation track, truthful Scheduler delivery semantics, shared interface ordering, change-centered UX, and a layered default-security model without changing the Constitution or overstating implementation maturity.
 
 ## Task ID
 
-gate-7-contract-verified-promotion
+product-journey-evaluation-and-security-track
 
 ## Justified By
 
-- 2026-07-16: Promote Gate 7 To Contract Verified And Advance Gate 8
+- 2026-07-16: Add Product Journeys Evaluation And Layered Security Across Delivery Gates
 
 ## Context
 
-The prior maturity assessment found one bounded-payload blocker. The completed follow-up correction now limits `WorkPayload.allowedTools` to 256 unique names, and repository state records Contract Verified evidence for all six Gate 7 scope items and all four exit criteria. A separate fresh promotion assessment is required before changing lifecycle state.
+The delivery gates define strong component boundaries and capability maturity, but they do not yet prove that a user can complete an end-to-end development job. Evaluation metrics, shared-interface ordering, change-centered review, and the default treatment of repository/model/MCP/plugin/Tool content as untrusted input are also distributed across future gates rather than expressed as one product contract. Scheduler wording must avoid an impossible general exactly-once claim and instead define the enforceable composition of at-least-once delivery, idempotency, fenced leases, checkpoints, and replay-safe effects.
 
 ## Acceptance Criteria
 
-- Re-run all Gate 7 bus contract tests and the full regression suite against the corrected payload contract.
-- Run Java 17 production compilation with `-Xlint:all -Werror`.
-- Map every Gate 7 scope item and exit criterion to fresh Contract Verified evidence without claiming Integrated or Operational behavior.
-- If all criteria remain satisfied, set Gate 7 to `Contract Verified` and make Gate 8 the only `Specified - Next` gate.
-- Update only the two actual-Roadmap self-hosting expectations from Gate 7 to Gate 8 after confirming the marker move produces the expected RED failures.
-- Keep concrete IPC adapters, persistence, production Event/Message Bus wiring, and Agent Runtime implementation deferred.
-- Synchronize Architecture, compact architecture, Roadmap, Project State, Changelog, Current Task, and Session Handoff.
+- Define three to five canonical user journeys that cross delivery gates and end in an inspectable, approval-aware user outcome.
+- Define a versioned evaluation harness and release-quality metrics with stable denominators, baselines, thresholds, and evidence rather than Agent self-report.
+- State that Gate 8 scheduling uses at-least-once delivery with stable idempotency, fenced leases, checkpoint/recovery, state migration, and orphan reclamation; make no universal exactly-once claim.
+- Require one shared Run, approval, verification, evidence, and control API before interface-specific policy, with CLI first, VS Code second, and Desktop as a later supervisory surface.
+- Make one change-centered review model covering plan, files, diff, tests, evidence, risk, approvals, recovery, and commit readiness a Gate 12 exit criterion.
+- Add an Architecture-level default-security model that treats repository instructions, Tool output, model responses, MCP content, plugins, and dependencies as untrusted data, with Gate-owned enforcement for secrets, outbound transmission, sandboxing, manifests, audit, and rollback.
+- Strengthen Gate 13 and Gate 16 exit criteria so multi-agent and release claims depend on measured improvement and journey-quality thresholds.
+- Preserve every existing capability maturity state and the sole Gate 8 `Specified - Next` marker.
+- Synchronize Architecture, compact architecture, Roadmap, Project State, Changelog, Current Task, Decision Log, and Session Handoff.
 
 ## Out Of Scope
 
-- Any production-code change or test behavior change beyond the two actual-Roadmap next-gate expectations
-- Gate 7 Integrated, Operational, Released, or concrete cross-process transport claims
-- Concrete IPC adapters, serialization, authentication, threading, persistence, or production wiring
-- Gate 8 Agent Runtime, Scheduler, Goal state machine, leases, recovery, or worker implementation
+- Constitution or `.ai/constitution.md` amendment
+- Runtime, Scheduler, API, interface, evaluation-harness, security-scanner, sandbox, plugin, MCP, model, or release implementation
+- New Delivery Gate numbers or changes to existing capability maturity
+- Selecting numeric release thresholds before representative fixtures and baselines exist
 - Commit, push, PR, merge, release, or deployment
 
 ## Approval
 
-Approved by the user's 2026-07-16 request to continue with the next recorded project task.
+Approved by the user's 2026-07-16 request to incorporate the reviewed product improvements.
 
 ## Verification Plan
 
-- Run all `com.enhancer.bus.*` tests and inspect fresh XML results.
-- Run the complete Gradle suite with `--warning-mode all` and inspect fresh XML results, including skips.
-- Run Java 17 production compilation with `-Xlint:all -Werror`.
-- Review Gate 7 scope and exit criteria against the fresh evidence and the capability maturity definitions.
-- Synchronize affected documents only after the evidence supports promotion.
-- Move the Roadmap marker, confirm the actual-document Planner and Assisted Loop expectations fail only because they still name Gate 7, then update those two expectations to Gate 8.
-- Run actual-document Context Reader, Planner, and Assisted Loop tests after the expectation synchronization.
-- Verify exactly one `Specified - Next` marker at Gate 8, resolve the accepted-decision reference, review the complete diff, and run whitespace checks for tracked and newly added files.
+- Resolve the accepted decision from `Justified By` and preserve exactly one Gate 8 `Specified - Next` marker.
+- Check that every canonical journey names an outcome, evidence/approval boundary, and evaluation linkage.
+- Check that every metric names its denominator and that multi-agent comparison uses the same task set and budget envelope as the single-agent baseline.
+- Check that exactly-once is not claimed and that the enforceable Scheduler semantics are consistently named in Architecture and Roadmap.
+- Check that interface ordering, shared APIs, change-centered UX, and default-security ownership are consistent across canonical and compact documents.
+- Run actual-document Context Reader, Planner, and Assisted Loop tests.
+- Review the complete diff and run tracked/untracked whitespace checks.
 
 ## Implementation
 
-- Promoted Delivery Gate 7 from `Specified - Next` to `Contract Verified` after mapping all six scope items and all four exit criteria to fresh evidence.
-- Advanced Delivery Gate 8 Agent Runtime and Scheduler from Planned to the sole `Specified - Next` gate.
-- Updated the actual-Roadmap expectations in `RepositoryTaskPlannerTest` and `AssistedDevelopmentLoopTest` from Gate 7 to Gate 8; no production code changed.
-- Synchronized Architecture, compact architecture, Roadmap, Project State, Changelog, Decision Log, Current Task, and Session Handoff.
-- Preserved the explicit maturity boundary: Gate 7 has no concrete adapter, process hop, persistence, threading, production wiring, or Integrated/Operational claim, and Gate 8 has no implementation.
+- Added a cross-cutting Product Journey and Evaluation model to Architecture and Roadmap without adding or reordering Delivery Gates.
+- Defined four initial journeys and the fifth priority of a versioned evaluation/release-quality harness with explicit-denominator metrics and immutable result provenance.
+- Defined truthful Gate 8 Scheduler delivery semantics: at-least-once delivery, stable logical-work/effect idempotency, fenced leases, durable checkpoints, supported state migration, orphan reclamation, and replay-safe or compensatable effects.
+- Ordered interfaces around one shared application API, with CLI as reference, VS Code second, Desktop later as supervision, and one change-centered review projection as a Gate 12 exit criterion.
+- Added an Architecture-level default-security model and strengthened the owning Gate 9, 11, 12, 14, and 16 scope/exit criteria for model/MCP, Tool/plugin, UX, cloud, and distribution controls.
+- Strengthened Gate 13 and Gate 16 so multi-agent and release claims require versioned evaluation evidence, comparable baselines, and predeclared thresholds.
+- Kept the Constitution, code, Delivery Gate numbering, current maturity states, and sole Gate 8 next marker unchanged.
 
 ## Verification
 
-- Gate 7 focused evidence: all 39 bus tests passed with no skips, failures, or errors (`InProcessMessageBusTest` 30, `MessageEnvelopeTest` 5, `MessageTransportTest` 4).
-- Fresh full regression after the Roadmap expectation update: 45 suites and 205 tests; 203 passed, 2 existing Windows symbolic-link setup tests skipped, 0 failures, and 0 errors. Gradle emitted no deprecation warning.
-- Java 17 production compilation passed `-Xlint:all -Werror` across all 119 sources.
-- Marker-move RED: 8 Planner/Assisted Loop tests ran and exactly `RepositoryTaskPlannerTest.proposesTheCurrentNextGateFromTheActualEnhancerRoadmap` failed because it still expected Gate 7; the expectation-only update restored all 8 tests.
-- Post-completion actual-document verification passed 15 of 16 Context Reader, Planner, and Assisted Loop tests with 1 existing Windows symbolic-link setup skip and no failure or error; both self-hosting proposal paths selected Gate 8.
-- Structural review confirmed exactly one `Specified - Next` marker at Gate 8, Gate 7 is exactly `Contract Verified`, the `Justified By` decision resolves exactly once, all current-state documents agree, and tracked plus newly added files pass whitespace checks.
+- Structural checks found all 17 sequential Delivery Gates, exactly one `Specified - Next` marker at Gate 8, exactly four canonical journeys, and exactly one accepted decision resolving `Justified By`.
+- Metric review confirmed explicit denominators for success, incorrect changes, recovery, cost/time, intervention, held-out regression, and multi-agent delta.
+- Consistency review confirmed the same at-least-once Scheduler semantics, interface order, change-centered UX, and security ownership across canonical Architecture, compact architecture, and Roadmap; no positive universal exactly-once claim remains.
+- `CONSTITUTION.md` and `.ai/constitution.md` have no diff.
+- Actual-document self-hosting passed 15 of 16 Context Reader, Planner, and Assisted Loop tests with 1 existing Windows symbolic-link setup skip and no failure or error.
+- Tracked and untracked whitespace checks passed, and the complete diff was reviewed.
 
 ## Next
 
-Activate the first bounded Delivery Gate 8 Agent Runtime and Scheduler contract as a separate task. Do not implement a concrete IPC adapter merely to begin Gate 8.
+Resume the recorded Gate 7 Integrated maturity assessment after this cross-cutting documentation task is complete.

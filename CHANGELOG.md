@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-07-16 - Add Product Journey Evaluation And Security Tracks
+
+- Added a cross-cutting Product Journey and Evaluation Track with four initial end-to-end journeys and a fifth priority for a repeatable release-quality harness.
+- Defined explicit-denominator measures for task success, incorrect changes, recovery, cost/time, intervention, held-out regression, and multi-agent delta, with versioned fixtures and thresholds fixed before evaluation.
+- Replaced any implied universal exactly-once Scheduler goal with at-least-once delivery plus stable idempotency, fenced leases, checkpoints, state migration, orphan reclamation, and replay-safe or compensatable effects.
+- Ordered interface delivery around one shared Run/approval/verification/evidence/control API: CLI reference surface, VS Code second, and Desktop later as supervision; made one change-centered review a Gate 12 exit criterion.
+- Added a layered default-security baseline for untrusted repository/Tool/model/MCP/plugin/dependency content and assigned concrete enforcement to the owning delivery gates without amending the Constitution.
+- Strengthened multi-agent and release criteria so claims require measured journey improvement and predeclared quality thresholds rather than Agent self-report or successful demonstrations alone.
+
+## 2026-07-16 - Prepare The Gate 7 Runtime Integration Path
+
+- Added `WorkMessagePublisher` to derive and publish one existing bounded work envelope from a matching repository-approved task and real Gate 6 Workspace snapshot without creating approval or Tool authority.
+- Added `WorkItemAdmissionHandler` to retain the delivered envelope unchanged in one Gate 8 `WorkItem` through injected boundaries, without adding storage, scheduling, execution, or concrete IPC behavior.
+- Added a named integration test over the real Context Reader, Workspace collector, in-process queue, journal, replay, and WorkItem admission path; it proves unchanged provenance/authorization projections and duplicate-free replay.
+- Passed 42 focused tests, the 47-suite/208-test full regression (206 passed, 2 existing symbolic-link skips), and Java 17 strict lint across 122 production sources.
+- Kept Gate 7 at Contract Verified; the integration evidence is input to a separate gate-level maturity assessment rather than an automatic promotion.
+
+## 2026-07-16 - Add Gate 8 WorkItem Admission
+
+- Added immutable `WorkItem` admission over one unchanged Gate 7 `WorkPayload` envelope with a distinct canonical work identity and a 256-character required-capability ceiling.
+- Exposed approved task revision, Workspace snapshot identity, logical run identity, and allowed Tools only as projections of the retained envelope, without creating authority, runtime state, scheduling, persistence, leases, or execution.
+- Proved the missing contract through an 11-error focused RED, then passed 41 focused tests, the 46-suite/207-test full regression (205 passed, 2 existing symbolic-link skips), and Java 17 strict lint across 120 production sources.
+- Kept Gate 8 at `Specified - Next`; only the admission sub-capability is Contract Verified and the dependency-ready single-worker Scheduler queue is next.
+
 ## 2026-07-16 - Promote Gate 7 And Advance Gate 8
 
 - Reassessed all six Gate 7 scope items and all four exit criteria against fresh contract evidence after closing the payload-cardinality blocker.
