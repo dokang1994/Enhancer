@@ -12,7 +12,7 @@
 - Gate 7 transport-neutral IPC, bounded payload correction, Contract Verified promotion, and the Gate 8 next-marker transition are published on `origin/main` through `16c7f5d` (`feat: complete Gate 7 messaging foundation`).
 - Gate 8 `WorkItem` admission, the named Gate 6-to-Gate 7-to-Gate 8 integration path, and the cross-cutting Product Journey, Evaluation, shared-interface, Scheduler-delivery, and default-security specifications are published on `origin/main` through `c40e31e` (`feat: integrate runtime admission and product quality tracks`).
 - The completed Gate 7 assessment, Gate 8 queue/durable-state increments, Unicode/file-bound correction, bounded Tool-isolation capacity, and runtime package-cycle extraction are delivered through `1151fc5` (`feat: harden durable runtime scheduling`).
-- The current uncommitted work implements and verifies the bounded Gate 8 durable Goal/AgentRun lifecycle and its fenced single-owner lease/expiry recovery contract; it has no commit or push authority.
+- The bounded Gate 8 durable Goal/AgentRun lifecycle and fenced single-owner lease/expiry recovery contract are delivered through `ed1c41c` (`feat: add durable fenced agent runtime lifecycle`).
 - Gate 1-3 delivery commit: `3fcda4c` (`feat: integrate governed agent execution foundations`).
 - Pull request #2 has been merged into `main`.
 - Delivery Gates 1 through 3, self-hosting compatibility recovery, long-term vision, and documentation-alignment changes are published on `origin/main`.
