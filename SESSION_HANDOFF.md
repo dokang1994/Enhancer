@@ -1,5 +1,14 @@
 # Session Handoff
 
+- Gate 8 fenced AgentRun ownership is now Contract Verified locally: acquisition from `READY` issues one bounded owner and persisted monotonic fence, renew/complete require the current unexpired lease, and recovery at expiry durably returns the run to `READY`.
+- Lease acquisition, renewal, completion, and reclaim all persist before exposure; injected storage failures retain the prior revision and lease, and restart preserves an unexpired owner or reclaims exactly at expiry.
+- Fresh lease evidence includes 68/68 focused runtime/bus/boundary tests, a 55-suite/243-test full regression (241 passed, 2 existing Windows symbolic-link skips), and strict lint across 147 production sources.
+- Post-document self-hosting and boundary verification passed 31 of 32 tests with 1 existing Windows symbolic-link setup skip; the Gate 8 marker, task-to-decision reference, and whitespace checks are consistent.
+- This adds no worker/Tool execution, retry, external-effect fencing, multi-process lock, distributed clock-skew protocol, schema migration, or parent-directory power-loss claim.
+- Gate 8 now has a Contract Verified durable Goal/AgentRun lifecycle: one exact WorkItem-backed Goal, one forward-only schema-v1 AgentRun, matching typed terminal results, Verified-only completion, and explicit non-verified failure.
+- Every lifecycle transition is persisted before exposure; the bounded strict-UTF-8 integrity-checked filesystem store restores exact WorkItem and result envelopes and fails closed on corrupt or unsupported state.
+- Fresh evidence includes 63/63 focused runtime/bus/boundary tests, a 55-suite/238-test full regression (236 passed, 2 existing Windows symbolic-link skips), and strict lint across 146 production sources.
+- The lifecycle core adds no retry, worker execution, external-effect record, RunRecord resolution, multi-process coordination, schema migration, or parent-directory power-loss claim; ownership and fencing are supplied only by the separate lease contract above.
 - The loop/run/verification cycle is removed locally. Neutral verification values are in `kernel`, AgentRunFinalizer is in `application`, and a structural test enforces the acyclic dependency direction.
 - Fresh package-boundary evidence includes 27/27 focused tests, a 53-suite/228-test full regression (226 passed, 2 existing skips), and strict lint across 135 production sources.
 - RunRecord schema, serialized enum names, verification behavior, CLI behavior, and replay compatibility are unchanged.
@@ -34,6 +43,8 @@
 
 ## Completed Work
 
+- Implemented and verified the Gate 8 durable one-Goal/one-AgentRun lifecycle with exact WorkItem provenance, typed terminal result matching, persist-before-exposure state, and restart-safe filesystem recovery.
+- Implemented and verified fenced single-owner AgentRun lease acquisition, renewal, completion, expiry reclamation, monotonic persisted fence history, and restart behavior without adding worker execution.
 - Removed the runtime package cycle through neutral Kernel verification values, application-layer finalization, and an executable dependency-direction regression.
 - Added a process-wide bounded Tool isolation capacity with actual-thread-lifetime leases and fail-closed typed saturation.
 - Corrected Unicode-unsafe truncation and size-check/read TOCTOU boundaries across Evidence, Tool diagnostics, CLI output, Context, Workspace, and all current filesystem stores.
@@ -121,6 +132,7 @@
 - The Gate 7 transport-neutral IPC contract, maturity assessment, bounded work-payload correction, Contract Verified promotion, and Gate 8 next-marker synchronization are published through `16c7f5d`.
 - The Gate 8 `WorkItem` admission contract, named Gate 7 integration path, and product-quality specifications are published through `c40e31e`.
 - The completed documentation-only Gate 7 Integrated maturity assessment, implemented/verified Gate 8 dependency-ready single-worker queue, and subsequent runtime hardening are delivered through `1151fc5`.
+- The completed Gate 8 durable Goal/AgentRun lifecycle work is currently uncommitted and has no commit or push authority.
 - The Gate 7 in-process delivery surface and its delivery-failure and dead-letter handling are committed and published on `origin/main` through delivery commit `b278c53`; the unrelated wall-clock test correction is published through `2a69182`.
 - Local build note: this host had no JDK, so Java 17 was provisioned by junctioning `C:/Users/dokan/.jdks/corretto-17.0.14` into the Git-ignored `.tools/jdk17-runtime`; `scripts/gradle.ps1` then works normally.
 - The maturity assessment, the re-scope-and-promotion, and the Gate 7 envelope contract are committed and published on `origin/main` through delivery commit `3423201`.
@@ -134,6 +146,10 @@
 
 ## Fresh Verification
 
+- Goal/AgentRun lifecycle RED: production compilation passed and test compilation failed with exactly 64 aligned missing-contract errors.
+- Goal/AgentRun focused GREEN: 63 of 63 runtime, bus, and package-boundary tests passed across 10 suites.
+- Goal/AgentRun full result: 55 suites, 238 tests, 236 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors.
+- Goal/AgentRun strict lint passed across all 146 production sources; post-document Context Reader, Planner, Assisted Loop, package-boundary, lifecycle, and filesystem-store verification passed 26 of 27 tests with 1 existing Windows symbolic-link setup skip and no failure or error.
 - Package-boundary RED: one structural test failed with exactly six forbidden import directions.
 - Package-boundary focused GREEN: 27 of 27 structural/verifier/finalizer/RunRecord/CLI tests passed.
 - Package-boundary full result: 53 suites, 228 tests, 226 passed, 2 existing symbolic-link skips, 0 failures, and 0 errors; strict lint passed across 135 production sources.
@@ -248,7 +264,7 @@
 - Gate 5: Operational for one governed read-only local CLI scenario.
 - Gate 6: Integrated by the user-approved re-scope-and-promotion decision; the production view and graph composition remain Operational sub-capabilities.
 - Gate 7: Contract Verified after fresh assessment. The work-message queue path is Integrated; result/control/handoff, non-empty causation, topic and remaining reliability branches, and `MessageTransport` remain contract-only. Durable messaging, a concrete adapter, and a supported production entry point do not exist.
-- Gate 8: Specified - Next; immutable `WorkItem` admission, the dependency-ready single-worker queue, and durable schema-v1 queue state/restart recovery are Contract Verified, while durable Goal/AgentRun lifecycle state, leases/fencing, effect records, and workers do not yet exist.
+- Gate 8: Specified - Next; immutable `WorkItem` admission, the dependency-ready single-worker queue, durable schema-v1 queue state/restart recovery, the durable one-Goal/one-AgentRun lifecycle, and fenced single-owner lease/expiry recovery are Contract Verified, while queue-to-lifecycle integration, retry, effect records/fencing, workers, and production wiring do not yet exist.
 - Gate 6 repository-memory path (real governed run -> real memory -> collector -> composed view with divergence detection): Integrated.
 - Gate 6 production composition: Operational for the governed read-only CLI scenario; every recorded `run` reports bounded snapshot identity, observation count, and memory freshness.
 - Gate 6 `WorkspaceSnapshot`, `ProjectBrainView`, graph projection contract, `TaskImpactQuery`, `AcceptedDecisionProjector`, and `RunRecordMetadataCollector`: Integrated through the fresh promotion audit against named pre-existing integration evidence.
@@ -262,7 +278,7 @@
 
 ## Next Task
 
-Resume Gate 8 with a bounded durable Goal/AgentRun lifecycle-state contract. Do not imply process-isolated Tool termination or power-loss durability; both remain separate future work.
+Connect one durable Scheduler queue claim to one durable Goal/AgentRun planning, readiness, and fenced lease acquisition path. Do not combine Tool execution, retry, effect records, or power-loss directory durability.
 
 ## Remaining Risks
 
@@ -276,9 +292,9 @@ Resume Gate 8 with a bounded durable Goal/AgentRun lifecycle-state contract. Do 
 ## Instructions For Next Agent
 
 1. Read `.ai/` and every canonical startup document in repository order.
-2. Confirm Gate 7 is `Contract Verified`, Gate 8 is the sole `Specified - Next` gate, and `CURRENT_TASK.md` records the dependency-ready single-worker queue as Completed.
+2. Confirm Gate 7 is `Contract Verified`, Gate 8 is the sole `Specified - Next` gate, and `CURRENT_TASK.md` records the fenced AgentRun lease as Completed.
 3. Inspect `git status --short` and the current `main`/`origin/main` log; delivery commit `1151fc5` is the implementation baseline for the completed work above.
 4. If the host has no JDK, provision Java 17 through `.tools/jdk17` (this host already has `jdk-17.0.19+10` there) or run `scripts/setup-dev.ps1`; `scripts/gradle.ps1` then works normally.
 5. The only external command authority is the decision-scoped read-only Git adapter; any new external command capability requires its own explicit user approval.
-6. Activate the next Gate 8 durable Goal/AgentRun lifecycle-state increment; retain the new package direction and do not combine leases/workers by default.
+6. Activate the next Gate 8 durable queue-to-lifecycle integration increment; retain the fenced ownership boundary and do not combine worker execution or effects.
 7. Do not commit or push future changes without a new explicit user request.

@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-07-16 - Fence Durable Gate 8 AgentRun Ownership
+
+- Added immutable bounded `AgentRunLease` ownership to the durable schema-v1 AgentRun lifecycle with injected time, exclusive expiry, and a persisted monotonic last-issued fence token.
+- Restricted acquisition to `READY`; renewal and execution completion require the matching current owner and fence and fail closed at or after expiry.
+- Added explicit and recovery-time orphan reclamation that durably returns expired `EXECUTING` work to `READY`, retains fence history, and gives the next owner a strictly greater token.
+- Extended strict-UTF-8 integrity-checked filesystem state encoding to recover exact lease timestamps, owner, fence, and aggregate fence history; store updates permit the fence to stay current or advance exactly one.
+- Preserved persist-before-exposure for acquire, renew, complete, and reclaim, with regression coverage proving each injected storage failure leaves the previous revision and lease authoritative.
+- Passed 68 focused runtime/bus/boundary tests, the complete 55-suite/243-test regression (241 passed, 2 existing Windows symbolic-link skips), and Java 17 strict lint across 147 production sources.
+- Added no worker or Tool execution, external-effect fencing, retry, multi-process locking, distributed clock-skew protocol, schema migration, or parent-directory power-loss durability.
+
+## 2026-07-16 - Add Durable Gate 8 Goal And AgentRun Lifecycle
+
+- Added immutable schema-v1 `RuntimeGoal`, `RuntimeAgentRun`, and `AgentRuntimeState` over one exact existing WorkItem without widening task, snapshot, capability, logical-run, or Tool-scope provenance.
+- Enforced forward-only Goal and AgentRun lifecycles, distinct canonical identities, matching work/result message provenance, and Verified-only completion with every other verification state recorded as explicit failure.
+- Added `DurableAgentRuntime`, persisting every successful transition before exposure and leaving the previous durable and in-memory revision unchanged on storage failure.
+- Added `FileSystemAgentRuntimeStateStore` with a 4 MiB ceiling, strict UTF-8, complete-envelope SHA-256 integrity, exact WorkItem/result-envelope recovery, atomic create/replace publication, revision checks, and fail-closed missing/corrupt/oversized/trailing/unsupported-state handling.
+- Proved the missing contract through 64 aligned test-compilation errors, then passed 63 focused runtime/bus/boundary tests and the complete 55-suite/238-test regression (236 passed, 2 existing Windows symbolic-link skips).
+- Passed Java 17 strict lint across 146 production sources; retained retry, leases/fencing, worker execution, effect records, RunRecord resolution, schema migration, history cleanup, multi-process coordination, and parent-directory power-loss durability as future work.
+
 ## 2026-07-16 - Remove Runtime Package Dependency Cycles
 
 - Moved VerificationDecision, VerificationStatus, and VerificationCode unchanged from verification implementation code to neutral `com.enhancer.kernel`.

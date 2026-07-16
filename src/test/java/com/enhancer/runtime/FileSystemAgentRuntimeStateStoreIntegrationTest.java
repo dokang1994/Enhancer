@@ -1,0 +1,299 @@
+package com.enhancer.runtime;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.enhancer.bus.MessageEnvelope;
+import com.enhancer.bus.ResultPayload;
+import com.enhancer.bus.WorkPayload;
+import com.enhancer.kernel.VerificationStatus;
+import com.enhancer.workspace.ApprovedTaskRevision;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.security.MessageDigest;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.Optional;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+class FileSystemAgentRuntimeStateStoreIntegrationTest {
+    private static final String GOAL_ID =
+            "00000000-0000-0000-0000-000000000501";
+    private static final String AGENT_RUN_ID =
+            "00000000-0000-0000-0000-000000000502";
+    private static final String WORK_ITEM_ID =
+            "00000000-0000-0000-0000-000000000503";
+    private static final String WORK_MESSAGE_ID =
+            "00000000-0000-0000-0000-000000000504";
+    private static final int DIGEST_OFFSET =
+            Integer.BYTES + Long.BYTES + Integer.BYTES;
+    private static final int PAYLOAD_OFFSET = DIGEST_OFFSET + 32;
+
+    @TempDir
+    Path storageRoot;
+
+    @Test
+    void restoresExactLifecycleAcrossStoreInstances() throws Exception {
+        DurableAgentRuntime runtime = DurableAgentRuntime.create(
+                GOAL_ID,
+                workItem(),
+                new FileSystemAgentRuntimeStateStore(storageRoot),
+                Clock.fixed(
+                        Instant.parse("2026-07-16T20:00:00Z"),
+                        ZoneOffset.UTC));
+        runtime.beginAgentRun(AGENT_RUN_ID);
+        runtime.markReady(AGENT_RUN_ID);
+        AgentRunLease lease = runtime.acquireLease(
+                AGENT_RUN_ID,
+                "filesystem-worker-\uD83D\uDE80",
+                Duration.ofMinutes(5));
+        runtime.completeExecution(
+                AGENT_RUN_ID,
+                lease.ownerId(),
+                lease.fenceToken());
+        runtime.recordResult(
+                AGENT_RUN_ID,
+                resultMessage(VerificationStatus.VERIFIED));
+
+        DurableAgentRuntime recovered = DurableAgentRuntime.recover(
+                GOAL_ID,
+                new FileSystemAgentRuntimeStateStore(storageRoot),
+                Clock.fixed(
+                        Instant.parse("2026-07-16T20:01:00Z"),
+                        ZoneOffset.UTC));
+
+        assertEquals(5, recovered.revision());
+        assertEquals(RuntimeGoalStatus.COMPLETED, recovered.goal().status());
+        assertEquals(workItem(), recovered.goal().workItem());
+        RuntimeAgentRun run = recovered.agentRun().orElseThrow();
+        assertEquals(RuntimeAgentRunStatus.COMPLETED, run.status());
+        assertEquals(
+                resultMessage(VerificationStatus.VERIFIED),
+                run.resultMessage().orElseThrow());
+        assertEquals(1, recovered.lastIssuedFenceToken());
+    }
+
+    @Test
+    void restoresUnexpiredLeaseAndReclaimsItAtExpiry()
+            throws Exception {
+        Clock issuedClock = Clock.fixed(
+                Instant.parse("2026-07-16T21:00:00Z"),
+                ZoneOffset.UTC);
+        DurableAgentRuntime runtime = DurableAgentRuntime.create(
+                GOAL_ID,
+                workItem(),
+                new FileSystemAgentRuntimeStateStore(storageRoot),
+                issuedClock);
+        runtime.beginAgentRun(AGENT_RUN_ID);
+        runtime.markReady(AGENT_RUN_ID);
+        AgentRunLease lease = runtime.acquireLease(
+                AGENT_RUN_ID,
+                "filesystem-owner-\uD83D\uDE80",
+                Duration.ofMinutes(5));
+
+        DurableAgentRuntime beforeExpiry = DurableAgentRuntime.recover(
+                GOAL_ID,
+                new FileSystemAgentRuntimeStateStore(storageRoot),
+                Clock.fixed(
+                        Instant.parse("2026-07-16T21:04:59Z"),
+                        ZoneOffset.UTC));
+        assertEquals(
+                Optional.of(lease),
+                beforeExpiry.agentRun().orElseThrow().lease());
+
+        DurableAgentRuntime atExpiry = DurableAgentRuntime.recover(
+                GOAL_ID,
+                new FileSystemAgentRuntimeStateStore(storageRoot),
+                Clock.fixed(
+                        Instant.parse("2026-07-16T21:05:00Z"),
+                        ZoneOffset.UTC));
+        assertEquals(
+                RuntimeAgentRunStatus.READY,
+                atExpiry.agentRun().orElseThrow().status());
+        assertTrue(atExpiry.agentRun().orElseThrow().lease().isEmpty());
+        assertEquals(4, atExpiry.revision());
+        assertEquals(1, atExpiry.lastIssuedFenceToken());
+    }
+
+    @Test
+    void enforcesCreateAndExactlyOneRevisionUpdates() throws Exception {
+        FileSystemAgentRuntimeStateStore store =
+                new FileSystemAgentRuntimeStateStore(storageRoot);
+        AgentRuntimeState initial =
+                AgentRuntimeState.initial(GOAL_ID, workItem());
+        store.create(initial);
+
+        assertEquals(
+                AgentRuntimeState.CURRENT_SCHEMA_VERSION,
+                store.resolve(GOAL_ID).schemaVersion());
+        assertThrows(IOException.class, () -> store.create(initial));
+        assertThrows(IOException.class, () -> store.update(initial));
+    }
+
+    @Test
+    void rejectsMissingCorruptTrailingAndUnsupportedState()
+            throws Exception {
+        FileSystemAgentRuntimeStateStore store =
+                new FileSystemAgentRuntimeStateStore(storageRoot);
+        store.create(AgentRuntimeState.initial(GOAL_ID, workItem()));
+        Path artifact = artifact(GOAL_ID);
+
+        byte[] corrupt = Files.readAllBytes(artifact);
+        corrupt[corrupt.length - 1] ^= 0x01;
+        Files.write(artifact, corrupt);
+        assertThrows(CorruptedAgentRuntimeStateException.class, () ->
+                store.resolve(GOAL_ID));
+
+        Files.delete(artifact);
+        store.create(AgentRuntimeState.initial(GOAL_ID, workItem()));
+        byte[] trailing = Files.readAllBytes(artifact);
+        Files.write(
+                artifact,
+                ByteBuffer.allocate(trailing.length + 1)
+                        .put(trailing)
+                        .put((byte) 1)
+                        .array());
+        assertThrows(CorruptedAgentRuntimeStateException.class, () ->
+                store.resolve(GOAL_ID));
+
+        Files.delete(artifact);
+        store.create(AgentRuntimeState.initial(GOAL_ID, workItem()));
+        byte[] unsupported = Files.readAllBytes(artifact);
+        ByteBuffer.wrap(unsupported).putInt(
+                PAYLOAD_OFFSET,
+                AgentRuntimeState.CURRENT_SCHEMA_VERSION + 1);
+        replaceDigest(unsupported);
+        Files.write(artifact, unsupported);
+        CorruptedAgentRuntimeStateException exception = assertThrows(
+                CorruptedAgentRuntimeStateException.class,
+                () -> store.resolve(GOAL_ID));
+        assertTrue(exception.getMessage().contains("version"));
+
+        assertThrows(MissingAgentRuntimeStateException.class, () ->
+                store.resolve(
+                        "00000000-0000-0000-0000-000000000599"));
+    }
+
+    @Test
+    void rejectsIntegrityValidStateContainingInvalidUtf8()
+            throws Exception {
+        FileSystemAgentRuntimeStateStore store =
+                new FileSystemAgentRuntimeStateStore(storageRoot);
+        store.create(AgentRuntimeState.initial(GOAL_ID, workItem()));
+        Path artifact = artifact(GOAL_ID);
+        byte[] invalidUtf8 = Files.readAllBytes(artifact);
+        int payloadKindOffset =
+                PAYLOAD_OFFSET + Integer.BYTES + Integer.BYTES;
+        invalidUtf8[payloadKindOffset] = (byte) 0xC3;
+        replaceDigest(invalidUtf8);
+        Files.write(artifact, invalidUtf8);
+
+        assertThrows(CorruptedAgentRuntimeStateException.class, () ->
+                store.resolve(GOAL_ID));
+    }
+
+    @Test
+    void rejectsOversizedAndNonRegularArtifacts() throws Exception {
+        FileSystemAgentRuntimeStateStore store =
+                new FileSystemAgentRuntimeStateStore(storageRoot);
+        Files.createDirectories(storageRoot);
+        Path artifact = artifact(GOAL_ID);
+        try (FileChannel channel = FileChannel.open(
+                artifact,
+                StandardOpenOption.CREATE_NEW,
+                StandardOpenOption.WRITE)) {
+            channel.position(
+                    FileSystemAgentRuntimeStateStore.MAX_STATE_BYTES
+                            + FileSystemAgentRuntimeStateStore.HEADER_BYTES);
+            channel.write(ByteBuffer.wrap(new byte[] {1}));
+        }
+        assertThrows(CorruptedAgentRuntimeStateException.class, () ->
+                store.resolve(GOAL_ID));
+
+        Files.delete(artifact);
+        Files.createDirectory(artifact);
+        assertThrows(CorruptedAgentRuntimeStateException.class, () ->
+                store.resolve(GOAL_ID));
+    }
+
+    private Path artifact(String goalId) {
+        return storageRoot.resolve(goalId + ".agent-runtime");
+    }
+
+    private static WorkItem workItem() {
+        ApprovedTaskRevision revision = new ApprovedTaskRevision(
+                "gate-8-durable-goal-agent-run-lifecycle",
+                "CURRENT_TASK.md",
+                "a".repeat(64));
+        return new WorkItem(
+                WORK_ITEM_ID,
+                "runtime-\uD83D\uDE80",
+                new MessageEnvelope(
+                        WORK_MESSAGE_ID,
+                        "correlation-runtime-store",
+                        Optional.empty(),
+                        "logical-run-runtime-store",
+                        "runtime-store-\uD83D\uDE80",
+                        Instant.parse(
+                                "2026-07-16T18:30:00.123456789Z"),
+                        new WorkPayload(
+                                revision,
+                                "b".repeat(64),
+                                Set.of("read-file", "verify"))));
+    }
+
+    private static MessageEnvelope resultMessage(
+            VerificationStatus status) {
+        return new MessageEnvelope(
+                "00000000-0000-0000-0000-000000000505",
+                "correlation-runtime-store",
+                Optional.of(WORK_MESSAGE_ID),
+                "logical-run-runtime-store",
+                "runtime-result-\uD83D\uDE80",
+                Instant.parse("2026-07-16T19:00:00.123456789Z"),
+                new ResultPayload(
+                        "gate-8-durable-goal-agent-run-lifecycle",
+                        "run-record/runtime-\uD83D\uDE80",
+                        status));
+    }
+
+    private static void replaceDigest(byte[] envelope) throws Exception {
+        ByteBuffer buffer = ByteBuffer.wrap(envelope);
+        int magic = buffer.getInt(0);
+        long storedAt = buffer.getLong(Integer.BYTES);
+        int payloadLength = buffer.getInt(Integer.BYTES + Long.BYTES);
+        byte[] payload = new byte[payloadLength];
+        System.arraycopy(
+                envelope,
+                PAYLOAD_OFFSET,
+                payload,
+                0,
+                payloadLength);
+        byte[] digest = MessageDigest.getInstance("SHA-256").digest(
+                ByteBuffer.allocate(
+                                Integer.BYTES
+                                        + Long.BYTES
+                                        + Integer.BYTES
+                                        + payload.length)
+                        .putInt(magic)
+                        .putLong(storedAt)
+                        .putInt(payloadLength)
+                        .put(payload)
+                        .array());
+        System.arraycopy(
+                digest,
+                0,
+                envelope,
+                DIGEST_OFFSET,
+                digest.length);
+    }
+}

@@ -454,8 +454,10 @@ Current increment:
 - Contract Verified: immutable `WorkItem` admission over one unchanged Gate 7 work envelope, with a distinct canonical identity and bounded required capability but no scheduling or execution behavior;
 - Contract Verified: immutable `QueuedWork` with up to 256 unique dependency identities plus a deterministic run-scoped `SingleWorkerSchedulerQueue` bounded to 4096 admissions, dependency-first validation, FIFO readiness, one active slot, matching completion, and no authority expansion;
 - Contract Verified: canonical queue identity and single-logical-run binding, immutable schema-v1 queue snapshots, bounded integrity-checked atomic filesystem persistence, persist-before-exposure enqueue/claim/completion, fail-closed corruption/version checks, and restart recovery that requeues interrupted active work in admission order under explicit at-least-once semantics;
-- next increment: durable Goal/AgentRun lifecycle state before leases, fencing, or worker execution;
-- deferred: general forward-reference graph/cycle handling, failure/retry/cancellation, priority/fairness, leases/fencing, budgets, external-effect idempotency, checkpoints beyond queue snapshots, orphan recovery, schema migration beyond v1, power-loss directory durability, workers, and production wiring.
+- Contract Verified: one exact-WorkItem `RuntimeGoal`, one schema-v1 `RuntimeAgentRun`, deterministic forward-only lifecycle transitions, matching typed terminal result envelopes, Verified-only completion, monotonic persist-before-exposure revisions, bounded integrity-checked filesystem state, and exact restart recovery without invented ownership;
+- Contract Verified: a bounded fenced single-owner `AgentRunLease` acquired only from `READY`, with injected time, persisted monotonic fence tokens, matching unexpired owner/fence checks for renewal and execution completion, and durable expiry reclamation back to `READY` across restart;
+- next increment: connect one durable Scheduler queue claim to one durable Goal/AgentRun planning, readiness, and lease acquisition path without Tool execution or external effects;
+- deferred: general forward-reference graph/cycle handling, multiple AgentRuns and retry, cancellation/pause/resume, priority/fairness, budgets, external-effect idempotency/fencing, checkpoints beyond current snapshots, worker execution, schema migration beyond v1, power-loss directory durability, multi-process coordination, distributed clock-skew handling, and production wiring.
 
 Dependencies:
 
