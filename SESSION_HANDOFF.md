@@ -17,7 +17,7 @@
 - The base queue is in-memory and adds no lease, retry/cancellation, worker execution, or authority; the separate durable wrapper now supplies schema-v1 persistence and restart recovery.
 - The fresh Gate 7 Integrated maturity assessment retained Gate 7 at Contract Verified. Only the real work-message queue/journal/replay/idempotency path is Integrated; the other payload, topic, reliability, causation, and transport branches lack named production connections.
 - Fresh assessment evidence includes 42/42 focused tests, the 47-suite/208-test full regression (206 passed, 2 existing symbolic-link skips), and strict Java 17 lint across 122 production sources.
-- Commit `c40e31e` is the published baseline for WorkItem admission, runtime-path integration, and the product-quality tracks; the Gate 7 assessment, Gate 8 queue, and durable queue-state increments are uncommitted and have no commit or push authority.
+- Commit `1151fc5` delivers the Gate 7 assessment, Gate 8 queue and durable queue-state increments, Unicode/file-bound correction, bounded Tool-isolation capacity, and runtime package-cycle extraction.
 - The cross-cutting Product Journey and Evaluation Track is now specified with four canonical journeys and a fifth priority for a versioned evaluation/release-quality harness; it changes no Delivery Gate maturity.
 - Scheduler reliability now truthfully specifies at-least-once delivery plus idempotency, fenced leases, checkpoints, state migration, orphan reclamation, and replay-safe/compensatable effects rather than universal exactly-once execution.
 - Interfaces now share one Run/approval/verification/evidence/control API with CLI first, VS Code second, and Desktop later; Gate 12 owns one change-centered review projection.
@@ -26,7 +26,7 @@
 - Gate 7 remains Contract Verified after the separate full Integrated maturity assessment. Gate 8 remains the sole `Specified - Next` gate, and its immutable `WorkItem` admission sub-capability is Contract Verified.
 - A concrete IPC adapter was correctly excluded from the promotion prerequisite: endpoint, serialization, authentication, threading, persistence, and production wiring remain deferred integration work.
 - Fresh combined evidence includes 42 focused tests, a 47-suite/208-test full regression (206 passed, 2 existing symbolic-link skips), and Java 17 strict lint across 122 production sources.
-- The Gate 7 IPC contract, WorkItem admission, runtime-path integration, and product-quality tracks are published through `c40e31e`; the current Gate 7 maturity assessment and Gate 8 queue increment are uncommitted and have no commit or push authority.
+- The Gate 7 IPC contract, WorkItem admission, runtime-path integration, product-quality tracks, current Gate 7 maturity assessment, and Gate 8 queue increments are delivered through `1151fc5`.
 
 ## Updated At
 
@@ -120,7 +120,7 @@
 - PR #3 published bounded retry/re-delivery, cancellation propagation, and delivery ordering through `52987f2`; replay/Git corrections followed through `2585a10`, and backpressure plus the four reliability/security corrections are published through `b3be720`.
 - The Gate 7 transport-neutral IPC contract, maturity assessment, bounded work-payload correction, Contract Verified promotion, and Gate 8 next-marker synchronization are published through `16c7f5d`.
 - The Gate 8 `WorkItem` admission contract, named Gate 7 integration path, and product-quality specifications are published through `c40e31e`.
-- The current uncommitted work contains the completed documentation-only Gate 7 Integrated maturity assessment and the implemented/verified Gate 8 dependency-ready single-worker queue; it has no commit or push authority.
+- The completed documentation-only Gate 7 Integrated maturity assessment, implemented/verified Gate 8 dependency-ready single-worker queue, and subsequent runtime hardening are delivered through `1151fc5`.
 - The Gate 7 in-process delivery surface and its delivery-failure and dead-letter handling are committed and published on `origin/main` through delivery commit `b278c53`; the unrelated wall-clock test correction is published through `2a69182`.
 - Local build note: this host had no JDK, so Java 17 was provisioned by junctioning `C:/Users/dokan/.jdks/corretto-17.0.14` into the Git-ignored `.tools/jdk17-runtime`; `scripts/gradle.ps1` then works normally.
 - The maturity assessment, the re-scope-and-promotion, and the Gate 7 envelope contract are committed and published on `origin/main` through delivery commit `3423201`.
@@ -277,8 +277,8 @@ Resume Gate 8 with a bounded durable Goal/AgentRun lifecycle-state contract. Do 
 
 1. Read `.ai/` and every canonical startup document in repository order.
 2. Confirm Gate 7 is `Contract Verified`, Gate 8 is the sole `Specified - Next` gate, and `CURRENT_TASK.md` records the dependency-ready single-worker queue as Completed.
-3. Inspect `git status --short` and the current `main`/`origin/main` log rather than relying on the published base hash `c40e31e`.
+3. Inspect `git status --short` and the current `main`/`origin/main` log; delivery commit `1151fc5` is the implementation baseline for the completed work above.
 4. If the host has no JDK, provision Java 17 through `.tools/jdk17` (this host already has `jdk-17.0.19+10` there) or run `scripts/setup-dev.ps1`; `scripts/gradle.ps1` then works normally.
 5. The only external command authority is the decision-scoped read-only Git adapter; any new external command capability requires its own explicit user approval.
 6. Activate the next Gate 8 durable Goal/AgentRun lifecycle-state increment; retain the new package direction and do not combine leases/workers by default.
-7. Do not commit or push the uncommitted Gate 7 assessment or Gate 8 queue-state increments without a new explicit user request.
+7. Do not commit or push future changes without a new explicit user request.

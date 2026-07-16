@@ -11,7 +11,7 @@
 - PR #3, replay/Git review corrections, pending-queue backpressure, and the four reliability/security corrections are published on `origin/main` through `b3be720` (`fix: harden workspace execution and bounded delivery`).
 - Gate 7 transport-neutral IPC, bounded payload correction, Contract Verified promotion, and the Gate 8 next-marker transition are published on `origin/main` through `16c7f5d` (`feat: complete Gate 7 messaging foundation`).
 - Gate 8 `WorkItem` admission, the named Gate 6-to-Gate 7-to-Gate 8 integration path, and the cross-cutting Product Journey, Evaluation, shared-interface, Scheduler-delivery, and default-security specifications are published on `origin/main` through `c40e31e` (`feat: integrate runtime admission and product quality tracks`).
-- The current uncommitted work contains the completed Gate 7 assessment, Gate 8 queue/durable-state increments, Unicode/file-bound correction, bounded Tool-isolation capacity, and runtime package-cycle extraction; it has no commit or push authority.
+- The completed Gate 7 assessment, Gate 8 queue/durable-state increments, Unicode/file-bound correction, bounded Tool-isolation capacity, and runtime package-cycle extraction are delivered through `1151fc5` (`feat: harden durable runtime scheduling`).
 - Gate 1-3 delivery commit: `3fcda4c` (`feat: integrate governed agent execution foundations`).
 - Pull request #2 has been merged into `main`.
 - Delivery Gates 1 through 3, self-hosting compatibility recovery, long-term vision, and documentation-alignment changes are published on `origin/main`.
