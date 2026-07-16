@@ -1,6 +1,6 @@
 package com.enhancer.bus;
 
-import com.enhancer.verification.VerificationStatus;
+import com.enhancer.kernel.VerificationStatus;
 import java.util.Objects;
 
 public record ResultPayload(

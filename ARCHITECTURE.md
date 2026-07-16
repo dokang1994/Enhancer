@@ -244,7 +244,9 @@ Transport acceptance is deliberately not Message Bus delivery. `ACCEPTED` means 
 
 `WorkMessagePublisher` is the first authority-preserving application boundary that connects real Gate 6 input to the Gate 7 bus. It accepts one matching repository-derived `ApprovedTask` and `WorkspaceSnapshot`, derives the existing `WorkPayload` task revision, snapshot identity, and allowed-Tool scope, constructs a versioned envelope from explicit deterministic metadata, and publishes it to an explicit in-process queue. Task-identity, source-document, or pre-snapshot-time mismatch is rejected before bus admission.
 
-`WorkItemAdmissionHandler` is the matching Gate 7-to-Gate 8 adapter. It retains the delivered envelope unchanged inside one `WorkItem` using injected identity generation, required capability, and downstream sink. It creates no approval, storage, ordering, execution, or Scheduler semantics. A named integration test connects the real Context Reader and Workspace collector through the real bus, journal, and replay path to this admission boundary and proves unchanged authorization/provenance projections plus duplicate-free replay. This is integration evidence for a later Gate 7 maturity assessment; Gate 7 remains Contract Verified until that separate assessment maps every scope item and exit criterion.
+`WorkItemAdmissionHandler` is the matching Gate 7-to-Gate 8 adapter. It retains the delivered envelope unchanged inside one `WorkItem` using injected identity generation, required capability, and downstream sink. It creates no approval, storage, ordering, execution, or Scheduler semantics. A named integration test connects the real Context Reader and Workspace collector through the real bus, journal, and replay path to this admission boundary and proves unchanged authorization/provenance projections plus duplicate-free replay.
+
+The fresh gate-level assessment classifies this work-message queue path as Integrated but retains Gate 7 at Contract Verified. The real path exercises `WorkPayload`, message/correlation/run/producer identity, queue delivery, journaling, replay, and duplicate suppression. Result, control, and handoff payloads; non-empty causation; topic delivery; failure/retry/dead-letter, cancellation, re-entrant ordering, and backpressure branches; and `MessageTransport` have contract tests but no named real upstream-to-downstream production connection. A later Gate 8 runtime consumer or transport integration must supply those missing connections before Gate 7 can be promoted as a whole.
 
 ## Agent Runtime Model
 
@@ -261,7 +263,23 @@ Planner, Coder, Reviewer, Tester, and Memory are roles or workers behind message
 
 The first Gate 8 increment is an immutable scheduler-facing `WorkItem` under `com.enhancer.runtime`. A work-item identity is a canonical UUID distinct from the Gate 7 message identity because logical work and one delivery attempt are different identities. The item retains exactly one existing `MessageEnvelope` carrying `WorkPayload` plus one bounded required-capability name; logical run identity, approved task revision, Workspace snapshot identity, and allowed Tools are projections of that unchanged envelope rather than caller-supplied copies.
 
-Admission rejects non-work payloads, malformed or reused identities, and blank or oversized capabilities. It creates no approval, Tool permission, state transition, dependency, queue, lease, persistence, or execution authority. This admission sub-capability is Contract Verified; the dependency-ready single-worker Scheduler queue is the immediate next consumer. Goal/AgentRun persistence, lifecycle states, budgets, cancellation, recovery, and worker execution remain later Gate 8 increments.
+Admission rejects non-work payloads, malformed or reused identities, and blank or oversized capabilities. It creates no approval, Tool permission, state transition, dependency, queue, lease, persistence, or execution authority. This admission sub-capability is Contract Verified; the dependency-ready single-worker Scheduler queue is now its first consumer. Goal/AgentRun persistence, lifecycle states, budgets, cancellation, recovery, and worker execution remain later Gate 8 increments.
+
+### Gate 8 Dependency-Ready Single-Worker Queue
+
+`QueuedWork` retains one exact `WorkItem` and an immutable dependency set of at most 256 canonical work identities. A work item cannot depend on itself, repeat a dependency, or reference work that the same run-scoped queue has not already admitted. Requiring dependency-first admission prevents cycles in this initial topology without claiming arbitrary graph-cycle analysis or forward-reference support.
+
+`SingleWorkerSchedulerQueue` admits at most 4096 work items per run-scoped instance, rejects duplicate work identities, preserves admission order, and claims the first item whose dependencies are completed. It has exactly one active slot: another claim returns empty until the matching active identity is explicitly completed, and only completion releases dependent work. The queue retains each `WorkItem` and its Gate 7 envelope by identity and creates no task approval, Tool authority, verification result, or execution outcome.
+
+This queue sub-capability is Contract Verified. Its base implementation is deliberately in-memory and single-threaded: claim is not a lease, completion is not a durable AgentRun terminal state, and there is no failure/retry/cancellation, priority, budget, timeout, fence, orphan recovery, worker execution, or production wiring. The separate durable wrapper below now supplies schema-v1 queue state and restart recovery without changing those limits.
+
+### Gate 8 Durable Queue State And Restart Recovery
+
+The next bounded increment gives each durable queue a caller-supplied canonical identity and records one immutable schema-versioned snapshot containing its revision, capacity, logical run binding, total admission order, ordered pending work, optional active work, and completed identities. Persisted work retains the exact scheduler-facing WorkItem data and unchanged Gate 7 envelope, including task revision, Workspace snapshot identity, allowed-Tool scope, message provenance, capability, and dependencies. One queue accepts work from only one logical run.
+
+Every successful enqueue, claim, and completion is staged on a copy and atomically persisted before the transition becomes visible in memory. The filesystem adapter keeps one bounded integrity-checked binary snapshot per queue, uses strict UTF-8, refuses unsupported schema versions or structural corruption, does not overwrite an existing queue during creation, and requires updates to advance exactly one revision. Persistence failure leaves the previous durable and in-memory revision authoritative.
+
+Because this increment has no lease or worker ownership, restart recovery moves a previously active item back into pending order and persists that recovery transition before returning the queue. The item may therefore be offered again under at-least-once semantics. This prevents hidden work loss and permanent active-state blockage but does not deduplicate external effects. Schema migration beyond v1, leases/fencing, worker execution, effect records, failure/retry/cancellation policy, multi-process coordination, and snapshot history or cleanup remain deferred.
 
 ### Gate 8 Scheduler Delivery Semantics
 
@@ -571,6 +589,38 @@ Evidence and RunRecord binary envelopes integrity-protect their complete version
 The Repository Context Reader applies a bounded startup-document size, strict UTF-8 decoding, and real-path containment within the real project root. The build declares its JUnit Platform runtime launcher explicitly and provides a workspace-local default test temporary directory so Gradle 9 compatibility and sandboxed test execution do not depend on implicit or user-profile state.
 
 The no-persistence `ReadFileTool` mode still cannot return truncated evidence without a complete-output reference. That condition is an execution/evidence-capability failure, not malformed caller input.
+
+### Runtime Text And File Resource Boundaries
+
+All production prefix/suffix truncation that can reach persisted evidence, Tool diagnostics, CLI output, or bounded Workspace reasons uses one UTF-16-aware boundary that never returns half of a surrogate pair. Configured limits remain expressed in Java string code units; when an exact boundary would split a supplementary character, the returned text is one code unit shorter than the maximum. Complete-content evidence digests remain computed over the untruncated valid input.
+
+Governed file reads and hashes enforce their byte ceilings while consuming the stream, not only through a preceding `Files.size` observation. The common operation allocates no more than the accepted read ceiling and reads at most one additional byte to detect growth. `ReadFileTool`, repository startup documents, target-file hashing, and Evidence, RunRecord, and Scheduler queue artifact resolution retain their existing configured ceilings and strict UTF-8 or integrity behavior. A target that grows past its bound becomes explicitly Unavailable; the other boundaries fail through their existing checked or typed failure paths.
+
+This correction closes Unicode-boundary and mutable-file TOCTOU resource defects. It does not make an interrupt-ignoring in-process Tool terminable or add parent-directory synchronization after atomic persistence. Long-running Tool execution requires process isolation in addition to the finite containment contract below before Scheduler workers are Operational. The package cycle identified alongside these defects is closed by the separately verified neutral lifecycle and application-finalizer extraction below. Atomic move prevents partial visible artifacts during ordinary restart but is not a claim of storage-device or power-loss durability.
+
+### In-Process Tool Isolation Capacity
+
+ToolExecutor uses one process-wide capacity of 64 live isolated workers shared across its default instances. Policy, registration, and pre-invocation cancellation checks occur before capacity consumption. Each admitted invocation acquires one slot before its daemon worker starts, and the slot is released only from that worker thread's actual termination path. Timeout, interrupt, executor close, or `shutdownNow` does not release accounting while Tool code continues to ignore interruption.
+
+Capacity exhaustion refuses the invocation before thread creation with typed `ISOLATION_CAPACITY_EXHAUSTED` failure evidence. The standard failure classifier treats it as terminal rather than retrying into a saturated process. Existing invocation isolation remains: below the ceiling, one timed-out worker does not starve a separate next invocation.
+
+This is finite containment, not termination or recovery. Permanently stuck workers hold capacity until process restart, and a saturated process cannot run more Tools. Gate 8 long-running workers still require a process boundary, OS-enforced termination, Scheduler admission/backpressure integration, and operator-visible recovery before Tool execution can be called Operational in that environment.
+
+### Runtime Package Dependency Direction
+
+The verified runtime packages form an acyclic source dependency graph. Neutral verification lifecycle values (`VerificationDecision`, `VerificationStatus`, and `VerificationCode`) live in `com.enhancer.kernel`. Worker state and approved-task contracts remain in `com.enhancer.loop`; verification implementations may depend on loop and kernel; RunRecord persistence may depend on loop and kernel but not verification implementations. `AgentRunFinalizer` lives in `com.enhancer.application`, the composition layer allowed to depend on loop, verification, and run persistence.
+
+The verified direction is:
+
+```text
+application -> run, verification, loop, kernel
+run         -> loop, kernel
+verification-> loop, kernel
+loop        -> kernel
+kernel      -> none of the above
+```
+
+`VerifiedAgentRunTransition` is the explicit application-facing port to the package-private in-memory completion transition. It validates the same AWAITING_VERIFICATION and Verified-decision invariants; durable completion still exists only after application finalization persists the unchanged RunRecord schema. A source-structure regression test forbids loop-to-run, loop-to-verification, run-to-verification, and inward kernel imports. The project remains one Gradle module; ApprovedTask relocation, persistence SPI extraction, and physical module separation remain future work.
 
 ### Delivery Gate 5 CLI Boundary
 

@@ -1,7 +1,7 @@
 package com.enhancer.brain;
 
 import com.enhancer.run.RunRecord;
-import com.enhancer.verification.VerificationStatus;
+import com.enhancer.kernel.VerificationStatus;
 import java.time.Instant;
 import java.util.Objects;
 

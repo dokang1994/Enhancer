@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.enhancer.verification.VerificationStatus;
+import com.enhancer.kernel.VerificationStatus;
 import com.enhancer.workspace.ApprovedTaskRevision;
 import java.time.Instant;
 import java.util.Optional;

@@ -15,7 +15,7 @@ import com.enhancer.tool.ToolRequest;
 import com.enhancer.tool.ToolResult;
 import com.enhancer.tool.ToolResultStatus;
 import com.enhancer.tool.VerificationEvidence;
-import com.enhancer.verification.VerificationDecision;
+import com.enhancer.kernel.VerificationDecision;
 import com.enhancer.workspace.ApprovedTaskRevision;
 import com.enhancer.workspace.WorkspaceSnapshot;
 import com.enhancer.workspace.WorkspaceSourceKind;

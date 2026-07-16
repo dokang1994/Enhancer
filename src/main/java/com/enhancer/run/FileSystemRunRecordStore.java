@@ -1,5 +1,7 @@
 package com.enhancer.run;
 
+import com.enhancer.io.BoundedFileOperations;
+import com.enhancer.io.FileSizeLimitExceededException;
 import com.enhancer.loop.AgentLoopStopReason;
 import com.enhancer.loop.ApprovedTask;
 import com.enhancer.tool.ToolFailureCode;
@@ -7,9 +9,9 @@ import com.enhancer.tool.ToolRequest;
 import com.enhancer.tool.ToolResult;
 import com.enhancer.tool.ToolResultStatus;
 import com.enhancer.tool.VerificationEvidence;
-import com.enhancer.verification.VerificationCode;
-import com.enhancer.verification.VerificationDecision;
-import com.enhancer.verification.VerificationStatus;
+import com.enhancer.kernel.VerificationCode;
+import com.enhancer.kernel.VerificationDecision;
+import com.enhancer.kernel.VerificationStatus;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -219,7 +221,13 @@ public final class FileSystemRunRecordStore implements RunRecordStore {
 
         byte[] envelope;
         try {
-            envelope = Files.readAllBytes(artifact);
+            envelope = BoundedFileOperations.readAllBytes(
+                    artifact,
+                    HEADER_BYTES + MAX_PAYLOAD_BYTES);
+        } catch (FileSizeLimitExceededException exception) {
+            throw corrupted(
+                    reference,
+                    "artifact grew outside supported bounds while reading");
         } catch (NoSuchFileException exception) {
             throw new MissingRunRecordException(reference);
         }

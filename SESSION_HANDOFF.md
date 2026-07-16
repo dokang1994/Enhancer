@@ -1,14 +1,32 @@
 # Session Handoff
 
+- The loop/run/verification cycle is removed locally. Neutral verification values are in `kernel`, AgentRunFinalizer is in `application`, and a structural test enforces the acyclic dependency direction.
+- Fresh package-boundary evidence includes 27/27 focused tests, a 53-suite/228-test full regression (226 passed, 2 existing skips), and strict lint across 135 production sources.
+- RunRecord schema, serialized enum names, verification behavior, CLI behavior, and replay compatibility are unchanged.
+- ToolExecutor now has finite process-wide containment: 64 live isolated workers, real-thread-lifetime slot accounting, and typed terminal refusal before new thread creation when full.
+- Fresh Tool-capacity evidence includes 41 affected passes plus 1 existing symbolic-link skip, a 52-suite/227-test full regression (225 passed, 2 skips), and strict lint across 134 production sources.
+- This does not kill stuck code. Permanently stuck workers consume capacity until process restart; process isolation remains required before long-running Scheduler Tool workers.
+- Unicode truncation and mutable-file TOCTOU bounds are corrected locally: supplementary characters are never split at bounded text edges, and governed reads/hashes enforce limits during stream consumption with at most one overflow byte.
+- Fresh safety evidence includes 18/18 focused tests, 54 affected integration passes plus 2 existing symbolic-link skips, a 52-suite/226-test full regression (224 passed, 2 skips), and strict lint across 133 production sources.
+- The review findings now stand as follows: Unicode truncation and file-growth bounds are fixed; stuck Tool accumulation is finitely contained but not terminable; the package cycle is removed; atomic stores still do not fsync parent directories and make no power-loss claim.
+- Gate 8 durable queue state and restart recovery are now Contract Verified locally: schema-v1 snapshots preserve the exact WorkItem/envelope graph, every transition persists before exposure, and interrupted active work is durably requeued in admission order under at-least-once semantics.
+- The filesystem queue store is strict-UTF-8, integrity checked, atomically published, revision checked, and bounded to 64 MiB; it fails closed on missing, corrupt, oversized, trailing, structurally invalid, or unsupported state.
+- Fresh durable-queue evidence includes 14/14 focused tests, a 50-suite/219-test full regression (217 passed, 2 existing symbolic-link skips), and Java 17 strict lint across 130 production sources.
+- Atomic publication does not include parent-directory fsync and therefore makes no power-loss durability claim. Leases, fencing, workers, external-effect idempotency, and migration beyond schema v1 remain absent.
+- Gate 8 now has a Contract Verified dependency-ready single-worker queue: up to 256 earlier-admitted dependencies per work item, 4096 admissions per run-scoped queue, FIFO readiness, one active slot, and explicit matching completion.
+- The base queue is in-memory and adds no lease, retry/cancellation, worker execution, or authority; the separate durable wrapper now supplies schema-v1 persistence and restart recovery.
+- The fresh Gate 7 Integrated maturity assessment retained Gate 7 at Contract Verified. Only the real work-message queue/journal/replay/idempotency path is Integrated; the other payload, topic, reliability, causation, and transport branches lack named production connections.
+- Fresh assessment evidence includes 42/42 focused tests, the 47-suite/208-test full regression (206 passed, 2 existing symbolic-link skips), and strict Java 17 lint across 122 production sources.
+- Commit `c40e31e` is the published baseline for WorkItem admission, runtime-path integration, and the product-quality tracks; the Gate 7 assessment, Gate 8 queue, and durable queue-state increments are uncommitted and have no commit or push authority.
 - The cross-cutting Product Journey and Evaluation Track is now specified with four canonical journeys and a fifth priority for a versioned evaluation/release-quality harness; it changes no Delivery Gate maturity.
 - Scheduler reliability now truthfully specifies at-least-once delivery plus idempotency, fenced leases, checkpoints, state migration, orphan reclamation, and replay-safe/compensatable effects rather than universal exactly-once execution.
 - Interfaces now share one Run/approval/verification/evidence/control API with CLI first, VS Code second, and Desktop later; Gate 12 owns one change-centered review projection.
 - The layered default-security model treats repository, Tool/terminal, model, MCP, plugin, dependency, and generated content as untrusted data and assigns concrete enforcement to the owning gates without amending the Constitution.
-- Gate 7 now has one named integration-preparation path: a real repository-approved task and Gate 6 Workspace snapshot flow through `WorkMessagePublisher`, the real in-process queue/journal/replay path, and `WorkItemAdmissionHandler` into the unchanged Gate 8 `WorkItem`.
-- Gate 7 remains Contract Verified pending a separate full Integrated maturity assessment. Gate 8 remains the sole `Specified - Next` gate, and its immutable `WorkItem` admission sub-capability is Contract Verified.
+- Gate 7 now has one named Integrated work-message path: a real repository-approved task and Gate 6 Workspace snapshot flow through `WorkMessagePublisher`, the real in-process queue/journal/replay path, and `WorkItemAdmissionHandler` into the unchanged Gate 8 `WorkItem`.
+- Gate 7 remains Contract Verified after the separate full Integrated maturity assessment. Gate 8 remains the sole `Specified - Next` gate, and its immutable `WorkItem` admission sub-capability is Contract Verified.
 - A concrete IPC adapter was correctly excluded from the promotion prerequisite: endpoint, serialization, authentication, threading, persistence, and production wiring remain deferred integration work.
 - Fresh combined evidence includes 42 focused tests, a 47-suite/208-test full regression (206 passed, 2 existing symbolic-link skips), and Java 17 strict lint across 122 production sources.
-- The Gate 7 IPC contract, assessments, payload correction, promotion, and Gate 8 next-marker transition are published through `16c7f5d`; the WorkItem and integration-preparation increments are uncommitted and have no commit or push authority.
+- The Gate 7 IPC contract, WorkItem admission, runtime-path integration, and product-quality tracks are published through `c40e31e`; the current Gate 7 maturity assessment and Gate 8 queue increment are uncommitted and have no commit or push authority.
 
 ## Updated At
 
@@ -16,6 +34,12 @@
 
 ## Completed Work
 
+- Removed the runtime package cycle through neutral Kernel verification values, application-layer finalization, and an executable dependency-direction regression.
+- Added a process-wide bounded Tool isolation capacity with actual-thread-lifetime leases and fail-closed typed saturation.
+- Corrected Unicode-unsafe truncation and size-check/read TOCTOU boundaries across Evidence, Tool diagnostics, CLI output, Context, Workspace, and all current filesystem stores.
+- Implemented and verified Gate 8 durable queue state: immutable schema-v1 snapshots, atomic integrity-checked filesystem persistence, persist-before-exposure transitions, exact envelope recovery, monotonic revisions, and admission-ordered active-work requeue after interruption.
+- Implemented the first Gate 8 Scheduler queue contract test-first, retaining exact WorkItems while enforcing bounded dependency-first admission and deterministic single-active-work sequencing.
+- Completed the Gate 7 Integrated maturity assessment without production or test changes: the work-message queue path is Integrated, but gate-level promotion is unsupported by the unconnected payload, topic, reliability, causation, and transport branches.
 - Specified the cross-cutting product journeys, evaluation metrics/harness, truthful Scheduler delivery model, shared interface order, change-centered UX, and layered security ownership; strengthened Gate 13 and Gate 16 measured-quality exit criteria without code or maturity changes.
 - Added and verified the authority-preserving Gate 7 integration-preparation path: real Context Reader and Workspace inputs flow through one bounded work publisher, the actual in-process queue/journal/replay behavior, and one injected WorkItem admission handler without a concrete IPC adapter or Scheduler behavior.
 - Implemented and Contract Verified immutable Gate 8 `WorkItem` admission over one unchanged Gate 7 work envelope, with separate identity, bounded capability metadata, projection-only accessors, and no authority or scheduler behavior.
@@ -93,9 +117,10 @@
 - `gate-6-task-justification-references` (published through `0e2be2c`), `gate-6-authority-boundary-evidence`, and `gate-6-target-file-observation` are Completed; their records are preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
 - `gate-6-git-workspace-adapter` is Completed and published through `21e6230`; `gate-6-maturity-assessment` is Completed with its record preserved in `PROJECT_STATE.md`.
 - `gate-6-rescope-and-promotion` is Completed; its record is preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
-- PR #3 published bounded retry/re-delivery, cancellation propagation, and delivery ordering through `52987f2`; replay/Git corrections followed through `2585a10`, and backpressure plus the four reliability/security corrections are published through `b3be720`, where local `main` and `origin/main` pointed before this uncommitted task.
+- PR #3 published bounded retry/re-delivery, cancellation propagation, and delivery ordering through `52987f2`; replay/Git corrections followed through `2585a10`, and backpressure plus the four reliability/security corrections are published through `b3be720`.
 - The Gate 7 transport-neutral IPC contract, maturity assessment, bounded work-payload correction, Contract Verified promotion, and Gate 8 next-marker synchronization are published through `16c7f5d`.
-- The current uncommitted work implements and verifies the Gate 8 `WorkItem` admission contract and the named Gate 7 integration-preparation path and has no commit or push authority.
+- The Gate 8 `WorkItem` admission contract, named Gate 7 integration path, and product-quality specifications are published through `c40e31e`.
+- The current uncommitted work contains the completed documentation-only Gate 7 Integrated maturity assessment and the implemented/verified Gate 8 dependency-ready single-worker queue; it has no commit or push authority.
 - The Gate 7 in-process delivery surface and its delivery-failure and dead-letter handling are committed and published on `origin/main` through delivery commit `b278c53`; the unrelated wall-clock test correction is published through `2a69182`.
 - Local build note: this host had no JDK, so Java 17 was provisioned by junctioning `C:/Users/dokan/.jdks/corretto-17.0.14` into the Git-ignored `.tools/jdk17-runtime`; `scripts/gradle.ps1` then works normally.
 - The maturity assessment, the re-scope-and-promotion, and the Gate 7 envelope contract are committed and published on `origin/main` through delivery commit `3423201`.
@@ -109,6 +134,26 @@
 
 ## Fresh Verification
 
+- Package-boundary RED: one structural test failed with exactly six forbidden import directions.
+- Package-boundary focused GREEN: 27 of 27 structural/verifier/finalizer/RunRecord/CLI tests passed.
+- Package-boundary full result: 53 suites, 228 tests, 226 passed, 2 existing symbolic-link skips, 0 failures, and 0 errors; strict lint passed across 135 production sources.
+- Package-boundary post-document self-hosting passed 16 of 17 tests with 1 existing Windows symbolic-link setup skip and no failure or error.
+- Tool-capacity RED: production compilation passed and test compilation failed with exactly 3 aligned errors for the absent capacity and failure contracts.
+- Tool-capacity affected GREEN: 41 tests passed with 1 existing symbolic-link skip; full regression passed 225 of 227 with the 2 existing skips.
+- Tool-capacity strict lint passed across 134 production sources.
+- Unicode/file-bound RED: production compilation passed and test compilation failed with exactly 10 errors naming only the absent helper contracts.
+- Unicode/file-bound focused GREEN: 18 of 18 tests passed across 4 suites; the affected integration group passed 54 with 2 existing Windows symbolic-link setup skips.
+- Unicode/file-bound full result: 52 suites, 226 tests, 224 passed, 2 existing symbolic-link setup skips, 0 failures, and 0 errors; strict lint passed across 133 production sources.
+- Gate 8 durable queue RED: production compilation passed and test compilation failed with exactly 48 aligned errors, 47 for absent durable contracts and 1 for the absent logical-run accessor.
+- Gate 8 durable queue focused GREEN: 14 of 14 tests passed across 5 runtime/integration suites with no skips, failures, or errors.
+- Gate 8 durable queue full result: 50 suites, 219 tests, 217 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors; Java 17 strict lint passed across 130 production sources.
+- Gate 8 queue RED: production compilation passed and test compilation failed with exactly 25 errors naming only the absent `QueuedWork` and `SingleWorkerSchedulerQueue`.
+- Gate 8 queue focused GREEN: 45 of 45 messaging/runtime tests passed across 6 suites with no skips, failures, or errors.
+- Gate 8 queue full result: 48 suites, 211 tests, 209 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors; Java 17 strict lint passed across 124 production sources.
+- Gate 8 queue post-document self-hosting passed 15 of 16 actual-document Context Reader, Planner, and Assisted Loop tests with 1 existing Windows symbolic-link setup skip and no failure or error.
+- Gate 7 Integrated assessment focused result: 42 of 42 messaging/runtime tests passed across 5 suites with no skips, failures, or errors.
+- Gate 7 Integrated assessment full result: 47 suites, 208 tests, 206 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors; Java 17 strict production lint passed across 122 sources.
+- Gate 7 assessment post-document self-hosting passed 15 of 16 Context Reader, Planner, and Assisted Loop tests with 1 existing Windows symbolic-link setup skip and no failure or error; Gate 8 remained the sole next marker.
 - Product-track documentation: 17 sequential Delivery Gates, one Gate 8 `Specified - Next` marker, four canonical journeys, one resolved accepted decision, seven explicit-denominator metric definitions, consistent Scheduler/interface/security language, and no Constitution diff.
 - Product-track actual-document self-hosting: 15 of 16 Context Reader, Planner, and Assisted Loop tests passed with 1 existing Windows symbolic-link setup skip and no failure or error.
 - Runtime-path focused verification: 42 of 42 tests passed across `MessagingRuntimeIntegrationTest`, `WorkItemTest`, and all Gate 7 bus suites with no skips, failures, or errors.
@@ -202,8 +247,8 @@
 - Gates 1 through 4: Integrated.
 - Gate 5: Operational for one governed read-only local CLI scenario.
 - Gate 6: Integrated by the user-approved re-scope-and-promotion decision; the production view and graph composition remain Operational sub-capabilities.
-- Gate 7: Contract Verified. One named real Workspace-to-bus-to-WorkItem path is Integrated and supplies promotion evidence, but gate-level Integrated maturity still requires a separate assessment; durable messaging, a concrete adapter, and a supported production entry point do not exist.
-- Gate 8: Specified - Next; immutable `WorkItem` admission is Contract Verified, while Scheduler queues, durable Goal/AgentRun state, leases, recovery, and workers do not yet exist.
+- Gate 7: Contract Verified after fresh assessment. The work-message queue path is Integrated; result/control/handoff, non-empty causation, topic and remaining reliability branches, and `MessageTransport` remain contract-only. Durable messaging, a concrete adapter, and a supported production entry point do not exist.
+- Gate 8: Specified - Next; immutable `WorkItem` admission, the dependency-ready single-worker queue, and durable schema-v1 queue state/restart recovery are Contract Verified, while durable Goal/AgentRun lifecycle state, leases/fencing, effect records, and workers do not yet exist.
 - Gate 6 repository-memory path (real governed run -> real memory -> collector -> composed view with divergence detection): Integrated.
 - Gate 6 production composition: Operational for the governed read-only CLI scenario; every recorded `run` reports bounded snapshot identity, observation count, and memory freshness.
 - Gate 6 `WorkspaceSnapshot`, `ProjectBrainView`, graph projection contract, `TaskImpactQuery`, `AcceptedDecisionProjector`, and `RunRecordMetadataCollector`: Integrated through the fresh promotion audit against named pre-existing integration evidence.
@@ -217,7 +262,7 @@
 
 ## Next Task
 
-Run a separate fresh Gate 7 Integrated maturity assessment against every scope item and exit criterion, including the named runtime-path evidence; do not promote the gate automatically.
+Resume Gate 8 with a bounded durable Goal/AgentRun lifecycle-state contract. Do not imply process-isolated Tool termination or power-loss durability; both remain separate future work.
 
 ## Remaining Risks
 
@@ -231,9 +276,9 @@ Run a separate fresh Gate 7 Integrated maturity assessment against every scope i
 ## Instructions For Next Agent
 
 1. Read `.ai/` and every canonical startup document in repository order.
-2. Confirm Gate 7 is `Contract Verified`, Gate 8 is the sole `Specified - Next` gate, and `CURRENT_TASK.md` records the runtime integration preparation as Completed.
-3. Inspect `git status --short` and the current `main`/`origin/main` log rather than relying on the published base hash `16c7f5d`.
+2. Confirm Gate 7 is `Contract Verified`, Gate 8 is the sole `Specified - Next` gate, and `CURRENT_TASK.md` records the dependency-ready single-worker queue as Completed.
+3. Inspect `git status --short` and the current `main`/`origin/main` log rather than relying on the published base hash `c40e31e`.
 4. If the host has no JDK, provision Java 17 through `.tools/jdk17` (this host already has `jdk-17.0.19+10` there) or run `scripts/setup-dev.ps1`; `scripts/gradle.ps1` then works normally.
 5. The only external command authority is the decision-scoped read-only Git adapter; any new external command capability requires its own explicit user approval.
-6. Run the separate Gate 7 Integrated maturity assessment before changing its status; preserve single-agent sequential execution and defer multi-agent concurrency.
-7. Do not commit or push the uncommitted WorkItem and runtime-path integration work without a new explicit user request.
+6. Activate the next Gate 8 durable Goal/AgentRun lifecycle-state increment; retain the new package direction and do not combine leases/workers by default.
+7. Do not commit or push the uncommitted Gate 7 assessment or Gate 8 queue-state increments without a new explicit user request.

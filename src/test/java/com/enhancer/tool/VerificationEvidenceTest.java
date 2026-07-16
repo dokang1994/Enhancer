@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
@@ -40,6 +42,29 @@ class VerificationEvidenceTest {
         assertEquals(output.length(), evidence.originalOutputLength());
         assertTrue(evidence.truncated());
         assertEquals("evidence/build-123.log", evidence.fullOutputReference().orElseThrow());
+    }
+
+    @Test
+    void doesNotSplitASupplementaryCharacterAtTheTailBoundary()
+            throws Exception {
+        String output = "\uD83D\uDE80"
+                + "x".repeat(
+                        VerificationEvidence.MAX_OUTPUT_TAIL_CHARACTERS - 1);
+
+        VerificationEvidence evidence = VerificationEvidence.capture(
+                "Build output",
+                output,
+                Optional.of("evidence/run/unicode"));
+
+        assertEquals(
+                VerificationEvidence.MAX_OUTPUT_TAIL_CHARACTERS - 1,
+                evidence.outputTail().length());
+        assertTrue(evidence.outputTail().chars().allMatch(value -> value == 'x'));
+        StandardCharsets.UTF_8
+                .newEncoder()
+                .onMalformedInput(CodingErrorAction.REPORT)
+                .onUnmappableCharacter(CodingErrorAction.REPORT)
+                .encode(java.nio.CharBuffer.wrap(evidence.outputTail()));
     }
 
     @Test

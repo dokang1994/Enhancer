@@ -1,5 +1,7 @@
 package com.enhancer.verification;
 
+import com.enhancer.kernel.VerificationCode;
+import com.enhancer.kernel.VerificationDecision;
 import com.enhancer.tool.CorruptedEvidenceException;
 import com.enhancer.tool.EvidenceStore;
 import com.enhancer.tool.MissingEvidenceException;

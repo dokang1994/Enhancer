@@ -3,8 +3,8 @@ package com.enhancer.loop;
 import com.enhancer.tool.ToolRequest;
 import com.enhancer.tool.ToolResult;
 import com.enhancer.tool.ToolResultStatus;
-import com.enhancer.verification.VerificationDecision;
-import com.enhancer.verification.VerificationStatus;
+import com.enhancer.kernel.VerificationDecision;
+import com.enhancer.kernel.VerificationStatus;
 import java.util.Objects;
 import java.util.Optional;
 

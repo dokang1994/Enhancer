@@ -1,5 +1,7 @@
 package com.enhancer.context;
 
+import com.enhancer.io.BoundedFileOperations;
+import com.enhancer.io.FileSizeLimitExceededException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -55,10 +57,14 @@ public final class ProjectContextReader {
                 throw new IOException("required document size exceeds the supported limit: "
                         + requiredDocument.path());
             }
-            byte[] bytes = Files.readAllBytes(realDocument);
-            if (bytes.length > MAX_DOCUMENT_BYTES) {
+            byte[] bytes;
+            try {
+                bytes = BoundedFileOperations.readAllBytes(
+                        realDocument,
+                        MAX_DOCUMENT_BYTES);
+            } catch (FileSizeLimitExceededException exception) {
                 throw new IOException("required document size changed beyond the supported limit: "
-                        + requiredDocument.path());
+                        + requiredDocument.path(), exception);
             }
 
             String content = decodeUtf8(requiredDocument.path(), bytes);

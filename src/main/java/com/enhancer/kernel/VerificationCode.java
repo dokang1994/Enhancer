@@ -1,4 +1,4 @@
-package com.enhancer.verification;
+package com.enhancer.kernel;
 
 public enum VerificationCode {
     VERIFIED,

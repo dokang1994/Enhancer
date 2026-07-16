@@ -17,7 +17,7 @@ import com.enhancer.context.ProjectContextReader;
 import com.enhancer.loop.AgentLoop;
 import com.enhancer.loop.AgentLoopStopReason;
 import com.enhancer.loop.AgentRunController;
-import com.enhancer.loop.AgentRunFinalizer;
+import com.enhancer.application.AgentRunFinalizer;
 import com.enhancer.loop.AgentRunResult;
 import com.enhancer.loop.AgentRunState;
 import com.enhancer.loop.ApprovedTask;
@@ -36,6 +36,7 @@ import com.enhancer.tool.ReadFileTool;
 import com.enhancer.tool.ToolExecutor;
 import com.enhancer.tool.ToolFailureCode;
 import com.enhancer.tool.ToolRequest;
+import com.enhancer.text.UnicodeText;
 import com.enhancer.verification.DeterministicReadFileVerifier;
 import com.enhancer.verification.VerificationRequest;
 import com.enhancer.workspace.GitWorkspaceCollector;
@@ -357,10 +358,9 @@ public final class EnhancerCli {
     }
 
     private void writeBounded(PrintStream stream, String value) {
-        String bounded = value.length() <= MAX_DIAGNOSTIC_CHARACTERS
-                ? value
-                : value.substring(0, MAX_DIAGNOSTIC_CHARACTERS);
-        stream.print(bounded);
+        stream.print(UnicodeText.prefix(
+                value,
+                MAX_DIAGNOSTIC_CHARACTERS));
     }
 
     private static String safeMessage(Exception exception) {
@@ -373,6 +373,6 @@ public final class EnhancerCli {
         String safe = Objects.requireNonNullElse(value, "")
                 .replace('\r', ' ')
                 .replace('\n', ' ');
-        return safe.length() <= 512 ? safe : safe.substring(0, 512);
+        return UnicodeText.prefix(safe, 512);
     }
 }

@@ -15,7 +15,7 @@ import com.enhancer.tool.ToolRequest;
 import com.enhancer.tool.ToolResult;
 import com.enhancer.tool.ToolResultStatus;
 import com.enhancer.tool.VerificationEvidence;
-import com.enhancer.verification.VerificationDecision;
+import com.enhancer.kernel.VerificationDecision;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;

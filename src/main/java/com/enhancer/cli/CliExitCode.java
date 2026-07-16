@@ -2,7 +2,7 @@ package com.enhancer.cli;
 
 import com.enhancer.loop.AgentLoopStopReason;
 import com.enhancer.tool.ToolFailureCode;
-import com.enhancer.verification.VerificationStatus;
+import com.enhancer.kernel.VerificationStatus;
 import java.util.Objects;
 import java.util.Optional;
 

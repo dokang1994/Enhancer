@@ -1,5 +1,57 @@
 # Changelog
 
+## 2026-07-16 - Remove Runtime Package Dependency Cycles
+
+- Moved VerificationDecision, VerificationStatus, and VerificationCode unchanged from verification implementation code to neutral `com.enhancer.kernel`.
+- Moved AgentRunFinalizer from `com.enhancer.loop` to `com.enhancer.application`, leaving finalization behavior and persist-before-completion semantics unchanged.
+- Added `VerifiedAgentRunTransition` as the explicit application-facing port while retaining the actual AgentRunState completion method as package-private.
+- Enforced an acyclic dependency direction with `RuntimePackageBoundaryTest`; loop no longer imports run or verification, run no longer imports verification, and kernel imports none of the runtime/application packages.
+- Preserved RunRecord schema, stored enum names, CLI behavior, verification decisions, and replay compatibility.
+- Passed 27 focused tests, the complete 53-suite/228-test regression (226 passed, 2 existing symbolic-link skips), and Java 17 strict lint across 135 production sources.
+
+## 2026-07-16 - Bound In-Process Tool Worker Accumulation
+
+- Added one process-wide 64-slot live Tool isolation capacity shared by default across ToolExecutor instances.
+- Held each slot until the actual worker thread terminates, so timeout, interrupt, close, and shutdown do not undercount interrupt-ignoring code.
+- Added typed terminal `ISOLATION_CAPACITY_EXHAUSTED` refusal before worker/thread creation when the process ceiling is full.
+- Preserved independent next invocation below the ceiling and proved deterministic saturation/recovery with an injected one-slot shared capacity.
+- Passed 41 affected tests with 1 existing symbolic-link skip, the full 52-suite/227-test regression (225 passed, 2 existing skips), and Java 17 strict lint across 134 production sources.
+- Kept process isolation and OS-level termination as required future boundaries; this change is containment, not forced recovery.
+
+## 2026-07-16 - Harden Unicode And Mutable-File Resource Bounds
+
+- Added shared Unicode-safe prefix/suffix bounding that preserves existing UTF-16 ceilings without splitting supplementary surrogate pairs.
+- Applied it to VerificationEvidence tails, ToolExecutor diagnostics, CLI bounded output/values, and bounded Workspace failure reasons.
+- Added bounded file read/hash operations that enforce the byte ceiling during consumption, allocate no more than the accepted read limit, and inspect at most one extra byte for overflow.
+- Applied in-operation bounds to ReadFileTool, ProjectContextReader, target-file hashing, and Evidence, RunRecord, and Scheduler queue artifact resolution while preserving strict UTF-8 and typed failure behavior.
+- Reproduced the Unicode defect with a 4097-code-unit valid string and proved strict UTF-8-safe output; focused tests passed 18/18, affected integration tests passed 54 with 2 existing symbolic-link skips, the full 52-suite/226-test regression passed 224 with the same 2 skips, and strict lint passed across 133 production sources.
+- Recorded that stuck in-process Tool threads, the loop/run/verification package cycle, and parent-directory power-loss durability require separate work.
+
+## 2026-07-16 - Add Durable Gate 8 Queue State And Restart Recovery
+
+- Added immutable schema-v1 `SchedulerQueueState` over one canonical queue identity, one logical run, admission order, pending/active/completed state, WorkItems, dependencies, and unchanged Gate 7 envelope provenance.
+- Added `FileSystemSchedulerQueueStore` with a 64 MiB state ceiling, strict UTF-8, complete-envelope SHA-256 integrity, atomic create/replace publication, revision checks, and fail-closed missing/corrupt/oversized/trailing/unsupported-state handling.
+- Added `DurableSingleWorkerSchedulerQueue`, staging every enqueue, successful claim, and completion on a copy and persisting the next revision before exposing it.
+- Added restart recovery that persists interrupted active work back into admission-ordered pending state, making the queue honestly at-least-once without claiming effect deduplication, leases, fencing, or workers.
+- Passed 14 focused runtime/integration tests, the 50-suite/219-test full regression (217 passed, 2 existing symbolic-link skips), and Java 17 strict lint across 130 production sources.
+- Clarified that atomic publication prevents partial process-visible state but does not claim power-loss durability of parent-directory metadata.
+
+## 2026-07-16 - Add The Gate 8 Single-Worker Scheduler Queue
+
+- Added immutable `QueuedWork` over one existing `WorkItem` with at most 256 unique canonical earlier-admitted dependency identities.
+- Added a deterministic run-scoped `SingleWorkerSchedulerQueue` bounded to 4096 admissions, with duplicate rejection, FIFO dependency readiness, one active slot, and matching explicit completion.
+- Preserved the exact WorkItem and Gate 7 envelope without adding task approval, Tool authority, verification, worker execution, persistence, leases, retry, cancellation, priority, or recovery.
+- Proved the missing contracts through a 25-error focused RED, then passed all 45 focused messaging/runtime tests, the complete regression, and Java 17 strict lint.
+- Kept Gate 8 at `Specified - Next`; only WorkItem admission and the in-memory queue sub-capabilities are Contract Verified, with durable queue state and restart-safe recovery next.
+
+## 2026-07-16 - Assess Gate 7 Integrated Maturity
+
+- Reassessed all six Gate 7 scope items and four exit criteria against the named Gate 6-to-Gate 7-to-Gate 8 integration path and fresh contract evidence.
+- Classified the real work-message queue path as Integrated: approved Workspace input crosses one unchanged `WorkPayload` envelope through queue delivery, journaling, replay, and duplicate suppression into `WorkItem` admission.
+- Retained Gate 7 at Contract Verified because result/control/handoff and non-empty-causation flows, topic and reliability branches, and `MessageTransport` still lack named real production connections.
+- Passed all 42 focused messaging/runtime tests, the 47-suite/208-test full regression (206 passed, 2 existing symbolic-link skips), and Java 17 strict lint across 122 production sources.
+- Changed no production or test behavior, capability maturity, next-gate marker, Constitution rule, external authority, or release state.
+
 ## 2026-07-16 - Add Product Journey Evaluation And Security Tracks
 
 - Added a cross-cutting Product Journey and Evaluation Track with four initial end-to-end journeys and a fifth priority for a repeatable release-quality harness.

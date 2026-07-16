@@ -20,7 +20,7 @@ import com.enhancer.loop.ApprovedTask;
 import com.enhancer.loop.ApprovedTaskReader;
 import com.enhancer.run.FileSystemRunRecordStore;
 import com.enhancer.run.ResolvedRunRecord;
-import com.enhancer.verification.VerificationStatus;
+import com.enhancer.kernel.VerificationStatus;
 import com.enhancer.workspace.RepositoryMemorySnapshotCollector;
 import com.enhancer.workspace.WorkspaceSnapshot;
 import com.enhancer.workspace.WorkspaceSourceKind;

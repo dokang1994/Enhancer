@@ -1,5 +1,7 @@
 package com.enhancer.tool;
 
+import com.enhancer.io.BoundedFileOperations;
+import com.enhancer.io.FileSizeLimitExceededException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -147,7 +149,13 @@ public final class FileSystemEvidenceStore implements EvidenceStore {
 
         byte[] envelope;
         try {
-            envelope = Files.readAllBytes(artifact);
+            envelope = BoundedFileOperations.readAllBytes(
+                    artifact,
+                    maximumArtifactSize);
+        } catch (FileSizeLimitExceededException exception) {
+            throw corrupted(
+                    reference,
+                    "artifact grew outside policy bounds while reading");
         } catch (NoSuchFileException exception) {
             throw new MissingEvidenceException(reference);
         }

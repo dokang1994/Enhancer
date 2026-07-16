@@ -1,5 +1,7 @@
 package com.enhancer.tool;
 
+import com.enhancer.io.BoundedFileOperations;
+import com.enhancer.io.FileSizeLimitExceededException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
@@ -72,9 +74,15 @@ public final class ReadFileTool implements Tool {
             throw new IOException("file size exceeds policy limit");
         }
 
-        byte[] bytes = Files.readAllBytes(realFile);
-        if (bytes.length > policy.maxReadBytes()) {
-            throw new IOException("file size changed beyond policy limit while reading");
+        byte[] bytes;
+        try {
+            bytes = BoundedFileOperations.readAllBytes(
+                    realFile,
+                    policy.maxReadBytes());
+        } catch (FileSizeLimitExceededException exception) {
+            throw new IOException(
+                    "file size changed beyond policy limit while reading",
+                    exception);
         }
 
         String content = decodeUtf8(bytes);

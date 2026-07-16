@@ -1,5 +1,11 @@
-package com.enhancer.loop;
+package com.enhancer.application;
 
+import com.enhancer.kernel.VerificationDecision;
+import com.enhancer.kernel.VerificationStatus;
+import com.enhancer.loop.AgentLoopStopReason;
+import com.enhancer.loop.AgentRunResult;
+import com.enhancer.loop.AgentRunState;
+import com.enhancer.loop.VerifiedAgentRunTransition;
 import com.enhancer.run.FinalizedAgentRun;
 import com.enhancer.run.PolicyDecision;
 import com.enhancer.run.RunRecord;
@@ -7,9 +13,7 @@ import com.enhancer.run.RunRecordStore;
 import com.enhancer.run.StoredRunRecord;
 import com.enhancer.tool.ToolResult;
 import com.enhancer.verification.IndependentVerifier;
-import com.enhancer.verification.VerificationDecision;
 import com.enhancer.verification.VerificationRequest;
-import com.enhancer.verification.VerificationStatus;
 import java.io.IOException;
 import java.time.Clock;
 import java.time.temporal.ChronoUnit;
@@ -75,7 +79,7 @@ public final class AgentRunFinalizer {
         }
 
         AgentRunState finalState = decision.status() == VerificationStatus.VERIFIED
-                ? AgentRunState.completedAfterVerification(workerState, decision)
+                ? VerifiedAgentRunTransition.apply(workerState, decision)
                 : workerState;
         AgentLoopStopReason finalStopReason = decision.status() == VerificationStatus.VERIFIED
                 ? AgentLoopStopReason.COMPLETED

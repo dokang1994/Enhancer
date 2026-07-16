@@ -1,4 +1,4 @@
-package com.enhancer.verification;
+package com.enhancer.kernel;
 
 import java.util.Objects;
 import java.util.Set;

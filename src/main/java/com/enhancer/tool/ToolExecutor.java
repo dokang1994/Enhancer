@@ -1,5 +1,6 @@
 package com.enhancer.tool;
 
+import com.enhancer.text.UnicodeText;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -10,22 +11,38 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class ToolExecutor implements AutoCloseable {
+    public static final int MAX_GLOBAL_ISOLATED_WORKERS = 64;
+
+    private static final ToolIsolationCapacity GLOBAL_ISOLATION_CAPACITY =
+            new ToolIsolationCapacity(MAX_GLOBAL_ISOLATED_WORKERS);
+
     private final Map<String, Tool> tools;
+    private final ToolIsolationCapacity isolationCapacity;
     private final Set<ExecutorService> workers = ConcurrentHashMap.newKeySet();
     private final AtomicBoolean closed = new AtomicBoolean();
     private final AtomicInteger workerSequence = new AtomicInteger();
     private final Object lifecycleLock = new Object();
 
     public ToolExecutor(Collection<? extends Tool> tools) {
+        this(tools, GLOBAL_ISOLATION_CAPACITY);
+    }
+
+    ToolExecutor(
+            Collection<? extends Tool> tools,
+            ToolIsolationCapacity isolationCapacity) {
         Objects.requireNonNull(tools, "tools must not be null");
+        this.isolationCapacity = Objects.requireNonNull(
+                isolationCapacity,
+                "isolationCapacity must not be null");
 
         Map<String, Tool> registry = new LinkedHashMap<>();
         for (Tool tool : tools) {
@@ -70,7 +87,15 @@ public final class ToolExecutor implements AutoCloseable {
                     "Cancellation was requested before Tool invocation");
         }
 
-        ExecutorService worker = createWorker();
+        Optional<ExecutorService> availableWorker = createWorker();
+        if (availableWorker.isEmpty()) {
+            return failure(
+                    request.toolName(),
+                    ToolFailureCode.ISOLATION_CAPACITY_EXHAUSTED,
+                    "Tool isolation capacity exhausted",
+                    "No isolated Tool worker slot is available");
+        }
+        ExecutorService worker = availableWorker.orElseThrow();
         Future<ToolResult> future = worker.submit(() -> tool.execute(request, policy));
         try {
             ToolResult result = future.get(policy.timeout().toNanos(), TimeUnit.NANOSECONDS);
@@ -131,21 +156,39 @@ public final class ToolExecutor implements AutoCloseable {
         }
     }
 
-    private ExecutorService createWorker() {
+    private Optional<ExecutorService> createWorker() {
         synchronized (lifecycleLock) {
             if (closed.get()) {
                 throw new IllegalStateException("ToolExecutor is closed");
             }
             workers.removeIf(ExecutorService::isTerminated);
-            ExecutorService worker = Executors.newSingleThreadExecutor(runnable -> {
+            Optional<ToolIsolationCapacity.Lease> lease =
+                    isolationCapacity.tryAcquire();
+            if (lease.isEmpty()) {
+                return Optional.empty();
+            }
+            ThreadPoolExecutor worker = new ThreadPoolExecutor(
+                    1,
+                    1,
+                    0,
+                    TimeUnit.MILLISECONDS,
+                    new LinkedBlockingQueue<>(),
+                    runnable -> {
                 Thread thread = new Thread(
-                        runnable,
+                        () -> {
+                            try {
+                                runnable.run();
+                            } finally {
+                                lease.orElseThrow().close();
+                            }
+                        },
                         "enhancer-tool-executor-" + workerSequence.incrementAndGet());
                 thread.setDaemon(true);
                 return thread;
             });
             workers.add(worker);
-            return worker;
+            worker.prestartCoreThread();
+            return Optional.of(worker);
         }
     }
 
@@ -156,9 +199,9 @@ public final class ToolExecutor implements AutoCloseable {
             String diagnostic) {
         String boundedDiagnostic = Objects.requireNonNullElse(diagnostic, "");
         int limit = VerificationEvidence.MAX_OUTPUT_TAIL_CHARACTERS;
-        if (boundedDiagnostic.length() > limit) {
-            boundedDiagnostic = boundedDiagnostic.substring(boundedDiagnostic.length() - limit);
-        }
+        boundedDiagnostic = UnicodeText.suffix(
+                boundedDiagnostic,
+                limit);
         return new ToolResult(
                 toolName,
                 ToolResultStatus.FAILURE,

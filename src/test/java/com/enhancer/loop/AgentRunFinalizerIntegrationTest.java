@@ -1,5 +1,8 @@
 package com.enhancer.loop;
 
+import com.enhancer.application.AgentRunFinalizer;
+import com.enhancer.kernel.VerificationCode;
+import com.enhancer.kernel.VerificationStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -23,9 +26,7 @@ import com.enhancer.tool.ToolResult;
 import com.enhancer.tool.ToolResultStatus;
 import com.enhancer.tool.VerificationEvidence;
 import com.enhancer.verification.DeterministicReadFileVerifier;
-import com.enhancer.verification.VerificationCode;
 import com.enhancer.verification.VerificationRequest;
-import com.enhancer.verification.VerificationStatus;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;

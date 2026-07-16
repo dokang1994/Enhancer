@@ -1,5 +1,6 @@
 package com.enhancer.workspace;
 
+import com.enhancer.text.UnicodeText;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.File;
@@ -262,9 +263,7 @@ public final class GitWorkspaceCollector {
         String reason = message == null || message.isBlank()
                 ? exception.getClass().getSimpleName()
                 : message;
-        return reason.length() <= MAX_REASON_CHARACTERS
-                ? reason
-                : reason.substring(0, MAX_REASON_CHARACTERS);
+        return UnicodeText.prefix(reason, MAX_REASON_CHARACTERS);
     }
 
     private static MessageDigest sha256() {

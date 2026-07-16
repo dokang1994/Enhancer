@@ -2,6 +2,188 @@
 
 ## Accepted Decisions
 
+### 2026-07-16: Make Runtime Persistence And Verification Dependencies Acyclic
+
+Status: Accepted Decision
+
+Context:
+
+- Production packages currently form cycles: `loop` imports `run` through `AgentRunFinalizer`, `run` imports `loop` lifecycle types, `loop` imports verification decisions, and `verification` imports the approved-task contract from `loop`.
+- The single Gradle module compiles, but the cycles obstruct later Kernel, Runtime, Verification, and Persistence module boundaries.
+- Moving every Agent/runtime type or introducing new modules now would be larger than necessary and could disrupt the verified vertical slice.
+
+Decision:
+
+- Move `VerificationDecision`, `VerificationStatus`, and `VerificationCode` unchanged into neutral `com.enhancer.kernel` lifecycle contracts.
+- Move `AgentRunFinalizer` unchanged in behavior from `com.enhancer.loop` to `com.enhancer.application`, where orchestration may depend on loop, verification, and run persistence.
+- Preserve `ApprovedTask`, Agent run state, and stop reasons in `loop` for this increment. `verification` and `run` may depend on `loop`; `loop` must no longer depend on `verification` or `run`.
+- Require `kernel` to depend on none of `application`, `loop`, `run`, or `verification`; require `run` not to import `verification`.
+- Preserve enum constant names, RunRecord binary values, CLI behavior, verification decisions, public value invariants, and storage compatibility.
+- Add a source-structure regression test that fails if the forbidden dependency directions return.
+- Defer Gradle module extraction, broader Kernel naming, ApprovedTask relocation, API compatibility shims for unreleased package names, and persistence SPI separation.
+
+Rationale:
+
+Moving three neutral decision values and one orchestration service is the smallest extraction that turns the current strongly connected component into a directed dependency graph. It creates a credible future module seam without redesigning runtime behavior or durable formats.
+
+Consequences:
+
+- Source imports change, but persisted enum names and runtime semantics do not.
+- The resulting direction is `application -> run/verification/loop/kernel`, `run -> loop/kernel`, `verification -> loop/kernel`, and `loop -> kernel`.
+- The project remains one Gradle module; independent modules require a later task.
+
+### 2026-07-16: Bound In-Process Tool Isolation Capacity
+
+Status: Accepted Decision
+
+Context:
+
+- A Java thread that ignores interruption cannot be forcibly terminated safely in-process.
+- The current ToolExecutor isolates each invocation in a fresh daemon worker so one timed-out Tool does not starve the next invocation, but every permanently stuck Tool can retain one thread indefinitely.
+- Long-running Scheduler use would turn repeated malicious or broken Tools into unbounded process thread growth.
+- Process isolation is the real termination boundary but is not yet available and would exceed a bounded Gate 1 hardening increment.
+
+Decision:
+
+- Introduce one process-wide isolation capacity shared by default across all ToolExecutor instances, bounded to 64 live isolated workers.
+- Acquire one slot before creating a worker thread and release it only when that worker thread actually terminates. Timeout, interrupt, executor close, and `shutdownNow` do not pretend to release a slot while an interrupt-ignoring Tool is still running.
+- Refuse a Tool invocation before thread creation when capacity is exhausted and return a typed terminal `ISOLATION_CAPACITY_EXHAUSTED` Tool failure with bounded evidence.
+- Preserve invocation isolation: a timed-out worker below the global ceiling does not block an independent next invocation.
+- Permit an injected smaller shared capacity only for deterministic package-level tests; production uses the single process-wide default.
+- Defer process workers, OS-level termination, per-plugin quotas, Scheduler admission/backpressure integration, health recovery, and operator controls.
+
+Rationale:
+
+A finite fail-closed ceiling prevents unbounded daemon-thread accumulation without making a false claim that Java can kill arbitrary code. Holding the slot until actual termination ensures the accounting describes real process resource occupancy rather than timeout bookkeeping.
+
+Consequences:
+
+- After 64 concurrently non-terminated isolated workers, new Tool invocations fail terminally until a worker actually exits or the process restarts.
+- The ceiling is containment, not recovery; a process containing permanently stuck workers still requires operator restart.
+- Gate 1 Tool execution remains Integrated, and long-running Scheduler workers still require process isolation before Operational promotion.
+
+### 2026-07-16: Harden Text And File Bounds During Production Operations
+
+Status: Accepted Decision
+
+Context:
+
+- `VerificationEvidence` and several diagnostic surfaces truncate by UTF-16 index and can split a supplementary Unicode surrogate pair, producing malformed Java text that strict UTF-8 persistence rejects.
+- `ReadFileTool`, `ProjectContextReader`, and `TargetFileMetadataCollector` preflight file size but then read or hash without enforcing the byte ceiling during the operation. The filesystem Evidence, RunRecord, and Scheduler queue resolvers have the same size-check/read window.
+- Preflight metadata is useful for early refusal but cannot enforce a resource bound after another process changes the file.
+- Tool process isolation, package modularization, and power-loss directory durability are separate architectural concerns and must not be hidden inside a text/file-bound correction.
+
+Decision:
+
+- Add one neutral Unicode truncation utility with prefix and suffix operations that preserve existing UTF-16 length ceilings while never returning half of a surrogate pair at the truncation boundary.
+- Apply it to VerificationEvidence tails, ToolExecutor failure diagnostics, CLI bounded output and values, and bounded Workspace failure reasons.
+- Add one neutral bounded-input utility that reads or hashes at most the configured bytes and probes at most one additional byte to detect overflow.
+- Keep existing preflight size checks for early diagnostics, but route production file content, digest, and persisted-envelope reads through the bounded operation.
+- Treat an in-operation target-file overflow as an explicit Unavailable observation; the other governed readers and stores fail with IOException or their existing typed corruption/failure conversion.
+- Preserve strict UTF-8 decoding and persistence, existing configured byte ceilings, evidence identity over complete content, and current authority boundaries.
+- Defer Tool process isolation/global stuck-worker policy, lifecycle package extraction, parent-directory synchronization, and power-loss fault-injection to separate accepted decisions.
+
+Rationale:
+
+Unicode truncation is a representation boundary and byte limits are operational resource boundaries. Centralizing both prevents repeated off-by-one and TOCTOU mistakes while keeping the change behaviorally narrow. Reading at most the limit plus one detection byte enforces memory and hashing work independently of mutable file metadata.
+
+Consequences:
+
+- A Unicode-safe tail may contain one fewer UTF-16 code unit than the configured maximum when the exact boundary would split a supplementary character.
+- File growth after the metadata check cannot cause unbounded allocation or hashing on the corrected paths.
+- This task does not solve stuck in-process Tool threads, package cycles, or power-loss durability.
+
+### 2026-07-16: Persist Gate 8 Queue Transitions Before Exposing State
+
+Status: Accepted Decision
+
+Context:
+
+- Gate 8 has a deterministic in-memory single-worker queue, but a process interruption loses pending, active, completed, dependency, and admission-order state.
+- A claimed item cannot remain permanently active after restart because the current queue has no lease, heartbeat, worker process, or fence token.
+- Persisting only identifiers would be insufficient because restart recovery must reproduce the exact existing `WorkItem`, unchanged Gate 7 envelope, dependency readiness, and Tool-scope provenance.
+- A full AgentRun state machine, effect ledger, lease protocol, migration framework, or multi-process coordinator would exceed this increment.
+
+Decision:
+
+- Give each durable queue a caller-supplied canonical UUID and bind its first admitted item to one logical run identity; reject later work from another logical run.
+- Define a versioned immutable queue snapshot containing the queue identity, revision, capacity, optional logical run identity, total admission order, ordered pending work, optional active work, and completed work identities.
+- Persist the exact `WorkItem`, `MessageEnvelope`, `WorkPayload`, task revision, allowed-Tool scope, required capability, and dependency identities needed to reconstruct scheduling without creating new authority.
+- Store one bounded integrity-checked binary snapshot per queue through strict UTF-8 encoding and atomic replacement. Creation must not overwrite an existing queue; updates must advance exactly one revision; missing, corrupt, structurally invalid, oversized, or unsupported-version state fails closed.
+- Stage every enqueue, successful claim, and completion against a copy, persist the next snapshot before exposing or adopting the transition, and retain the prior in-memory and durable state when persistence fails.
+- On restart, retain pending and completed state and move any previously active item back into pending position according to original admission order, persist that recovery transition, and allow later re-claim. This is at-least-once queue recovery, not exactly-once effect execution.
+- Defer leases, fencing, heartbeat, worker execution, effect idempotency records, failure/retry/cancellation policy, history retention, schema migration beyond v1, and multi-process coordination.
+
+Rationale:
+
+Persist-before-exposure prevents a caller from observing a queue transition that cannot survive restart. Re-queuing an interrupted active item avoids hidden work loss or a permanently blocked queue while honestly accepting possible replay until later lease, fence, and effect-idempotency contracts exist. A complete bounded snapshot is simpler and safer than a partially recoverable event log at this maturity.
+
+Consequences:
+
+- A storage failure rejects the transition and leaves the last durable revision authoritative.
+- Recovery may cause an interrupted item to be offered again; no external side-effect deduplication is claimed.
+- The v1 store has one current snapshot and no automatic cleanup or historical revisions.
+- The durable queue sub-capability may become Contract Verified while Gate 8 remains `Specified - Next`.
+- Durable Goal/AgentRun lifecycle state and fenced worker ownership remain the next larger Gate 8 concerns.
+
+### 2026-07-16: Start Gate 8 Scheduling With A Dependency-Ready Single-Worker Queue
+
+Status: Accepted Decision
+
+Context:
+
+- Gate 8 is the sole `Specified - Next` gate and already has immutable `WorkItem` admission, but no Scheduler consumer.
+- A full durable AgentRun state machine, lease protocol, recovery mechanism, or worker implementation would exceed the smallest coherent next increment.
+- Dependency readiness requires a completion signal, while forward references and arbitrary graph mutation would require broader cycle and persistence policy.
+
+Decision:
+
+- Add an immutable queued-work value containing one existing `WorkItem` and up to 256 unique canonical dependency work identities.
+- Reject self-dependency and require every dependency to have been admitted earlier or already completed. This gives the first queue deterministic dependency validation and prevents cycles by construction without claiming general graph-cycle analysis.
+- Add an in-memory run-scoped queue bounded to 4096 total work-item admissions, preserving admission order and selecting the first dependency-ready item.
+- Permit at most one active work item. A claim while work is active returns no item; explicit completion of the matching active identity releases dependents.
+- Preserve the exact `WorkItem` and its unchanged Gate 7 envelope. Queue admission and completion create no task approval, Tool authority, or execution result.
+- Defer persistence, state versioning, failure/retry/cancellation, priority/fairness, leases/fencing, checkpoints, orphan recovery, worker execution, threading, and production wiring.
+
+Rationale:
+
+This is the smallest consumer that makes `WorkItem` useful to Gate 8 while preserving deterministic single-agent sequencing. Requiring dependencies to exist before their dependent prevents unknown and cyclic graphs without introducing a mutable graph service. One explicit active slot establishes the Scheduler boundary without pretending that a claim is a durable lease.
+
+Consequences:
+
+- Work must be admitted in dependency order in this first queue.
+- Completion is an in-memory Scheduler fact, not a verified AgentRun terminal state or durable record.
+- The queue sub-capability may become Contract Verified, but Gate 8 remains `Specified - Next`.
+- Durable queue state and restart-safe recovery are the immediate next increment.
+
+### 2026-07-16: Assess Gate 7 Integrated Maturity Against Every Real Connection
+
+Status: Accepted Decision
+
+Context:
+
+- Gate 7 is Contract Verified and now has one named integration path from a real Gate 6 approved Workspace input through the in-process queue into Gate 8 `WorkItem` admission.
+- The Roadmap scope is broader than that path: it includes the four payload kinds, topic and queue delivery, idempotency/retry/cancellation/dead-letter/replay/ordering/backpressure, and a transport-neutral IPC interface.
+- Architecture defines Integrated maturity as connection to real upstream and downstream collaborators. Contract tests, interface existence, and one work-message path cannot be silently generalized to branches that the path does not exercise.
+
+Decision:
+
+- Run a documentation-only Gate 7 maturity assessment with fresh focused, full-regression, strict-lint, and self-hosting evidence.
+- Map each Roadmap scope item and exit criterion separately to Contract Verified or Integrated evidence.
+- Treat a Gate 7 sub-path as Integrated only when a named test connects its real upstream and downstream production collaborators.
+- Promote Gate 7 as a whole only if the evidence supports every connection required by the gate-level scope. Otherwise retain Contract Verified and record the precise missing connections.
+- Do not implement a missing adapter, payload flow, reliability scenario, Scheduler behavior, or production entry point inside the assessment.
+
+Rationale:
+
+Maturity labels are evidence claims, not rewards for aggregate test count. Requiring scope-by-scope real connections prevents a work-only queue integration from overstating result, control, handoff, topic, reliability, or transport integration while still recognizing the value of the path that now exists.
+
+Consequences:
+
+- The assessment may conclude that the work-message queue path is Integrated while Gate 7 remains Contract Verified.
+- A concrete IPC adapter is not automatically mandatory merely because the interface is in scope; however, the interface cannot be called Integrated until a real transport implementation consumes it.
+- Gate 8 remains the sole `Specified - Next` product gate regardless of the assessment outcome.
+
 ### 2026-07-16: Add Product Journeys Evaluation And Layered Security Across Delivery Gates
 
 Status: Accepted Decision

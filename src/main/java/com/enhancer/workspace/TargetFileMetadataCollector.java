@@ -1,12 +1,11 @@
 package com.enhancer.workspace;
 
+import com.enhancer.io.BoundedFileOperations;
+import com.enhancer.io.FileSizeLimitExceededException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.HexFormat;
 import java.util.Objects;
@@ -64,15 +63,26 @@ public final class TargetFileMetadataCollector {
                     "target file exceeds the supported " + MAX_TARGET_BYTES + " byte bound");
         }
 
-        return new WorkspaceSourceObservation(
-                WorkspaceSourceKind.REPOSITORY_FILE,
-                relativeTargetPath,
-                PROVENANCE,
-                observedAt,
-                Optional.empty(),
-                WorkspaceSourceState.AVAILABLE,
-                Optional.of(streamedSha256(realTarget)),
-                Optional.empty());
+        try {
+            return new WorkspaceSourceObservation(
+                    WorkspaceSourceKind.REPOSITORY_FILE,
+                    relativeTargetPath,
+                    PROVENANCE,
+                    observedAt,
+                    Optional.empty(),
+                    WorkspaceSourceState.AVAILABLE,
+                    Optional.of(HexFormat.of().formatHex(
+                            BoundedFileOperations.sha256(
+                                    realTarget,
+                                    MAX_TARGET_BYTES))),
+                    Optional.empty());
+        } catch (FileSizeLimitExceededException exception) {
+            return unavailable(
+                    relativeTargetPath,
+                    observedAt,
+                    "target file changed beyond the supported "
+                            + MAX_TARGET_BYTES + " byte bound while reading");
+        }
     }
 
     private WorkspaceSourceObservation unavailable(
@@ -90,23 +100,4 @@ public final class TargetFileMetadataCollector {
                 Optional.of(reason));
     }
 
-    private static String streamedSha256(Path file) throws IOException {
-        MessageDigest digest = sha256();
-        byte[] buffer = new byte[64 * 1024];
-        try (InputStream input = Files.newInputStream(file)) {
-            int read;
-            while ((read = input.read(buffer)) >= 0) {
-                digest.update(buffer, 0, read);
-            }
-        }
-        return HexFormat.of().formatHex(digest.digest());
-    }
-
-    private static MessageDigest sha256() {
-        try {
-            return MessageDigest.getInstance("SHA-256");
-        } catch (NoSuchAlgorithmException exception) {
-            throw new IllegalStateException("SHA-256 is unavailable", exception);
-        }
-    }
 }

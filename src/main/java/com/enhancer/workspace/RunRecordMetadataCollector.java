@@ -1,5 +1,6 @@
 package com.enhancer.workspace;
 
+import com.enhancer.text.UnicodeText;
 import com.enhancer.run.CorruptedRunRecordException;
 import com.enhancer.run.MissingRunRecordException;
 import com.enhancer.run.ResolvedRunRecord;
@@ -71,8 +72,6 @@ public final class RunRecordMetadataCollector {
         String reason = message == null || message.isBlank()
                 ? exception.getClass().getSimpleName()
                 : message;
-        return reason.length() <= MAX_REASON_CHARACTERS
-                ? reason
-                : reason.substring(0, MAX_REASON_CHARACTERS);
+        return UnicodeText.prefix(reason, MAX_REASON_CHARACTERS);
     }
 }

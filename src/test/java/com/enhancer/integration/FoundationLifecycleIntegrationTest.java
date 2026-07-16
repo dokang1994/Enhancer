@@ -17,7 +17,7 @@ import com.enhancer.loop.AssistedDevelopmentOutcome;
 import com.enhancer.planner.RepositoryTaskPlanner;
 import com.enhancer.run.FileSystemRunRecordStore;
 import com.enhancer.run.ResolvedRunRecord;
-import com.enhancer.verification.VerificationStatus;
+import com.enhancer.kernel.VerificationStatus;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;

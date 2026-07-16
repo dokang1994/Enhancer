@@ -3,8 +3,8 @@ package com.enhancer.run;
 import com.enhancer.loop.AgentLoopStatus;
 import com.enhancer.loop.AgentLoopStopReason;
 import com.enhancer.loop.AgentRunState;
-import com.enhancer.verification.VerificationDecision;
-import com.enhancer.verification.VerificationStatus;
+import com.enhancer.kernel.VerificationDecision;
+import com.enhancer.kernel.VerificationStatus;
 import java.util.Objects;
 
 public record FinalizedAgentRun(

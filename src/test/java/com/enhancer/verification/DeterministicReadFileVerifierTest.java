@@ -1,5 +1,8 @@
 package com.enhancer.verification;
 
+import com.enhancer.kernel.VerificationCode;
+import com.enhancer.kernel.VerificationDecision;
+import com.enhancer.kernel.VerificationStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 

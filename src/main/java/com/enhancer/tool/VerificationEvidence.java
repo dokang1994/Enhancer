@@ -1,5 +1,6 @@
 package com.enhancer.tool;
 
+import com.enhancer.text.UnicodeText;
 import java.util.Objects;
 import java.util.Optional;
 import java.security.MessageDigest;
@@ -83,9 +84,9 @@ public record VerificationEvidence(
         Objects.requireNonNull(fullOutput, "fullOutput must not be null");
 
         boolean truncated = fullOutput.length() > MAX_OUTPUT_TAIL_CHARACTERS;
-        String outputTail = truncated
-                ? fullOutput.substring(fullOutput.length() - MAX_OUTPUT_TAIL_CHARACTERS)
-                : fullOutput;
+        String outputTail = UnicodeText.suffix(
+                fullOutput,
+                MAX_OUTPUT_TAIL_CHARACTERS);
 
         return new VerificationEvidence(
                 summary,

@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.CharBuffer;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
@@ -12,6 +15,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -131,6 +136,34 @@ class ToolExecutorTest {
     }
 
     @Test
+    void boundsFailureDiagnosticsWithoutSplittingUnicode()
+            throws Exception {
+        String message = "\uD83D\uDE80"
+                + "x".repeat(
+                        VerificationEvidence.MAX_OUTPUT_TAIL_CHARACTERS - 1);
+        Tool broken = tool("broken", (request, policy) -> {
+            throw new IllegalStateException(message);
+        });
+
+        try (ToolExecutor executor = new ToolExecutor(List.of(broken))) {
+            ToolResult failure = executor.execute(
+                    request("broken"),
+                    policy(
+                            Set.of("broken"),
+                            Set.of(),
+                            CancellationToken.none(),
+                            Duration.ofSeconds(1)));
+
+            StandardCharsets.UTF_8
+                    .newEncoder()
+                    .onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT)
+                    .encode(CharBuffer.wrap(failure.evidence().outputTail()));
+            assertTrue(failure.evidence().outputTail().endsWith("x"));
+        }
+    }
+
+    @Test
     void aTimedOutInterruptIgnoringToolDoesNotStarveTheNextInvocation() {
         AtomicInteger fastInvocations = new AtomicInteger();
         Tool stubborn = tool("stubborn", (request, policy) -> {
@@ -168,6 +201,75 @@ class ToolExecutorTest {
             assertEquals(ToolFailureCode.TIMED_OUT, timedOut.failureCode().orElseThrow());
             assertEquals(ToolResultStatus.SUCCESS, next.status());
             assertEquals(1, fastInvocations.get());
+        }
+    }
+
+    @Test
+    void refusesNewWorkersAtTheSharedIsolationCeilingUntilTheThreadExits()
+            throws Exception {
+        ToolIsolationCapacity capacity = new ToolIsolationCapacity(1);
+        AtomicBoolean allowExit = new AtomicBoolean();
+        AtomicInteger fastInvocations = new AtomicInteger();
+        Tool stuck = tool("stuck", (request, policy) -> {
+            while (!allowExit.get()) {
+                Thread.onSpinWait();
+                if (Thread.interrupted()) {
+                    // Deliberately ignore interruption while retaining the worker.
+                }
+            }
+            return success("stuck", "released");
+        });
+        Tool fast = tool("fast", (request, policy) -> {
+            fastInvocations.incrementAndGet();
+            return success("fast", "done");
+        });
+
+        try (ToolExecutor first = new ToolExecutor(List.of(stuck), capacity);
+                ToolExecutor second = new ToolExecutor(List.of(fast), capacity)) {
+            ToolResult timedOut = first.execute(
+                    request("stuck"),
+                    policy(
+                            Set.of("stuck"),
+                            Set.of(),
+                            CancellationToken.none(),
+                            Duration.ofMillis(20)));
+            ToolResult refused = second.execute(
+                    request("fast"),
+                    policy(
+                            Set.of("fast"),
+                            Set.of(),
+                            CancellationToken.none(),
+                            Duration.ofMillis(100)));
+
+            assertEquals(
+                    ToolFailureCode.TIMED_OUT,
+                    timedOut.failureCode().orElseThrow());
+            assertEquals(
+                    ToolFailureCode.ISOLATION_CAPACITY_EXHAUSTED,
+                    refused.failureCode().orElseThrow());
+            assertEquals(0, fastInvocations.get());
+            assertEquals(1, capacity.occupiedWorkers());
+
+            allowExit.set(true);
+            long deadline = System.nanoTime()
+                    + TimeUnit.SECONDS.toNanos(2);
+            while (capacity.occupiedWorkers() != 0
+                    && System.nanoTime() < deadline) {
+                Thread.sleep(10);
+            }
+            assertEquals(0, capacity.occupiedWorkers());
+
+            ToolResult resumed = second.execute(
+                    request("fast"),
+                    policy(
+                            Set.of("fast"),
+                            Set.of(),
+                            CancellationToken.none(),
+                            Duration.ofMillis(100)));
+            assertEquals(ToolResultStatus.SUCCESS, resumed.status());
+            assertEquals(1, fastInvocations.get());
+        } finally {
+            allowExit.set(true);
         }
     }
 

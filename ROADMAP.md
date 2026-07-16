@@ -421,7 +421,8 @@ Current increment:
 - Contract Verified: bounded work payload authorization scope with 1 through 256 unique allowed-tool names, each at most 256 characters, giving the collection a finite aggregate ceiling while preserving immutable copying;
 - promoted after fresh reassessment: all six scope items and all four exit criteria have Contract Verified evidence across 39 focused bus tests, the complete regression, and strict production lint;
 - the provider-neutral transport seam completes the Contract Verified foundation; a concrete adapter remains later Integrated or Operational work rather than a promotion prerequisite;
-- integration preparation: one named real path now derives a work envelope from a matching repository-approved task and Gate 6 Workspace snapshot, delivers it through the in-process queue, and admits the unchanged envelope as one Gate 8 `WorkItem` with duplicate-free replay; Gate 7 remains Contract Verified pending a separate full maturity assessment;
+- Integrated sub-path: one named real path derives a work envelope from a matching repository-approved task and Gate 6 Workspace snapshot, delivers it through the in-process queue, and admits the unchanged envelope as one Gate 8 `WorkItem` with duplicate-free replay;
+- Integrated maturity assessment completed: the work-message queue/journal/replay/idempotency path is Integrated, but Gate 7 remains Contract Verified because result/control/handoff and non-empty-causation flows, topic and failure/retry/dead-letter/cancellation/cascade-ordering/backpressure branches, and `MessageTransport` have no named real upstream-to-downstream production connection;
 - deferred: any local-process or remote IPC adapter, persistence, threading, and production wiring.
 
 Dependencies:
@@ -451,8 +452,10 @@ Status: Specified - Next
 Current increment:
 
 - Contract Verified: immutable `WorkItem` admission over one unchanged Gate 7 work envelope, with a distinct canonical identity and bounded required capability but no scheduling or execution behavior;
-- next consumer: a dependency-ready single-worker Scheduler queue;
-- deferred: Goal/AgentRun persistence, work lifecycle transitions, dependencies and cycle rejection, leases/fencing, budgets, cancellation, recovery, workers, and production wiring.
+- Contract Verified: immutable `QueuedWork` with up to 256 unique dependency identities plus a deterministic run-scoped `SingleWorkerSchedulerQueue` bounded to 4096 admissions, dependency-first validation, FIFO readiness, one active slot, matching completion, and no authority expansion;
+- Contract Verified: canonical queue identity and single-logical-run binding, immutable schema-v1 queue snapshots, bounded integrity-checked atomic filesystem persistence, persist-before-exposure enqueue/claim/completion, fail-closed corruption/version checks, and restart recovery that requeues interrupted active work in admission order under explicit at-least-once semantics;
+- next increment: durable Goal/AgentRun lifecycle state before leases, fencing, or worker execution;
+- deferred: general forward-reference graph/cycle handling, failure/retry/cancellation, priority/fairness, leases/fencing, budgets, external-effect idempotency, checkpoints beyond queue snapshots, orphan recovery, schema migration beyond v1, power-loss directory durability, workers, and production wiring.
 
 Dependencies:
 
