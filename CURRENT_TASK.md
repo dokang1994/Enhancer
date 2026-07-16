@@ -6,41 +6,45 @@ Completed
 
 ## Task
 
-Add the third Delivery Gate 7 increment: deterministic delivery-failure isolation and dead-letter capture over the in-process bus. A subscriber handler that throws must be isolated so fan-out continues, recorded as a typed `FAILED` outcome, and captured in an ordered immutable dead-letter record, without any automatic retry, cancellation, ordering, backpressure, threading, persistence, or transport.
+Add the sixth Delivery Gate 7 increment: delivery ordering over the in-process bus. A publication runs to completion before any publication it causes is delivered, so delivery order equals publication order and no subscriber observes an effect before its cause. Re-entrant publications are queued and drained by a single loop rather than dispatched nested, without threads, timers, priorities, competing consumers, backpressure, persistence, or transport.
 
 ## Task ID
 
-gate-7-delivery-failure-dead-letter
+gate-7-delivery-ordering
 
 ## Justified By
 
-- 2026-07-15: Deliver Gate 7 In-Process Messaging As A Deterministic Journal-Replayable Bus
+- 2026-07-16: Order Delivery By Running Each Publication To Completion Before Its Cascade
 
 ## Context
 
-The Contract Verified `InProcessMessageBus` delivers envelopes synchronously and deterministically with per-subscription idempotency and journal replay, but it has no failure semantics: a subscriber handler that throws aborts fan-out to the remaining subscribers and propagates out of `publish`, and the failure is recorded nowhere even though the idempotency key was already consumed. The Roadmap names retry, cancellation propagation, dead-letter, ordering, and backpressure as the next Gate 7 concerns.
+Topic fan-out already follows registration order, the journal already follows publication order, and replay already re-dispatches in journal order, so the ordering the Roadmap names has no content unless it addresses the one real hazard left. That hazard is re-entrant publication: `publish` dispatches synchronously, so a handler that publishes during its own delivery causes a nested dispatch, the child is delivered in full before the parent's fan-out finishes, and every subscriber registered after the publishing one observes the effect before its cause.
 
-This increment adds only the smallest coherent failure foundation the later retry and cancellation increments build on: failure isolation and dead-letter capture. When a handler throws, the bus records a typed `FAILED` outcome for that subscriber, captures an immutable dead-letter entry with a bounded reason, and continues delivering to the remaining subscribers in registration order. A failed delivery consumes the idempotency key deterministically — it is not automatically re-delivered; re-publishing or replaying the same envelope to the same subscriber reports `DUPLICATE`, invokes no handler, and creates no further dead letter. Automatic retry and re-delivery from the dead-letter record, cancellation propagation, ordering, backpressure, persistence, and IPC transport remain later increments.
+This increment replaces nested dispatch with a pending queue and a single drain loop: a top-level `publish` or `replay` drains to exhaustion and returns the whole ordered cascade, while a call made from inside a handler only enqueues and reports `ENQUEUED`. Admission — the cancellation check and the journal append — moves into the drain loop, so the journal's order is the bus's own total delivery order and a cancellation raised mid-cascade refuses work still queued behind it. Backpressure over the now-explicit pending queue, priorities, competing consumers, persistence, and IPC transport remain later increments.
 
 ## Acceptance Criteria
 
-- Add a `DeliveryStatus.FAILED` kind for a subscriber whose handler threw.
-- Isolate a handler failure: when one subscriber's handler throws a `RuntimeException`, the bus records a `FAILED` outcome for that subscriber, continues delivering to the remaining subscribers in registration order, and never lets the exception escape `publish` or `replay`.
-- Add an immutable `DeadLetter(destination, subscriberId, envelope, reason)` with a bounded non-blank reason; the bus derives the reason from the exception message, or the exception type when the message is null or blank, and truncates it to the bound.
-- Expose the ordered, immutable dead-letter record through `deadLetters()`.
-- Make a failed delivery deterministic and terminal for this increment: it consumes the idempotency key, so re-publishing or replaying the same envelope to the same subscriber reports `DUPLICATE`, invokes no handler, and adds no further dead letter.
-- Preserve every existing invariant: topic registration order, single-consumer queue, unrouted reporting, the ordered journal, replay determinism, immutable published collections, and unmutated authorization and provenance across every hop.
-- Validate all null, blank, and length invariants.
+- Add a `DeliveryStatus.ENQUEUED` kind for a re-entrant publication accepted for delivery after the current drain completes.
+- Add `DeliveryStatus.isScopeLevel()` covering `UNROUTED`, `CANCELLED`, and `ENQUEUED`, and keep `DeliveryOutcome` validating that exactly the scope-level statuses name no subscriber.
+- Run each publication to completion: a publication made from inside a handler is queued and delivered only after the current publication's fan-out finishes, so no subscriber observes an effect before its cause.
+- Return the whole ordered cascade from the top-level `publish` or `replay` that drained it, so no outcome is lost, and report `ENQUEUED` from the re-entrant call.
+- Queue cascaded publications in FIFO publication order.
+- Route `publish` and `replay` through the same submission and drain path, distinguishing them only by whether the entry is journaled, so ordering holds identically on both and replay still appends nothing to the journal.
+- Move admission into the drain loop: an entry is journaled at the moment it is admitted, and a correlation cancelled during a cascade refuses entries still queued behind it, which are neither delivered nor journaled.
+- Keep a fan-out atomic: a cancellation raised during a fan-out does not stop that fan-out.
+- Abandon a cascade entirely if an `Error` escapes a drain, leaving no queued entry behind.
+- Preserve every existing invariant: topic registration order, single-consumer queue, unrouted reporting, cancellation refusal and its dominance, failure isolation with continued fan-out, bounded retry, dead-letter attempt accounting, explicit re-delivery, journal immutability, replay determinism and idempotency, and unmutated authorization and provenance across every hop.
+- Validate all null, blank, and scope-level outcome invariants.
 - Add focused RED tests before the new types and behavior exist, classify the failure, then implement the minimum Java 17 change.
 - Run focused bus tests, full Gradle regression with `--warning-mode all`, fresh XML inspection, Java 17 `-Xlint:all -Werror`, and `git diff --check`.
-- Record the failure handling as Contract Verified only after fresh evidence passes and keep Gate 7 `Specified - Next`.
+- Record delivery ordering as Contract Verified only after fresh evidence passes and keep Gate 7 `Specified - Next`.
 
 ## Out Of Scope
 
-- Automatic retry, re-delivery, or replay from the dead-letter record
-- Cancellation propagation, ordering beyond registration, and backpressure
+- Backpressure, pending-queue bounds, and rejection or blocking when the queue grows
+- Priority ordering, per-key partitioning, and competing queue consumers
 - Threads, asynchronous scheduling, timers, or concurrency
-- Dead-letter or journal persistence and durable recovery across process restart
+- Journal, queue, or cancellation-state persistence and durable recovery across process restart
 - IPC transport interface and any local-process or remote adapter
 - Bus wiring into the CLI, Agent Loop, or any production path
 - Payload content, evidence bodies, chat history, or Tool authority
@@ -48,7 +52,7 @@ This increment adds only the smallest coherent failure foundation the later retr
 
 ## Approval
 
-Approved by the user on 2026-07-15 through the request to proceed with the next Gate 7 increment ("이어서 진행해줘").
+Approved by the user on 2026-07-16 through the request to continue ("이어서 진행해줘"), activating the Roadmap's named next Gate 7 increment.
 
 ## Allowed Tools
 
@@ -56,9 +60,9 @@ Approved by the user on 2026-07-15 through the request to proceed with the next 
 
 ## Verification Plan
 
-- Write focused failure-isolation, dead-letter, and idempotent-terminal-failure tests before the new behavior exists.
-- Confirm focused compilation fails only because of the intentionally absent `FAILED` kind, `DeadLetter` type, and `deadLetters()` accessor, and classify the failure.
-- Implement the minimum immutable failure-handling change.
+- Write focused run-to-completion, enqueued-reporting, FIFO-cascade, cancel-during-cascade, and scope-level invariant tests before the new behavior exists.
+- Confirm focused compilation fails only because of the intentionally absent `ENQUEUED` kind and `isScopeLevel` accessor, and classify the failure.
+- Implement the minimum queue-and-drain change.
 - Run focused bus tests and inspect fresh XML output.
 - Run the complete Gradle suite with `--warning-mode all` and inspect fresh XML counts.
 - Run Java 17 production compilation with `-Xlint:all -Werror`.
@@ -67,21 +71,24 @@ Approved by the user on 2026-07-15 through the request to proceed with the next 
 
 ## Implementation Result
 
-- Added `DeliveryStatus.FAILED` and the immutable `DeadLetter(destination, subscriberId, envelope, reason)` under `com.enhancer.bus`.
-- Isolated handler failures in `InProcessMessageBus.dispatch`: a `RuntimeException` from one subscriber's handler is caught, recorded as a `FAILED` outcome, captured as a `DeadLetter` with a bounded reason (exception message, or the exception type when the message is null or blank, truncated to 512 characters), and fan-out continues to the remaining subscribers in registration order; the exception never escapes `publish` or `replay`.
-- Exposed the ordered immutable dead-letter record through `deadLetters()`.
-- Kept a failed delivery deterministic and terminal: the idempotency key is consumed before the handler runs, so re-publishing or replaying the same envelope to the same subscriber reports `DUPLICATE`, invokes no handler, and adds no further dead letter.
-- Preserved every prior invariant: topic order, single-consumer queue, unrouted reporting, journal, replay determinism, immutable published collections, and unmutated authorization and provenance.
+- Added `DeliveryStatus.ENQUEUED` and `DeliveryStatus.isScopeLevel()` covering `UNROUTED`, `CANCELLED`, and `ENQUEUED`; `DeliveryOutcome` now validates its subscriberId invariant through that accessor instead of enumerating statuses.
+- Added a private `Pending(destination, envelope, journal)` submission record, an `ArrayDeque` pending queue, and a `draining` flag to `InProcessMessageBus`.
+- Added `submit`, which queues submissions in publication order and either reports `ENQUEUED` for each (when a drain is already running) or drains.
+- Added `drain`, the single loop that admits and dispatches queued submissions to exhaustion and returns the whole ordered cascade; it performs the cancellation check and the journal append, so admission order is the bus's own delivery order, and it clears the queue in a `finally` block so an `Error` abandons the cascade instead of leaking queued entries into a later publication.
+- Routed `publish` and `replay` through `submit`, distinguishing them only by the `journal` flag, so ordering holds identically on both and replay still appends nothing to the journal; removed the now-redundant cancellation check from `dispatch`, whose sole caller is the drain loop.
+- Left `redeliver` unchanged: it targets exactly one subscription, so a publication from its handler has no fan-out to be nested inside.
+- Preserved every prior invariant: topic registration order, single-consumer queue, unrouted reporting, cancellation refusal and dominance, failure isolation with continued fan-out, bounded retry, dead-letter attempt accounting, explicit re-delivery, journal immutability, replay determinism and idempotency, and unmutated authorization and provenance.
 
 ## Verification
 
-- RED: focused test compilation failed with 8 expected errors naming only the intentionally absent `DeliveryStatus.FAILED` constant, `DeadLetter` type, and `deadLetters()` accessor; no error came from any non-bus file. Classified as aligned missing implementation.
-- Focused GREEN: the bus suite passed with `InProcessMessageBusTest` at 10 tests (7 prior plus 3 new) and no skips, failures, or errors, confirmed against fresh XML.
-- Full regression: `clean test --warning-mode all` passed 44 suites and 166 tests: 164 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors; Gradle emitted no deprecation warning.
-- Java 17 production compilation of all 113 sources passed with `-Xlint:all -Werror` and no warning or error.
+- RED, first pass: focused test compilation failed with 8 expected errors naming only the intentionally absent `DeliveryStatus.ENQUEUED` constant and `isScopeLevel()` accessor; production compilation passed and no error came from any non-bus file.
+- RED, second pass: because the compile failure hid whether the ordering hazard was real, only the two absent symbols were added so the suite could run. Three focused tests then failed behaviourally against the defect itself — `deliversACascadeOnlyAfterTheCurrentFanOutCompletes` and `refusesAQueuedPublicationCancelledDuringTheCascade` observed `[first, child, second]` where `[first, second, child]` was required, proving a cascaded child really was delivered inside its parent's fan-out, and `reportsAReEntrantPublicationAsEnqueued` observed `DELIVERED` where `ENQUEUED` was required. Classified as aligned missing implementation.
+- Focused GREEN: the bus suite passed with `InProcessMessageBusTest` at 25 tests (20 prior plus 5 new) and `MessageEnvelopeTest` at 4, with no skips, failures, or errors, confirmed against fresh XML.
+- Full regression: `clean test --warning-mode all` passed 44 suites and 181 tests: 179 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors; Gradle emitted no deprecation warning.
+- Java 17 production compilation of all 114 sources passed with `-Xlint:all -Werror` and no warning or error.
 - Structural verification retained exactly one `Specified - Next` gate status marker at Gate 7; `git diff --check` passed for tracked and newly added files.
-- Not run: no production caller wires the bus into the CLI or Agent Loop, so no handler failure has been dead-lettered on a real path; failure isolation, dead-letter capture, and terminal idempotency are proven by the in-process contract tests.
+- Not run: no production caller wires the bus into the CLI or Agent Loop, so no cascade has been ordered on a real path; run-to-completion, FIFO cascade order, admission-order journaling, and mid-cascade cancellation are proven by the in-process contract tests.
 
 ## Next Task
 
-Activate the next Gate 7 increment under separate explicit activation: automatic retry with a bounded attempt policy and re-delivery from the dead-letter record, then cancellation propagation, ordering, and backpressure, and finally the IPC transport interface.
+Activate the next Gate 7 increment under separate explicit activation: backpressure over the now-explicit unbounded pending queue, and finally the IPC transport interface.

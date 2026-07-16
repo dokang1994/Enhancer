@@ -368,8 +368,11 @@ Current increment:
 
 - Contract Verified: versioned reference-only `MessageEnvelope` with canonical message/causation identities, bounded correlation/run/producer identities, and the sealed four-kind payload hierarchy carrying task revisions, snapshot identities, authorization scopes, run-record references, verification status, and control signals as data;
 - Contract Verified: deterministic in-process `InProcessMessageBus` with topic fan-out and single-consumer queue delivery, typed `DeliveryOutcome`/`DeliveryStatus` results, per-subscription idempotency, and an ordered journal that supports deterministic replay without duplicate side effects;
-- Contract Verified: delivery-failure isolation and dead-letter capture — a throwing handler yields a `FAILED` outcome and an ordered immutable `DeadLetter` record while fan-out continues, and a failed delivery is idempotent and terminal;
-- next increment: automatic retry with a bounded attempt policy and re-delivery from the dead-letter record, then cancellation propagation, ordering, and backpressure;
+- Contract Verified: delivery-failure isolation and dead-letter capture — a throwing handler yields a `FAILED` outcome and an ordered immutable `DeadLetter` record while fan-out continues, and a failed delivery is idempotent with respect to publish and replay;
+- Contract Verified: bounded synchronous retry and explicit dead-letter re-delivery — an immutable `RetryPolicy` (1-10 attempts) retries a failing handler immediately before dead-lettering it with its failed attempt count, and `redeliver` resolves a recorded dead letter on success or replaces it in place with the accumulated attempt count on renewed exhaustion, never touching the journal or the consumed idempotency key;
+- Contract Verified: cancellation propagation — `cancel(correlationId)` is idempotent and monotonic, and a cancelled correlation is refused admission on every path (publish, replay, and re-delivery) with a scope-level `CANCELLED` outcome, no handler invocation, no idempotency key consumed, no dead letter, and nothing journaled, so the bus never interprets a payload to decide delivery;
+- Contract Verified: delivery ordering — each publication runs to completion before any publication it causes is delivered, so a re-entrant publish is queued and reports `ENQUEUED` while the draining call returns the whole ordered cascade, admission and journaling happen in the drain loop so the journal's order is the bus's delivery order, and a correlation cancelled mid-cascade refuses entries still queued behind it;
+- next increment: backpressure over the now-explicit unbounded pending queue;
 - deferred: the IPC transport interface and any local-process or remote adapter.
 
 Dependencies:

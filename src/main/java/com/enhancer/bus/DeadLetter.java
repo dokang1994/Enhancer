@@ -3,16 +3,18 @@ package com.enhancer.bus;
 import java.util.Objects;
 
 /**
- * An immutable record that a delivery to one subscription failed because its handler threw. It
- * captures the destination, the failed subscriber, the unmodified envelope, and a bounded reason
- * derived from the handler's exception. It is a terminal record for this increment: automatic
- * retry and re-delivery from the dead-letter record arrive in a later increment.
+ * An immutable record that a delivery to one subscription exhausted its bounded attempt policy
+ * because its handler threw. It captures the destination, the failed subscriber, the unmodified
+ * envelope, a bounded reason derived from the last failure, and how many handler invocations
+ * failed. It is the sole authority for explicit re-delivery: a successful re-delivery resolves
+ * it, and a renewed exhaustion replaces it with the accumulated attempt count.
  */
 public record DeadLetter(
         DeliveryDestination destination,
         String subscriberId,
         MessageEnvelope envelope,
-        String reason) {
+        String reason,
+        int attempts) {
 
     public static final int MAX_REASON_CHARACTERS = 512;
 
@@ -22,5 +24,8 @@ public record DeadLetter(
                 subscriberId, "subscriberId", BusContractSupport.MAX_IDENTITY_CHARACTERS);
         Objects.requireNonNull(envelope, "envelope must not be null");
         reason = BusContractSupport.bounded(reason, "reason", MAX_REASON_CHARACTERS);
+        if (attempts < 1) {
+            throw new IllegalArgumentException("attempts must record at least one failure");
+        }
     }
 }

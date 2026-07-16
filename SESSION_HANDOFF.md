@@ -2,10 +2,13 @@
 
 ## Updated At
 
-2026-07-15
+2026-07-16
 
 ## Completed Work
 
+- Implemented the sixth Delivery Gate 7 increment: Contract Verified run-to-completion delivery ordering on `InProcessMessageBus` — a pending queue and a single drain loop replace nested dispatch, so a publication made from inside a handler is queued and reports the scope-level `ENQUEUED` status while the draining top-level `publish` or `replay` returns the whole ordered cascade; delivery order equals publication order, no subscriber observes an effect before its cause, admission and journaling happen in the drain loop so the journal's order is the bus's delivery order, a correlation cancelled mid-cascade refuses entries queued behind it while an in-flight fan-out stays atomic, and an `Error` abandons the cascade entirely. The ordering defect was proven real behaviourally before the fix.
+- Implemented the fifth Delivery Gate 7 increment: Contract Verified correlation-scoped cancellation propagation on `InProcessMessageBus` — `cancel(correlationId)` is idempotent and monotonic with no resume, and a cancelled correlation is refused admission before subscription lookup, idempotency, and dispatch on every path (publish, replay, and dead-letter re-delivery), reporting a scope-level `CANCELLED` outcome that names no subscription, invoking no handler, consuming no idempotency key, creating no dead letter, and appending nothing to the journal so fresh-bus replay stays deterministic; cancellation dominates both `UNROUTED` and `DUPLICATE`, and the bus reads no payload to decide delivery, keeping `ControlSignal.CANCEL` a consumer semantic.
+- Implemented the fourth Delivery Gate 7 increment: Contract Verified bounded synchronous retry and explicit dead-letter re-delivery on `InProcessMessageBus` — an immutable `RetryPolicy` (1-10 attempts; the default bus keeps a single attempt) retries a failing handler immediately with no delay before dead-lettering it with its failed attempt count (`DeadLetter.attempts`), and `redeliver` accepts only a currently recorded dead letter, resolves it on success, and on renewed exhaustion replaces it in place with the accumulated attempt count and latest reason, never appending to the journal or releasing the consumed idempotency key.
 - Implemented the third Delivery Gate 7 increment: Contract Verified delivery-failure isolation and dead-letter capture on `InProcessMessageBus` — a subscriber handler that throws yields a `FAILED` outcome and an ordered immutable `DeadLetter` while fan-out continues, and a failed delivery consumes the idempotency key and is terminal (no automatic retry), reporting `DUPLICATE` with no further dead letter on re-publish or replay.
 - Implemented the second Delivery Gate 7 increment: the Contract Verified `InProcessMessageBus` under `com.enhancer.bus` — synchronous single-threaded deterministic topic fan-out and single-consumer queue delivery over `MessageEnvelope`, typed `DeliveryOutcome`/`DeliveryStatus` results, per-`(destination, subscriber, message identity)` idempotency, and an ordered immutable journal supporting deterministic replay without duplicate side effects; envelopes are carried unmutated so authorization and provenance survive every hop.
 - Fixed a pre-existing wall-clock-dependent defect (unrelated to the delivery increment) in `RunRecordMetadataCollectorTest`: it hardcoded the observation time to `10:01 UTC` while `persist()` stamps `storedAt` with `Instant.now()`, so it failed whenever the wall clock passed that time; the observation time is now derived from the run clock. Recorded as a separate accepted decision.
@@ -68,8 +71,9 @@
 - `gate-6-task-justification-references` (published through `0e2be2c`), `gate-6-authority-boundary-evidence`, and `gate-6-target-file-observation` are Completed; their records are preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
 - `gate-6-git-workspace-adapter` is Completed and published through `21e6230`; `gate-6-maturity-assessment` is Completed with its record preserved in `PROJECT_STATE.md`.
 - `gate-6-rescope-and-promotion` is Completed; its record is preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
-- `CURRENT_TASK.md` is Completed for `gate-7-delivery-failure-dead-letter`.
-- The Gate 7 in-process delivery surface and its delivery-failure and dead-letter handling are committed and published on `origin/main` through delivery commit `b278c53`; the unrelated wall-clock test correction is published through `2a69182`. The working tree is clean apart from this handoff/state publication note.
+- `CURRENT_TASK.md` is Completed for `gate-7-delivery-ordering`; the prior `gate-7-cancellation-propagation`, `gate-7-bounded-retry-redelivery`, and `gate-7-delivery-failure-dead-letter` records are preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
+- Three increments are implemented and verified in the working tree and NOT committed: bounded retry and re-delivery (`RetryPolicy`, `DeadLetter.attempts`, `redeliver`), cancellation propagation (`DeliveryStatus.CANCELLED`, `cancel`, `isCancelled`), and delivery ordering (`DeliveryStatus.ENQUEUED`, `isScopeLevel`, the pending queue and drain loop), plus their tests and synchronized documents. Committing and publishing require an explicit user request.
+- The Gate 7 in-process delivery surface and its delivery-failure and dead-letter handling are committed and published on `origin/main` through delivery commit `b278c53`; the unrelated wall-clock test correction is published through `2a69182`.
 - Local build note: this host had no JDK, so Java 17 was provisioned by junctioning `C:/Users/dokan/.jdks/corretto-17.0.14` into the Git-ignored `.tools/jdk17-runtime`; `scripts/gradle.ps1` then works normally.
 - The maturity assessment, the re-scope-and-promotion, and the Gate 7 envelope contract are committed and published on `origin/main` through delivery commit `3423201`.
 - The authority-boundary, target-file, and Git-adapter increments are committed and published on `origin/main` through delivery commit `21e6230`.
@@ -82,10 +86,15 @@
 
 ## Fresh Verification
 
-- Failure/dead-letter RED: 8 expected errors naming only the absent `DeliveryStatus.FAILED` constant, `DeadLetter` type, and `deadLetters()` accessor with no non-bus error; classified as aligned missing implementation.
-- Failure/dead-letter focused GREEN: `InProcessMessageBusTest` passed 10 tests (7 prior plus 3 new) with no skips, failures, or errors, confirmed against fresh XML.
+- Ordering RED, first pass: 8 expected errors naming only the absent `DeliveryStatus.ENQUEUED` constant and `isScopeLevel()` accessor, with production compilation passing and no non-bus error.
+- Ordering RED, second pass: after adding only those two symbols so the suite could run, three focused tests failed behaviourally against the real defect — two observed `[first, child, second]` where `[first, second, child]` was required, proving a cascaded child was delivered inside its parent's fan-out, and one observed `DELIVERED` where `ENQUEUED` was required; classified as aligned missing implementation.
+- Ordering focused GREEN: `InProcessMessageBusTest` passed 25 tests (20 prior plus 5 new) and `MessageEnvelopeTest` 4 with no skips, failures, or errors, confirmed against fresh XML.
 - Current full command: `.\scripts\gradle.ps1 --no-daemon clean test --warning-mode all`.
-- Current full result: 44 suites, 166 tests, 164 passed, 2 Windows symbolic-link setup skips, 0 failures, and 0 errors; Gradle emitted no deprecation warning; Java 17 production compilation of all 113 sources passed with `-Xlint:all -Werror`.
+- Current full result: 44 suites, 181 tests, 179 passed, 2 Windows symbolic-link setup skips, 0 failures, and 0 errors; Gradle emitted no deprecation warning; Java 17 production compilation of all 114 sources passed with `-Xlint:all -Werror`.
+- Earlier cancellation RED: 19 expected errors naming only the absent `CANCELLED` constant and the `cancel`/`isCancelled` operations; focused GREEN passed 20 `InProcessMessageBusTest` tests and the full 176-test regression.
+- Earlier retry/re-delivery RED: 16 expected errors naming only the absent `RetryPolicy` type, policy constructor, `redeliver` operation, `DeadLetter.attempts()` accessor, and five-component `DeadLetter` constructor; focused GREEN passed 15 `InProcessMessageBusTest` tests and the full 171-test regression.
+- Earlier failure/dead-letter RED: 8 expected errors naming only the absent `DeliveryStatus.FAILED` constant, `DeadLetter` type, and `deadLetters()` accessor with no non-bus error; focused GREEN passed 10 `InProcessMessageBusTest` tests.
+- Earlier session full result: 44 suites, 166 tests, 164 passed, 2 Windows symbolic-link setup skips, 0 failures, and 0 errors over 113 production sources.
 - Structural: exactly one `Specified - Next` gate status marker at Gate 7; `git diff --check` passed for tracked and newly added files.
 - Earlier delivery RED: 54 expected missing-symbol errors naming only the five absent delivery types; focused GREEN passed 11 bus tests.
 - Earlier envelope RED: 38 expected missing-symbol errors (after replacing a Java 17 preview switch pattern in the test); focused GREEN passed 4 bus tests.
@@ -149,7 +158,7 @@
 - Gates 1 through 4: Integrated.
 - Gate 5: Operational for one governed read-only local CLI scenario.
 - Gate 6: Integrated by the user-approved re-scope-and-promotion decision; the production view and graph composition remain Operational sub-capabilities.
-- Gate 7: Specified - Next; its `MessageEnvelope` contract, its `InProcessMessageBus` deterministic topic/queue delivery with idempotency and journal replay, and its delivery-failure isolation with dead-letter capture are Contract Verified, with no automatic retry, cancellation, ordering, backpressure, persistence, or IPC transport, and no wiring into the CLI or Agent Loop.
+- Gate 7: Specified - Next; its `MessageEnvelope` contract, its `InProcessMessageBus` deterministic topic/queue delivery with idempotency and journal replay, its delivery-failure isolation with dead-letter capture, its bounded synchronous retry with explicit dead-letter re-delivery, its correlation-scoped cancellation propagation, and its run-to-completion delivery ordering are Contract Verified, with no backoff, pause/resume, priority ordering, backpressure, persistence, or IPC transport, and no wiring into the CLI or Agent Loop.
 - Gate 6 repository-memory path (real governed run -> real memory -> collector -> composed view with divergence detection): Integrated.
 - Gate 6 production composition: Operational for the governed read-only CLI scenario; every recorded `run` reports bounded snapshot identity, observation count, and memory freshness.
 - Gate 6 `WorkspaceSnapshot`, `ProjectBrainView`, graph projection contract, `TaskImpactQuery`, `AcceptedDecisionProjector`, and `RunRecordMetadataCollector`: Integrated through the fresh promotion audit against named pre-existing integration evidence.
@@ -163,7 +172,7 @@
 
 ## Next Task
 
-Activate the next Delivery Gate 7 increment under separate explicit activation: automatic retry with a bounded attempt policy and re-delivery from the Contract Verified dead-letter record, then cancellation propagation, ordering, and backpressure over `InProcessMessageBus`, and finally the IPC transport interface for later local-process or remote adapters.
+Activate the next Delivery Gate 7 increment under separate explicit activation: backpressure over the now-explicit unbounded pending queue, and finally the IPC transport interface for later local-process or remote adapters.
 
 ## Remaining Risks
 
@@ -177,9 +186,9 @@ Activate the next Delivery Gate 7 increment under separate explicit activation: 
 ## Instructions For Next Agent
 
 1. Read `.ai/` and every canonical startup document in repository order.
-2. Confirm Gate 7 is the sole `Specified - Next` gate status marker and `CURRENT_TASK.md` records `gate-7-delivery-failure-dead-letter` as Completed.
-3. The Gate 7 in-process delivery surface, its delivery-failure and dead-letter handling, and the unrelated `RunRecordMetadataCollectorTest` correction are committed and published on `origin/main` through delivery commit `b278c53` and fix commit `2a69182`; the working tree should be clean apart from any newly activated work.
-4. If the working tree is clean of a JDK, provision Java 17 by junctioning an existing local JDK 17 into `.tools/jdk17-runtime` (this session used `corretto-17.0.14`) or run `scripts/setup-dev.ps1`; the download is slow on this host.
+2. Confirm Gate 7 is the sole `Specified - Next` gate status marker and `CURRENT_TASK.md` records `gate-7-delivery-ordering` as Completed.
+3. The Gate 7 bounded retry/re-delivery, cancellation-propagation, and delivery-ordering increments are implemented and verified but NOT committed; the last published commit on `origin/main` is `e74be87`. Committing and publishing the working tree require an explicit user request.
+4. If the host has no JDK, provision Java 17 through `.tools/jdk17` (this host already has `jdk-17.0.19+10` there) or run `scripts/setup-dev.ps1`; `scripts/gradle.ps1` then works normally.
 5. The only external command authority is the decision-scoped read-only Git adapter; any new external command capability requires its own explicit user approval.
-6. Activate a bounded retry-and-re-delivery task (then cancellation, ordering, backpressure) before editing production code; defer the IPC transport interface to a later increment.
+6. Activate a backpressure task over the pending queue before editing production code; defer the IPC transport interface to a later increment.
 7. Do not commit or push unless explicitly requested.

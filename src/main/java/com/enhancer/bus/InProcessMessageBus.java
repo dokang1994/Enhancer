@@ -1,6 +1,8 @@
 package com.enhancer.bus;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -16,10 +18,21 @@ import java.util.Set;
  * subscription and message identity, and an ordered journal supports deterministic replay without
  * duplicate side effects.
  *
+ * <p>Each publication runs to completion before any publication it causes is delivered: a
+ * publication made from inside a handler is queued and drained after the current fan-out
+ * finishes, so delivery order equals publication order and no subscriber observes an effect
+ * before its cause.
+ *
  * <p>The bus carries whole envelopes without mutation, so authorization and provenance survive
- * every hop; it never creates authority. It provides no retry, cancellation propagation,
- * dead-letter, ordering beyond registration, backpressure, threading, persistence, or transport;
- * those remain later Delivery Gate 7 increments.
+ * every hop; it never creates authority. A handler failure is retried immediately under the bus's
+ * bounded {@link RetryPolicy}, then isolated into a dead letter that supports explicit
+ * re-delivery. A cancelled correlation is refused admission on every delivery path. The bus never
+ * reads a payload to decide delivery, so a {@link ControlSignal#CANCEL} {@link ControlPayload} is
+ * a consumer semantic that a handler may act on by calling {@link #cancel(String)} itself.
+ *
+ * <p>It provides no backoff, priority ordering, competing consumers, backpressure over the
+ * unbounded pending queue, threading, persistence, or transport; those remain later Delivery
+ * Gate 7 increments.
  */
 public final class InProcessMessageBus {
 
@@ -30,11 +43,30 @@ public final class InProcessMessageBus {
             DeliveryDestination destination, String subscriberId, String messageId) {
     }
 
+    /** One submission awaiting admission. Replayed entries are dispatched but not journaled. */
+    private record Pending(
+            DeliveryDestination destination, MessageEnvelope envelope, boolean journal) {
+    }
+
     private final Map<DeliveryDestination, List<Subscription>> subscriptions =
             new LinkedHashMap<>();
     private final List<JournaledMessage> journal = new ArrayList<>();
     private final List<DeadLetter> deadLetters = new ArrayList<>();
     private final Set<DeliveryKey> delivered = new HashSet<>();
+    private final Set<String> cancelledCorrelations = new HashSet<>();
+    private final Deque<Pending> pending = new ArrayDeque<>();
+    private final RetryPolicy retryPolicy;
+    private boolean draining;
+
+    /** Creates a bus that invokes every handler exactly once and never retries. */
+    public InProcessMessageBus() {
+        this(RetryPolicy.singleAttempt());
+    }
+
+    /** Creates a bus that retries a failing handler under the given bounded policy. */
+    public InProcessMessageBus(RetryPolicy retryPolicy) {
+        this.retryPolicy = Objects.requireNonNull(retryPolicy, "retryPolicy must not be null");
+    }
 
     /**
      * Registers a handler for a destination. A queue accepts only one consumer, and a subscriber
@@ -62,29 +94,58 @@ public final class InProcessMessageBus {
     }
 
     /**
+     * Cancels a correlation. Every later delivery of an envelope carrying this correlation is
+     * refused on every path, so one call reaches every topic, queue, replay, and re-delivery that
+     * shares it. Cancellation is idempotent and monotonic: a cancelled correlation stays
+     * cancelled, and resuming abandoned work requires a new correlation identity.
+     */
+    public void cancel(String correlationId) {
+        cancelledCorrelations.add(BusContractSupport.bounded(
+                correlationId, "correlationId", BusContractSupport.MAX_IDENTITY_CHARACTERS));
+    }
+
+    /** Returns whether this correlation has been cancelled. */
+    public boolean isCancelled(String correlationId) {
+        return cancelledCorrelations.contains(BusContractSupport.bounded(
+                correlationId, "correlationId", BusContractSupport.MAX_IDENTITY_CHARACTERS));
+    }
+
+    /**
      * Publishes an envelope to a destination, records it in the journal, and dispatches it to the
      * destination's subscriptions in registration order.
+     *
+     * <p>A publication into a cancelled correlation is refused before it is journaled: it reports
+     * {@link DeliveryStatus#CANCELLED}, invokes no handler, consumes no idempotency key, and
+     * creates no dead letter. Journaling it would make a fresh-bus replay produce a side effect
+     * that never originally happened, so the journal records only admitted publications.
+     *
+     * <p>Called from outside a handler this drains the pending queue to exhaustion and returns
+     * the whole ordered cascade. Called from inside a handler it only enqueues and reports {@link
+     * DeliveryStatus#ENQUEUED}; the resulting outcomes reach the caller that is draining.
      */
     public List<DeliveryOutcome> publish(DeliveryDestination destination, MessageEnvelope envelope) {
         Objects.requireNonNull(destination, "destination must not be null");
         Objects.requireNonNull(envelope, "envelope must not be null");
-        journal.add(new JournaledMessage(destination, envelope));
-        return dispatch(destination, envelope);
+        if (isCancelled(envelope.correlationId())) {
+            return List.of(cancelled(destination, envelope));
+        }
+        return submit(List.of(new Pending(destination, envelope, true)));
     }
 
     /**
      * Re-dispatches journal entries deterministically without appending to the journal. Idempotency
      * guarantees that entries already processed by this bus invoke no handler and report {@link
-     * DeliveryStatus#DUPLICATE}.
+     * DeliveryStatus#DUPLICATE}, and an entry whose correlation is cancelled is refused and
+     * reports {@link DeliveryStatus#CANCELLED} while entries in live correlations still deliver.
      */
     public List<DeliveryOutcome> replay(List<JournaledMessage> entries) {
         Objects.requireNonNull(entries, "entries must not be null");
-        List<DeliveryOutcome> outcomes = new ArrayList<>();
+        List<Pending> submissions = new ArrayList<>();
         for (JournaledMessage entry : entries) {
             Objects.requireNonNull(entry, "entries must not contain null");
-            outcomes.addAll(dispatch(entry.destination(), entry.envelope()));
+            submissions.add(new Pending(entry.destination(), entry.envelope(), false));
         }
-        return List.copyOf(outcomes);
+        return submit(submissions);
     }
 
     /** Returns the ordered, immutable journal of published messages. */
@@ -95,6 +156,88 @@ public final class InProcessMessageBus {
     /** Returns the ordered, immutable record of deliveries whose handler threw. */
     public List<DeadLetter> deadLetters() {
         return List.copyOf(deadLetters);
+    }
+
+    /**
+     * Explicitly re-delivers a dead letter this bus currently records, under the same bounded
+     * attempt policy. Success resolves the dead letter; renewed exhaustion replaces it in place
+     * with the accumulated attempt count and the latest reason. Re-delivery never appends to the
+     * journal and never releases the consumed idempotency key, so publish and replay still report
+     * {@link DeliveryStatus#DUPLICATE}.
+     *
+     * <p>A dead letter whose correlation is cancelled is refused: it reports {@link
+     * DeliveryStatus#CANCELLED}, invokes no handler, and keeps its record, because the failure
+     * still happened even though the work was abandoned.
+     */
+    public DeliveryOutcome redeliver(DeadLetter deadLetter) {
+        Objects.requireNonNull(deadLetter, "deadLetter must not be null");
+        int index = deadLetters.indexOf(deadLetter);
+        if (index < 0) {
+            throw new IllegalStateException("dead letter is not recorded by this bus");
+        }
+        if (isCancelled(deadLetter.envelope().correlationId())) {
+            return cancelled(deadLetter.destination(), deadLetter.envelope());
+        }
+        MessageHandler handler = handlerOf(deadLetter.destination(), deadLetter.subscriberId());
+        RuntimeException failure = attemptDelivery(handler, deadLetter.envelope());
+        DeliveryStatus status;
+        if (failure == null) {
+            deadLetters.remove(index);
+            status = DeliveryStatus.DELIVERED;
+        } else {
+            deadLetters.set(index, new DeadLetter(
+                    deadLetter.destination(), deadLetter.subscriberId(), deadLetter.envelope(),
+                    reasonOf(failure), deadLetter.attempts() + retryPolicy.maxAttempts()));
+            status = DeliveryStatus.FAILED;
+        }
+        return new DeliveryOutcome(
+                deadLetter.destination(), Optional.of(deadLetter.subscriberId()),
+                deadLetter.envelope().messageId(), status);
+    }
+
+    /**
+     * Queues submissions in publication order. A submission made while a drain is already running
+     * only reports {@link DeliveryStatus#ENQUEUED}; the running drain will deliver it once the
+     * current publication has run to completion.
+     */
+    private List<DeliveryOutcome> submit(List<Pending> submissions) {
+        List<DeliveryOutcome> accepted = new ArrayList<>();
+        for (Pending submission : submissions) {
+            pending.addLast(submission);
+            accepted.add(new DeliveryOutcome(
+                    submission.destination(), Optional.empty(),
+                    submission.envelope().messageId(), DeliveryStatus.ENQUEUED));
+        }
+        return draining ? List.copyOf(accepted) : drain();
+    }
+
+    /**
+     * Admits and dispatches queued submissions until the queue is exhausted, returning the whole
+     * ordered cascade. Admission happens here rather than at the publishing call so the journal's
+     * order is the bus's own delivery order and a correlation cancelled mid-cascade still refuses
+     * entries queued behind it. An {@link Error} abandons the cascade entirely rather than leaking
+     * queued entries into a later publication.
+     */
+    private List<DeliveryOutcome> drain() {
+        draining = true;
+        try {
+            List<DeliveryOutcome> outcomes = new ArrayList<>();
+            while (!pending.isEmpty()) {
+                Pending next = pending.removeFirst();
+                if (isCancelled(next.envelope().correlationId())) {
+                    outcomes.add(cancelled(next.destination(), next.envelope()));
+                    continue;
+                }
+                if (next.journal()) {
+                    journal.add(new JournaledMessage(next.destination(), next.envelope()));
+                }
+                outcomes.addAll(dispatch(next.destination(), next.envelope()));
+            }
+            return List.copyOf(outcomes);
+        } finally {
+            draining = false;
+            pending.clear();
+        }
     }
 
     private List<DeliveryOutcome> dispatch(
@@ -123,14 +266,47 @@ public final class InProcessMessageBus {
 
     private DeliveryStatus deliver(
             DeliveryDestination destination, Subscription subscription, MessageEnvelope envelope) {
-        try {
-            subscription.handler().handle(envelope);
+        RuntimeException failure = attemptDelivery(subscription.handler(), envelope);
+        if (failure == null) {
             return DeliveryStatus.DELIVERED;
-        } catch (RuntimeException failure) {
-            deadLetters.add(new DeadLetter(
-                    destination, subscription.subscriberId(), envelope, reasonOf(failure)));
-            return DeliveryStatus.FAILED;
         }
+        deadLetters.add(new DeadLetter(
+                destination, subscription.subscriberId(), envelope, reasonOf(failure),
+                retryPolicy.maxAttempts()));
+        return DeliveryStatus.FAILED;
+    }
+
+    /**
+     * Invokes the handler until it succeeds or the bounded policy is exhausted, immediately and
+     * with no delay between attempts. Returns null on success, or the last failure.
+     */
+    private RuntimeException attemptDelivery(MessageHandler handler, MessageEnvelope envelope) {
+        RuntimeException lastFailure = null;
+        for (int attempt = 1; attempt <= retryPolicy.maxAttempts(); attempt++) {
+            try {
+                handler.handle(envelope);
+                return null;
+            } catch (RuntimeException failure) {
+                lastFailure = failure;
+            }
+        }
+        return lastFailure;
+    }
+
+    private MessageHandler handlerOf(DeliveryDestination destination, String subscriberId) {
+        for (Subscription subscription : subscriptions.getOrDefault(destination, List.of())) {
+            if (subscription.subscriberId().equals(subscriberId)) {
+                return subscription.handler();
+            }
+        }
+        throw new IllegalStateException(
+                "no subscription exists for the dead letter: " + subscriberId);
+    }
+
+    private static DeliveryOutcome cancelled(
+            DeliveryDestination destination, MessageEnvelope envelope) {
+        return new DeliveryOutcome(
+                destination, Optional.empty(), envelope.messageId(), DeliveryStatus.CANCELLED);
     }
 
     private static String reasonOf(RuntimeException failure) {
