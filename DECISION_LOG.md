@@ -2,6 +2,88 @@
 
 ## Accepted Decisions
 
+### 2026-07-16: Promote Gate 7 To Contract Verified And Advance Gate 8
+
+Status: Accepted Decision
+
+Context:
+
+- The Gate 7 maturity model requires core types, invariants, and focused contract tests for Contract Verified status; it does not require a production caller or real process boundary until Integrated or Operational maturity.
+- The prior assessment mapped all six scope items and all four exit criteria, finding only an unbounded `WorkPayload.allowedTools` collection. The completed test-first correction now bounds that collection to 256 unique names.
+- Gate 8 is the immediate integration consumer for the message, control, handoff, replay, cancellation, ordering, and backpressure contracts.
+
+Decision:
+
+- Re-run the complete Gate 7 bus contract suite, full regression, strict production lint, and document self-hosting checks before changing maturity state.
+- If the fresh evidence passes, promote Delivery Gate 7 from `Specified - Next` to `Contract Verified` and advance the Roadmap's sole `Specified - Next` marker to Delivery Gate 8.
+- Treat the provider-neutral `MessageTransport` interface as sufficient for Gate 7 Contract Verified scope. Concrete local-process or remote adapters, wire formats, authentication, persistence, production wiring, and real process hops remain later integration work.
+- Make no production-code change. Update only the two actual-Roadmap self-hosting assertions whose contract is the current `Specified - Next` gate, and claim no Gate 7 Integrated, Operational, or Released maturity from this assessment.
+
+Rationale:
+
+Contract Verified maturity is intentionally the boundary between a tested foundation and a connected runtime. Holding Gate 7 open for a concrete adapter would confuse integration evidence with contract evidence and block its named Gate 8 consumer. Advancing the next marker after fresh verification preserves the dependency sequence without overstating what exists.
+
+Consequences:
+
+- Gate 8 becomes eligible for separately authorized bounded contract work; it is not implemented merely because it becomes `Specified - Next`.
+- Gate 7 still lacks production publishers/consumers, a concrete adapter, durability, threading, and a supported messaging entry point, so Integrated and Operational claims remain prohibited.
+- Any failed or incomplete fresh verification stops the promotion and leaves Gate 7 `Specified - Next`.
+
+### 2026-07-16: Bound Work Payload Tool Scope Cardinality
+
+Status: Accepted Decision
+
+Context:
+
+- The Gate 7 maturity assessment found that `WorkPayload` bounds every allowed-tool name to 256 characters but accepts an arbitrarily large set, so the aggregate message payload has no contract ceiling.
+- The Roadmap requires payloads to be bounded or replaced by evidence references before Gate 7 can exit.
+- A concrete IPC adapter would not correct this in-memory contract defect and remains outside the current foundation scope.
+
+Decision:
+
+- Add `WorkPayload.MAX_ALLOWED_TOOLS` with a maximum of 256 unique allowed-tool names.
+- Accept scopes from 1 through 256 entries and reject larger scopes before copying them into the immutable payload.
+- Keep the existing 256-character per-name bound, snapshot/task provenance, immutable set semantics, and authority model unchanged.
+- Change no Message Bus delivery, transport, serialization, persistence, scheduling, or production-wiring behavior.
+
+Rationale:
+
+A cardinality ceiling combined with the existing per-name ceiling gives the only collection-bearing payload a finite aggregate bound of at most 65,536 tool-name characters. A limit of 256 follows the existing bus identity bound, remains far above realistic Tool scopes, and closes the recorded exit criterion without inventing a wire format or adapter.
+
+Consequences:
+
+- Existing normal scopes remain source- and behavior-compatible; only previously unbounded scopes above 256 entries are rejected.
+- Gate 7 still requires fresh reassessment before any maturity promotion or Gate 8 activation.
+- Concrete local-process or remote adapters remain deferred to later integration work.
+
+### 2026-07-16: Separate IPC Transport Acceptance From Message-Bus Delivery
+
+Status: Accepted Decision
+
+Context:
+
+- Gate 7 already has a versioned `MessageEnvelope`, typed destinations, and deterministic in-process delivery semantics, but a later local-process or remote adapter has no provider-neutral boundary through which to carry that route and envelope.
+- Reusing `JournaledMessage` would falsely imply that a transport attempt was admitted to the bus journal. Returning `DeliveryOutcome` from a transport would likewise conflate acceptance by one transport hop with remote subscription delivery, which may be asynchronous or unavailable to the sender.
+- Endpoint discovery, serialization, framing, authentication, threading, persistence, and concrete adapters have no verified requirement in the current increment.
+
+Decision:
+
+- Add immutable `TransportMessage`, containing exactly one existing `DeliveryDestination` and one existing `MessageEnvelope`; it creates no new authority and does not copy, reinterpret, or flatten the envelope.
+- Add a provider-neutral functional `MessageTransport` interface with one `send(TransportMessage)` operation. A configured transport instance owns any peer or channel configuration, so provider endpoints and lifecycle do not enter the domain contract.
+- Return a typed `TransportOutcome` directly from the synchronous admission call without copying a second message identity into the result. `ACCEPTED` means only that the adapter accepted responsibility for attempting the hop; it does not mean that a remote bus admitted, journaled, dispatched, or delivered the message.
+- Permit explicit `BACKPRESSURED` and `UNAVAILABLE` non-acceptance outcomes with a bounded reason. A non-accepted message consumes no Message Bus delivery, idempotency, cancellation, dead-letter, or journal state; retry timing remains higher-level scheduling policy.
+- Keep serialization, protocol negotiation, endpoint discovery, authentication, concrete local-process or remote adapters, buffering, threading, persistence, and production wiring out of this increment.
+
+Rationale:
+
+The smallest honest IPC seam transports the existing route and envelope and reports only ownership of the attempted hop. Separating transport acceptance from subscriber delivery preserves all current bus semantics, avoids promising synchronous remote outcomes, and leaves provider-specific concerns behind later adapters.
+
+Consequences:
+
+- Later adapters can implement one interface without changing message identities, payloads, destinations, or authority semantics.
+- A caller must not translate `ACCEPTED` into `DELIVERED`; receiving-side delivery outcomes remain owned by the receiving Message Bus and must travel as explicit messages if a workflow needs them.
+- The contract alone crosses no process boundary and proves no adapter, wire format, durability, authentication, or production integration.
+
 ### 2026-07-16: Verify Real-Path Boundaries With Junctions And Remove Fictional Evidence Retention
 
 Status: Accepted Decision

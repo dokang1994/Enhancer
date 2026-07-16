@@ -67,7 +67,7 @@ class AssistedDevelopmentLoopTest {
         if (normalizedCurrentTask.contains("## Status\n\nCompleted")) {
             assertEquals(AssistedDevelopmentOutcome.PROPOSAL_AVAILABLE, result.outcome());
             assertEquals(
-                    "Delivery Gate 7: Event Bus And IPC Foundation",
+                    "Delivery Gate 8: Agent Runtime And Scheduler",
                     result.proposal().orElseThrow().title());
         } else {
             assertEquals(AssistedDevelopmentOutcome.ACTIVE_TASK_PRESERVED, result.outcome());

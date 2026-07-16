@@ -16,7 +16,7 @@ The standalone label Implemented is no longer used for capability maturity. It m
 
 ## Current Position
 
-Status: Delivery Gate 6 Integrated with an Operational production composition; Delivery Gate 7 Specified - Next
+Status: Delivery Gate 6 Integrated with an Operational production composition; Delivery Gate 7 Contract Verified; Delivery Gate 8 Specified - Next
 
 Integrated capabilities:
 
@@ -49,7 +49,7 @@ Operational capability:
 Not yet integrated or operational:
 
 - LLM invocation;
-- Workspace, Project Brain, Event/Message Bus, IPC, Agent Runtime, Scheduler, and Model Gateway;
+- remaining Workspace adapters, Project Brain graph persistence, Event/Message Bus production wiring, concrete IPC adapters, Agent Runtime, Scheduler, and Model Gateway;
 - Skill runtime, plugins, MCP, interfaces, multi-agent, background execution, Cloud Sync, and self-improvement.
 
 ## Contract Continuation Rule
@@ -160,7 +160,7 @@ Required capabilities:
 - content length and digest metadata;
 - atomic write behavior;
 - reference resolution and existence verification;
-- retention and cleanup policy specification.
+- truthful storage policy, with retention and cleanup requiring a separate lifecycle decision.
 
 Exit criteria:
 
@@ -362,7 +362,7 @@ Exit criteria:
 
 ## Delivery Gate 7: Event Bus And IPC Foundation
 
-Status: Specified - Next
+Status: Contract Verified
 
 Current increment:
 
@@ -373,7 +373,10 @@ Current increment:
 - Contract Verified: cancellation propagation — `cancel(correlationId)` is idempotent and monotonic, and a cancelled correlation is refused admission on every path (publish, replay, and re-delivery) with a scope-level `CANCELLED` outcome, no handler invocation, no idempotency key consumed, no dead letter, and nothing journaled, so the bus never interprets a payload to decide delivery;
 - Contract Verified: delivery ordering — each publication runs to completion before any publication it causes is delivered, so a re-entrant publish is queued and reports `ENQUEUED` while the draining call returns the whole ordered cascade, every publication reaches drain-owned admission, replay-caused cascades inherit non-journaling mode, the journal's order remains the bus's delivery order, and a correlation cancelled mid-cascade refuses entries still queued behind it;
 - Contract Verified: deterministic pending-queue backpressure — immutable `BackpressurePolicy` bounds waiting publications from 1 through 4096, capacity exhaustion reports scope-level `BACKPRESSURED` without blocking or consuming journal/idempotency/dead-letter/cancellation state, admitted work remains FIFO and retryable refusal stays explicit, and replay deterministically delivers the prefix that fits while reporting the refused suffix without journaling;
-- next increment: the transport-neutral IPC interface over the existing envelope and delivery semantics;
+- Contract Verified: transport-neutral IPC boundary — immutable `TransportMessage` carries one existing destination and envelope to provider-neutral `MessageTransport`, while typed `TransportOutcome` reports only hop acceptance, backpressure, or unavailability and cannot masquerade as subscriber delivery;
+- Contract Verified: bounded work payload authorization scope with 1 through 256 unique allowed-tool names, each at most 256 characters, giving the collection a finite aggregate ceiling while preserving immutable copying;
+- promoted after fresh reassessment: all six scope items and all four exit criteria have Contract Verified evidence across 39 focused bus tests, the complete regression, and strict production lint;
+- the provider-neutral transport seam completes the Contract Verified foundation; a concrete adapter remains later Integrated or Operational work rather than a promotion prerequisite;
 - deferred: any local-process or remote IPC adapter, persistence, threading, and production wiring.
 
 Dependencies:
@@ -398,7 +401,7 @@ Exit criteria:
 
 ## Delivery Gate 8: Agent Runtime And Scheduler
 
-Status: Planned
+Status: Specified - Next
 
 Dependencies:
 
@@ -648,7 +651,7 @@ Status: Accepted
 
 RFC acceptance does not imply Contract Verified, Integrated, Operational, or Released capability maturity.
 
-Future detailed RFC work is required for Workspace and Project Brain, Event/Message Bus and IPC, Agent Runtime and Scheduler, MCP and Model Gateway, and Cloud Sync before their implementation gates become active.
+Future detailed RFC work is required for the Agent Runtime and Scheduler, concrete IPC adapters, MCP and Model Gateway, and Cloud Sync before those implementation tracks become active.
 
 ## Selective Agent Harness Pattern Adoption
 

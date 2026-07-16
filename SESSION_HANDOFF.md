@@ -1,10 +1,10 @@
 # Session Handoff
 
-- Git observer RCE elimination is locally verified: unqualified executable lookup is gone, project-contained candidates are rejected, only filter-free `ls-files` metadata runs, and tracked worktree diff is explicitly unavailable because adversarial tests proved comparison commands may execute clean filters.
-- CLI durable-outcome isolation is locally verified: known graph failures are preflighted before Tool execution, required-document targets no longer duplicate artifacts, and injected post-persist brain failure returns the durable completed exit code with `brainStatus=UNAVAILABLE`.
-- RunRecord Workspace observation is locally verified with a 256-record newest-first window; complete listing and replay remain, no record is deleted, and only the bounded selected payloads are resolved.
-- Windows junction tests now pass for both governed file reads and required context documents, covering the real-path guards skipped by privilege-dependent symlink tests. Evidence policy now names only max-content storage; the unused 30-day retention claim is removed with no deletion behavior.
-- Combined delivery verification passed 44 suites/200 tests (198 passed, 2 existing symlink skips), both Windows junction cases executed, and Java 17 strict lint passed across 115 production sources.
+- Gate 7 Event Bus and IPC Foundation is promoted to Contract Verified after fresh reassessment of all six scope items and all four exit criteria.
+- Gate 8 Agent Runtime and Scheduler is now the sole `Specified - Next` gate; activation does not imply any Gate 8 implementation.
+- A concrete IPC adapter was correctly excluded from the promotion prerequisite: endpoint, serialization, authentication, threading, persistence, and production wiring remain deferred integration work.
+- Fresh promotion evidence includes all 39 bus tests, a 45-suite/205-test full regression (203 passed, 2 existing symbolic-link skips), and Java 17 strict lint across 119 production sources.
+- The prior reliability/security delivery is published through `b3be720`; the IPC contract, assessments, payload correction, and Gate 7 promotion remain uncommitted and unpublished because no new commit or push was authorized.
 
 ## Updated At
 
@@ -12,6 +12,10 @@
 
 ## Completed Work
 
+- Promoted Gate 7 to Contract Verified after mapping every scope item and exit criterion to fresh evidence, and advanced the sole `Specified - Next` marker to Gate 8 without production code or concrete-adapter work.
+- Updated only the actual-Roadmap Planner and Assisted Loop expectations from Gate 7 to Gate 8 after the marker move produced the expected focused RED.
+- Completed the test-first Gate 7 work-payload correction: public `WorkPayload.MAX_ALLOWED_TOOLS = 256` accepts the exact boundary and rejects 257 while preserving immutable scope copying and all existing envelope semantics.
+- Completed the Gate 7 maturity assessment without production or test changes; its original finding was five fully verified scope items and three fully verified exit criteria, with the payload cardinality gap recorded for the separate correction that has now closed it. Integrated and Operational claims remain unsupported.
 - Implemented the seventh Gate 7 increment: Contract Verified finite non-blocking pending-queue backpressure through immutable `BackpressurePolicy` (1-4096), scope-level `BACKPRESSURED` refusal with no delivery-state side effects, FIFO admission, explicit retryability, and deterministic bounded replay.
 - Corrected the Gate 7 replay cascade: handler publications caused by replay inherit non-journaling mode, and every publication reaches drain-owned cancellation admission.
 - Eliminated Git observer command-execution vectors by using one canonical absolute, project-external Git executable for filter-free index metadata and explicitly disabling tracked-worktree diff observation.
@@ -82,8 +86,8 @@
 - `gate-6-task-justification-references` (published through `0e2be2c`), `gate-6-authority-boundary-evidence`, and `gate-6-target-file-observation` are Completed; their records are preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
 - `gate-6-git-workspace-adapter` is Completed and published through `21e6230`; `gate-6-maturity-assessment` is Completed with its record preserved in `PROJECT_STATE.md`.
 - `gate-6-rescope-and-promotion` is Completed; its record is preserved in `CHANGELOG.md` and `PROJECT_STATE.md`.
-- PR #3 published bounded retry/re-delivery, cancellation propagation, and delivery ordering through `52987f2`; replay-cascade correction, Git Workspace authority hardening, and repository-state synchronization are published through `2585a10`, where local `main` and `origin/main` currently point.
-- The current delivery bundle combines the already-verified Gate 7 backpressure increment with four user-requested reliability/security corrections; the user explicitly authorized commit and push after final cross-regression.
+- PR #3 published bounded retry/re-delivery, cancellation propagation, and delivery ordering through `52987f2`; replay/Git corrections followed through `2585a10`, and backpressure plus the four reliability/security corrections are published through `b3be720`, where local `main` and `origin/main` pointed before this uncommitted task.
+- The current uncommitted delivery contains the transport-neutral IPC contract, its maturity assessment, the bounded work-payload correction, and the Gate 7 Contract Verified promotion with Gate 8 next-marker synchronization; it has no commit or push authority.
 - The Gate 7 in-process delivery surface and its delivery-failure and dead-letter handling are committed and published on `origin/main` through delivery commit `b278c53`; the unrelated wall-clock test correction is published through `2a69182`.
 - Local build note: this host had no JDK, so Java 17 was provisioned by junctioning `C:/Users/dokan/.jdks/corretto-17.0.14` into the Git-ignored `.tools/jdk17-runtime`; `scripts/gradle.ps1` then works normally.
 - The maturity assessment, the re-scope-and-promotion, and the Gate 7 envelope contract are committed and published on `origin/main` through delivery commit `3423201`.
@@ -97,13 +101,21 @@
 
 ## Fresh Verification
 
+- Promotion assessment focused evidence: all 39 Gate 7 bus tests passed with no skips, failures, or errors.
+- Promotion marker RED: the first Planner/Assisted Loop run after moving the marker ran 8 tests and failed exactly the actual-Roadmap Planner assertion because it still expected Gate 7; the expectation-only correction restored all 8 tests.
+- Work-payload boundary RED: the new test failed behaviorally only because 257 valid unique names were accepted; the exact 256-name boundary and all existing production compilation remained valid.
+- Work-payload focused GREEN: all 39 bus tests passed with no skips, failures, or errors (`InProcessMessageBusTest` 30, `MessageEnvelopeTest` 5, `MessageTransportTest` 4).
+- IPC contract RED: focused compilation failed with 33 expected errors naming only the absent `TransportMessage`, `MessageTransport`, `TransportOutcome`, and `TransportStatus`; production compilation passed.
+- IPC contract focused GREEN: 38 tests across `MessageTransportTest`, `MessageEnvelopeTest`, and `InProcessMessageBusTest` passed with no skips, failures, or errors.
 - Backpressure RED: focused compilation failed with exactly 10 expected errors naming only the absent `BackpressurePolicy`, `BACKPRESSURED`, and combined constructor; production compilation passed.
 - Backpressure focused GREEN: 30 `InProcessMessageBusTest` tests and 4 `MessageEnvelopeTest` tests passed with no skips, failures, or errors.
 - Ordering RED, first pass: 8 expected errors naming only the absent `DeliveryStatus.ENQUEUED` constant and `isScopeLevel()` accessor, with production compilation passing and no non-bus error.
 - Ordering RED, second pass: after adding only those two symbols so the suite could run, three focused tests failed behaviourally against the real defect — two observed `[first, child, second]` where `[first, second, child]` was required, proving a cascaded child was delivered inside its parent's fan-out, and one observed `DELIVERED` where `ENQUEUED` was required; classified as aligned missing implementation.
 - Ordering focused GREEN: `InProcessMessageBusTest` passed 25 tests (20 prior plus 5 new) and `MessageEnvelopeTest` 4 with no skips, failures, or errors, confirmed against fresh XML.
 - Current full command: `.\scripts\gradle.ps1 --no-daemon clean test --warning-mode all`.
-- Current full result: 44 suites, 189 tests, 187 passed, 2 Windows symbolic-link setup skips, 0 failures, and 0 errors; Gradle emitted no deprecation warning; Java 17 production compilation of all 115 sources passed with `-Xlint:all -Werror`.
+- Current full result: 45 suites, 205 tests, 203 passed, 2 Windows symbolic-link setup skips, 0 failures, and 0 errors; Gradle emitted no deprecation warning; Java 17 production compilation of all 119 sources passed with `-Xlint:all -Werror`.
+- Post-promotion actual-document verification passed 15 of 16 Context Reader, Planner, and Assisted Loop tests with 1 existing Windows symbolic-link setup skip and selected Gate 8 on both proposal paths.
+- Post-document self-hosting verification passed 15 of 16 Context Reader, Planner, and Assisted Loop tests with 1 existing Windows symbolic-link setup skip and no failure or error.
 - Earlier cancellation RED: 19 expected errors naming only the absent `CANCELLED` constant and the `cancel`/`isCancelled` operations; focused GREEN passed 20 `InProcessMessageBusTest` tests and the full 176-test regression.
 - Earlier retry/re-delivery RED: 16 expected errors naming only the absent `RetryPolicy` type, policy constructor, `redeliver` operation, `DeadLetter.attempts()` accessor, and five-component `DeadLetter` constructor; focused GREEN passed 15 `InProcessMessageBusTest` tests and the full 171-test regression.
 - Earlier failure/dead-letter RED: 8 expected errors naming only the absent `DeliveryStatus.FAILED` constant, `DeadLetter` type, and `deadLetters()` accessor with no non-bus error; focused GREEN passed 10 `InProcessMessageBusTest` tests.
@@ -171,7 +183,8 @@
 - Gates 1 through 4: Integrated.
 - Gate 5: Operational for one governed read-only local CLI scenario.
 - Gate 6: Integrated by the user-approved re-scope-and-promotion decision; the production view and graph composition remain Operational sub-capabilities.
-- Gate 7: Specified - Next; its `MessageEnvelope`, deterministic topic/queue delivery, idempotency and journal replay, failure isolation and dead letters, bounded retry and re-delivery, correlation cancellation, run-to-completion ordering, and finite non-blocking pending-queue backpressure are Contract Verified. Replay cascades remain non-journaling and refused overload consumes no delivery state; there is still no backoff, pause/resume, priority ordering, persistence, IPC transport, or wiring into the CLI or Agent Loop.
+- Gate 7: Contract Verified; its bounded `MessageEnvelope` payloads, deterministic topic/queue delivery, idempotency and journal replay, failure isolation and dead letters, bounded retry and re-delivery, correlation cancellation, run-to-completion ordering, finite non-blocking pending-queue backpressure, and provider-neutral IPC interface satisfy all recorded scope and exit criteria. Integrated/Operational evidence, persistence, a concrete adapter, and CLI/Agent Loop wiring do not exist.
+- Gate 8: Specified - Next; no Agent Runtime, Scheduler, durable Goal state, leases, recovery, or worker implementation exists yet.
 - Gate 6 repository-memory path (real governed run -> real memory -> collector -> composed view with divergence detection): Integrated.
 - Gate 6 production composition: Operational for the governed read-only CLI scenario; every recorded `run` reports bounded snapshot identity, observation count, and memory freshness.
 - Gate 6 `WorkspaceSnapshot`, `ProjectBrainView`, graph projection contract, `TaskImpactQuery`, `AcceptedDecisionProjector`, and `RunRecordMetadataCollector`: Integrated through the fresh promotion audit against named pre-existing integration evidence.
@@ -181,11 +194,11 @@
 - Gate 6 repository-memory and run-evidence production paths: Integrated.
 - Gate 6 production view and graph composition: Operational for the governed read-only CLI scenario; impact answers carry executions and explicitly justified decisions, and modifies/verified-by producers do not exist.
 - Gate 0 integration proves planning, explicit external activation, verified execution, persistence, and replay without changing Proposal authority.
-- Remaining editor/diagnostic Workspace adapters, LLM invocation, production Event/Message Bus wiring, IPC, Scheduler, broader Agent Runtime, MCP, Skills, plugins, multi-agent execution, background execution, and release packaging remain unimplemented.
+- Remaining editor/diagnostic Workspace adapters, LLM invocation, production Event/Message Bus wiring, concrete IPC adapters, Scheduler, broader Agent Runtime, MCP, Skills, plugins, multi-agent execution, background execution, and release packaging remain unimplemented.
 
 ## Next Task
 
-Activate the next Delivery Gate 7 increment under separate explicit activation: the transport-neutral IPC interface over the existing envelope and delivery semantics. Concrete local-process or remote adapters remain deferred.
+Activate the first bounded Gate 8 Agent Runtime and Scheduler contract as a separate task. Prefer the smallest single-agent sequential consumer of Gate 7 messaging; do not introduce multi-agent concurrency or a concrete IPC adapter by default.
 
 ## Remaining Risks
 
@@ -199,9 +212,9 @@ Activate the next Delivery Gate 7 increment under separate explicit activation: 
 ## Instructions For Next Agent
 
 1. Read `.ai/` and every canonical startup document in repository order.
-2. Confirm Gate 7 is the sole `Specified - Next` gate status marker and `CURRENT_TASK.md` records the four-correction delivery's final task as Completed.
-3. Inspect `git status --short` and the current `main`/`origin/main` log rather than relying on the pre-delivery base hash `2585a10`.
+2. Confirm Gate 7 is `Contract Verified`, Gate 8 is the sole `Specified - Next` gate, and `CURRENT_TASK.md` records the promotion assessment as Completed.
+3. Inspect `git status --short` and the current `main`/`origin/main` log rather than relying on the published base hash `b3be720`.
 4. If the host has no JDK, provision Java 17 through `.tools/jdk17` (this host already has `jdk-17.0.19+10` there) or run `scripts/setup-dev.ps1`; `scripts/gradle.ps1` then works normally.
 5. The only external command authority is the decision-scoped read-only Git adapter; any new external command capability requires its own explicit user approval.
-6. Activate the transport-neutral IPC interface before editing production code; defer concrete adapters, persistence, threading, and production wiring.
-7. Do not make any further commit or push without a new explicit request after this authorized delivery is published.
+6. Activate a bounded Gate 8 contract before editing production code; preserve single-agent sequential execution and defer multi-agent concurrency.
+7. Do not commit or push the uncommitted IPC contract, assessments, payload correction, and promotion without a new explicit user request.

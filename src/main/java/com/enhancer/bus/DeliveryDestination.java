@@ -3,8 +3,9 @@ package com.enhancer.bus;
 import java.util.Objects;
 
 /**
- * An in-process delivery destination identified by its kind and a bounded name. A topic and a
- * queue that share a name are distinct destinations; equality requires equal kind and name.
+ * A Message Bus delivery destination identified by its kind and a bounded name. A topic and a
+ * queue that share a name are distinct destinations; equality requires equal kind and name. The
+ * same value may be carried unchanged by an in-process bus or a transport adapter.
  */
 public record DeliveryDestination(DeliveryDestinationKind kind, String name) {
 

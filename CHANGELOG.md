@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-07-16 - Promote Gate 7 And Advance Gate 8
+
+- Reassessed all six Gate 7 scope items and all four exit criteria against fresh contract evidence after closing the payload-cardinality blocker.
+- Promoted Delivery Gate 7 to Contract Verified without claiming production messaging integration, a concrete adapter, or a real process boundary.
+- Advanced Delivery Gate 8 Agent Runtime and Scheduler to the sole `Specified - Next` marker and synchronized the two actual-Roadmap self-hosting expectations.
+- Verified 39 focused bus tests, the 45-suite/205-test full regression (203 passed, 2 existing symbolic-link skips), and Java 17 strict lint across 119 production sources.
+- Verified the completed document state through 16 actual-document self-hosting tests: 15 passed and 1 existing Windows symbolic-link setup case skipped, with both proposal paths selecting Gate 8.
+
+## 2026-07-16 - Bound Gate 7 Work Payload Scope
+
+- Added an explicit maximum of 256 unique `WorkPayload.allowedTools` names while retaining the existing 256-character per-name ceiling and immutable copying.
+- Proved the gap behaviorally before the fix: a payload with 257 valid names was accepted during RED; the corrected contract accepts exactly 256 and rejects 257.
+- Closed the prior maturity assessment's bounded-payload blocker without selecting a concrete IPC adapter or changing Gate 7 lifecycle status.
+- Verified all 39 bus tests, the 45-suite/205-test full regression (203 passed, 2 existing symbolic-link skips), and Java 17 strict lint across 119 production sources.
+
+## 2026-07-16 - Assess Gate 7 Messaging Maturity
+
+- Mapped every Gate 7 scope item and exit criterion to fresh contract evidence or an explicit blocker without changing production or test code.
+- Confirmed that transport adapters and production wiring are integration work rather than requirements for Contract Verified maturity.
+- Found one gate-level blocker: `WorkPayload.allowedTools` has bounded entries but unbounded collection cardinality, so the bounded-payload exit criterion is not yet satisfied.
+- Recommended one test-first payload-bound correction before Gate 7 promotion; rejected both premature promotion and a premature concrete IPC adapter.
+
+## 2026-07-16 - Define The Transport-Neutral IPC Boundary
+
+- Added immutable `TransportMessage` over the existing destination and envelope plus provider-neutral `MessageTransport`.
+- Added typed `TransportOutcome`/`TransportStatus` so hop acceptance, backpressure, and unavailability remain distinct from Message Bus subscriber delivery.
+- Kept adapters, endpoints, serialization, authentication, threading, persistence, scheduling, and production wiring out of the contract.
+- Verified test-first with 33 expected RED missing-symbol errors, 38 focused bus tests, the 204-test full regression, and Java 17 strict lint across 119 production sources.
+
 ## 2026-07-16 - Verify Windows Real-Path Boundaries And Correct Evidence Policy
 
 - Added Windows junction regressions that execute successfully on this host and prove both `ReadFileTool` and `ProjectContextReader` reject real paths escaping the project root.

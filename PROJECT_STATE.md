@@ -8,11 +8,8 @@
 
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
-- PR #3 and its review corrections were published through base commit `2585a10` (`fix: harden message replay and workspace observation`); the current delivery bundle adds backpressure plus the four reviewed reliability/security corrections and is authorized for publication after final verification.
-- Current local security work eliminates Git observer command-execution vectors: only a canonical absolute Git executable outside the project may run, the sole command observes filter-free index metadata, and tracked worktree diff is explicitly unavailable pending a proven-safe method.
-- Current local CLI consistency work preflights Project Brain inputs before execution, collapses duplicate document/target artifacts, and prevents post-persist diagnostic failure from changing the durable RunRecord-derived exit code.
-- Current local RunRecord observation work limits Workspace snapshots to 256 recent records while preserving full durable listing and replay; per-run payload reads are bounded and the accumulated-history snapshot wall is removed.
-- Current local filesystem/evidence work verifies both real-path containment guards with passing Windows junction tests and replaces the unused 30-day evidence-retention claim with the actually enforced content-size storage policy; no cleanup behavior was added.
+- PR #3, replay/Git review corrections, pending-queue backpressure, and the four reliability/security corrections are published on `origin/main` through `b3be720` (`fix: harden workspace execution and bounded delivery`).
+- The current uncommitted work contains the completed transport-neutral IPC contract, Gate 7 maturity assessment and bounded payload correction, plus the fresh Contract Verified promotion and Gate 8 next-marker transition; none is published.
 - Gate 1-3 delivery commit: `3fcda4c` (`feat: integrate governed agent execution foundations`).
 - Pull request #2 has been merged into `main`.
 - Delivery Gates 1 through 3, self-hosting compatibility recovery, long-term vision, and documentation-alignment changes are published on `origin/main`.
@@ -27,24 +24,26 @@
 - The Gate 6 authority-boundary evidence, `TargetFileMetadataCollector`, and `GitWorkspaceCollector` are published on `origin/main` through delivery commit `21e6230` (`feat: complete Gate 6 workspace observation surface`).
 - The Gate 6 maturity assessment, the re-scope-and-promotion, and the Gate 7 `MessageEnvelope` contract are published on `origin/main` through delivery commit `3423201` (`feat: promote Gate 6 and open Gate 7 with the message envelope contract`).
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 115 Java files and 6,571 lines.
-- Test source: 44 Java files and 7,111 lines.
+- Production source: 119 Java files and 6,938 lines.
+- Test source: 45 Java files and 7,542 lines.
 - The Gate 7 in-process delivery surface and its delivery-failure and dead-letter handling are published on `origin/main` through delivery commit `b278c53` (`feat: add Gate 7 in-process delivery with failure isolation and dead-letter`); the unrelated wall-clock test correction is published through `2a69182` (`fix: make RunRecordMetadataCollectorTest time-independent`).
-- PR #3 published bounded retry/dead-letter re-delivery, cancellation, and ordering through `52987f2`; replay-cascade correction followed through `2585a10`. The current delivery bundle contains backpressure, Git observer RCE elimination, CLI durable-outcome isolation, bounded RunRecord observation, Windows junction coverage, and the truthful Evidence storage-policy API.
+- PR #3 published bounded retry/dead-letter re-delivery, cancellation, and ordering through `52987f2`; replay-cascade correction followed through `2585a10`, and backpressure plus the four reliability/security corrections were published through `b3be720`.
 
 ## Capability Maturity
 
 ### Contract Verified
 
 - Delivery Gate 7 versioned reference-only `MessageEnvelope` under `com.enhancer.bus`: canonical-UUID message identity, bounded correlation/run/producer identities, optional canonical-UUID causation distinct from the message identity, and one typed payload.
-- Sealed four-kind payload hierarchy (work, result, control, handoff) carrying task revisions, snapshot identities, immutable allowed-tool scopes, run-record references, verification status, and typed control signals as bounded data; no content, delivery semantics, or Tool authority.
+- Sealed four-kind payload hierarchy (work, result, control, handoff) carrying task revisions, snapshot identities, immutable allowed-tool scopes of 1 through 256 unique names, run-record references, verification status, and typed control signals as bounded data; no content, delivery semantics, or Tool authority.
 - Delivery Gate 7 in-process delivery surface `InProcessMessageBus` under `com.enhancer.bus`: synchronous single-threaded topic fan-out in registration order and single-consumer queue delivery over `MessageEnvelope`, typed `DeliveryOutcome`/`DeliveryStatus` results, per-`(destination, subscriber, message identity)` idempotency, and an ordered immutable journal supporting deterministic replay without duplicate side effects; envelopes are carried unmutated so authorization and provenance survive every hop.
 - Delivery Gate 7 delivery-failure isolation and dead-letter capture: a subscriber handler that throws yields a `FAILED` outcome and an ordered immutable `DeadLetter` (destination, subscriber, unmodified envelope, bounded reason, failed attempt count) while fan-out continues; a failed delivery consumes the idempotency key, reporting `DUPLICATE` with no further dead letter on re-publish or replay.
 - Delivery Gate 7 bounded synchronous retry and explicit dead-letter re-delivery: an immutable `RetryPolicy` (1-10 attempts; the default bus keeps a single attempt) retries a failing handler immediately with no delay before dead-lettering it, and `redeliver` accepts only a currently recorded dead letter, resolves it on success, and on renewed exhaustion replaces it in place with the accumulated attempt count and latest reason, never appending to the journal or releasing the consumed idempotency key.
 - Delivery Gate 7 cancellation propagation: `cancel(correlationId)` is idempotent and monotonic with no resume, and a cancelled correlation is refused admission before subscription lookup, idempotency, and dispatch on every path — publish, replay, and re-delivery — reporting a scope-level `CANCELLED` outcome that names no subscription, invoking no handler, consuming no idempotency key, creating no dead letter, and appending nothing to the journal; the bus reads no payload to decide delivery, so `ControlSignal.CANCEL` stays a consumer semantic.
 - Delivery Gate 7 run-to-completion delivery ordering: a pending queue and a single drain loop replace nested dispatch, so a publication made from inside a handler is queued and reports the scope-level `ENQUEUED` status while the draining top-level `publish` or `replay` returns the whole ordered cascade; delivery order equals publication order, no subscriber observes an effect before its cause, every publication reaches drain-owned admission, replay-caused cascades inherit non-journaling mode, a correlation cancelled mid-cascade refuses entries queued behind it while an in-flight fan-out stays atomic, and an `Error` abandons the cascade entirely.
 - Delivery Gate 7 deterministic pending-queue backpressure: immutable `BackpressurePolicy` bounds waiting publications from 1 through 4096 with a finite default; capacity exhaustion reports scope-level `BACKPRESSURED` without blocking, journaling, handler invocation, idempotency consumption, dead-letter creation, or cancellation mutation; accepted work remains FIFO and replay delivers the prefix that fits while reporting the refused suffix without growing the live journal.
-- Backoff or delayed retry, pause/resume, run-scoped or causation-graph cancellation, priority ordering, competing queue consumers, threading, journal persistence, and IPC transport remain outside these verified contracts.
+- Delivery Gate 7 transport-neutral IPC boundary: immutable `TransportMessage` carries one existing destination and envelope unchanged through provider-neutral `MessageTransport`; `TransportOutcome` distinguishes hop-level `ACCEPTED`, `BACKPRESSURED`, and `UNAVAILABLE` from Message Bus delivery and bounds refusal reasons without consuming bus state.
+- Delivery Gate 7 is Contract Verified after fresh reassessment: `WorkPayload.allowedTools` bounds both each name and collection cardinality, and all six scope items plus all four exit criteria remain supported by focused contract evidence.
+- Backoff or delayed retry, pause/resume, run-scoped or causation-graph cancellation, priority ordering, competing queue consumers, threading, journal persistence, concrete IPC adapters, and production wiring remain outside these verified contracts.
 
 ### Integrated
 
@@ -135,7 +134,7 @@
 ## Not Yet Integrated Or Operational
 
 - Prompt and LLM invocation.
-- Workspace collection and Project Brain integration, Event/Message Bus, IPC, Agent Runtime, Scheduler, and Model Gateway.
+- Remaining Workspace adapters, Project Brain graph persistence, Event/Message Bus production wiring, concrete IPC adapters, Agent Runtime, Scheduler, and Model Gateway.
 - Project Brain graph storage and impact reasoning, Dependency Analyzer, Workflow Engine, Agent Marketplace, and privacy-aware hybrid model routing.
 - Skill loading runtime, plugins, MCP, multi-agent, background execution, Cloud Sync, and governed self-improvement.
 - CI/CD and released distribution.
@@ -200,7 +199,8 @@
 - Delivery Gate 4: Integrated.
 - Delivery Gate 5: Operational.
 - Delivery Gate 6: Integrated by the 2026-07-15 re-scope-and-promotion decision; diagnostics, terminal-session, and active/selected-file observation moved to Gate 12.
-- Delivery Gate 7: Specified - Next; its `MessageEnvelope` contract, deterministic topic/queue delivery with idempotency and journal replay, failure isolation and dead letters, bounded retry and re-delivery, cancellation, run-to-completion ordering, and finite non-blocking pending-queue backpressure are Contract Verified, with no backoff, persistence, IPC transport implementation, or wiring into the CLI or Agent Loop.
+- Delivery Gate 7: Contract Verified; its bounded envelope and payload hierarchy, deterministic topic/queue delivery, idempotency and journal replay, failure isolation and dead letters, bounded retry and re-delivery, cancellation, run-to-completion ordering, finite non-blocking pending-queue backpressure, and transport-neutral IPC boundary satisfy all recorded scope items and exit criteria. No concrete adapter or CLI/Agent Loop wiring exists, so Integrated and Operational maturity remain unsupported.
+- Delivery Gate 8: Specified - Next; no Agent Runtime or Scheduler implementation is implied by activation.
 - Gate 6 `WorkspaceSnapshot`, `ProjectBrainView`, graph projection contract, `TaskImpactQuery`, `AcceptedDecisionProjector`, and `RunRecordMetadataCollector` sub-capabilities: Integrated through the fresh promotion audit `gate-6-sub-capability-integration-promotion`, each connected to real upstream and downstream components by named integration evidence.
 - Gate 6 `TaskJustificationProjector` and the `Justified By` reference grammar: Integrated; the first real reference resolved on the actual repository through the production composition.
 - Gate 6 authority boundary: the exit criterion "Workspace observations cannot override repository authority or grant Tool permission" is pinned by `WorkspaceAuthorityBoundaryIntegrationTest`.
@@ -586,9 +586,68 @@ Recommendation (requires explicit user approval; the gate status is unchanged by
 - Fresh full regression passed 44 suites and 200 tests: 198 passed, 2 skipped, 0 failures, and 0 errors.
 - Java 17 production lint passed `-Xlint:all -Werror` across 115 sources; forbidden legacy API/unsafe current-command searches and `git diff --check` passed.
 
+## Gate 7 Transport-Neutral IPC Contract Verification
+
+- Test-first RED failed compilation with 33 expected errors naming only the absent `TransportMessage`, `MessageTransport`, `TransportOutcome`, and `TransportStatus`; existing production compilation passed.
+- The minimum contract carries the existing destination and envelope by identity, exposes one provider-neutral functional send operation, and reports only transport-hop acceptance or bounded non-acceptance without reusing Message Bus delivery results.
+- Focused GREEN passed 38 bus tests across `MessageTransportTest`, `MessageEnvelopeTest`, and `InProcessMessageBusTest` with no skips, failures, or errors.
+- Fresh full regression passed 45 suites and 204 tests: 202 passed, 2 existing symbolic-link setup skips, 0 failures, and 0 errors; Gradle emitted no deprecation warning.
+- Java 17 production compilation passed `-Xlint:all -Werror` across all 119 sources.
+- The result promotes only the transport-neutral interface to Contract Verified. No adapter exists, no process boundary was crossed, and Gate 7 remains `Specified - Next` pending a separate maturity assessment.
+
+## Gate 7 Maturity Assessment
+
+Fresh supporting evidence for this documentation-only assessment: all 38 bus tests passed with no skips, failures, or errors; the full regression passed 45 suites and 204 tests (202 passed, 2 existing symbolic-link setup skips); Java 17 production lint passed `-Xlint:all -Werror` across 119 sources.
+
+Scope-item disposition:
+
+- Typed domain-event and versioned-envelope foundation: Contract Verified by `MessageEnvelopeTest`; the sealed work, result, control, and handoff payload kinds are the current typed semantic surface. Application-specific event catalogs remain later consumers.
+- Event, message, correlation, causation, run, and producer identities: Contract Verified by canonical UUID, bounded identity, distinct self-causation, and destination-kind/name invariants.
+- Work, result, control, and handoff payload provenance: the assessment found partial Contract Verified evidence because the allowed-tool collection cardinality was unbounded. The follow-up correction now bounds the scope to 1 through 256 unique names, making this item fully Contract Verified.
+- In-process topic and queue delivery: Contract Verified by registration-order fan-out, one-consumer queue delivery, unrouted outcomes, and whole-envelope carriage.
+- Idempotency, retry, cancellation, dead-letter, replay, ordering, and backpressure: Contract Verified by the 30-test `InProcessMessageBusTest`; no claim exceeds synchronous process-local behavior.
+- IPC transport interface: Contract Verified by `MessageTransportTest`; the route and envelope cross the provider-neutral boundary unchanged and hop acceptance remains distinct from bus delivery. No concrete adapter or real process hop exists.
+
+Exit-criterion disposition:
+
+- "A deterministic in-process pipeline delivers and replays a versioned event without duplicate side effects": evidenced by fresh topic/queue, idempotency, and fresh-bus replay tests.
+- "Payloads are bounded or replaced by evidence references": the assessment found this unsatisfied because `WorkPayload` accepted an arbitrarily large set. The follow-up correction now accepts at most 256 unique names, each at most 256 characters, so this criterion is satisfied at Contract Verified maturity.
+- "Authorization and provenance survive every hop": evidenced at Contract Verified maturity by exact envelope/payload identity preservation through in-process delivery and `TransportMessage`; no IPC adapter or cross-process security claim is made.
+- "Event Bus semantics do not depend on the eventual IPC transport": evidenced by the transport accepting the existing destination/envelope and returning transport-only outcomes without exposing `DeliveryOutcome` or provider types.
+
+Maturity conclusion and options:
+
+- Integrated or Operational promotion is unsupported: no real runtime publisher/consumer, Scheduler, production bus wiring, concrete transport, or supported messaging entry point exists.
+- Option A (selected and completed): Gate 7 stayed `Specified - Next`, the bounded test-first correction added an explicit `WorkPayload.allowedTools` cardinality ceiling, and a fresh promotion assessment is now the next task.
+- Option B: promote Gate 7 to Contract Verified now by treating per-entry bounds as a payload bound; rejected because it contradicts the aggregate bounded-payload exit criterion.
+- Option C: build a concrete IPC adapter before promotion; rejected because it does not close the identified payload blocker and would prematurely select endpoint, serialization, authentication, and threading policy.
+
+This assessment itself changed no production or test code and did not change Gate 7 status. The separate correction has now closed its blocker without changing that status; promotion or Gate 8 activation still requires a separate task.
+
+## Gate 7 Work Payload Scope-Bound Verification
+
+- Behavioral RED: the new boundary test accepted exactly 256 valid unique tool names but failed because 257 were also accepted, isolating the missing cardinality contract.
+- The minimum correction exposes `WorkPayload.MAX_ALLOWED_TOOLS = 256` and rejects larger scopes before immutable copying while preserving all existing per-name and envelope semantics.
+- Focused GREEN passed all 39 bus tests with no skips, failures, or errors.
+- Fresh full regression passed 45 suites and 205 tests: 203 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors; Gradle emitted no deprecation warning.
+- Java 17 production compilation passed `-Xlint:all -Werror` across all 119 sources.
+- Post-document self-hosting verification passed 15 of 16 Context Reader, Planner, and Assisted Loop tests with 1 existing Windows symbolic-link setup skip and no failure or error.
+- The bounded-payload blocker closed while Gate 7 still remained `Specified - Next`; the separate promotion assessment below then changed lifecycle state without adding a concrete adapter.
+
+## Gate 7 Contract Verified Promotion Assessment
+
+- Fresh focused evidence passed all 39 bus tests with no skips, failures, or errors: 30 delivery tests, 5 envelope/payload tests, and 4 transport-boundary tests.
+- Fresh full regression passed 45 suites and 205 tests: 203 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors; Gradle emitted no deprecation warning.
+- Java 17 production compilation passed `-Xlint:all -Werror` across all 119 sources.
+- All six Gate 7 scope items map to focused evidence: typed envelopes, identities, bounded provenance payloads, in-process topic/queue delivery, reliability semantics, and the provider-neutral IPC interface.
+- All four exit criteria map to focused evidence: deterministic replay without duplicate side effects, bounded payloads or references, unchanged authorization/provenance carriage, and transport-independent bus semantics.
+- The Roadmap marker move produced one expected actual-Roadmap RED because `RepositoryTaskPlannerTest` still named Gate 7; updating only the Planner and Assisted Loop next-gate expectations to Gate 8 restored all 8 focused self-hosting tests.
+- Post-completion actual-document verification passed 15 of 16 Context Reader, Planner, and Assisted Loop tests with 1 existing Windows symbolic-link setup skip and selected Gate 8 on both proposal paths.
+- Gate 7 is promoted to Contract Verified and Gate 8 becomes the sole `Specified - Next` gate. No concrete adapter, process hop, persistence, threading, production wiring, or Integrated/Operational claim is added.
+
 ## Next Task
 
-Activate the Gate 7 transport-neutral IPC interface as a separate task. Preserve the existing envelope, authority, replay, cancellation, ordering, backpressure, and failure contracts; defer concrete local-process or remote adapters, persistence, threading, and production wiring.
+Activate the first bounded Delivery Gate 8 Agent Runtime and Scheduler contract. Start with the smallest contract that consumes Gate 7 messaging and preserve single-agent sequential execution; concrete IPC adapters remain separate integration work.
 
 ## Session Recovery
 

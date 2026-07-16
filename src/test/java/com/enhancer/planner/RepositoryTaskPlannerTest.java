@@ -73,11 +73,11 @@ class RepositoryTaskPlannerTest {
                 "# Current Task\n\n## Status\n\nCompleted\n",
                 roadmap)).orElseThrow();
 
-        assertEquals("Delivery Gate 7: Event Bus And IPC Foundation", proposal.title());
+        assertEquals("Delivery Gate 8: Agent Runtime And Scheduler", proposal.title());
         assertTrue(proposal.scope().contains(
-                "typed domain events and versioned message envelopes;"));
+                "persisted Goal and AgentRun state machine;"));
         assertTrue(proposal.acceptanceCriteria().contains(
-                "authorization and provenance survive every hop;"));
+                "runtime scheduling cannot expand task or Tool authority."));
     }
 
     private ProjectContext context(String currentTask, String roadmap) {

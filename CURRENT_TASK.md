@@ -6,64 +6,70 @@ Completed
 
 ## Task
 
-Verify filesystem escape rejection with Windows junctions and align the Evidence policy API with its actually enforced storage behavior.
+Reassess Delivery Gate 7 against fresh evidence, promote it to Contract Verified if every recorded scope item and exit criterion remains satisfied, and advance the sole `Specified - Next` marker to Delivery Gate 8.
 
 ## Task ID
 
-security-junction-and-evidence-storage-contract
+gate-7-contract-verified-promotion
 
 ## Justified By
 
-- 2026-07-16: Verify Real-Path Boundaries With Junctions And Remove Fictional Evidence Retention
+- 2026-07-16: Promote Gate 7 To Contract Verified And Advance Gate 8
 
 ## Context
 
-The two `toRealPath()` escape tests are skipped on this Windows host because they require symbolic-link privilege, and the Evidence policy exposes a 30-day retention period that production never reads or enforces.
+The prior maturity assessment found one bounded-payload blocker. The completed follow-up correction now limits `WorkPayload.allowedTools` to 256 unique names, and repository state records Contract Verified evidence for all six Gate 7 scope items and all four exit criteria. A separate fresh promotion assessment is required before changing lifecycle state.
 
 ## Acceptance Criteria
 
-- Add Windows directory-junction escape tests for `ReadFileTool` and `ProjectContextReader` that must execute on Windows.
-- Preserve the production real-path containment guards and prove both reject an outside junction target.
-- Replace the unused retention-period policy with a truthful max-content storage policy across production and tests.
-- Remove the CLI's fictional 30-day retention claim.
-- Add no evidence deletion, expiry, migration, replay change, or new cleanup authority.
+- Re-run all Gate 7 bus contract tests and the full regression suite against the corrected payload contract.
+- Run Java 17 production compilation with `-Xlint:all -Werror`.
+- Map every Gate 7 scope item and exit criterion to fresh Contract Verified evidence without claiming Integrated or Operational behavior.
+- If all criteria remain satisfied, set Gate 7 to `Contract Verified` and make Gate 8 the only `Specified - Next` gate.
+- Update only the two actual-Roadmap self-hosting expectations from Gate 7 to Gate 8 after confirming the marker move produces the expected RED failures.
+- Keep concrete IPC adapters, persistence, production Event/Message Bus wiring, and Agent Runtime implementation deferred.
+- Synchronize Architecture, compact architecture, Roadmap, Project State, Changelog, Current Task, and Session Handoff.
 
 ## Out Of Scope
 
-- Evidence deletion/expiry, aggregate quotas, cleanup scheduling, or migration
-- RunRecord retention, graph persistence, or filesystem permission redesign
+- Any production-code change or test behavior change beyond the two actual-Roadmap next-gate expectations
+- Gate 7 Integrated, Operational, Released, or concrete cross-process transport claims
+- Concrete IPC adapters, serialization, authentication, threading, persistence, or production wiring
+- Gate 8 Agent Runtime, Scheduler, Goal state machine, leases, recovery, or worker implementation
 - Commit, push, PR, merge, release, or deployment
 
 ## Approval
 
-Approved by the user's 2026-07-16 request for Windows junction verification and retention-contract cleanup.
+Approved by the user's 2026-07-16 request to continue with the next recorded project task.
 
 ## Verification Plan
 
-- Add focused junction tests and a storage-policy contract test with no retention-period accessor.
-- Confirm RED against the absent junction coverage and old policy API.
-- Rename and narrow the policy without changing stored evidence behavior.
-- Run focused context/tool/evidence tests and inspect fresh XML.
-- Run the complete Gradle suite with `--warning-mode all` and inspect fresh XML.
+- Run all `com.enhancer.bus.*` tests and inspect fresh XML results.
+- Run the complete Gradle suite with `--warning-mode all` and inspect fresh XML results, including skips.
 - Run Java 17 production compilation with `-Xlint:all -Werror`.
-- Synchronize architecture, project state, changelog, and handoff, then review the complete diff and run `git diff --check`.
+- Review Gate 7 scope and exit criteria against the fresh evidence and the capability maturity definitions.
+- Synchronize affected documents only after the evidence supports promotion.
+- Move the Roadmap marker, confirm the actual-document Planner and Assisted Loop expectations fail only because they still name Gate 7, then update those two expectations to Gate 8.
+- Run actual-document Context Reader, Planner, and Assisted Loop tests after the expectation synchronization.
+- Verify exactly one `Specified - Next` marker at Gate 8, resolve the accepted-decision reference, review the complete diff, and run whitespace checks for tracked and newly added files.
 
 ## Implementation
 
-- Added Windows directory-junction escape tests for governed file reads and required project documents; both execute rather than skip on Windows.
-- Preserved and verified both production `toRealPath()` containment guards.
-- Replaced `EvidenceRetentionPolicy` with `EvidenceStoragePolicy(maxContentBytes)` and renamed the store accessor accordingly.
-- Removed the CLI's unused 30-day duration and changed no stored envelope, replay, expiry, or deletion behavior.
+- Promoted Delivery Gate 7 from `Specified - Next` to `Contract Verified` after mapping all six scope items and all four exit criteria to fresh evidence.
+- Advanced Delivery Gate 8 Agent Runtime and Scheduler from Planned to the sole `Specified - Next` gate.
+- Updated the actual-Roadmap expectations in `RepositoryTaskPlannerTest` and `AssistedDevelopmentLoopTest` from Gate 7 to Gate 8; no production code changed.
+- Synchronized Architecture, compact architecture, Roadmap, Project State, Changelog, Decision Log, Current Task, and Session Handoff.
+- Preserved the explicit maturity boundary: Gate 7 has no concrete adapter, process hop, persistence, threading, production wiring, or Integrated/Operational claim, and Gate 8 has no implementation.
 
 ## Verification
 
-- Focused RED produced five expected missing `EvidenceStoragePolicy` errors.
-- Focused GREEN passed the storage policy/store and both boundary suites; XML confirms both junction tests executed and the two existing privilege-dependent symbolic-link cases alone were skipped.
-- Expanded Tool, Context, Verification, and Loop regression passed 78 tests with 2 existing symbolic-link skips, 0 failures, and 0 errors after correcting a fixed-name junction fixture collision exposed by the first expanded run.
-- Fresh whole-project regression passed 44 suites and 200 tests: 198 passed, 2 existing symbolic-link skips, 0 failures, and 0 errors; both Windows junction cases executed.
-- Java 17 production compilation passed `-Xlint:all -Werror` across all 115 sources.
-- Forbidden legacy-policy/unsafe-current-command searches and `git diff --check` passed before delivery.
+- Gate 7 focused evidence: all 39 bus tests passed with no skips, failures, or errors (`InProcessMessageBusTest` 30, `MessageEnvelopeTest` 5, `MessageTransportTest` 4).
+- Fresh full regression after the Roadmap expectation update: 45 suites and 205 tests; 203 passed, 2 existing Windows symbolic-link setup tests skipped, 0 failures, and 0 errors. Gradle emitted no deprecation warning.
+- Java 17 production compilation passed `-Xlint:all -Werror` across all 119 sources.
+- Marker-move RED: 8 Planner/Assisted Loop tests ran and exactly `RepositoryTaskPlannerTest.proposesTheCurrentNextGateFromTheActualEnhancerRoadmap` failed because it still expected Gate 7; the expectation-only update restored all 8 tests.
+- Post-completion actual-document verification passed 15 of 16 Context Reader, Planner, and Assisted Loop tests with 1 existing Windows symbolic-link setup skip and no failure or error; both self-hosting proposal paths selected Gate 8.
+- Structural review confirmed exactly one `Specified - Next` marker at Gate 8, Gate 7 is exactly `Contract Verified`, the `Justified By` decision resolves exactly once, all current-state documents agree, and tracked plus newly added files pass whitespace checks.
 
 ## Next
 
-After this authorized delivery is published, activate the Gate 7 transport-neutral IPC interface only as a separate task.
+Activate the first bounded Delivery Gate 8 Agent Runtime and Scheduler contract as a separate task. Do not implement a concrete IPC adapter merely to begin Gate 8.

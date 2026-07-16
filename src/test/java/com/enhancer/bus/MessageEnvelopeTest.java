@@ -9,6 +9,8 @@ import com.enhancer.workspace.ApprovedTaskRevision;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 
 class MessageEnvelopeTest {
@@ -94,6 +96,20 @@ class MessageEnvelopeTest {
     }
 
     @Test
+    void boundsWorkPayloadAllowedToolCardinality() {
+        int maximumAllowedTools = WorkPayload.MAX_ALLOWED_TOOLS;
+        Set<String> atLimit = toolNames(maximumAllowedTools);
+        Set<String> oversized = toolNames(maximumAllowedTools + 1);
+
+        WorkPayload accepted = new WorkPayload(TASK_REVISION, SNAPSHOT_ID, atLimit);
+
+        assertEquals(256, maximumAllowedTools);
+        assertEquals(maximumAllowedTools, accepted.allowedTools().size());
+        assertThrows(IllegalArgumentException.class, () ->
+                new WorkPayload(TASK_REVISION, SNAPSHOT_ID, oversized));
+    }
+
+    @Test
     void rejectsInvalidIdentitiesAndSelfCausation() {
         WorkPayload work = new WorkPayload(TASK_REVISION, SNAPSHOT_ID, Set.of("read-file"));
 
@@ -132,5 +148,11 @@ class MessageEnvelopeTest {
                 "agent-loop",
                 OCCURRED_AT,
                 payload);
+    }
+
+    private static Set<String> toolNames(int count) {
+        return IntStream.range(0, count)
+                .mapToObj(index -> "tool-" + index)
+                .collect(Collectors.toUnmodifiableSet());
     }
 }

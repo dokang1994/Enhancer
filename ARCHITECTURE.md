@@ -2,7 +2,7 @@
 
 ## Status
 
-Delivery Gate 0 foundation contracts are Integrated through an authority-preserving planning-to-approved-execution lifecycle test. The self-hosting context and planning path is verified against the current `.ai/` bootstrap set and canonical Roadmap grammar. Delivery Gates 1 through 4 integrate bounded read-only Tool execution, durable integrity-checked evidence, Tool-result-driven Agent Loop transitions, sequential independent verification, and replayable RunRecords. Delivery Gate 5 makes that deliberately narrow read-only vertical slice Operational through a supported local CLI. The broader event-driven Agent Runtime remains planned.
+Delivery Gate 0 foundation contracts are Integrated through an authority-preserving planning-to-approved-execution lifecycle test. The self-hosting context and planning path is verified against the current `.ai/` bootstrap set and canonical Roadmap grammar. Delivery Gates 1 through 4 integrate bounded read-only Tool execution, durable integrity-checked evidence, Tool-result-driven Agent Loop transitions, sequential independent verification, and replayable RunRecords. Delivery Gate 5 makes that deliberately narrow read-only vertical slice Operational through a supported local CLI. Delivery Gate 6 is Integrated, Delivery Gate 7 messaging foundations are Contract Verified, and Delivery Gate 8 Agent Runtime and Scheduler is the next specified product gate.
 
 The accepted product direction is Self-hosting AI Development Operating System.
 
@@ -128,7 +128,7 @@ The repository-memory path is Integrated: an integration test connects a real go
 
 The `EnhancerCli` `run` path composes the view in production. The CLI keeps the `ProjectContext` it already loads for task approval, collects the snapshot with a capture time taken before worker execution, composes the view after finalization with the persisted RunRecord for every outcome that produces a record, and appends `workspaceSnapshotId`, `workspaceObservations`, and a `memoryFreshness` summary to the bounded run output. No content, digest list, or evidence is printed; no command, argument, exit code, or authority was added. The RunRecord does not store the snapshot identity; carrying that identity across handoffs belongs to the Gate 7 envelope contracts.
 
-This makes the repository-memory composition Operational for the governed read-only CLI scenario. Delivery Gate 6 is Integrated by the 2026-07-15 re-scope-and-promotion decision: diagnostics, terminal-session, and active/selected-file observation moved to Gate 12, which owns those capabilities, and Gate 7 Event Bus and IPC Foundation is the sole `Specified - Next` product gate.
+This makes the repository-memory composition Operational for the governed read-only CLI scenario. Delivery Gate 6 is Integrated by the 2026-07-15 re-scope-and-promotion decision: diagnostics, terminal-session, and active/selected-file observation moved to Gate 12, which owns those capabilities. Gate 7 Event Bus and IPC Foundation is now Contract Verified, and Gate 8 Agent Runtime and Scheduler is the sole `Specified - Next` product gate.
 
 ### Gate 6 Graph Projection Contract
 
@@ -176,9 +176,11 @@ This makes the production graph composition Operational for the governed read-on
 
 The first Gate 7 increment is the reference-only envelope contract under `com.enhancer.bus`. `MessageEnvelope` is versioned (`message-envelope-v1`) and carries a canonical-UUID message identity, a bounded correlation identity, an optional canonical-UUID causation identity that must differ from the message identity, bounded logical-run and producer identities, an occurrence time, and one typed payload.
 
-`MessagePayload` is sealed to exactly four kinds. The work payload carries the approved task revision, a valid Workspace snapshot identity, and an immutable bounded allowed-tool scope; the result payload carries the task identity, a run-record reference, and the verification status; the control payload carries a typed cancel/pause/resume signal with a bounded reason; the handoff payload carries the task revision, snapshot identity, and run-record reference. Authorization is carried as data, never created: possessing an envelope grants nothing, and delivery code must validate contents against repository authority rather than trust the sender.
+`MessagePayload` is sealed to exactly four kinds. The work payload carries the approved task revision, a valid Workspace snapshot identity, and an immutable allowed-tool scope of 1 through 256 unique names, each bounded to 256 characters; the result payload carries the task identity, a run-record reference, and the verification status; the control payload carries a typed cancel/pause/resume signal with a bounded reason; the handoff payload carries the task revision, snapshot identity, and run-record reference. Authorization is carried as data, never created: possessing an envelope grants nothing, and delivery code must validate contents against repository authority rather than trust the sender.
 
-This contract is Contract Verified and consumed by the deterministic in-process topic and queue delivery surface below. The IPC transport boundary remains a later increment over the same envelope.
+The explicit allowed-tool cardinality ceiling closes the payload-bound gap found by the Gate 7 maturity assessment. Together with the existing per-name ceiling, the only collection-bearing payload has a finite aggregate tool-name ceiling of 65,536 characters, so the Roadmap exit criterion that payloads are bounded or replaced by evidence references is satisfied at Contract Verified maturity. The fresh follow-up assessment promoted Gate 7 without selecting or requiring a concrete IPC adapter.
+
+This contract is Contract Verified and consumed by both the deterministic in-process topic and queue delivery surface and the transport-neutral IPC boundary below. Together with those delivery contracts, it completes the Contract Verified Gate 7 foundation; production integration remains deferred.
 
 ## Gate 7 In-Process Delivery
 
@@ -198,11 +200,17 @@ Ordering is established by running each publication to completion. The bus holds
 
 Admission — the cancellation check and the journal append — happens inside the drain loop rather than at the publishing call. That keeps the journal's order equal to the bus's own total delivery order, preserves the invariant that the journal records exactly what was admitted, and lets a correlation cancelled mid-cascade refuse entries still queued behind it. A fan-out itself stays atomic: a cancellation raised during one cannot stop it. Every `publish`, including an already-cancelled re-entrant publication, enters this queue and admission path. `publish` and `replay` share submission and draining; a handler publication caused by a replayed entry inherits that entry's non-journaling mode, so replay never grows the live journal through a cascade. An `Error` escaping a drain abandons the cascade entirely rather than leaking queued entries into a later publication.
 
-This delivery, its failure handling, its bounded retry and explicit re-delivery, its cancellation propagation, and its run-to-completion ordering are Contract Verified. Backoff or delayed retry, priority ordering, competing queue consumers, threading, persistence, and the IPC transport interface remain later increments over this surface.
+This delivery, its failure handling, its bounded retry and explicit re-delivery, its cancellation propagation, and its run-to-completion ordering are Contract Verified. The transport-neutral IPC interface below carries the same destination and envelope without changing these semantics. Backoff or delayed retry, priority ordering, competing queue consumers, threading, persistence, and concrete transport adapters remain later increments over this surface.
 
 ### Gate 7 Pending-Queue Backpressure
 
 The run-to-completion pending queue is bounded by immutable `BackpressurePolicy` with a capacity from 1 through 4096 and a finite default. Because a re-entrant publisher is executing inside the single-threaded drain, the bus never blocks it: capacity exhaustion reports the scope-level `BACKPRESSURED` status immediately. Refused work is not admitted, journaled, dispatched, deduplicated, dead-lettered, or cancelled and may be explicitly retried later. Accepted work remains FIFO. Replay accepts the deterministic prefix that fits the configured capacity and reports the refused suffix while retaining replay's non-journaling behavior. This contract is Contract Verified. The policy bounds pending publications only; retention bounds, threading, persistence, scheduling, and IPC remain separate concerns.
+
+### Gate 7 Transport-Neutral IPC Boundary
+
+`TransportMessage` carries exactly one existing `DeliveryDestination` and one existing `MessageEnvelope` without copying or reinterpreting either. Provider-neutral `MessageTransport.send` accepts that immutable route and envelope and returns a `TransportOutcome` whose `TransportStatus` is `ACCEPTED`, `BACKPRESSURED`, or `UNAVAILABLE`. Accepted outcomes carry no reason; non-acceptance carries a bounded diagnostic reason.
+
+Transport acceptance is deliberately not Message Bus delivery. `ACCEPTED` means only that the configured adapter accepted responsibility for attempting one hop; it does not mean a receiving bus admitted, journaled, dispatched, or delivered the envelope. A transport refusal consumes no bus journal, idempotency, cancellation, failure, or dead-letter state, and higher-level scheduling owns any retry timing. The interface contains no provider endpoint, serialization, protocol, authentication, lifecycle, threading, persistence, or authority type. This boundary is Contract Verified; no concrete adapter exists and no process boundary has been crossed.
 
 ## Agent Runtime Model
 
@@ -444,7 +452,7 @@ Gate 2 introduces `EvidenceStore`, `FileSystemEvidenceStore`, stored and resolve
 
 Each evidence artifact is one versioned binary envelope containing its creation time, UTF-8 byte length, SHA-256 digest, and full output bytes. Persistence writes a temporary file in the final run directory and publishes it with an atomic move. A host that cannot provide the atomic move fails the write rather than silently weakening the contract.
 
-Resolution validates reference grammar and containment, file size, envelope header, declared length, SHA-256 digest, and strict UTF-8 decoding before returning content. Missing artifacts and corrupted artifacts use separate checked failure types. Maximum stored bytes and retention duration are explicit policy; Gate 2 performs no automatic or destructive cleanup.
+Resolution validates reference grammar and containment, file size, envelope header, declared length, SHA-256 digest, and strict UTF-8 decoding before returning content. Missing artifacts and corrupted artifacts use separate checked failure types. Maximum stored bytes are explicit policy; retention and automatic or destructive cleanup have no implemented contract.
 
 `EvidenceRecorder` stores output only when the bounded `VerificationEvidence` tail is truncated. A persistence-enabled `ReadFileTool` uses the request correlation identity as a previously created evidence run identity, allowing one real request to return a resolvable complete-output reference. `ExecutionPolicy` and evidence storage share the initial 64 MiB absolute implementation ceiling, while callers configure lower operational limits. The no-argument Tool remains available for the bounded Gate 1 path. Gate 2 does not add Agent Loop, verifier, CLI, Git, terminal, network, or LLM behavior.
 
