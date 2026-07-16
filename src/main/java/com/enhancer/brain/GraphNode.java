@@ -7,7 +7,7 @@ public record GraphNode(
         GraphNodeKind kind,
         GraphProvenance provenance) {
 
-    public static final int MAX_NODE_ID_CHARACTERS = 256;
+    public static final int MAX_NODE_ID_CHARACTERS = 1024;
 
     public GraphNode {
         Objects.requireNonNull(nodeId, "nodeId must not be null");

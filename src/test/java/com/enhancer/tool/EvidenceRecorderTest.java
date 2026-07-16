@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -20,7 +19,7 @@ class EvidenceRecorderTest {
         Path storageRoot = tempDirectory.resolve("evidence");
         FileSystemEvidenceStore store = new FileSystemEvidenceStore(
                 storageRoot,
-                new EvidenceRetentionPolicy(8192, Duration.ofDays(30)));
+                new EvidenceStoragePolicy(8192));
         String runId = store.createRun();
         EvidenceRecorder recorder = new EvidenceRecorder(store);
 
@@ -37,7 +36,7 @@ class EvidenceRecorderTest {
     void persistsTruncatedOutputAndReturnsAResolvableReference() throws IOException {
         FileSystemEvidenceStore store = new FileSystemEvidenceStore(
                 tempDirectory.resolve("evidence"),
-                new EvidenceRetentionPolicy(8192, Duration.ofDays(30)));
+                new EvidenceStoragePolicy(8192));
         String runId = store.createRun();
         String output = "prefix" + "x".repeat(VerificationEvidence.MAX_OUTPUT_TAIL_CHARACTERS);
 

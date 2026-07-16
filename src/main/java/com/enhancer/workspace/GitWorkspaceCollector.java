@@ -2,12 +2,16 @@ package com.enhancer.workspace;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.HexFormat;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -16,8 +20,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Read-only Workspace source adapter over the Git working tree. Under the explicitly granted
- * external command authority it executes exactly two fixed read-only commands with no shell,
- * inherited Git overrides, external diff helpers, or text conversion. It applies a hard timeout
+ * external command authority it executes one fixed read-only command through a trusted
+ * absolute executable with no shell, inherited Git overrides, conversion filters, external diff
+ * helpers, or text conversion. It applies a hard timeout
  * and bounded output cap, and stores only a digest of each output. Every failure is an explicit
  * Unavailable observation; no mutating invocation exists here, and this authority does not
  * extend to any other component.
@@ -25,12 +30,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class GitWorkspaceCollector {
     public static final int MAX_OUTPUT_BYTES = 4 * 1024 * 1024;
 
-    static final List<String> STATUS_COMMAND = List.of(
-            "git", "--no-optional-locks", "-c", "core.fsmonitor=false",
-            "status", "--porcelain");
-    static final List<String> DIFF_COMMAND = List.of(
-            "git", "--no-optional-locks", "-c", "core.fsmonitor=false",
-            "diff", "--no-ext-diff", "--no-textconv");
+    static final List<String> STATUS_ARGUMENTS = List.of(
+            "--no-optional-locks", "-c", "core.fsmonitor=false",
+            "ls-files", "--stage", "--deleted", "--others",
+            "--exclude-standard");
+    private static final String DIFF_DISABLED_REASON =
+            "tracked worktree diff observation is disabled because Git may execute clean filters";
 
     private static final String PROVENANCE = "git-cli";
     private static final long TIMEOUT_SECONDS = 5;
@@ -41,19 +46,101 @@ public final class GitWorkspaceCollector {
         Objects.requireNonNull(projectRoot, "projectRoot must not be null");
         Objects.requireNonNull(observedAt, "observedAt must not be null");
 
+        Optional<Path> gitExecutable = resolveGitExecutable(projectRoot, System.getenv());
+        if (gitExecutable.isEmpty()) {
+            String reason = "trusted git executable is unavailable";
+            return List.of(
+                    unavailable(WorkspaceSourceKind.GIT_STATUS, "working-tree", observedAt, reason),
+                    unavailable(WorkspaceSourceKind.GIT_DIFF, "working-tree-diff", observedAt, reason));
+        }
+
         return List.of(
                 observe(
                         projectRoot,
                         observedAt,
                         WorkspaceSourceKind.GIT_STATUS,
                         "working-tree",
-                        STATUS_COMMAND),
-                observe(
-                        projectRoot,
-                        observedAt,
+                        command(gitExecutable.orElseThrow(), STATUS_ARGUMENTS)),
+                unavailable(
                         WorkspaceSourceKind.GIT_DIFF,
                         "working-tree-diff",
-                        DIFF_COMMAND));
+                        observedAt,
+                        DIFF_DISABLED_REASON));
+    }
+
+    static Optional<Path> resolveGitExecutable(
+            Path projectRoot,
+            Map<String, String> environment) {
+        Objects.requireNonNull(projectRoot, "projectRoot must not be null");
+        Objects.requireNonNull(environment, "environment must not be null");
+        String pathValue = environment.entrySet().stream()
+                .filter(entry -> entry.getKey().equalsIgnoreCase("PATH"))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElse("");
+        if (pathValue.isBlank()) {
+            return Optional.empty();
+        }
+
+        try {
+            Path absoluteProjectRoot = projectRoot.toAbsolutePath().normalize();
+            Path realProjectRoot = projectRoot.toRealPath();
+            String executableName = isWindows() ? "git.exe" : "git";
+            for (String rawEntry : pathValue.split(java.util.regex.Pattern.quote(
+                    File.pathSeparator))) {
+                String entry = stripSurroundingQuotes(rawEntry.trim());
+                if (entry.isEmpty()) {
+                    continue;
+                }
+                Path directory;
+                try {
+                    directory = Path.of(entry);
+                } catch (RuntimeException invalidPath) {
+                    continue;
+                }
+                if (!directory.isAbsolute()) {
+                    continue;
+                }
+                Path candidate = directory.resolve(executableName).toAbsolutePath().normalize();
+                if (candidate.startsWith(absoluteProjectRoot)) {
+                    continue;
+                }
+                if (!Files.isRegularFile(candidate)) {
+                    continue;
+                }
+                Path realCandidate;
+                try {
+                    realCandidate = candidate.toRealPath();
+                } catch (IOException inaccessibleCandidate) {
+                    continue;
+                }
+                if (!realCandidate.startsWith(realProjectRoot)
+                        && (isWindows() || Files.isExecutable(realCandidate))) {
+                    return Optional.of(realCandidate);
+                }
+            }
+        } catch (IOException inaccessibleProject) {
+            return Optional.empty();
+        }
+        return Optional.empty();
+    }
+
+    private static List<String> command(Path executable, List<String> arguments) {
+        List<String> command = new ArrayList<>(arguments.size() + 1);
+        command.add(executable.toString());
+        command.addAll(arguments);
+        return List.copyOf(command);
+    }
+
+    private static boolean isWindows() {
+        return System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("win");
+    }
+
+    private static String stripSurroundingQuotes(String value) {
+        if (value.length() >= 2 && value.startsWith("\"") && value.endsWith("\"")) {
+            return value.substring(1, value.length() - 1);
+        }
+        return value;
     }
 
     private WorkspaceSourceObservation observe(

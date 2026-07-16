@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.HexFormat;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -56,10 +57,65 @@ class EnhancerCliGraphCompositionTest {
         assertEquals("1", value(second.stdout(), "impactExecutions"));
     }
 
+    @Test
+    void completesWhenTheTargetIsAlreadyARequiredRepositoryDocument() throws Exception {
+        Path projectRoot = temporaryRoot.resolve("required-document-project");
+        writeProject(projectRoot, "unused-target\n");
+        String currentTask = Files.readString(
+                projectRoot.resolve("CURRENT_TASK.md"), StandardCharsets.UTF_8);
+
+        Captured captured = execute(runArguments(
+                projectRoot,
+                "CURRENT_TASK.md",
+                sha256(currentTask)));
+
+        assertEquals(CliExitCode.COMPLETED.code(), captured.exitCode());
+        assertEquals("AVAILABLE", value(captured.stdout(), "brainStatus"));
+        assertEquals(1, storedRecordCount());
+    }
+
+    @Test
+    void rejectsDuplicateDecisionMetadataBeforePersistingARun() throws Exception {
+        Path projectRoot = temporaryRoot.resolve("duplicate-decision-project");
+        String targetContent = "duplicate-decision-target\n";
+        writeProject(projectRoot, targetContent);
+        Files.writeString(
+                projectRoot.resolve("DECISION_LOG.md"),
+                "\n### 2026-07-14: Adopt The First Rule\n\nStatus: Accepted Decision\n",
+                StandardCharsets.UTF_8,
+                java.nio.file.StandardOpenOption.APPEND);
+
+        Captured captured = execute(runArguments(projectRoot, sha256(targetContent)));
+
+        assertEquals(CliExitCode.USAGE_OR_CONFIGURATION.code(), captured.exitCode());
+        assertEquals(0, storedRecordCount());
+    }
+
+    @Test
+    void preservesTheDurableExitCodeWhenPostPersistBrainReportingFails() throws Exception {
+        Path projectRoot = temporaryRoot.resolve("reporting-failure-project");
+        String targetContent = "reporting-failure-target\n";
+        writeProject(projectRoot, targetContent);
+        EnhancerCli cli = new EnhancerCli(input -> {
+            throw new IllegalStateException("injected brain reporting failure");
+        });
+
+        Captured captured = execute(cli, runArguments(projectRoot, sha256(targetContent)));
+
+        assertEquals(CliExitCode.COMPLETED.code(), captured.exitCode());
+        assertEquals("UNAVAILABLE", value(captured.stdout(), "brainStatus"));
+        assertTrue(value(captured.stdout(), "brainReason").contains("injected brain"));
+        assertEquals(1, storedRecordCount());
+    }
+
     private Captured execute(String[] arguments) {
+        return execute(new EnhancerCli(), arguments);
+    }
+
+    private Captured execute(EnhancerCli cli, String[] arguments) {
         ByteArrayOutputStream stdout = new ByteArrayOutputStream();
         ByteArrayOutputStream stderr = new ByteArrayOutputStream();
-        int exitCode = new EnhancerCli().execute(
+        int exitCode = cli.execute(
                 arguments,
                 new PrintStream(stdout, true, StandardCharsets.UTF_8),
                 new PrintStream(stderr, true, StandardCharsets.UTF_8));
@@ -70,15 +126,32 @@ class EnhancerCliGraphCompositionTest {
     }
 
     private String[] runArguments(Path projectRoot, String expectedSha256) {
+        return runArguments(projectRoot, "target.txt", expectedSha256);
+    }
+
+    private String[] runArguments(
+            Path projectRoot,
+            String targetPath,
+            String expectedSha256) {
         return new String[] {
                 "run",
                 "--project-root", projectRoot.toString(),
                 "--task-id", TASK_ID,
-                "--target-path", "target.txt",
+                "--target-path", targetPath,
                 "--expected-sha256", expectedSha256,
                 "--evidence-root", temporaryRoot.resolve("evidence").toString(),
                 "--run-record-root", temporaryRoot.resolve("records").toString()
         };
+    }
+
+    private long storedRecordCount() throws Exception {
+        Path root = temporaryRoot.resolve("records");
+        if (!Files.exists(root)) {
+            return 0;
+        }
+        try (Stream<Path> paths = Files.walk(root)) {
+            return paths.filter(Files::isRegularFile).count();
+        }
     }
 
     private void writeProject(Path projectRoot, String targetContent) throws Exception {

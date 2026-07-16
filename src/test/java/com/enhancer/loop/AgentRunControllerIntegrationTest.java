@@ -8,7 +8,7 @@ import com.enhancer.context.ProjectContextReader;
 import com.enhancer.context.RequiredProjectDocument;
 import com.enhancer.tool.CancellationToken;
 import com.enhancer.tool.EvidenceRecorder;
-import com.enhancer.tool.EvidenceRetentionPolicy;
+import com.enhancer.tool.EvidenceStoragePolicy;
 import com.enhancer.tool.ExecutionPolicy;
 import com.enhancer.tool.FileSystemEvidenceStore;
 import com.enhancer.tool.ReadFileTool;
@@ -39,9 +39,7 @@ class AgentRunControllerIntegrationTest {
 
         FileSystemEvidenceStore store = new FileSystemEvidenceStore(
                 temporaryRoot.resolve("evidence"),
-                new EvidenceRetentionPolicy(
-                        EvidenceRetentionPolicy.MAX_SUPPORTED_CONTENT_BYTES,
-                        Duration.ofDays(30)));
+                new EvidenceStoragePolicy(EvidenceStoragePolicy.MAX_SUPPORTED_CONTENT_BYTES));
         String runId = store.createRun();
         ToolRequest request = new ToolRequest(
                 ReadFileTool.NAME,
@@ -51,7 +49,7 @@ class AgentRunControllerIntegrationTest {
                 projectRoot,
                 Set.of(ReadFileTool.NAME),
                 Set.of(),
-                EvidenceRetentionPolicy.MAX_SUPPORTED_CONTENT_BYTES,
+                EvidenceStoragePolicy.MAX_SUPPORTED_CONTENT_BYTES,
                 Duration.ofSeconds(2),
                 CancellationToken.none());
 

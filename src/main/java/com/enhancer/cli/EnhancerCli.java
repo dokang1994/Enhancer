@@ -2,6 +2,7 @@ package com.enhancer.cli;
 
 import com.enhancer.brain.AcceptedDecisionProjector;
 import com.enhancer.brain.GraphNode;
+import com.enhancer.brain.GraphEdge;
 import com.enhancer.brain.GraphNodeKind;
 import com.enhancer.brain.MemoryFreshness;
 import com.enhancer.brain.ProjectBrainGraph;
@@ -28,7 +29,7 @@ import com.enhancer.run.ResolvedRunRecord;
 import com.enhancer.run.RunRecord;
 import com.enhancer.tool.CancellationToken;
 import com.enhancer.tool.EvidenceRecorder;
-import com.enhancer.tool.EvidenceRetentionPolicy;
+import com.enhancer.tool.EvidenceStoragePolicy;
 import com.enhancer.tool.ExecutionPolicy;
 import com.enhancer.tool.FileSystemEvidenceStore;
 import com.enhancer.tool.ReadFileTool;
@@ -58,9 +59,18 @@ public final class EnhancerCli {
     public static final int MAX_DIAGNOSTIC_CHARACTERS = 4096;
 
     private static final Duration TOOL_TIMEOUT = Duration.ofSeconds(5);
-    private static final Duration EVIDENCE_RETENTION = Duration.ofDays(30);
     private static final int MAX_ITERATIONS = 5;
     private static final int STAGNATION_THRESHOLD = 3;
+    private final BrainComposer brainComposer;
+
+    public EnhancerCli() {
+        this.brainComposer = this::composeBrain;
+    }
+
+    EnhancerCli(BrainComposer brainComposer) {
+        this.brainComposer = Objects.requireNonNull(
+                brainComposer, "brainComposer must not be null");
+    }
 
     public static void main(String[] arguments) {
         System.exit(new EnhancerCli().execute(arguments, System.out, System.err));
@@ -112,11 +122,29 @@ public final class EnhancerCli {
                 approvedTask,
                 inputs.repositoryMemory(),
                 additionalObservations);
+        List<GraphNode> decisions;
+        List<GraphEdge> justificationEdges;
+        try {
+            decisions = new AcceptedDecisionProjector().project(
+                    snapshot,
+                    inputs.repositoryMemory());
+            justificationEdges = new TaskJustificationProjector().project(
+                    snapshot,
+                    inputs.repositoryMemory(),
+                    decisions);
+            new RunEvidenceGraphProducer().preflight(
+                    snapshot,
+                    Instant.now(),
+                    decisions,
+                    justificationEdges);
+        } catch (IllegalArgumentException exception) {
+            throw new CliUsageException(
+                    "project brain inputs are invalid: " + safeMessage(exception),
+                    exception);
+        }
         FileSystemEvidenceStore evidenceStore = new FileSystemEvidenceStore(
                 command.evidenceRoot(),
-                new EvidenceRetentionPolicy(
-                        EvidenceRetentionPolicy.MAX_SUPPORTED_CONTENT_BYTES,
-                        EVIDENCE_RETENTION));
+                new EvidenceStoragePolicy(EvidenceStoragePolicy.MAX_SUPPORTED_CONTENT_BYTES));
         String logicalRunId = evidenceStore.createRun();
         ToolRequest request = new ToolRequest(
                 ReadFileTool.NAME,
@@ -126,7 +154,7 @@ public final class EnhancerCli {
                 command.projectRoot(),
                 Set.of(ReadFileTool.NAME),
                 Set.of(),
-                EvidenceRetentionPolicy.MAX_SUPPORTED_CONTENT_BYTES,
+                EvidenceStoragePolicy.MAX_SUPPORTED_CONTENT_BYTES,
                 TOOL_TIMEOUT,
                 CancellationToken.none());
 
@@ -155,25 +183,7 @@ public final class EnhancerCli {
                 runRecordStore)
                 .finalizeRun(workerRun, verificationRequest);
         CliExitCode exitCode = exitCode(finalized.record());
-        ProjectBrainView view = ProjectBrainView.compose(
-                snapshot,
-                inputs.repositoryMemory(),
-                finalized.record());
-        List<GraphNode> decisions = new AcceptedDecisionProjector().project(
-                snapshot,
-                inputs.repositoryMemory());
-        ProjectBrainGraph graph = new RunEvidenceGraphProducer().produce(
-                snapshot,
-                new ResolvedRunRecord(finalized.storedRecord(), finalized.record()),
-                Instant.now(),
-                decisions,
-                new TaskJustificationProjector().project(
-                        snapshot,
-                        inputs.repositoryMemory(),
-                        decisions));
-        TaskImpact impact = new TaskImpactQuery().query(graph, approvedTask.taskId());
-
-        writeBounded(stdout, String.join("\n",
+        List<String> output = new ArrayList<>(List.of(
                 "status=" + finalized.stopReason(),
                 "exitCode=" + exitCode.code(),
                 "workerStopReason=" + finalized.record().workerStopReason(),
@@ -181,16 +191,55 @@ public final class EnhancerCli {
                 "verificationCode=" + finalized.verification().code(),
                 "iterations=" + finalized.record().iterations(),
                 "runRecordRoot=" + safeValue(command.runRecordRoot().toString()),
-                "runRecordReference=" + finalized.storedRecord().reference(),
-                "workspaceSnapshotId=" + view.snapshotId(),
-                "workspaceObservations=" + view.workspaceObservations().size(),
-                "memoryFreshness=" + freshnessSummary(view),
-                "graphNodes=" + graph.nodes().size(),
-                "graphEdges=" + graph.edges().size(),
-                "graphDecisions=" + countDecisions(graph),
-                "impactExecutions=" + impact.executions().size(),
-                "impactDecisions=" + impact.decisions().size()) + "\n");
+                "runRecordReference=" + finalized.storedRecord().reference()));
+        try {
+            BrainSummary summary = brainComposer.compose(new BrainCompositionInput(
+                    snapshot,
+                    inputs.repositoryMemory(),
+                    finalized,
+                    decisions,
+                    justificationEdges,
+                    approvedTask.taskId()));
+            output.add("brainStatus=AVAILABLE");
+            output.add("workspaceSnapshotId=" + summary.snapshotId());
+            output.add("workspaceObservations=" + summary.workspaceObservations());
+            output.add("memoryFreshness=" + summary.memoryFreshness());
+            output.add("graphNodes=" + summary.graphNodes());
+            output.add("graphEdges=" + summary.graphEdges());
+            output.add("graphDecisions=" + summary.graphDecisions());
+            output.add("impactExecutions=" + summary.impactExecutions());
+            output.add("impactDecisions=" + summary.impactDecisions());
+        } catch (RuntimeException exception) {
+            output.add("brainStatus=UNAVAILABLE");
+            output.add("brainReason=" + safeValue(safeMessage(exception)));
+        }
+        writeBounded(stdout, String.join("\n", output) + "\n");
         return exitCode.code();
+    }
+
+    private BrainSummary composeBrain(BrainCompositionInput input) {
+        ProjectBrainView view = ProjectBrainView.compose(
+                input.snapshot(),
+                input.repositoryMemory(),
+                input.finalized().record());
+        ProjectBrainGraph graph = new RunEvidenceGraphProducer().produce(
+                input.snapshot(),
+                new ResolvedRunRecord(
+                        input.finalized().storedRecord(),
+                        input.finalized().record()),
+                Instant.now(),
+                input.decisions(),
+                input.justificationEdges());
+        TaskImpact impact = new TaskImpactQuery().query(graph, input.taskId());
+        return new BrainSummary(
+                view.snapshotId(),
+                view.workspaceObservations().size(),
+                freshnessSummary(view),
+                graph.nodes().size(),
+                graph.edges().size(),
+                countDecisions(graph),
+                impact.executions().size(),
+                impact.decisions().size());
     }
 
     private long countDecisions(ProjectBrainGraph graph) {
@@ -265,6 +314,31 @@ public final class EnhancerCli {
     private record GovernedRunInputs(
             ApprovedTask approvedTask,
             ProjectContext repositoryMemory) {
+    }
+
+    @FunctionalInterface
+    interface BrainComposer {
+        BrainSummary compose(BrainCompositionInput input);
+    }
+
+    record BrainCompositionInput(
+            WorkspaceSnapshot snapshot,
+            ProjectContext repositoryMemory,
+            FinalizedAgentRun finalized,
+            List<GraphNode> decisions,
+            List<GraphEdge> justificationEdges,
+            String taskId) {
+    }
+
+    record BrainSummary(
+            String snapshotId,
+            int workspaceObservations,
+            String memoryFreshness,
+            int graphNodes,
+            int graphEdges,
+            long graphDecisions,
+            int impactExecutions,
+            int impactDecisions) {
     }
 
     private CliExitCode exitCode(RunRecord record) {

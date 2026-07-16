@@ -5,10 +5,12 @@ package com.enhancer.bus;
  * duplicate that invoked no handler, or failed because the subscriber's handler exhausted the
  * bounded retry policy and the envelope was captured as a dead letter.
  *
- * <p>{@code UNROUTED}, {@code CANCELLED}, and {@code ENQUEUED} are scope-level results that
+ * <p>{@code UNROUTED}, {@code CANCELLED}, {@code ENQUEUED}, and {@code BACKPRESSURED} are
+ * scope-level results that
  * describe the envelope's fate at the bus rather than one delivery to one subscription: no
  * subscription received it, its correlation was cancelled and it was refused admission, or it was
- * published from inside a handler and accepted for delivery after the current drain completes.
+ * published from inside a handler and accepted for delivery after the current drain completes,
+ * or refused before admission because the bounded pending queue was full.
  */
 public enum DeliveryStatus {
     DELIVERED,
@@ -16,13 +18,17 @@ public enum DeliveryStatus {
     UNROUTED,
     FAILED,
     CANCELLED,
-    ENQUEUED;
+    ENQUEUED,
+    BACKPRESSURED;
 
     /**
      * Returns whether this status describes the envelope's fate at the bus rather than one
      * delivery to one subscription. A scope-level status names no subscriber.
      */
     public boolean isScopeLevel() {
-        return this == UNROUTED || this == CANCELLED || this == ENQUEUED;
+        return this == UNROUTED
+                || this == CANCELLED
+                || this == ENQUEUED
+                || this == BACKPRESSURED;
     }
 }

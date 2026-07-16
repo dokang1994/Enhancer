@@ -17,7 +17,9 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
@@ -102,6 +104,28 @@ class FileSystemRunRecordStoreIntegrationTest {
                 () -> new FileSystemRunRecordStore(storageRoot).persist(malformed));
 
         assertTrue(exception.getMessage().contains("Unicode"));
+    }
+
+    @Test
+    void selectsRecentReferencesNewestFirstWithoutChangingCompleteListing() throws Exception {
+        FileSystemRunRecordStore store = new FileSystemRunRecordStore(storageRoot);
+        StoredRunRecord first = store.persist(record());
+        StoredRunRecord second = store.persist(record());
+        StoredRunRecord third = store.persist(record());
+        setModified(first, 1);
+        setModified(second, 2);
+        setModified(third, 3);
+
+        assertEquals(List.of(third.reference(), second.reference()), store.recentReferences(2));
+        assertEquals(3, store.references().size());
+        assertThrows(IllegalArgumentException.class, () -> store.recentReferences(0));
+        assertThrows(IllegalArgumentException.class, () -> store.recentReferences(4097));
+    }
+
+    private void setModified(StoredRunRecord stored, long seconds) throws Exception {
+        Files.setLastModifiedTime(
+                storageRoot.resolve(stored.recordId() + ".run-record"),
+                FileTime.from(Instant.parse("2026-07-16T00:00:00Z").plusSeconds(seconds)));
     }
 
     private RunRecord record() {

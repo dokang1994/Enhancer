@@ -2,7 +2,7 @@
 
 ## Status And Sequence
 
-This chapter is accepted implementation guidance for a future capability. Multi-Agent execution remains **Planned** at Delivery Gate 13. Delivery Gate 6 Workspace and Project Brain Foundation is **Integrated**; Delivery Gate 7 Event Bus and IPC Foundation is the sole **Specified - Next** gate, with its in-process delivery contracts verified and backpressure next.
+This chapter is accepted implementation guidance for a future capability. Multi-Agent execution remains **Planned** at Delivery Gate 13. Delivery Gate 6 Workspace and Project Brain Foundation is **Integrated**; Delivery Gate 7 Event Bus and IPC Foundation is the sole **Specified - Next** gate, with its in-process delivery and backpressure contracts verified and the transport-neutral IPC interface next.
 
 The prerequisite path is:
 

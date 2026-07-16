@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.enhancer.loop.ApprovedTask;
-import com.enhancer.tool.EvidenceRetentionPolicy;
+import com.enhancer.tool.EvidenceStoragePolicy;
 import com.enhancer.tool.FileSystemEvidenceStore;
 import com.enhancer.tool.StoredEvidence;
 import com.enhancer.tool.ToolRequest;
@@ -15,7 +15,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
-import java.time.Duration;
 import java.util.HexFormat;
 import java.util.Map;
 import java.util.Optional;
@@ -123,9 +122,7 @@ class DeterministicReadFileVerifierTest {
     private FileSystemEvidenceStore store() {
         return new FileSystemEvidenceStore(
                 storageRoot,
-                new EvidenceRetentionPolicy(
-                        EvidenceRetentionPolicy.MAX_SUPPORTED_CONTENT_BYTES,
-                        Duration.ofDays(30)));
+                new EvidenceStoragePolicy(EvidenceStoragePolicy.MAX_SUPPORTED_CONTENT_BYTES));
     }
 
     private VerificationRequest request(VerificationEvidence evidence, String expectedDigest) {

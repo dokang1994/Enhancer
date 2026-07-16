@@ -26,7 +26,7 @@ class ReadFileToolEvidencePersistenceIntegrationTest {
 
         FileSystemEvidenceStore store = new FileSystemEvidenceStore(
                 tempDirectory.resolve("evidence"),
-                new EvidenceRetentionPolicy(16 * 1024, Duration.ofDays(30)));
+                new EvidenceStoragePolicy(16 * 1024));
         String runId = store.createRun();
         ToolRequest request = new ToolRequest(
                 ReadFileTool.NAME,

@@ -112,6 +112,46 @@ class ReadFileToolIntegrationTest {
         assertFailure(result, "outside");
     }
 
+    @Test
+    void rejectsAWindowsJunctionThatEscapesTheRealProjectRoot() throws Exception {
+        assumeTrue(isWindows(), "directory junction regression is Windows-specific");
+        Path projectRoot = Files.createDirectory(tempDirectory.resolve("junction-project"));
+        Path outsideDirectory = Files.createDirectory(tempDirectory.resolve("junction-outside"));
+        Files.writeString(
+                outsideDirectory.resolve("outside.txt"), "outside", StandardCharsets.UTF_8);
+        Path junction = projectRoot.resolve("outside-junction");
+        createJunction(junction, outsideDirectory);
+
+        ToolResult result = execute(projectRoot, "outside-junction/outside.txt", 1024);
+
+        assertFailure(result, "outside");
+    }
+
+    private static void createJunction(Path junction, Path target) throws Exception {
+        String commandInterpreter = System.getenv().getOrDefault(
+                "ComSpec", "C:\\Windows\\System32\\cmd.exe");
+        Process process = new ProcessBuilder(
+                commandInterpreter,
+                "/d",
+                "/c",
+                "mklink",
+                "/J",
+                junction.toString(),
+                target.toString())
+                .redirectErrorStream(true)
+                .start();
+        String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        assertTrue(process.waitFor(10, java.util.concurrent.TimeUnit.SECONDS),
+                "junction creation timed out");
+        assertEquals(0, process.exitValue(), "junction creation failed: " + output);
+    }
+
+    private static boolean isWindows() {
+        return System.getProperty("os.name", "")
+                .toLowerCase(java.util.Locale.ROOT)
+                .contains("win");
+    }
+
     private ToolResult execute(Path projectRoot, String path, long maxReadBytes) {
         Map<String, String> arguments = path == null ? Map.of() : Map.of("path", path);
         ToolRequest request = new ToolRequest(

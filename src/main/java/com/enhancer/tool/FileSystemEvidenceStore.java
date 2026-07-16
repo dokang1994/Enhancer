@@ -30,16 +30,16 @@ public final class FileSystemEvidenceStore implements EvidenceStore {
     private static final String FILE_SUFFIX = ".evidence";
 
     private final Path storageRoot;
-    private final EvidenceRetentionPolicy retentionPolicy;
+    private final EvidenceStoragePolicy storagePolicy;
 
     public FileSystemEvidenceStore(
             Path storageRoot,
-            EvidenceRetentionPolicy retentionPolicy) {
+            EvidenceStoragePolicy storagePolicy) {
         Objects.requireNonNull(storageRoot, "storageRoot must not be null");
         this.storageRoot = storageRoot.toAbsolutePath().normalize();
-        this.retentionPolicy = Objects.requireNonNull(
-                retentionPolicy,
-                "retentionPolicy must not be null");
+        this.storagePolicy = Objects.requireNonNull(
+                storagePolicy,
+                "storagePolicy must not be null");
     }
 
     @Override
@@ -71,12 +71,12 @@ public final class FileSystemEvidenceStore implements EvidenceStore {
             throw new MissingEvidenceException("evidence/" + runId);
         }
 
-        if (content.length() > retentionPolicy.maxContentBytes()) {
-            throw new IOException("evidence content size exceeds retention policy limit");
+        if (content.length() > storagePolicy.maxContentBytes()) {
+            throw new IOException("evidence content size exceeds storage policy limit");
         }
         byte[] contentBytes = encodeUtf8(content);
-        if (contentBytes.length > retentionPolicy.maxContentBytes()) {
-            throw new IOException("evidence content size exceeds retention policy limit");
+        if (contentBytes.length > storagePolicy.maxContentBytes()) {
+            throw new IOException("evidence content size exceeds storage policy limit");
         }
 
         String evidenceId = UUID.randomUUID().toString();
@@ -140,7 +140,7 @@ public final class FileSystemEvidenceStore implements EvidenceStore {
         }
 
         long artifactSize = Files.size(artifact);
-        long maximumArtifactSize = HEADER_BYTES + retentionPolicy.maxContentBytes();
+        long maximumArtifactSize = HEADER_BYTES + storagePolicy.maxContentBytes();
         if (artifactSize < HEADER_BYTES || artifactSize > maximumArtifactSize) {
             throw corrupted(reference, "artifact size is outside policy bounds");
         }
@@ -159,7 +159,7 @@ public final class FileSystemEvidenceStore implements EvidenceStore {
         long storedAtMillis = buffer.getLong();
         long declaredLength = buffer.getLong();
         if (declaredLength < 0
-                || declaredLength > retentionPolicy.maxContentBytes()
+                || declaredLength > storagePolicy.maxContentBytes()
                 || declaredLength != buffer.remaining() - DIGEST_BYTES) {
             throw corrupted(reference, "declared content length does not match the artifact");
         }
@@ -185,8 +185,8 @@ public final class FileSystemEvidenceStore implements EvidenceStore {
     }
 
     @Override
-    public EvidenceRetentionPolicy retentionPolicy() {
-        return retentionPolicy;
+    public EvidenceStoragePolicy storagePolicy() {
+        return storagePolicy;
     }
 
     private EvidenceIdentity parseReference(String reference) {

@@ -18,6 +18,7 @@ import com.enhancer.tool.VerificationEvidence;
 import com.enhancer.verification.VerificationDecision;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -25,6 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
+import java.util.ArrayList;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -137,6 +139,33 @@ class RunRecordMetadataCollectorTest {
         assertEquals(
                 WorkspaceSourceKind.RUN_RECORD,
                 snapshot.observations().get(1).kind());
+    }
+
+    @Test
+    void observesOnlyTheBoundedMostRecentRunRecords() throws Exception {
+        Path storageRoot = temporaryRoot.resolve("windowed-records");
+        FileSystemRunRecordStore store = new FileSystemRunRecordStore(storageRoot);
+        List<StoredRunRecord> stored = new ArrayList<>();
+        int total = RunRecordMetadataCollector.MAX_OBSERVED_RECORDS + 3;
+        Instant base = Instant.parse("2026-07-15T00:00:00Z");
+        for (int index = 0; index < total; index++) {
+            StoredRunRecord record = store.persist(record("logical-run-" + index));
+            Files.setLastModifiedTime(
+                    storageRoot.resolve(record.recordId() + ".run-record"),
+                    FileTime.from(base.plusSeconds(index)));
+            stored.add(record);
+        }
+
+        List<WorkspaceSourceObservation> observations = new RunRecordMetadataCollector()
+                .observe(store, observedAt);
+
+        assertEquals(RunRecordMetadataCollector.MAX_OBSERVED_RECORDS, observations.size());
+        assertTrue(observations.stream().noneMatch(observation ->
+                observation.sourceId().equals(stored.get(0).reference())));
+        assertTrue(observations.stream().anyMatch(observation ->
+                observation.sourceId().equals(stored.get(total - 1).reference())));
+        assertEquals(total, store.references().size(),
+                "observation windowing must not delete durable records");
     }
 
     @Test

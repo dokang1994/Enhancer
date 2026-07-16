@@ -2,6 +2,145 @@
 
 ## Accepted Decisions
 
+### 2026-07-16: Verify Real-Path Boundaries With Junctions And Remove Fictional Evidence Retention
+
+Status: Accepted Decision
+
+Context:
+
+- The only tests covering `toRealPath()` escape rejection attempt symbolic-link creation and are skipped on this Windows host, leaving the production boundary unverified here. Windows directory junctions can exercise the same real-path escape without symbolic-link privilege.
+- `EvidenceRetentionPolicy.retentionPeriod` is validated and tested but never read by production. The store neither expires nor deletes evidence, so the API suggests a 30-day lifecycle contract that does not exist.
+- Destructive retention needs explicit lifecycle, replay, audit, and cleanup authority. Inventing deletion inside this corrective task would widen behavior beyond the observed defect.
+
+Decision:
+
+- Add Windows-only directory-junction integration tests for both `ReadFileTool` and `ProjectContextReader`. On Windows, junction creation failure is a test failure rather than a skip; other platforms retain the existing symbolic-link coverage and skip only the Windows-specific test.
+- Rename `EvidenceRetentionPolicy` to `EvidenceStoragePolicy`, remove `retentionPeriod`, and expose only the actually enforced `maxContentBytes` contract through `EvidenceStore.storagePolicy()`.
+- Remove the CLI's unused 30-day constant and update all production and test callers to the truthful storage policy.
+- Do not delete, expire, hide, or rewrite existing evidence. A future retention feature requires a separate accepted decision with cleanup authority and replay/audit semantics.
+
+Rationale:
+
+Junctions make the real-path security invariant executable on the host that previously skipped it. Removing an unused promise is safer than implementing surprise deletion: the API should name only behavior the store enforces today.
+
+Consequences:
+
+- Both lexical traversal and Windows real-path redirection are covered by fresh tests at the actual boundaries.
+- Evidence remains durable until external/user-authorized lifecycle management exists; storage size is bounded per artifact, not by age or aggregate capacity.
+- The policy type and accessor are intentionally source-incompatible inside this pre-release repository, preventing callers from continuing to rely on a fictional retention period.
+
+### 2026-07-16: Bound Workspace RunRecord Observation To A Recent Window
+
+Status: Accepted Decision
+
+Context:
+
+- `RunRecordMetadataCollector` resolves every durable record into every new Workspace snapshot. Since `WorkspaceSnapshot` is capped at 4096 observations, the 4,080th run with the current fixed sources cannot even begin.
+- Resolving all prior record payloads on every run also creates cumulative quadratic payload I/O, while deletion is neither authorized nor required for observation.
+- Full reference listing and point replay remain useful storage capabilities and need not be constrained by the Workspace projection window.
+
+Decision:
+
+- Add `RunRecordStore.recentReferences(limit)` as a bounded newest-first metadata query and retain `references()` for complete diagnostic/replay enumeration.
+- Limit `RunRecordMetadataCollector` to the 256 most recent record references. Resolve only those payloads, preserving explicit unavailable observations for selected corrupted or missing entries.
+- Implement filesystem recency selection with one directory scan and a bounded priority queue over no-follow file modification metadata; do not load every RunRecord payload or delete any artifact.
+- Validate requested reference-window bounds from 1 through the store collection limit and keep output deterministic with the reference as the tie-breaker.
+
+Rationale:
+
+A fixed observation window keeps snapshot cardinality and per-run payload resolution bounded without inventing destructive retention. The complete store remains available for direct replay and future pagination/index work, while Workspace answers honestly describe a recent execution horizon.
+
+Consequences:
+
+- New runs no longer hit the snapshot's 4096-observation wall because of accumulated records, and record payload reads are capped at 256 per collection.
+- Filesystem directory enumeration is still linear in artifact count; a durable summary index or pagination may replace it when scale justifies the additional consistency protocol.
+- File modification time determines filesystem recency selection; envelope integrity and stored time are still validated when a selected reference is resolved.
+
+### 2026-07-16: Keep Durable Run Outcome Primary Across Project-Brain Composition
+
+Status: Accepted Decision
+
+Context:
+
+- The CLI currently persists a finalized RunRecord before composing Project Brain output, but any later graph exception escapes to the top-level internal-error handler. A durable `COMPLETED`/`VERIFIED` run can therefore return exit 70.
+- Required documents targeted by the run appear as both `REPOSITORY_DOCUMENT` and `REPOSITORY_FILE`; graph projection currently flattens both identities into duplicate artifact nodes. Duplicate accepted-decision headings and the 256-vs-1024 identifier-bound mismatch provide additional post-persist failure triggers.
+- Project Brain counts are derived diagnostics. They must not redefine the already-finalized governed execution outcome.
+
+Decision:
+
+- Project accepted decisions and task-justification edges and preflight the graph's non-execution inputs before creating evidence, invoking a Tool, or persisting a RunRecord. Invalid project metadata is a usage/configuration failure with no durable run.
+- Collapse multiple repository observations of the same source identity into one artifact node, preferring the target-specific `REPOSITORY_FILE` observation over the general repository-document observation.
+- Align graph node identifiers with the Workspace source identifier bound of 1024 characters.
+- After persistence, treat Project Brain view, graph, query, and diagnostic composition as optional reporting. Catch a reporting runtime failure, emit bounded `brainStatus=UNAVAILABLE` metadata, and return the exit code derived from the durable RunRecord unchanged.
+
+Rationale:
+
+The transaction boundary is the durable RunRecord. Validation that can be performed from the snapshot and repository memory belongs before external work, while failures in reconstructible diagnostics after that boundary must degrade diagnostics, not rewrite execution history. Identity collapse preserves one graph artifact per repository path without discarding the more specific target observation.
+
+Consequences:
+
+- A malformed or oversized Project Brain input fails before Tool execution and persistence.
+- A post-persist brain-reporting defect remains observable in bounded output while replay and the CLI exit code stay consistent with the durable record.
+- Graph projection remains rebuildable and non-authoritative; no RunRecord schema or Tool authority changes.
+
+### 2026-07-16: Restrict Git Observation To A Trusted Executable And Filter-Free Plumbing
+
+Status: Accepted Decision
+
+Context:
+
+- `git status --porcelain` and a worktree `git diff --no-textconv` still consult a repository-configured required clean filter when resolving stat-dirty content, so an observed repository can execute a command before Tool policy applies.
+- Invoking `git` by name also delegates executable discovery to process-launch rules. On Windows, an Enhancer process started in the untrusted repository can therefore resolve a repository-controlled `git.exe` before PATH.
+- Focused adversarial verification established that `git ls-files --stage --deleted --others --exclude-standard` avoids the configured clean filter, while both `ls-files --modified` and `diff-files --raw --no-ext-diff --no-textconv` re-enter that pipeline. A filter-free tracked-worktree comparison has therefore not been established.
+
+Decision:
+
+- Resolve Git from absolute PATH directory entries, canonicalize the executable, and reject any candidate whose real path is contained by the real observed project root. If no such executable exists, publish explicit `UNAVAILABLE` observations instead of attempting discovery by name.
+- Reduce command authority to one fixed, shell-free, read-only `ls-files` invocation for index, deleted, and untracked metadata. Keep `--no-optional-locks`, invocation-scoped fsmonitor disable, inherited `GIT_*` removal, project discovery ceiling, timeout, output cap, and discarded stderr.
+- Publish the `GIT_DIFF` observation as explicitly `UNAVAILABLE` without starting a process until a filter-free tracked-worktree method is separately established and verified.
+- Treat Git output only as untrusted bytes entering a SHA-256 digest. Retain no paths, file contents, configuration, or command output.
+- Do not rewrite repository configuration or temporarily disable filters. Safety comes from command choice and trusted executable resolution, not mutation of the observed project.
+
+Rationale:
+
+Observation must be less privileged than the project it inspects. An absolute executable outside the real project removes current-directory/PATH-name hijacking, while index/stat plumbing avoids the conversion pipeline that executes clean filters. Returning unavailable is safer than silently widening command authority when trusted resolution cannot be established.
+
+Consequences:
+
+- The status digest remains sensitive to index, deleted, and untracked path metadata. Tracked unstaged content modifications are deliberately not observed, and the diff observation explains that safety limitation instead of implying availability.
+- PATH itself is still host input, not cryptographic installation provenance. Absolute-entry and project-containment checks close the repository-controlled lookup vector; signature/package verification remains out of scope.
+- One external command remains authorized only inside `GitWorkspaceCollector`; no other component receives command authority.
+
+### 2026-07-16: Bound Pending Publications With Deterministic Non-Blocking Refusal
+
+Status: Accepted Decision
+
+Context:
+
+- Run-to-completion ordering replaced recursive delivery with an explicit FIFO pending queue, but that queue is unbounded and a handler cascade can retain arbitrarily many envelopes before the drain catches up.
+- The bus is deliberately synchronous and single-threaded. Blocking a publisher cannot create useful flow control when the publisher is the handler currently holding the drain; it would deadlock rather than relieve pressure.
+- Cancellation already establishes that work refused before admission must not be journaled or consume delivery state, or a later replay could create a side effect that never originally occurred.
+- The user authorized the next recorded Gate 7 increment on 2026-07-16.
+
+Decision:
+
+- Add an immutable `BackpressurePolicy(maxPendingPublications)` bounded from 1 through 4096; existing constructors use a finite default of 4096, and an overload accepts both retry and backpressure policies.
+- Add scope-level `DeliveryStatus.BACKPRESSURED`. When the pending queue is at capacity, refuse the submission immediately without journaling it, invoking a handler, consuming an idempotency key, creating a dead letter, or changing cancellation state.
+- Keep accepted work FIFO. A re-entrant publisher receives `ENQUEUED` for accepted work or `BACKPRESSURED` for refused work; the draining caller receives outcomes only for the admitted cascade, while the publisher that attempted refused work receives its refusal directly.
+- Apply the same capacity to replay batch submission: accept the deterministic prefix that fits, refuse the remaining entries, drain the accepted prefix, and return the refusal outcomes without appending any replay entry or caused publication to the live journal.
+- Make no thread wait, timer, retry, eviction, priority, persistence, IPC, or production-wiring policy in this increment. A caller may retry a refused envelope later under its own higher-level scheduling authority.
+
+Rationale:
+
+A finite admission bound closes the only memory-growth hazard introduced by run-to-completion ordering without pretending a synchronous handler can block safely. Immediate typed refusal preserves determinism and makes overload visible to the exact caller that attempted the publication. Treating refusal like cancellation before admission preserves journal replay truth and keeps a later explicit retry possible because no idempotency state was consumed.
+
+Consequences:
+
+- The pending queue never contains more than the configured bound, but the journal, idempotency keys, cancellation set, dead letters, and returned outcome collections remain process-local and require separate retention or persistence work.
+- A handler must inspect the immediate result of a caused publication if it needs to react to overload; the top-level drain cannot fabricate an outcome for work it never admitted.
+- Replay of a batch larger than the configured capacity is partial but deterministic and observable; the caller may retry the refused suffix explicitly.
+- Gate 7 remains `Specified - Next` and Contract Verified only; no production caller uses the bus yet.
+
 ### 2026-07-16: Order Delivery By Running Each Publication To Completion Before Its Cascade
 
 Status: Accepted Decision

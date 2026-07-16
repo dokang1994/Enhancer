@@ -9,5 +9,5 @@ public interface EvidenceStore {
 
     ResolvedEvidence resolve(String reference) throws IOException;
 
-    EvidenceRetentionPolicy retentionPolicy();
+    EvidenceStoragePolicy storagePolicy();
 }

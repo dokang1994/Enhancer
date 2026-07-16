@@ -13,7 +13,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.Duration;
 import java.util.HexFormat;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -29,7 +28,7 @@ class FileSystemEvidenceStoreIntegrationTest {
     @Test
     void persistsAndResolvesUtf8EvidenceAcrossStoreInstances() throws IOException {
         Path storageRoot = tempDirectory.resolve("evidence");
-        EvidenceRetentionPolicy policy = policy(64 * 1024);
+        EvidenceStoragePolicy policy = policy(64 * 1024);
         FileSystemEvidenceStore writer = new FileSystemEvidenceStore(storageRoot, policy);
         String runId = writer.createRun();
         String content = "complete evidence: verified";
@@ -46,7 +45,7 @@ class FileSystemEvidenceStoreIntegrationTest {
         assertEquals(64, stored.sha256().length());
         assertEquals(stored, resolved.metadata());
         assertEquals(content, resolved.content());
-        assertEquals(policy, writer.retentionPolicy());
+        assertEquals(policy, writer.storagePolicy());
 
         try (Stream<Path> paths = Files.walk(storageRoot)) {
             assertFalse(paths.anyMatch(path -> path.getFileName().toString().startsWith(".pending-")));
@@ -149,8 +148,8 @@ class FileSystemEvidenceStoreIntegrationTest {
                 policy(maxContentBytes));
     }
 
-    private EvidenceRetentionPolicy policy(long maxContentBytes) {
-        return new EvidenceRetentionPolicy(maxContentBytes, Duration.ofDays(30));
+    private EvidenceStoragePolicy policy(long maxContentBytes) {
+        return new EvidenceStoragePolicy(maxContentBytes);
     }
 
     private Path artifactPath(Path root, StoredEvidence evidence) {

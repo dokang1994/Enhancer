@@ -124,6 +124,59 @@ class ProjectContextReaderTest {
     }
 
     @Test
+    void rejectsRequiredDocumentsThroughAWindowsJunctionOutsideTheRealProjectRoot()
+            throws Exception {
+        assumeTrue(isWindows(), "directory junction regression is Windows-specific");
+        Path boundaryProject = Files.createDirectory(projectRoot.resolve("junction-project"));
+        Path outsideAi = Files.createDirectory(projectRoot.resolve("outside-ai"));
+        for (RequiredProjectDocument document : RequiredProjectDocument.values()) {
+            if (document.path().startsWith(".ai/")) {
+                Files.writeString(
+                        outsideAi.resolve(Path.of(document.path()).getFileName()),
+                        "outside " + document.path(),
+                        StandardCharsets.UTF_8);
+            } else {
+                Files.writeString(
+                        boundaryProject.resolve(document.path()),
+                        "inside " + document.path(),
+                        StandardCharsets.UTF_8);
+            }
+        }
+        createJunction(boundaryProject.resolve(".ai"), outsideAi);
+
+        IOException exception = assertThrows(
+                IOException.class,
+                () -> reader.read(boundaryProject));
+
+        assertTrue(exception.getMessage().contains("outside"));
+    }
+
+    private static void createJunction(Path junction, Path target) throws Exception {
+        String commandInterpreter = System.getenv().getOrDefault(
+                "ComSpec", "C:\\Windows\\System32\\cmd.exe");
+        Process process = new ProcessBuilder(
+                commandInterpreter,
+                "/d",
+                "/c",
+                "mklink",
+                "/J",
+                junction.toString(),
+                target.toString())
+                .redirectErrorStream(true)
+                .start();
+        String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        assertTrue(process.waitFor(10, java.util.concurrent.TimeUnit.SECONDS),
+                "junction creation timed out");
+        assertEquals(0, process.exitValue(), "junction creation failed: " + output);
+    }
+
+    private static boolean isWindows() {
+        return System.getProperty("os.name", "")
+                .toLowerCase(java.util.Locale.ROOT)
+                .contains("win");
+    }
+
+    @Test
     void rejectsMalformedUtf8InARequiredDocument() throws IOException {
         writeRequiredDocuments();
         Files.write(

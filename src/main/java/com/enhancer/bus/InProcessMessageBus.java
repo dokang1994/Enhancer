@@ -30,9 +30,10 @@ import java.util.Set;
  * reads a payload to decide delivery, so a {@link ControlSignal#CANCEL} {@link ControlPayload} is
  * a consumer semantic that a handler may act on by calling {@link #cancel(String)} itself.
  *
- * <p>It provides no backoff, priority ordering, competing consumers, backpressure over the
- * unbounded pending queue, threading, persistence, or transport; those remain later Delivery
- * Gate 7 increments.
+ * <p>The pending queue has a finite {@link BackpressurePolicy}. Capacity exhaustion refuses the
+ * attempted publication immediately and without side effects because blocking a handler inside
+ * the single-threaded drain would deadlock. It provides no backoff, priority ordering, competing
+ * consumers, threading, persistence, or transport; those remain later Delivery Gate 7 increments.
  */
 public final class InProcessMessageBus {
 
@@ -56,17 +57,26 @@ public final class InProcessMessageBus {
     private final Set<String> cancelledCorrelations = new HashSet<>();
     private final Deque<Pending> pending = new ArrayDeque<>();
     private final RetryPolicy retryPolicy;
+    private final BackpressurePolicy backpressurePolicy;
     private boolean draining;
     private boolean journalCausedPublications = true;
 
     /** Creates a bus that invokes every handler exactly once and never retries. */
     public InProcessMessageBus() {
-        this(RetryPolicy.singleAttempt());
+        this(RetryPolicy.singleAttempt(), BackpressurePolicy.standard());
     }
 
     /** Creates a bus that retries a failing handler under the given bounded policy. */
     public InProcessMessageBus(RetryPolicy retryPolicy) {
+        this(retryPolicy, BackpressurePolicy.standard());
+    }
+
+    /** Creates a bus with explicit bounded retry and pending-publication admission policies. */
+    public InProcessMessageBus(
+            RetryPolicy retryPolicy, BackpressurePolicy backpressurePolicy) {
         this.retryPolicy = Objects.requireNonNull(retryPolicy, "retryPolicy must not be null");
+        this.backpressurePolicy = Objects.requireNonNull(
+                backpressurePolicy, "backpressurePolicy must not be null");
     }
 
     /**
@@ -121,8 +131,10 @@ public final class InProcessMessageBus {
      * that never originally happened, so the journal records only admitted publications.
      *
      * <p>Called from outside a handler this drains the pending queue to exhaustion and returns
-     * the whole ordered cascade. Called from inside a handler it only enqueues and reports {@link
-     * DeliveryStatus#ENQUEUED}; the resulting outcomes reach the caller that is draining.
+     * the whole ordered cascade. Called from inside a handler it reports {@link
+     * DeliveryStatus#ENQUEUED} when accepted or {@link DeliveryStatus#BACKPRESSURED} when the
+     * bounded pending queue is full; resulting delivery outcomes for accepted work reach the
+     * caller that is draining.
      */
     public List<DeliveryOutcome> publish(DeliveryDestination destination, MessageEnvelope envelope) {
         Objects.requireNonNull(destination, "destination must not be null");
@@ -136,6 +148,8 @@ public final class InProcessMessageBus {
      * guarantees that entries already processed by this bus invoke no handler and report {@link
      * DeliveryStatus#DUPLICATE}, and an entry whose correlation is cancelled is refused and
      * reports {@link DeliveryStatus#CANCELLED} while entries in live correlations still deliver.
+     * A batch larger than the pending capacity delivers the deterministic prefix that fits and
+     * reports the remaining entries as {@link DeliveryStatus#BACKPRESSURED}.
      */
     public List<DeliveryOutcome> replay(List<JournaledMessage> entries) {
         Objects.requireNonNull(entries, "entries must not be null");
@@ -195,19 +209,38 @@ public final class InProcessMessageBus {
     }
 
     /**
-     * Queues submissions in publication order. A submission made while a drain is already running
-     * only reports {@link DeliveryStatus#ENQUEUED}; the running drain will deliver it once the
-     * current publication has run to completion.
+     * Queues submissions in publication order up to the configured capacity. A submission made
+     * while a drain is already running reports {@link DeliveryStatus#ENQUEUED} when accepted or
+     * {@link DeliveryStatus#BACKPRESSURED} when refused; the running drain delivers accepted work
+     * once the current publication has run to completion.
      */
     private List<DeliveryOutcome> submit(List<Pending> submissions) {
-        List<DeliveryOutcome> accepted = new ArrayList<>();
+        List<DeliveryOutcome> submissionOutcomes = new ArrayList<>();
+        List<DeliveryOutcome> refused = new ArrayList<>();
         for (Pending submission : submissions) {
-            pending.addLast(submission);
-            accepted.add(new DeliveryOutcome(
-                    submission.destination(), Optional.empty(),
-                    submission.envelope().messageId(), DeliveryStatus.ENQUEUED));
+            DeliveryOutcome outcome;
+            if (pending.size() >= backpressurePolicy.maxPendingPublications()) {
+                outcome = backpressured(submission.destination(), submission.envelope());
+                refused.add(outcome);
+            } else {
+                pending.addLast(submission);
+                outcome = new DeliveryOutcome(
+                        submission.destination(), Optional.empty(),
+                        submission.envelope().messageId(), DeliveryStatus.ENQUEUED);
+            }
+            submissionOutcomes.add(outcome);
         }
-        return draining ? List.copyOf(accepted) : drain();
+        if (draining) {
+            return List.copyOf(submissionOutcomes);
+        }
+        List<DeliveryOutcome> delivered = drain();
+        if (refused.isEmpty()) {
+            return delivered;
+        }
+        List<DeliveryOutcome> outcomes = new ArrayList<>(delivered.size() + refused.size());
+        outcomes.addAll(delivered);
+        outcomes.addAll(refused);
+        return List.copyOf(outcomes);
     }
 
     /**
@@ -313,6 +346,13 @@ public final class InProcessMessageBus {
             DeliveryDestination destination, MessageEnvelope envelope) {
         return new DeliveryOutcome(
                 destination, Optional.empty(), envelope.messageId(), DeliveryStatus.CANCELLED);
+    }
+
+    private static DeliveryOutcome backpressured(
+            DeliveryDestination destination, MessageEnvelope envelope) {
+        return new DeliveryOutcome(
+                destination, Optional.empty(), envelope.messageId(),
+                DeliveryStatus.BACKPRESSURED);
     }
 
     private static String reasonOf(RuntimeException failure) {

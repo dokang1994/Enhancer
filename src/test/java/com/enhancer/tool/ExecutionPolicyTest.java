@@ -48,7 +48,7 @@ class ExecutionPolicyTest {
         assertThrows(
                 IllegalArgumentException.class,
                 () -> policy(
-                        EvidenceRetentionPolicy.MAX_SUPPORTED_CONTENT_BYTES + 1,
+                        EvidenceStoragePolicy.MAX_SUPPORTED_CONTENT_BYTES + 1,
                         Duration.ofSeconds(1),
                         Set.of("read-file")));
         assertThrows(

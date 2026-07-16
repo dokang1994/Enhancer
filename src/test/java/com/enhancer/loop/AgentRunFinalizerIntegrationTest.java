@@ -11,7 +11,7 @@ import com.enhancer.run.RunRecordStore;
 import com.enhancer.run.StoredRunRecord;
 import com.enhancer.tool.CancellationToken;
 import com.enhancer.tool.EvidenceRecorder;
-import com.enhancer.tool.EvidenceRetentionPolicy;
+import com.enhancer.tool.EvidenceStoragePolicy;
 import com.enhancer.tool.ExecutionPolicy;
 import com.enhancer.tool.FileSystemEvidenceStore;
 import com.enhancer.tool.ReadFileTool;
@@ -108,6 +108,11 @@ class AgentRunFinalizerIntegrationTest {
 
             @Override
             public java.util.List<String> references() throws IOException {
+                throw new IOException("storage unavailable");
+            }
+
+            @Override
+            public java.util.List<String> recentReferences(int limit) throws IOException {
                 throw new IOException("storage unavailable");
             }
         };
@@ -336,7 +341,7 @@ class AgentRunFinalizerIntegrationTest {
                 projectRoot,
                 Set.of("read-file"),
                 Set.of(),
-                EvidenceRetentionPolicy.MAX_SUPPORTED_CONTENT_BYTES,
+                EvidenceStoragePolicy.MAX_SUPPORTED_CONTENT_BYTES,
                 Duration.ofSeconds(2),
                 CancellationToken.none());
     }
@@ -344,9 +349,7 @@ class AgentRunFinalizerIntegrationTest {
     private FileSystemEvidenceStore evidenceStore() {
         return new FileSystemEvidenceStore(
                 temporaryRoot.resolve("evidence"),
-                new EvidenceRetentionPolicy(
-                        EvidenceRetentionPolicy.MAX_SUPPORTED_CONTENT_BYTES,
-                        Duration.ofDays(30)));
+                new EvidenceStoragePolicy(EvidenceStoragePolicy.MAX_SUPPORTED_CONTENT_BYTES));
     }
 
     private String sha256(String content) {

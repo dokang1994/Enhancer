@@ -18,6 +18,7 @@ import java.util.Optional;
  * being silently skipped.
  */
 public final class RunRecordMetadataCollector {
+    public static final int MAX_OBSERVED_RECORDS = 256;
     private static final String PROVENANCE = "run-record-store";
     private static final int MAX_REASON_CHARACTERS =
             WorkspaceSourceObservation.MAX_REASON_CHARACTERS;
@@ -28,7 +29,7 @@ public final class RunRecordMetadataCollector {
         Objects.requireNonNull(observedAt, "observedAt must not be null");
 
         List<WorkspaceSourceObservation> observations = new ArrayList<>();
-        for (String reference : store.references()) {
+        for (String reference : store.recentReferences(MAX_OBSERVED_RECORDS)) {
             observations.add(observe(store, reference, observedAt));
         }
         return List.copyOf(observations);

@@ -5,8 +5,8 @@ import java.util.Optional;
 
 /**
  * The immutable result of delivering one envelope toward one subscription. A scope-level status
- * ({@code UNROUTED} or {@code CANCELLED}) carries no subscriber identity because it targeted no
- * subscription; every other status must name the subscription it targeted.
+ * carries no subscriber identity because it targeted no subscription; every subscription-level
+ * status must name the subscription it targeted.
  */
 public record DeliveryOutcome(
         DeliveryDestination destination,

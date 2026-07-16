@@ -24,7 +24,7 @@ public record ExecutionPolicy(
         if (maxReadBytes <= 0) {
             throw new IllegalArgumentException("maxReadBytes must be positive");
         }
-        if (maxReadBytes > EvidenceRetentionPolicy.MAX_SUPPORTED_CONTENT_BYTES) {
+        if (maxReadBytes > EvidenceStoragePolicy.MAX_SUPPORTED_CONTENT_BYTES) {
             throw new IllegalArgumentException("maxReadBytes exceeds the supported evidence limit");
         }
         if (timeout.isZero() || timeout.isNegative()) {

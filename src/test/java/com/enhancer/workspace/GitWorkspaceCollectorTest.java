@@ -51,8 +51,9 @@ class GitWorkspaceCollectorTest {
         WorkspaceSourceObservation diff = observations.get(1);
         assertEquals(WorkspaceSourceKind.GIT_DIFF, diff.kind());
         assertEquals("working-tree-diff", diff.sourceId());
-        assertEquals(WorkspaceSourceState.AVAILABLE, diff.state());
-        assertTrue(diff.contentSha256().orElseThrow().matches("[0-9a-f]{64}"));
+        assertEquals(WorkspaceSourceState.UNAVAILABLE, diff.state());
+        assertTrue(diff.contentSha256().isEmpty());
+        assertTrue(diff.reason().orElseThrow().contains("clean filters"));
 
         List<WorkspaceSourceObservation> again = new GitWorkspaceCollector().observe(
                 repository,
@@ -112,8 +113,56 @@ class GitWorkspaceCollectorTest {
                 OBSERVED_AT);
 
         assertEquals(WorkspaceSourceState.AVAILABLE, observations.get(0).state());
-        assertEquals(WorkspaceSourceState.AVAILABLE, observations.get(1).state(),
-                "the fixed read-only diff must not execute a repository-configured helper");
+        assertEquals(WorkspaceSourceState.UNAVAILABLE, observations.get(1).state(),
+                "unsafe worktree diff observation must stay disabled");
+    }
+
+    @Test
+    void doesNotInvokeARequiredCleanFilterWhileObservingAStatDirtyFile() throws Exception {
+        assumeTrue(gitAvailable(), "git is not available on this host");
+        Path repository = Files.createDirectories(temporaryRoot.resolve("clean-filter-repository"));
+        git(repository, "init");
+        Files.writeString(repository.resolve(".gitattributes"),
+                "tracked.txt filter=proof\n", StandardCharsets.UTF_8);
+        Files.writeString(repository.resolve("tracked.txt"),
+                "original\n", StandardCharsets.UTF_8);
+        git(repository, "add", ".gitattributes", "tracked.txt");
+        git(repository, "config", "filter.proof.clean", "enhancer-clean-filter-must-not-run");
+        git(repository, "config", "filter.proof.required", "true");
+        Files.writeString(repository.resolve("tracked.txt"),
+                "modified\n", StandardCharsets.UTF_8);
+
+        List<WorkspaceSourceObservation> observations = new GitWorkspaceCollector().observe(
+                repository,
+                OBSERVED_AT);
+
+        assertEquals(WorkspaceSourceState.AVAILABLE, observations.get(0).state(),
+                "status metadata must not enter the clean-filter pipeline");
+        assertEquals(WorkspaceSourceState.UNAVAILABLE, observations.get(1).state(),
+                "worktree diff must remain disabled until a filter-free method exists");
+        assertTrue(observations.get(1).reason().orElseThrow().contains("clean filters"));
+    }
+
+    @Test
+    void resolvesAnAbsoluteExecutableOutsideTheObservedProject() throws Exception {
+        Path repository = Files.createDirectories(temporaryRoot.resolve("untrusted-project"));
+        Path trustedDirectory = Files.createDirectories(temporaryRoot.resolve("trusted-bin"));
+        String executableName = isWindows() ? "git.exe" : "git";
+        Path projectCandidate = Files.writeString(
+                repository.resolve(executableName), "project-controlled", StandardCharsets.UTF_8);
+        Path trustedCandidate = Files.writeString(
+                trustedDirectory.resolve(executableName), "host-controlled", StandardCharsets.UTF_8);
+        projectCandidate.toFile().setExecutable(true);
+        trustedCandidate.toFile().setExecutable(true);
+        Map<String, String> environment = Map.of(
+                "PATH", repository + java.io.File.pathSeparator + trustedDirectory);
+
+        Path resolved = GitWorkspaceCollector.resolveGitExecutable(repository, environment)
+                .orElseThrow();
+
+        assertEquals(trustedCandidate.toRealPath(), resolved);
+        assertFalse(resolved.startsWith(repository.toRealPath()));
+        assertTrue(resolved.isAbsolute());
     }
 
     @Test
@@ -135,12 +184,13 @@ class GitWorkspaceCollectorTest {
     }
 
     @Test
-    void fixedDiffCommandDisablesExternalDiffAndTextConversion() {
-        assertTrue(GitWorkspaceCollector.DIFF_COMMAND.contains("--no-ext-diff"));
-        assertTrue(GitWorkspaceCollector.DIFF_COMMAND.contains("--no-textconv"));
-        assertEquals(2, List.of(
-                GitWorkspaceCollector.STATUS_COMMAND,
-                GitWorkspaceCollector.DIFF_COMMAND).size());
+    void fixedCommandUsesFilterFreeIndexMetadataAndDisablesWorktreeDiff() {
+        assertTrue(GitWorkspaceCollector.STATUS_ARGUMENTS.contains("ls-files"));
+        assertTrue(GitWorkspaceCollector.STATUS_ARGUMENTS.contains("--deleted"));
+        assertTrue(GitWorkspaceCollector.STATUS_ARGUMENTS.contains("--others"));
+        assertFalse(GitWorkspaceCollector.STATUS_ARGUMENTS.contains("--modified"));
+        assertFalse(GitWorkspaceCollector.STATUS_ARGUMENTS.contains("status"));
+        assertEquals(1, List.of(GitWorkspaceCollector.STATUS_ARGUMENTS).size());
     }
 
     @Test
@@ -169,6 +219,11 @@ class GitWorkspaceCollectorTest {
             Thread.currentThread().interrupt();
             return false;
         }
+    }
+
+    private static boolean isWindows() {
+        return System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT)
+                .contains("win");
     }
 
     private static void git(Path workingDirectory, String... arguments) throws Exception {

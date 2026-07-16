@@ -648,6 +648,103 @@ class InProcessMessageBusTest {
     }
 
     @Test
+    void refusesAReentrantPublicationWhenThePendingCapacityIsExhausted() {
+        InProcessMessageBus bus = new InProcessMessageBus(
+                RetryPolicy.singleAttempt(), BackpressurePolicy.of(1));
+        DeliveryDestination parent = DeliveryDestination.topic("parent-events");
+        DeliveryDestination child = DeliveryDestination.topic("child-events");
+        MessageEnvelope firstChild =
+                envelope("00000000-0000-0000-0000-00000000000b");
+        MessageEnvelope refusedChild =
+                envelope("00000000-0000-0000-0000-00000000000c");
+        List<DeliveryOutcome> nested = new ArrayList<>();
+        List<String> received = new ArrayList<>();
+
+        bus.subscribe(child, "child-worker", envelope -> received.add(envelope.messageId()));
+        bus.subscribe(parent, "first", envelope -> nested.addAll(bus.publish(child, firstChild)));
+        bus.subscribe(parent, "second", envelope -> nested.addAll(bus.publish(child, refusedChild)));
+
+        List<DeliveryOutcome> outcomes = bus.publish(
+                parent, envelope("00000000-0000-0000-0000-00000000000a"));
+
+        assertEquals(DeliveryStatus.ENQUEUED, nested.get(0).status());
+        assertEquals(DeliveryStatus.BACKPRESSURED, nested.get(1).status());
+        assertEquals(3, outcomes.size(),
+                "the draining caller receives only the admitted parent and child deliveries");
+        assertEquals(List.of("00000000-0000-0000-0000-00000000000b"), received);
+        assertEquals(List.of(parent, child),
+                bus.journal().stream().map(JournaledMessage::destination).toList(),
+                "the refused child must not be journaled");
+        assertTrue(bus.deadLetters().isEmpty());
+
+        DeliveryOutcome retried = bus.publish(child, refusedChild).get(0);
+
+        assertEquals(DeliveryStatus.DELIVERED, retried.status(),
+                "refusal must not consume the idempotency key");
+        assertEquals(
+                List.of(
+                        "00000000-0000-0000-0000-00000000000b",
+                        "00000000-0000-0000-0000-00000000000c"),
+                received);
+    }
+
+    @Test
+    void boundsReplayToTheDeterministicPrefixAndKeepsItsCascadeNonJournaling() {
+        InProcessMessageBus bus = new InProcessMessageBus(
+                RetryPolicy.singleAttempt(), BackpressurePolicy.of(2));
+        DeliveryDestination topic = DeliveryDestination.topic("runtime-events");
+        DeliveryDestination child = DeliveryDestination.topic("child-events");
+        MessageEnvelope caused = envelope("00000000-0000-0000-0000-00000000000d");
+        List<String> received = new ArrayList<>();
+        List<DeliveryOutcome> nested = new ArrayList<>();
+        bus.subscribe(topic, "worker", envelope -> {
+            received.add(envelope.messageId());
+            if (envelope.messageId().endsWith("00a")) {
+                nested.addAll(bus.publish(child, caused));
+            }
+        });
+        bus.subscribe(child, "child-worker", envelope -> received.add(envelope.messageId()));
+
+        List<DeliveryOutcome> outcomes = bus.replay(List.of(
+                new JournaledMessage(
+                        topic, envelope("00000000-0000-0000-0000-00000000000a")),
+                new JournaledMessage(
+                        topic, envelope("00000000-0000-0000-0000-00000000000b")),
+                new JournaledMessage(
+                        topic, envelope("00000000-0000-0000-0000-00000000000c"))));
+
+        assertEquals(DeliveryStatus.ENQUEUED, nested.get(0).status(),
+                "the caused publication fits after the first replay entry starts draining");
+        assertEquals(
+                List.of(
+                        "00000000-0000-0000-0000-00000000000a",
+                        "00000000-0000-0000-0000-00000000000b",
+                        "00000000-0000-0000-0000-00000000000d"),
+                received);
+        assertEquals(4, outcomes.size());
+        assertEquals(DeliveryStatus.BACKPRESSURED, outcomes.get(3).status(),
+                "the replay suffix beyond capacity must be reported as refused");
+        assertEquals("00000000-0000-0000-0000-00000000000c", outcomes.get(3).messageId());
+        assertTrue(bus.journal().isEmpty(),
+                "neither replay entries nor replay-caused publications may grow the journal");
+    }
+
+    @Test
+    void validatesBackpressurePolicyAndScopeLevelOutcome() {
+        assertThrows(IllegalArgumentException.class, () -> BackpressurePolicy.of(0));
+        assertThrows(IllegalArgumentException.class, () -> BackpressurePolicy.of(4097));
+        assertEquals(4096, BackpressurePolicy.standard().maxPendingPublications());
+        assertThrows(NullPointerException.class, () -> new InProcessMessageBus(
+                RetryPolicy.singleAttempt(), null));
+
+        assertTrue(DeliveryStatus.BACKPRESSURED.isScopeLevel());
+        assertThrows(IllegalArgumentException.class, () -> new DeliveryOutcome(
+                DeliveryDestination.topic("runtime-events"), Optional.of("worker"),
+                "00000000-0000-0000-0000-00000000000a", DeliveryStatus.BACKPRESSURED),
+                "a BACKPRESSURED outcome must not carry a subscriberId");
+    }
+
+    @Test
     void classifiesScopeLevelStatusesAndValidatesEnqueuedOutcomes() {
         DeliveryDestination topic = DeliveryDestination.topic("runtime-events");
 

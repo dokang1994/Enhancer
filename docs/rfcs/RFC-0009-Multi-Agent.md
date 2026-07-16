@@ -4,7 +4,7 @@ Status: Accepted
 
 ## Maturity And Sequence
 
-This RFC accepts the target contracts and implementation order. It does not claim that a Multi-Agent runtime exists. Multi-Agent execution remains Planned at Delivery Gate 13. Delivery Gate 6 Workspace and Project Brain Foundation is Integrated; Delivery Gate 7 Event Bus and IPC Foundation is the sole Specified - Next gate, with backpressure next after the verified in-process delivery contracts.
+This RFC accepts the target contracts and implementation order. It does not claim that a Multi-Agent runtime exists. Multi-Agent execution remains Planned at Delivery Gate 13. Delivery Gate 6 Workspace and Project Brain Foundation is Integrated; Delivery Gate 7 Event Bus and IPC Foundation is the sole Specified - Next gate, with in-process delivery and backpressure verified and the transport-neutral IPC interface next.
 
 The dependency path is:
 

@@ -133,6 +133,53 @@ class RunEvidenceGraphProducerTest {
     }
 
     @Test
+    void collapsesDocumentAndTargetObservationsIntoOnePreferredArtifact() {
+        WorkspaceSourceObservation document = observation(
+                "ARCHITECTURE.md",
+                WorkspaceSourceState.AVAILABLE,
+                Optional.of("a".repeat(64)),
+                Optional.empty());
+        WorkspaceSourceObservation target = new WorkspaceSourceObservation(
+                WorkspaceSourceKind.REPOSITORY_FILE,
+                "ARCHITECTURE.md",
+                "target-file-reader",
+                CAPTURED_AT,
+                Optional.empty(),
+                WorkspaceSourceState.AVAILABLE,
+                Optional.of("b".repeat(64)),
+                Optional.empty());
+        WorkspaceSnapshot snapshot = WorkspaceSnapshot.capture(
+                Path.of("."), CAPTURED_AT, TASK_REVISION, List.of(document, target));
+
+        ProjectBrainGraph graph = new RunEvidenceGraphProducer().produce(
+                snapshot, resolvedRecord(TASK_ID), PROJECTED_AT);
+
+        assertEquals(3, graph.nodes().size());
+        GraphNode artifact = nodeById(graph, "ARCHITECTURE.md");
+        assertEquals(Optional.of("b".repeat(64)), artifact.provenance().sourceSha256());
+        assertEquals("ARCHITECTURE.md", artifact.provenance().sourceRef());
+    }
+
+    @Test
+    void preflightRejectsInvalidGraphInputsWithoutAStoredRun() {
+        WorkspaceSnapshot snapshot = WorkspaceSnapshot.capture(
+                Path.of("."),
+                CAPTURED_AT,
+                TASK_REVISION,
+                List.of(observation("ARCHITECTURE.md", WorkspaceSourceState.AVAILABLE,
+                        Optional.of("a".repeat(64)), Optional.empty())));
+        GraphProvenance provenance = new GraphProvenance(
+                "DECISION_LOG.md",
+                Optional.of("d".repeat(64)),
+                GraphElementFreshness.CURRENT);
+        GraphNode duplicate = new GraphNode(TASK_ID, GraphNodeKind.DECISION, provenance);
+
+        assertThrows(IllegalArgumentException.class, () ->
+                new RunEvidenceGraphProducer().preflight(
+                        snapshot, PROJECTED_AT, List.of(duplicate), List.of()));
+    }
+
+    @Test
     void rejectsMissingInputs() {
         WorkspaceSnapshot snapshot = WorkspaceSnapshot.capture(
                 Path.of("."),

@@ -8,7 +8,11 @@
 
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
-- PR #3 is merged; local `main` and `origin/main` both point to merge commit `52987f2`.
+- PR #3 and its review corrections were published through base commit `2585a10` (`fix: harden message replay and workspace observation`); the current delivery bundle adds backpressure plus the four reviewed reliability/security corrections and is authorized for publication after final verification.
+- Current local security work eliminates Git observer command-execution vectors: only a canonical absolute Git executable outside the project may run, the sole command observes filter-free index metadata, and tracked worktree diff is explicitly unavailable pending a proven-safe method.
+- Current local CLI consistency work preflights Project Brain inputs before execution, collapses duplicate document/target artifacts, and prevents post-persist diagnostic failure from changing the durable RunRecord-derived exit code.
+- Current local RunRecord observation work limits Workspace snapshots to 256 recent records while preserving full durable listing and replay; per-run payload reads are bounded and the accumulated-history snapshot wall is removed.
+- Current local filesystem/evidence work verifies both real-path containment guards with passing Windows junction tests and replaces the unused 30-day evidence-retention claim with the actually enforced content-size storage policy; no cleanup behavior was added.
 - Gate 1-3 delivery commit: `3fcda4c` (`feat: integrate governed agent execution foundations`).
 - Pull request #2 has been merged into `main`.
 - Delivery Gates 1 through 3, self-hosting compatibility recovery, long-term vision, and documentation-alignment changes are published on `origin/main`.
@@ -23,10 +27,10 @@
 - The Gate 6 authority-boundary evidence, `TargetFileMetadataCollector`, and `GitWorkspaceCollector` are published on `origin/main` through delivery commit `21e6230` (`feat: complete Gate 6 workspace observation surface`).
 - The Gate 6 maturity assessment, the re-scope-and-promotion, and the Gate 7 `MessageEnvelope` contract are published on `origin/main` through delivery commit `3423201` (`feat: promote Gate 6 and open Gate 7 with the message envelope contract`).
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 114 Java files and 6,496 lines.
-- Test source: 44 Java files and 7,014 lines.
+- Production source: 115 Java files and 6,571 lines.
+- Test source: 44 Java files and 7,111 lines.
 - The Gate 7 in-process delivery surface and its delivery-failure and dead-letter handling are published on `origin/main` through delivery commit `b278c53` (`feat: add Gate 7 in-process delivery with failure isolation and dead-letter`); the unrelated wall-clock test correction is published through `2a69182` (`fix: make RunRecordMetadataCollectorTest time-independent`).
-- PR #3 published the Gate 7 bounded retry/dead-letter re-delivery, cancellation propagation, and run-to-completion ordering increments on `origin/main` through `52987f2`. The replay-cascade correction, Git Workspace authority hardening, and repository-state synchronization are the only current local uncommitted review corrections.
+- PR #3 published bounded retry/dead-letter re-delivery, cancellation, and ordering through `52987f2`; replay-cascade correction followed through `2585a10`. The current delivery bundle contains backpressure, Git observer RCE elimination, CLI durable-outcome isolation, bounded RunRecord observation, Windows junction coverage, and the truthful Evidence storage-policy API.
 
 ## Capability Maturity
 
@@ -39,7 +43,8 @@
 - Delivery Gate 7 bounded synchronous retry and explicit dead-letter re-delivery: an immutable `RetryPolicy` (1-10 attempts; the default bus keeps a single attempt) retries a failing handler immediately with no delay before dead-lettering it, and `redeliver` accepts only a currently recorded dead letter, resolves it on success, and on renewed exhaustion replaces it in place with the accumulated attempt count and latest reason, never appending to the journal or releasing the consumed idempotency key.
 - Delivery Gate 7 cancellation propagation: `cancel(correlationId)` is idempotent and monotonic with no resume, and a cancelled correlation is refused admission before subscription lookup, idempotency, and dispatch on every path — publish, replay, and re-delivery — reporting a scope-level `CANCELLED` outcome that names no subscription, invoking no handler, consuming no idempotency key, creating no dead letter, and appending nothing to the journal; the bus reads no payload to decide delivery, so `ControlSignal.CANCEL` stays a consumer semantic.
 - Delivery Gate 7 run-to-completion delivery ordering: a pending queue and a single drain loop replace nested dispatch, so a publication made from inside a handler is queued and reports the scope-level `ENQUEUED` status while the draining top-level `publish` or `replay` returns the whole ordered cascade; delivery order equals publication order, no subscriber observes an effect before its cause, every publication reaches drain-owned admission, replay-caused cascades inherit non-journaling mode, a correlation cancelled mid-cascade refuses entries queued behind it while an in-flight fan-out stays atomic, and an `Error` abandons the cascade entirely.
-- Backoff or delayed retry, pause/resume, run-scoped or causation-graph cancellation, priority ordering, competing queue consumers, backpressure over the unbounded pending queue, threading, journal persistence, and IPC transport remain outside these verified contracts.
+- Delivery Gate 7 deterministic pending-queue backpressure: immutable `BackpressurePolicy` bounds waiting publications from 1 through 4096 with a finite default; capacity exhaustion reports scope-level `BACKPRESSURED` without blocking, journaling, handler invocation, idempotency consumption, dead-letter creation, or cancellation mutation; accepted work remains FIFO and replay delivers the prefix that fits while reporting the refused suffix without growing the live journal.
+- Backoff or delayed retry, pause/resume, run-scoped or causation-graph cancellation, priority ordering, competing queue consumers, threading, journal persistence, and IPC transport remain outside these verified contracts.
 
 ### Integrated
 
@@ -195,16 +200,16 @@
 - Delivery Gate 4: Integrated.
 - Delivery Gate 5: Operational.
 - Delivery Gate 6: Integrated by the 2026-07-15 re-scope-and-promotion decision; diagnostics, terminal-session, and active/selected-file observation moved to Gate 12.
-- Delivery Gate 7: Specified - Next; its `MessageEnvelope` contract, its `InProcessMessageBus` deterministic topic/queue delivery with idempotency and journal replay, its delivery-failure isolation with dead-letter capture, its bounded synchronous retry with explicit dead-letter re-delivery, its correlation-scoped cancellation propagation, and its run-to-completion delivery ordering are Contract Verified, with no backoff, backpressure, persistence, or IPC transport implementation and no wiring into the CLI or Agent Loop.
+- Delivery Gate 7: Specified - Next; its `MessageEnvelope` contract, deterministic topic/queue delivery with idempotency and journal replay, failure isolation and dead letters, bounded retry and re-delivery, cancellation, run-to-completion ordering, and finite non-blocking pending-queue backpressure are Contract Verified, with no backoff, persistence, IPC transport implementation, or wiring into the CLI or Agent Loop.
 - Gate 6 `WorkspaceSnapshot`, `ProjectBrainView`, graph projection contract, `TaskImpactQuery`, `AcceptedDecisionProjector`, and `RunRecordMetadataCollector` sub-capabilities: Integrated through the fresh promotion audit `gate-6-sub-capability-integration-promotion`, each connected to real upstream and downstream components by named integration evidence.
 - Gate 6 `TaskJustificationProjector` and the `Justified By` reference grammar: Integrated; the first real reference resolved on the actual repository through the production composition.
 - Gate 6 authority boundary: the exit criterion "Workspace observations cannot override repository authority or grant Tool permission" is pinned by `WorkspaceAuthorityBoundaryIntegrationTest`.
 - Gate 6 `TargetFileMetadataCollector`: Integrated on the production CLI path; the run target is observed pre-run with a real containment-checked digest.
-- Gate 6 `GitWorkspaceCollector`: Integrated on the production CLI path under explicitly granted read-only external command authority; Git state is observed at digest granularity with discovery confined to the project root, inherited `GIT_*` overrides removed, and external diff/text-conversion helpers disabled.
+- Gate 6 `GitWorkspaceCollector`: Integrated on the production CLI path; one canonical absolute project-external Git executable may collect filter-free index/untracked/deleted metadata, while tracked-worktree diff is explicitly unavailable because verified comparison paths can execute clean filters.
 - Gate 6 repository-memory path (real governed run -> real Context Reader memory -> collector -> composed view with divergence detection): Integrated through `WorkspaceCollectionIntegrationTest`.
 - Gate 6 run-evidence graph production path (real governed run -> real snapshot -> producer -> impact-query answer naming the real stored execution): Integrated through the extended `WorkspaceCollectionIntegrationTest`.
-- Gate 6 production view composition: Operational for the governed read-only CLI scenario; every recorded `run` composes the view and reports bounded snapshot identity, observation count, and memory freshness.
-- Gate 6 production graph composition: Operational for the governed read-only CLI scenario; every recorded `run` observes prior run records, the run target, and Git state into the snapshot, merges decision nodes and justification edges into the produced graph, and reports bounded graph and impact counts.
+- Gate 6 production view composition: Operational for the governed read-only CLI scenario; each run observes at most 256 recent records and reports bounded snapshot metadata when post-persist reporting is available.
+- Gate 6 production graph composition: Operational for the governed read-only CLI scenario; graph inputs are preflighted before work, duplicate document/target artifacts collapse, and post-persist view/graph/query failure cannot change the durable RunRecord-derived exit code.
 - Enhancer has one Operational read-only scenario; the broader Agent Runtime remains planned.
 - Gate 0 integration audit is verified without a production correction or second orchestrator and does not displace Gate 6.
 
@@ -564,9 +569,26 @@ Recommendation (requires explicit user approval; the gate status is unchanged by
 - Historical verification entries remain unchanged as evidence of their at-the-time state. Exactly one `Status: Specified - Next` remains in `ROADMAP.md`, at Gate 7.
 - Fresh full regression passed 44 suites and 186 tests: 184 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors; Java 17 strict lint and `git diff --check` passed.
 
+## Gate 7 Pending-Queue Backpressure Verification
+
+- Test-first RED: focused compilation failed with exactly 10 expected errors naming only the intentionally absent `BackpressurePolicy`, `DeliveryStatus.BACKPRESSURED`, and combined bus constructor; production compilation passed and no error came from another module.
+- The minimum implementation adds a 1-4096 immutable pending-publication policy with a finite default, typed non-blocking refusal before admission, preserved FIFO for accepted work, retryability after refusal, and deterministic bounded replay without live journaling.
+- Focused GREEN passed 30 `InProcessMessageBusTest` tests and 4 `MessageEnvelopeTest` tests with no skips, failures, or errors.
+- Fresh full regression passed 44 suites and 189 tests: 187 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors; Java 17 production compilation of all 115 sources passed with `-Xlint:all -Werror`.
+- The result promotes pending-queue backpressure to Contract Verified. Gate 7 remains `Specified - Next` because the IPC interface, adapters, persistence, and production wiring do not exist.
+
+## Combined Reliability And Security Verification
+
+- Git observer focused and Workspace regressions passed after adversarial required-clean-filter tests eliminated porcelain and worktree comparison paths.
+- CLI/Brain regressions passed required-document targets, zero-record preflight rejection, and injected post-persist reporting failure with durable completed exit semantics.
+- RunRecord/Workspace/CLI regressions passed a 259-record fixture with a 256-record observation window and no deletion.
+- Windows junction cases executed for both governed reads and required context and passed; only the two privilege-dependent symbolic-link setup cases remain skipped.
+- Fresh full regression passed 44 suites and 200 tests: 198 passed, 2 skipped, 0 failures, and 0 errors.
+- Java 17 production lint passed `-Xlint:all -Werror` across 115 sources; forbidden legacy API/unsafe current-command searches and `git diff --check` passed.
+
 ## Next Task
 
-Activate Gate 7 backpressure over the explicit pending queue as a separate task. Preserve the corrected replay, cancellation-admission, ordering, retry, and authority contracts; defer IPC to a later increment.
+Activate the Gate 7 transport-neutral IPC interface as a separate task. Preserve the existing envelope, authority, replay, cancellation, ordering, backpressure, and failure contracts; defer concrete local-process or remote adapters, persistence, threading, and production wiring.
 
 ## Session Recovery
 

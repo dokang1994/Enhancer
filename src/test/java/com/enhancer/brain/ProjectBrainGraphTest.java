@@ -207,4 +207,13 @@ class ProjectBrainGraphTest {
     private GraphEdge edge(GraphNode from, GraphEdgeKind kind, GraphNode to) {
         return new GraphEdge(from.nodeId(), kind, to.nodeId(), CURRENT_PROVENANCE);
     }
+
+    @Test
+    void alignsNodeIdentityBoundWithWorkspaceSourceIdentifiers() {
+        GraphProvenance provenance = CURRENT_PROVENANCE;
+
+        new GraphNode("n".repeat(1024), GraphNodeKind.ARTIFACT, provenance);
+        assertThrows(IllegalArgumentException.class, () ->
+                new GraphNode("n".repeat(1025), GraphNodeKind.ARTIFACT, provenance));
+    }
 }

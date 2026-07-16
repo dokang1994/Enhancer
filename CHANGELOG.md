@@ -1,5 +1,38 @@
 # Changelog
 
+## 2026-07-16 - Verify Windows Real-Path Boundaries And Correct Evidence Policy
+
+- Added Windows junction regressions that execute successfully on this host and prove both `ReadFileTool` and `ProjectContextReader` reject real paths escaping the project root.
+- Replaced the unused `EvidenceRetentionPolicy`/30-day field with `EvidenceStoragePolicy`, which exposes only the enforced per-artifact content bound.
+- Added no evidence deletion or expiry and passed focused plus Tool/Context/Verification/Loop regressions; the two privilege-dependent symbolic-link tests remain skipped while junction coverage passes.
+- Completed the combined delivery cross-regression at 44 suites/200 tests (198 passed, 2 existing symlink skips), with both junction cases executed and Java 17 strict lint passing across 115 production sources.
+
+## 2026-07-16 - Bound Workspace RunRecord Observation
+
+- Added deterministic newest-first `recentReferences(limit)` while retaining complete reference listing and point replay.
+- Limited Workspace collection to 256 recent records, capping full payload resolution and preventing accumulated history from exhausting the 4096-observation snapshot bound.
+- Verified newest selection, invalid limits, old-record exclusion, new-record inclusion, no deletion, and RunRecord/Workspace/CLI package regressions.
+
+## 2026-07-16 - Preserve Durable CLI Outcomes Across Brain Reporting
+
+- Preflighted decision, justification, artifact, and graph bounds before evidence creation and Tool execution.
+- Collapsed required-document target duplicates into one target-preferred artifact and aligned graph/source identifier bounds at 1024 characters.
+- Made post-persist Project Brain reporting degradable with explicit bounded status while preserving the RunRecord-derived exit code.
+- Verified required-document targets, pre-persist malformed-decision rejection, and injected post-persist reporting failure across focused CLI and Brain regressions.
+
+## 2026-07-16 - Eliminate Git Observer Command Execution Vectors
+
+- Replaced unqualified Git lookup with canonical absolute PATH resolution that rejects project-contained executables.
+- Reduced Git observation to filter-free index/untracked/deleted metadata and made tracked worktree diff explicitly unavailable after adversarial tests proved status, modified-file, and raw-diff paths can execute required clean filters.
+- Verified the focused 8-test collector suite and the complete Workspace package with no failures.
+
+## 2026-07-16 - Bound Gate 7 Pending Publications
+
+- Added immutable `BackpressurePolicy` with a finite 1-4096 pending-publication capacity and preserved the existing bus constructors through a finite default.
+- Added scope-level `BACKPRESSURED` refusal without blocking or journal, handler, idempotency, dead-letter, or cancellation side effects; refused work remains explicitly retryable.
+- Applied deterministic prefix admission to replay while keeping replay cascades non-journaling.
+- Verified test-first with 34 focused bus tests, the 189-test full regression, and Java 17 strict lint over all 115 production sources.
+
 ## 2026-07-16 - Synchronize PR #3 And Current Repository State
 
 - Verified local `main` and `origin/main` already match PR #3 merge commit `52987f2`; no checkout or pull was necessary.

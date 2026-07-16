@@ -7,7 +7,9 @@ import com.enhancer.workspace.WorkspaceSourceKind;
 import com.enhancer.workspace.WorkspaceSourceObservation;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -18,6 +20,7 @@ import java.util.Optional;
  * that no evidence justifies are never emitted.
  */
 public final class RunEvidenceGraphProducer {
+    private static final String PREFLIGHT_DIGEST = "0".repeat(64);
 
     public ProjectBrainGraph produce(
             WorkspaceSnapshot snapshot,
@@ -48,28 +51,7 @@ public final class RunEvidenceGraphProducer {
         requireSameApprovedTask(snapshot.approvedTaskRevision(), run);
 
         ApprovedTaskRevision revision = snapshot.approvedTaskRevision();
-        List<GraphNode> nodes = new ArrayList<>();
-        nodes.add(new GraphNode(
-                revision.taskId(),
-                GraphNodeKind.TASK,
-                new GraphProvenance(
-                        revision.sourceDocument(),
-                        Optional.of(revision.sourceSha256()),
-                        GraphElementFreshness.CURRENT)));
-
-        for (WorkspaceSourceObservation observation : snapshot.observations()) {
-            if (observation.kind() != WorkspaceSourceKind.REPOSITORY_DOCUMENT
-                    && observation.kind() != WorkspaceSourceKind.REPOSITORY_FILE) {
-                continue;
-            }
-            nodes.add(new GraphNode(
-                    observation.sourceId(),
-                    GraphNodeKind.ARTIFACT,
-                    new GraphProvenance(
-                            observation.sourceId(),
-                            observation.contentSha256(),
-                            freshness(observation))));
-        }
+        List<GraphNode> nodes = baseNodes(snapshot);
 
         String reference = run.metadata().reference();
         GraphProvenance executionProvenance = new GraphProvenance(
@@ -92,6 +74,78 @@ public final class RunEvidenceGraphProducer {
                 projectedAt,
                 nodes,
                 edges);
+    }
+
+    public void preflight(
+            WorkspaceSnapshot snapshot,
+            Instant projectedAt,
+            List<GraphNode> additionalNodes,
+            List<GraphEdge> additionalEdges) {
+        Objects.requireNonNull(snapshot, "snapshot must not be null");
+        Objects.requireNonNull(projectedAt, "projectedAt must not be null");
+        Objects.requireNonNull(additionalNodes, "additionalNodes must not be null");
+        Objects.requireNonNull(additionalEdges, "additionalEdges must not be null");
+        ApprovedTaskRevision revision = snapshot.approvedTaskRevision();
+        List<GraphNode> nodes = baseNodes(snapshot);
+        nodes.addAll(additionalNodes);
+        String executionId = uniquePreflightExecutionId(nodes);
+        GraphProvenance executionProvenance = new GraphProvenance(
+                executionId,
+                Optional.of(PREFLIGHT_DIGEST),
+                GraphElementFreshness.CURRENT);
+        nodes.add(new GraphNode(executionId, GraphNodeKind.EXECUTION, executionProvenance));
+        List<GraphEdge> edges = new ArrayList<>(additionalEdges.size() + 1);
+        edges.add(new GraphEdge(
+                revision.taskId(),
+                GraphEdgeKind.RECORDED_AS,
+                executionId,
+                executionProvenance));
+        edges.addAll(additionalEdges);
+        ProjectBrainGraph.project(snapshot.snapshotId(), projectedAt, nodes, edges);
+    }
+
+    private static List<GraphNode> baseNodes(WorkspaceSnapshot snapshot) {
+        ApprovedTaskRevision revision = snapshot.approvedTaskRevision();
+        List<GraphNode> nodes = new ArrayList<>();
+        nodes.add(new GraphNode(
+                revision.taskId(),
+                GraphNodeKind.TASK,
+                new GraphProvenance(
+                        revision.sourceDocument(),
+                        Optional.of(revision.sourceSha256()),
+                        GraphElementFreshness.CURRENT)));
+        Map<String, WorkspaceSourceObservation> artifacts = new LinkedHashMap<>();
+        for (WorkspaceSourceObservation observation : snapshot.observations()) {
+            if (observation.kind() == WorkspaceSourceKind.REPOSITORY_DOCUMENT) {
+                artifacts.putIfAbsent(observation.sourceId(), observation);
+            } else if (observation.kind() == WorkspaceSourceKind.REPOSITORY_FILE) {
+                artifacts.put(observation.sourceId(), observation);
+            }
+        }
+        for (WorkspaceSourceObservation observation : artifacts.values()) {
+            nodes.add(new GraphNode(
+                    observation.sourceId(),
+                    GraphNodeKind.ARTIFACT,
+                    new GraphProvenance(
+                            observation.sourceId(),
+                            observation.contentSha256(),
+                            freshness(observation))));
+        }
+        return nodes;
+    }
+
+    private static String uniquePreflightExecutionId(List<GraphNode> nodes) {
+        String prefix = "run-record/preflight";
+        String candidate = prefix;
+        int suffix = 1;
+        while (containsNode(nodes, candidate)) {
+            candidate = prefix + "-" + suffix++;
+        }
+        return candidate;
+    }
+
+    private static boolean containsNode(List<GraphNode> nodes, String nodeId) {
+        return nodes.stream().anyMatch(node -> node.nodeId().equals(nodeId));
     }
 
     private static GraphElementFreshness freshness(WorkspaceSourceObservation observation) {

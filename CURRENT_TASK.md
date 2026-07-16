@@ -6,60 +6,64 @@ Completed
 
 ## Task
 
-Synchronize canonical repository-state documents and compact guidance with the actual PR #3 publication state and the two completed project-review corrections, without changing product behavior or gate authority.
+Verify filesystem escape rejection with Windows junctions and align the Evidence policy API with its actually enforced storage behavior.
 
 ## Task ID
 
-repository-state-synchronization
+security-junction-and-evidence-storage-contract
+
+## Justified By
+
+- 2026-07-16: Verify Real-Path Boundaries With Junctions And Remove Fictional Evidence Retention
 
 ## Context
 
-`main` and `origin/main` both point at PR #3 merge commit `52987f2`, but current handoff text still describes its three Gate 7 increments as uncommitted and names `e74be87` as the published tip. Compact architecture, roadmap, and multi-agent guides also describe earlier Gate 6 or initial Gate 7 states. The Gate 7 replay-cascade correction and Git Workspace authority hardening are local verified changes that must be distinguished from the already-published PR #3 work.
+The two `toRealPath()` escape tests are skipped on this Windows host because they require symbolic-link privilege, and the Evidence policy exposes a 30-day retention period that production never reads or enforces.
 
 ## Acceptance Criteria
 
-- Record `main = origin/main = 52987f2` and PR #3 as the published baseline.
-- Remove current-state claims that retry, cancellation, and ordering remain uncommitted.
-- Describe only the replay-cascade correction, Git authority hardening, and document synchronization as local uncommitted work.
-- Align canonical and compact architecture, roadmap, multi-agent, project-state, changelog, and handoff summaries with Gate 6 Integrated and Gate 7 Specified - Next.
-- Preserve historical verification entries as historical evidence rather than rewriting their at-the-time state.
-- Keep Gate 7 backpressure as the next separately activated increment; do not implement it here.
-- Run full regression, Java 17 strict lint, document consistency checks, and `git diff --check` before completion.
+- Add Windows directory-junction escape tests for `ReadFileTool` and `ProjectContextReader` that must execute on Windows.
+- Preserve the production real-path containment guards and prove both reject an outside junction target.
+- Replace the unused retention-period policy with a truthful max-content storage policy across production and tests.
+- Remove the CLI's fictional 30-day retention claim.
+- Add no evidence deletion, expiry, migration, replay change, or new cleanup authority.
 
 ## Out Of Scope
 
-- Product-code behavior changes
-- New accepted decisions or constitutional changes
-- Gate 7 backpressure, persistence, threading, IPC, or production wiring
-- Git checkout, pull, commit, push, PR, merge, release, or deployment
+- Evidence deletion/expiry, aggregate quotas, cleanup scheduling, or migration
+- RunRecord retention, graph persistence, or filesystem permission redesign
+- Commit, push, PR, merge, release, or deployment
 
 ## Approval
 
-Approved by the user's request to resolve the first three review findings and the follow-up request to verify the stale PR #3 publication statement.
+Approved by the user's 2026-07-16 request for Windows junction verification and retention-contract cleanup.
 
 ## Verification Plan
 
-- Compare local branch and remote-tracking refs with the current handoff claims.
-- Search current-state documents for superseded Gate 6-next, initial-Gate-7-next, `e74be87`, and uncommitted-PR-#3 claims.
+- Add focused junction tests and a storage-policy contract test with no retention-period accessor.
+- Confirm RED against the absent junction coverage and old policy API.
+- Rename and narrow the policy without changing stored evidence behavior.
+- Run focused context/tool/evidence tests and inspect fresh XML.
 - Run the complete Gradle suite with `--warning-mode all` and inspect fresh XML.
 - Run Java 17 production compilation with `-Xlint:all -Werror`.
-- Confirm exactly one `Specified - Next` gate, review the complete diff, and run `git diff --check`.
+- Synchronize architecture, project state, changelog, and handoff, then review the complete diff and run `git diff --check`.
 
 ## Implementation
 
-- Verified that local `main` and `origin/main` already match PR #3 merge commit `52987f2`; no checkout or pull was necessary.
-- Corrected current repository-state and handoff claims so retry, cancellation, and ordering are recorded as published, while only the two code corrections and synchronized documents remain local and uncommitted.
-- Updated canonical and compact architecture, roadmap, multi-agent, README, Project State, Changelog, and Session Handoff summaries to Gate 6 Integrated, Gate 7 Specified - Next, current delivery semantics, hardened Git observation, and backpressure next.
-- Preserved historical evidence sections and added no decision, authority, product behavior, commit, or external state change.
+- Added Windows directory-junction escape tests for governed file reads and required project documents; both execute rather than skip on Windows.
+- Preserved and verified both production `toRealPath()` containment guards.
+- Replaced `EvidenceRetentionPolicy` with `EvidenceStoragePolicy(maxContentBytes)` and renamed the store accessor accordingly.
+- Removed the CLI's unused 30-day duration and changed no stored envelope, replay, expiry, or deletion behavior.
 
 ## Verification
 
-- Superseded current-state searches found no remaining `e74be87`, PR #3 uncommitted, Gate 6-next, initial-Gate-7-next, or absent-Project-Brain claims.
-- `ROADMAP.md` retains exactly one `Status: Specified - Next`, at Delivery Gate 7.
-- Fresh full regression passed 44 suites and 186 tests: 184 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors.
-- Java 17 production compilation passed `-Xlint:all -Werror` across all 114 sources.
-- `git diff --check` passed.
+- Focused RED produced five expected missing `EvidenceStoragePolicy` errors.
+- Focused GREEN passed the storage policy/store and both boundary suites; XML confirms both junction tests executed and the two existing privilege-dependent symbolic-link cases alone were skipped.
+- Expanded Tool, Context, Verification, and Loop regression passed 78 tests with 2 existing symbolic-link skips, 0 failures, and 0 errors after correcting a fixed-name junction fixture collision exposed by the first expanded run.
+- Fresh whole-project regression passed 44 suites and 200 tests: 198 passed, 2 existing symbolic-link skips, 0 failures, and 0 errors; both Windows junction cases executed.
+- Java 17 production compilation passed `-Xlint:all -Werror` across all 115 sources.
+- Forbidden legacy-policy/unsafe-current-command searches and `git diff --check` passed before delivery.
 
 ## Next
 
-Activate Gate 7 backpressure over the explicit pending queue as a separate task. IPC remains a later increment.
+After this authorized delivery is published, activate the Gate 7 transport-neutral IPC interface only as a separate task.

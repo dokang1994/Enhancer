@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -145,6 +146,59 @@ public final class FileSystemRunRecordStore implements RunRecordStore {
         }
         references.sort(Comparator.naturalOrder());
         return List.copyOf(references);
+    }
+
+    @Override
+    public List<String> recentReferences(int limit) throws IOException {
+        if (limit < 1 || limit > RunRecordStore.MAX_REFERENCE_WINDOW) {
+            throw new IllegalArgumentException(
+                    "limit must be between 1 and " + RunRecordStore.MAX_REFERENCE_WINDOW);
+        }
+        if (!Files.isDirectory(storageRoot, LinkOption.NOFOLLOW_LINKS)) {
+            return List.of();
+        }
+        Comparator<RecordFile> oldestFirst = Comparator
+                .comparingLong(RecordFile::modifiedMillis)
+                .thenComparing(RecordFile::reference, Comparator.reverseOrder());
+        PriorityQueue<RecordFile> recent = new PriorityQueue<>(limit, oldestFirst);
+        try (DirectoryStream<Path> entries = Files.newDirectoryStream(storageRoot)) {
+            for (Path entry : entries) {
+                Optional<String> reference = referenceFor(entry);
+                if (reference.isEmpty()) {
+                    continue;
+                }
+                RecordFile candidate = new RecordFile(
+                        reference.orElseThrow(),
+                        Files.getLastModifiedTime(entry, LinkOption.NOFOLLOW_LINKS).toMillis());
+                recent.add(candidate);
+                if (recent.size() > limit) {
+                    recent.remove();
+                }
+            }
+        }
+        Comparator<RecordFile> newestFirst = Comparator
+                .comparingLong(RecordFile::modifiedMillis)
+                .reversed()
+                .thenComparing(RecordFile::reference);
+        return recent.stream()
+                .sorted(newestFirst)
+                .map(RecordFile::reference)
+                .toList();
+    }
+
+    private Optional<String> referenceFor(Path entry) {
+        String fileName = entry.getFileName().toString();
+        if (!fileName.endsWith(FILE_SUFFIX)
+                || !Files.isRegularFile(entry, LinkOption.NOFOLLOW_LINKS)) {
+            return Optional.empty();
+        }
+        String recordId = fileName.substring(0, fileName.length() - FILE_SUFFIX.length());
+        try {
+            StoredRunRecord.requireCanonicalUuid(recordId);
+            return Optional.of(REFERENCE_PREFIX + recordId);
+        } catch (IllegalArgumentException exception) {
+            return Optional.empty();
+        }
     }
 
     @Override
@@ -522,5 +576,8 @@ public final class FileSystemRunRecordStore implements RunRecordStore {
         return new CorruptedRunRecordException(
                 "corrupted RunRecord " + reference + ": " + reason,
                 cause);
+    }
+
+    private record RecordFile(String reference, long modifiedMillis) {
     }
 }
