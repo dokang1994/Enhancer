@@ -6,51 +6,52 @@ Completed
 
 ## Task
 
-Define the Gate 8 durable queue terminal-disposition contract so execution acknowledgement stays distinct from verified completion, failed work never satisfies dependencies, and later ResultPayload integration has an unambiguous recoverable target.
+Add one durable, idempotent finalizer that connects a resolved RunRecord to the terminal AgentRun/Goal state and the matching Scheduler queue disposition in a recoverable order, so the verified outcome drives both stores without divergence and recovery idempotently finishes the missing suffix after an interruption.
 
 ## Task ID
 
-gate-8-durable-queue-terminal-disposition
+gate-8-result-path-finalization
 
 ## Justified By
 
-- 2026-07-17: Record Durable Queue Terminal Disposition Distinguishing Verified Completion From Failure
+- 2026-07-17: Record RunRecord-Backed Result-Path Finalization Connecting Verified Outcome To Runtime Terminal State And Queue Disposition
 
 ## Context
 
-The Scheduler queue recorded only `completedWorkItemIds`, a success-only set that both marked a work item finished and satisfied its dependents. It could not represent failure, so any item leaving the active slot was forced into the dependency-satisfaction set. The runtime already distinguishes `COMPLETED` from `FAILED`; the queue needed the same terminal distinction before result and RunRecord wiring can record an unambiguous disposition.
+Gate 8 held three separate durable facts with nothing connecting them: fence-checked execution acknowledgement (`EXECUTING -> AWAITING_VERIFICATION`), a durable Goal/AgentRun terminal transition (`DurableAgentRuntime.recordResult`), and a durable queue terminal disposition (`completeActiveVerified`/`failActive`). After a worker acknowledged execution, no component took the independently verified outcome, moved the AgentRun/Goal to its terminal state, and recorded the matching queue disposition, and no recovery finished that sequence after a crash.
 
 ## Acceptance Criteria
 
-- Add a terminal `WorkItemDisposition` enum where only verified completion satisfies dependencies.
-- Add a separate `failedWorkItemIds` set to schema-v1 `SchedulerQueueState`; extend the partition invariant to `pending + active + verified + failed = admissionOrder` with verified and failed disjoint.
-- Split the queue's single completion into `completeActiveVerified` and `failActive` across the in-memory queue, the durable persist-before-exposure wrapper, and the filesystem store.
-- Failed work never enters the dependency-satisfaction set, so its dependents stay blocked; the queue stores disposition only, not a failure reason.
-- Persist the failed disposition in the schema-v1 on-disk format revised in place (no version bump) with exact restart recovery; a persisted terminal disposition is never re-run.
-- Record the accepted decision, including the local-artifact fail-closed compatibility boundary.
+- Add `DurableAgentRunFinalizer` under `com.enhancer.runtime`, composing the durable queue, `AgentRuntimeStateStore`, and `RunRecordStore` with no new store and no schema change.
+- Drive the recoverable order resolve RunRecord -> runtime terminal (`recordResult`) -> queue disposition, each step guarded by observed store state.
+- Derive the queue disposition from the runtime terminal status (`COMPLETED -> completeActiveVerified`, `FAILED -> failActive`), never re-derived from the RunRecord, so the runtime and queue cannot diverge.
+- Resolve the RunRecord by reference as an input; never persist it in the finalizer. Bind it to the Goal on `approvedTask.taskId()` and `sourceDocument()` and reject a mismatch.
+- Provide `finalizeAgentRun(goalId, agentRunId, runRecordReference)` for the forward path and `recoverFinalization(goalId)` for autonomous post-terminal recovery that applies only the queue disposition with no reference.
+- Fail closed on a missing/corrupt RunRecord (run stays `AWAITING_VERIFICATION`, recoverable); reject re-finalize with a different reference and finalize before execution acknowledgement.
+- A verified outcome completes the runtime and releases dependents; a failed outcome fails the runtime and leaves dependents blocked.
 
 ## Out Of Scope
 
-- `ResultPayload`/RunRecord result delivery and terminal runtime persistence wiring.
-- Dispatcher-driven disposition recording from a terminal AgentRun.
-- Retry, automatic failure propagation to dependents, and a non-terminal awaiting-verification queue state.
-- Workers, effect fencing, external effects, multi-process coordination, and capability maturity promotion beyond Contract Verified.
+- The Scheduler worker / Tool execution and the production of the RunRecord (connection 3).
+- `completeExecution` (`EXECUTING -> AWAITING_VERIFICATION`), which already exists and is driven by the future worker.
+- Retry through additional AgentRuns, automatic failure propagation to dependents, external-effect ledger, controls, and multi-agent handoff.
+- Any new durable store, schema change, or capability-maturity promotion beyond Contract Verified.
 - Commit, push, PR, merge, release, or deployment without a new explicit user request.
 
 ## Approval
 
-Approved by the user's 2026-07-17 request to continue the project on the roadmap's next increment (terminal queue disposition), confirmed against ROADMAP.md connection backlog item 1.
+Approved by the user's 2026-07-17 request to continue the project on the roadmap's next increment (RunRecord-backed result finalization), confirmed against ROADMAP.md connection backlog item 2.
 
 ## Verification
 
-- Task 1 RED: `WorkItemDispositionTest` failed to compile with the missing enum; GREEN passed after adding the enum.
-- Task 2 RED: `SchedulerQueueStateTest` failed on constructor arity; GREEN passed after adding the failed set, partition disjointness, and accessor.
-- Task 3 RED: `SingleWorkerSchedulerQueueTest` failed on missing `completeActiveVerified`/`failActive`/`failedWorkItemIds`/`dispositionOf`; GREEN passed after the split and rename cascade.
-- Task 4 RED: `FileSystemSchedulerQueueStoreIntegrationTest.roundTripsFailedDispositionAcrossStoreInstances` failed behaviorally (failed set dropped); GREEN passed after serializing the set.
-- Task 5 RED: `DurableSingleWorkerSchedulerQueueTest` failed on missing durable `failActive`; GREEN passed with persist-before-exposure and recovery, plus a real filesystem failed round-trip.
-- Full regression passed 59 suites and 261 tests: 259 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors under `--warning-mode all`; Java 17 strict lint passed across 150 production sources.
-- `completedWorkItemIds` semantics, existing queue/runtime behavior, and every other contract are unchanged; only the queue gains the failed disposition.
+- Task 1 RED: `DurableAgentRunFinalizerTest` failed to compile with the missing `DurableAgentRunFinalizer` and nothing else; GREEN passed the verified and failed forward-path scenarios after implementing the finalizer.
+- During GREEN the forward path exposed the durable queue's recovery-requeue contract: a freshly recovered queue holds no active work, so the finalizer re-claims the requeued WorkItem before recording the disposition; this is the same claim-then-dispose pattern the queue's own recovery already mandates.
+- Task 2 RED: the class failed to compile with the missing `recoverFinalization`; GREEN passed autonomous post-terminal recovery (disposition applied with no reference) and idempotent re-finalize.
+- Task 3: the fail-closed, task/document-binding, different-reference, and finalize-before-acknowledgement guards implemented in Task 1 were pinned and passed on first run.
+- Focused suite: 8 of 8 `DurableAgentRunFinalizerTest` cases passed with no skips, failures, or errors.
+- Full regression passed 60 suites and 269 tests: 267 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors under `--warning-mode all`; Java 17 strict lint passed across 151 production sources.
+- Structural: exactly one `Status: Specified - Next` gate marker (Gate 8) in `ROADMAP.md`; `git diff --check` reported no whitespace errors.
 
 ## Next
 
-Integrate the RunRecord-backed result path (connection 2): durable RunRecord resolution, a matching `ResultPayload`, persisted AgentRun/Goal terminal state, then the matching queue disposition, with idempotent-suffix recovery closing the at-least-once requeue window.
+Integrate the process-isolated Scheduler worker and a selected local IPC adapter (connection 3): the worker executes the Tool, produces the RunRecord, and drives `finalizeAgentRun`, while durably retaining the `runRecordReference` across the pre-terminal recovery window. Transport acceptance never means bus delivery or work completion.

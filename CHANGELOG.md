@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-07-17 - Add RunRecord-Backed Result-Path Finalization
+
+- Added `DurableAgentRunFinalizer` under `com.enhancer.runtime`, one durable idempotent coordinator over the durable queue, `AgentRuntimeStateStore`, and `RunRecordStore` with no new store or schema change.
+- Drove the recoverable order resolve RunRecord -> runtime terminal (`recordResult`) -> queue disposition, deriving the disposition from the runtime terminal status (`COMPLETED -> completeActiveVerified`, `FAILED -> failActive`) so the two stores cannot diverge.
+- Resolved (never persisted) the RunRecord by reference, bound it to the Goal on `taskId` plus `sourceDocument`, and carried the RunRecord's `verificationStatus` in a deterministic `ResultPayload` envelope keyed to the AgentRun identity.
+- Added two entry points: `finalizeAgentRun(goalId, agentRunId, runRecordReference)` for the forward path and `recoverFinalization(goalId)` for autonomous post-terminal recovery that applies only the queue disposition and needs no reference.
+- Honoured the durable queue's recovery contract by re-claiming a requeued active WorkItem before recording its terminal disposition; a disposition already in the completed/failed set is a no-op.
+- Failed closed on a missing/corrupt RunRecord (run stays `AWAITING_VERIFICATION`, recoverable), rejected a RunRecord bound to a different task, rejected re-finalize with a different reference, and rejected finalize before execution acknowledgement.
+- Proved each behaviour test-first (missing `DurableAgentRunFinalizer`, then missing `recoverFinalization`) and passed the full 60-suite/269-test regression (267 passed, 2 existing Windows symbolic-link skips, 0 failures, 0 errors) with Java 17 strict lint across 151 production sources.
+- Left the Scheduler worker/Tool execution and RunRecord production (connection 3), retry through additional AgentRuns, and automatic failure propagation to dependents as future connections.
+
 ## 2026-07-17 - Add Durable Queue Terminal Disposition
 
 - Added the terminal `WorkItemDisposition` enum (`VERIFIED_COMPLETED`, `FAILED`) where only verified completion satisfies dependencies.
