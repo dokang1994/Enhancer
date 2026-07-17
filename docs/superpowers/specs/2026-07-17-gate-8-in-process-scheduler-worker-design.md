@@ -142,15 +142,22 @@ Optional<WorkItemDisposition> runOneCycle(Duration leaseDuration):
     return driveFreshOrResumedExecution(goalId, agentRunId, ref=empty, leaseDuration)
 
 resume(pending, leaseDuration):
-    run = runtime.recover(pending.goalId).agentRun()
-    if run is terminal:
+    try:
+        runtime = DurableAgentRuntime.recover(pending.goalId, runtimeStore, clock)
+    catch MissingAgentRuntimeStateException:
+        // intent was recorded but the cycle stopped before the dispatcher created
+        // the runtime (or the queue was empty): re-drive with the SAME ids
+        return driveFreshOrResumedExecution(pending.goalId, pending.agentRunId,
+                                            pending.runRecordReference, leaseDuration)
+    run = runtime.agentRun()                           // Optional — may be empty
+    if run.isPresent() and run is terminal:
         d = finalizer.recoverFinalization(pending.goalId).orElseThrow()
         checkpoint.clear(); return Optional.of(d)
-    if run is AWAITING_VERIFICATION:                   // ref is always present here
+    if run.isPresent() and run is AWAITING_VERIFICATION:   // ref is always present here
         d = finalizer.finalizeAgentRun(pending.goalId, pending.agentRunId,
                                        pending.runRecordReference.orElseThrow())
         checkpoint.clear(); return Optional.of(d)
-    // EXECUTING / READY / PLANNING / no runtime yet: re-drive with the SAME ids
+    // EXECUTING / READY / PLANNING / no AgentRun yet: re-drive with the SAME ids
     return driveFreshOrResumedExecution(
         pending.goalId, pending.agentRunId, pending.runRecordReference, leaseDuration)
 
@@ -188,6 +195,24 @@ and stores already guarantee this). Recovery finishes the interrupted suffix fro
 | `EXECUTING`/`READY`/`PLANNING`/none | present | resume lease via `claimAndLease` (same ids); `completeExecution`; `finalizeAgentRun(ref)` — **skip re-execution**; clear |
 | `EXECUTING`/`READY`/`PLANNING`/none | absent | resume via `claimAndLease` (same ids); execute; set `ref`; `completeExecution`; `finalizeAgentRun`; clear |
 
+"None" covers two distinct durable states, and `resume` must route both to the
+re-drive rows without dying:
+
+- **No runtime state at all** — the cycle stopped after `checkpoint.record` but
+  before the dispatcher's `recoverOrCreate` persisted the Goal (or the queue was
+  empty and the crash hit before `checkpoint.clear`). `DurableAgentRuntime.recover`
+  resolves through the store and **throws the checked
+  `MissingAgentRuntimeStateException`** here; `resume` catches exactly that and
+  falls through to `driveFreshOrResumedExecution` with the same ids — the same
+  pattern the dispatcher's own `recoverOrCreate` uses.
+- **Runtime exists but no AgentRun yet** — `create` persisted the initial state
+  and the crash hit before `beginAgentRun`; `recover` succeeds but `agentRun()`
+  is empty, which the empty-`Optional` guard routes to the re-drive rows.
+
+An intent left behind by an empty-queue crash converges cleanly: the re-drive's
+`claimAndLease` finds no claimable work, the intent is cleared, and the cycle
+returns empty with no durable residue in any store.
+
 Because the intent stores the worker's stable ids, `claimAndLease` on recovery
 supplies the same Goal/AgentRun and the dispatcher's idempotent `recoverMatching`
 resumes the exact prefix — no second Goal, no orphaned runtime state. Writing `ref`
@@ -203,7 +228,10 @@ recoverable prefix.
   cycle that claimed nothing leaves no durable trace.
 - **Execution port throws:** the intent remains (`ref` absent), `completeExecution`
   is never called, the runtime stays `EXECUTING`; the next cycle resumes with the
-  same ids and re-executes after lease expiry. Fail closed; no disposition.
+  same ids and re-executes. Because the worker's `ownerId` is stable, the
+  dispatcher's `EXECUTING` branch hands the unexpired lease straight back to the
+  same owner — no expiry wait; only a different owner would have to wait for the
+  lease to expire. Fail closed; no disposition.
 - **Finalizer fail-closed** (missing/corrupt RunRecord): propagate; the intent
   remains so recovery retries; the run stays `AWAITING_VERIFICATION`.
 - **`completeExecution` fence/owner mismatch:** propagate; the durable wrappers
@@ -228,6 +256,14 @@ recoverable prefix.
   - crash after intent, before/at `EXECUTING` with `ref` absent: fresh worker
     re-drives with the same ids, and exactly one Goal/AgentRun exists in the runtime
     store (no orphan) — pins the caller-owned stable-identity resume;
+  - crash after intent, **before the runtime state is created** (intent present,
+    runtime store empty): fresh worker re-drives with the same ids without
+    surfacing `MissingAgentRuntimeStateException`, exactly one Goal/AgentRun
+    exists afterwards, and the cycle completes — pins the missing-runtime resume
+    branch;
+  - crash after intent **with an empty queue** (intent present, no work, no
+    runtime): fresh worker's `runOneCycle` returns empty, clears the intent, and
+    leaves no durable residue in any store;
   - execution port throws → intent remains, runtime not terminal, queue still
     claimable on recovery, no disposition recorded.
 - **`FileSystemAgentRunWorkerIntegrationTest`**: real `FileSystemSchedulerQueueStore`,
