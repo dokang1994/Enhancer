@@ -1,5 +1,8 @@
 # Session Handoff
 
+- Gate 8 durable queue terminal disposition is now Contract Verified: a terminal `WorkItemDisposition` (`VERIFIED_COMPLETED`/`FAILED`) splits the queue's single completion into `completeActiveVerified` and `failActive` across the in-memory queue, durable wrapper, and filesystem store. Only verified completion enters `completedWorkItemIds`; failed work enters a disjoint `failedWorkItemIds` set and never satisfies dependents, so its dependents stay blocked with the cause held in the runtime/RunRecord.
+- The schema-v1 partition is `pending + active + verified + failed`, revised in place with no version bump; the failed disposition persists with exact restart recovery (a persisted terminal disposition is never re-run), and because the on-disk envelope rejects trailing bytes any pre-existing local `.enhancer/` snapshot fails closed on read (accepted for the unreleased artifact).
+- Fresh evidence: each contract proven test-first (missing enum, constructor arity, methods, dropped serialization), full 59-suite/261-test regression (259 passed, 2 existing Windows symbolic-link skips, 0 failures, 0 errors), Java 17 strict lint across 150 production sources. Work is on branch `feature/gate-8-queue-terminal-disposition`, not yet committed pending explicit user authorization.
 - The Gate 8 connection backlog is now aligned with the implemented queue/runtime contracts and `.ai/` rules: fence-checked execution completion reaches `AWAITING_VERIFICATION` only and cannot directly complete the queue or satisfy dependencies.
 - The next bounded Gate 8 contract is durable queue terminal disposition, distinguishing verified completion from failure before releasing Scheduler capacity or changing the dependency-satisfaction set.
 - Remaining connections are ordered and gate-owned: RunRecord-backed result finalization; process-isolated worker/local IPC; durable controls; effect ledger/fencing; retry through additional AgentRuns; and Gate 13 typed handoff/multi-agent execution.
@@ -125,10 +128,11 @@ Questions for the next session:
 
 ## Updated At
 
-2026-07-16
+2026-07-17
 
 ## Completed Work
 
+- Implemented and Contract Verified Gate 8 durable queue terminal disposition: a terminal `WorkItemDisposition`, a disjoint `failedWorkItemIds` set with an extended partition invariant, the `completeActiveVerified`/`failActive` split across in-memory/durable/filesystem layers, in-place schema-v1 serialization with restart recovery, and dependents of failed work left blocked; result/RunRecord wiring and dispatcher disposition recording remain the next connection.
 - Integrated one durable queue active/ready claim with exact Goal/AgentRun persisted-prefix recovery and fenced lease acquisition without worker execution or queue acknowledgement.
 - Implemented and verified the Gate 8 durable one-Goal/one-AgentRun lifecycle with exact WorkItem provenance, typed terminal result matching, persist-before-exposure state, and restart-safe filesystem recovery.
 - Implemented and verified fenced single-owner AgentRun lease acquisition, renewal, completion, expiry reclamation, monotonic persisted fence history, and restart behavior without adding worker execution.
@@ -352,7 +356,7 @@ Questions for the next session:
 - Gate 5: Operational for one governed read-only local CLI scenario.
 - Gate 6: Integrated by the user-approved re-scope-and-promotion decision; the production view and graph composition remain Operational sub-capabilities.
 - Gate 7: Contract Verified after fresh assessment. The work-message queue path is Integrated; result/control/handoff, non-empty causation, topic and remaining reliability branches, and `MessageTransport` remain contract-only. Durable messaging, a concrete adapter, and a supported production entry point do not exist.
-- Gate 8: Specified - Next; immutable `WorkItem` admission, the dependency-ready single-worker queue, durable schema-v1 queue state/restart recovery, the durable one-Goal/one-AgentRun lifecycle, and fenced single-owner lease/expiry recovery are Contract Verified; durable queue-to-lifecycle dispatch is Integrated. Execution acknowledgement exists only as `AWAITING_VERIFICATION`; terminal queue disposition, Result/RunRecord production wiring, retry, effect records/fencing, workers, and broader production wiring do not yet exist.
+- Gate 8: Specified - Next; immutable `WorkItem` admission, the dependency-ready single-worker queue, durable schema-v1 queue state/restart recovery, the durable one-Goal/one-AgentRun lifecycle, fenced single-owner lease/expiry recovery, and durable queue terminal disposition are Contract Verified; durable queue-to-lifecycle dispatch is Integrated. Execution acknowledgement exists only as `AWAITING_VERIFICATION`; the queue records verified vs failed terminal disposition, but Result/RunRecord production wiring, dispatcher-driven disposition recording, retry, effect records/fencing, workers, and broader production wiring do not yet exist.
 - Gate 6 repository-memory path (real governed run -> real memory -> collector -> composed view with divergence detection): Integrated.
 - Gate 6 production composition: Operational for the governed read-only CLI scenario; every recorded `run` reports bounded snapshot identity, observation count, and memory freshness.
 - Gate 6 `WorkspaceSnapshot`, `ProjectBrainView`, graph projection contract, `TaskImpactQuery`, `AcceptedDecisionProjector`, and `RunRecordMetadataCollector`: Integrated through the fresh promotion audit against named pre-existing integration evidence.
@@ -366,7 +370,7 @@ Questions for the next session:
 
 ## Next Task
 
-Define the Gate 8 durable queue terminal-disposition contract so execution acknowledgement remains distinct from verified completion, failed work cannot satisfy dependencies, and later ResultPayload integration has an unambiguous recoverable target.
+Integrate the Gate 8 RunRecord-backed result path (connection 2): durable RunRecord resolution, a matching `ResultPayload`, persisted AgentRun/Goal terminal state, then the matching queue disposition through `completeActiveVerified`/`failActive`. Idempotent-suffix recovery must close the at-least-once requeue window where a runtime failure precedes a persisted queue disposition.
 
 ## Remaining Risks
 
@@ -380,9 +384,9 @@ Define the Gate 8 durable queue terminal-disposition contract so execution ackno
 ## Instructions For Next Agent
 
 1. Read `.ai/` and every canonical startup document in repository order.
-2. Confirm Gate 7 is `Contract Verified`, Gate 8 is the sole `Specified - Next` gate, and `CURRENT_TASK.md` records durable queue-to-AgentRun dispatch as Completed.
-3. Inspect `git status --short` and the current `main`/`origin/main` log; delivery commit `4ada41c` is the implementation baseline for the Integrated Gate 8 queue-to-AgentRun dispatch path above.
+2. Confirm Gate 7 is `Contract Verified`, Gate 8 is the sole `Specified - Next` gate, and `CURRENT_TASK.md` records durable queue terminal disposition as Completed.
+3. Inspect `git status --short` and the current branch log; the terminal-disposition work lives on `feature/gate-8-queue-terminal-disposition` and is not yet committed, pending explicit user authorization.
 4. If the host has no JDK, provision Java 17 through `.tools/jdk17` (this host already has `jdk-17.0.19+10` there) or run `scripts/setup-dev.ps1`; `scripts/gradle.ps1` then works normally.
 5. The only external command authority is the decision-scoped read-only Git adapter; any new external command capability requires its own explicit user approval.
-6. Activate the Gate 8 terminal queue-disposition contract; preserve the distinction among execution acknowledgement, independently verified terminal state, and dependency satisfaction.
+6. Activate the Gate 8 RunRecord-backed result path (connection 2), recording the queue disposition through `completeActiveVerified`/`failActive` after the persisted terminal runtime state; preserve the distinction among execution acknowledgement, independently verified terminal state, and dependency satisfaction.
 7. Do not commit or push future changes without a new explicit user request.

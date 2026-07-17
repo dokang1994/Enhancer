@@ -82,7 +82,7 @@ class FileSystemSchedulerQueueStoreIntegrationTest {
         assertEquals(first.workMessage(), restored.workMessage());
         assertEquals(Set.of("read-file", "verify"), restored.allowedTools());
         assertEquals("reader-\uD83D\uDE80", restored.requiredCapability());
-        recovered.completeActive(firstId);
+        recovered.completeActiveVerified(firstId);
         DurableSingleWorkerSchedulerQueue finalRecovery =
                 DurableSingleWorkerSchedulerQueue.recover(
                         QUEUE_ID,
@@ -153,6 +153,50 @@ class FileSystemSchedulerQueueStoreIntegrationTest {
         Files.createDirectory(artifact);
         assertThrows(CorruptedSchedulerQueueStateException.class, () ->
                 store.resolve(QUEUE_ID));
+    }
+
+    @Test
+    void roundTripsFailedDispositionAcrossStoreInstances() throws Exception {
+        String firstId =
+                "00000000-0000-0000-0000-000000000321";
+        FileSystemSchedulerQueueStore store =
+                new FileSystemSchedulerQueueStore(storageRoot);
+        store.create(SchedulerQueueState.initial(QUEUE_ID, 8));
+
+        SingleWorkerSchedulerQueue queue = new SingleWorkerSchedulerQueue(8);
+        queue.enqueue(new QueuedWork(workItem(firstId, "reader"), List.of()));
+        queue.claimNext().orElseThrow();
+        queue.failActive(firstId);
+        store.update(queue.snapshot(QUEUE_ID, 1));
+
+        SchedulerQueueState resolved =
+                new FileSystemSchedulerQueueStore(storageRoot).resolve(QUEUE_ID);
+        assertEquals(Set.of(firstId), resolved.failedWorkItemIds());
+        assertEquals(Set.of(), resolved.completedWorkItemIds());
+    }
+
+    @Test
+    void recoversFailedDispositionFromTheFilesystem() throws Exception {
+        String firstId =
+                "00000000-0000-0000-0000-000000000331";
+        String secondId =
+                "00000000-0000-0000-0000-000000000332";
+        FileSystemSchedulerQueueStore store =
+                new FileSystemSchedulerQueueStore(storageRoot);
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.create(QUEUE_ID, 8, store);
+        queue.enqueue(new QueuedWork(workItem(firstId, "reader"), List.of()));
+        queue.enqueue(new QueuedWork(
+                workItem(secondId, "reviewer"), List.of(firstId)));
+        queue.claimNext().orElseThrow();
+        queue.failActive(firstId);
+
+        DurableSingleWorkerSchedulerQueue recovered =
+                DurableSingleWorkerSchedulerQueue.recover(
+                        QUEUE_ID,
+                        new FileSystemSchedulerQueueStore(storageRoot));
+        assertEquals(Set.of(firstId), recovered.failedWorkItemIds());
+        assertTrue(recovered.claimNext().isEmpty());
     }
 
     private Path artifact(String queueId) {

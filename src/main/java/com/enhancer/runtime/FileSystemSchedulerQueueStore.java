@@ -247,6 +247,7 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
             writeQueuedWorkList(output, state.pendingWork());
             writeOptionalQueuedWork(output, state.activeWork());
             writeStringSet(output, state.completedWorkItemIds());
+            writeStringSet(output, state.failedWorkItemIds());
         }
         return bytes.toByteArray();
     }
@@ -282,6 +283,7 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
             Optional<QueuedWork> activeWork =
                     readOptionalQueuedWork(input);
             Set<String> completedWorkItemIds = readStringSet(input);
+            Set<String> failedWorkItemIds = readStringSet(input);
             if (input.available() != 0) {
                 throw corrupted(
                         expectedQueueId,
@@ -296,7 +298,8 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
                     admissionOrder,
                     pendingWork,
                     activeWork,
-                    completedWorkItemIds);
+                    completedWorkItemIds,
+                    failedWorkItemIds);
         } catch (CorruptedSchedulerQueueStateException exception) {
             throw exception;
         } catch (EOFException exception) {

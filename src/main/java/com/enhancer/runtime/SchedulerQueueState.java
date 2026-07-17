@@ -26,6 +26,7 @@ public final class SchedulerQueueState {
     private final List<QueuedWork> pendingWork;
     private final Optional<QueuedWork> activeWork;
     private final Set<String> completedWorkItemIds;
+    private final Set<String> failedWorkItemIds;
 
     SchedulerQueueState(
             int schemaVersion,
@@ -36,7 +37,8 @@ public final class SchedulerQueueState {
             List<String> admissionOrder,
             List<QueuedWork> pendingWork,
             Optional<QueuedWork> activeWork,
-            Set<String> completedWorkItemIds) {
+            Set<String> completedWorkItemIds,
+            Set<String> failedWorkItemIds) {
         if (schemaVersion != CURRENT_SCHEMA_VERSION) {
             throw new IllegalArgumentException(
                     "Scheduler queue schema version is unsupported");
@@ -77,6 +79,10 @@ public final class SchedulerQueueState {
                 completedWorkItemIds,
                 "completedWorkItemIds",
                 maxWorkItems);
+        this.failedWorkItemIds = canonicalIdentitySet(
+                failedWorkItemIds,
+                "failedWorkItemIds",
+                maxWorkItems);
         validateStructure();
     }
 
@@ -92,6 +98,7 @@ public final class SchedulerQueueState {
                 List.of(),
                 List.of(),
                 Optional.empty(),
+                Set.of(),
                 Set.of());
     }
 
@@ -131,6 +138,10 @@ public final class SchedulerQueueState {
         return completedWorkItemIds;
     }
 
+    public Set<String> failedWorkItemIds() {
+        return failedWorkItemIds;
+    }
+
     static String requireCanonicalQueueId(String value) {
         Objects.requireNonNull(value, "queueId must not be null");
         try {
@@ -156,6 +167,13 @@ public final class SchedulerQueueState {
         for (String completed : completedWorkItemIds) {
             requireAdmitted(positions, completed);
             statusIds.add(completed);
+        }
+        for (String failed : failedWorkItemIds) {
+            requireAdmitted(positions, failed);
+            if (!statusIds.add(failed)) {
+                throw new IllegalArgumentException(
+                        "work item must not be both completed and failed");
+            }
         }
         int previousPendingPosition = -1;
         for (QueuedWork pending : pendingWork) {

@@ -79,9 +79,15 @@ public final class DurableSingleWorkerSchedulerQueue {
         return claimed;
     }
 
-    public void completeActive(String workItemId) throws IOException {
+    public void completeActiveVerified(String workItemId) throws IOException {
         SingleWorkerSchedulerQueue candidate = copyQueue();
-        candidate.completeActive(workItemId);
+        candidate.completeActiveVerified(workItemId);
+        adoptAfterPersistence(candidate);
+    }
+
+    public void failActive(String workItemId) throws IOException {
+        SingleWorkerSchedulerQueue candidate = copyQueue();
+        candidate.failActive(workItemId);
         adoptAfterPersistence(candidate);
     }
 
@@ -107,6 +113,10 @@ public final class DurableSingleWorkerSchedulerQueue {
 
     public Set<String> completedWorkItemIds() {
         return queue.completedWorkItemIds();
+    }
+
+    public Set<String> failedWorkItemIds() {
+        return queue.failedWorkItemIds();
     }
 
     private SingleWorkerSchedulerQueue copyQueue() {

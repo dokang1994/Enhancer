@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-17 - Add Durable Queue Terminal Disposition
+
+- Added the terminal `WorkItemDisposition` enum (`VERIFIED_COMPLETED`, `FAILED`) where only verified completion satisfies dependencies.
+- Added a separate `failedWorkItemIds` set to schema-v1 `SchedulerQueueState` and extended the partition invariant to `pending + active + verified + failed = admissionOrder` with verified and failed disjoint.
+- Split the queue's single `completeActive` into `completeActiveVerified` and `failActive` across the in-memory queue, the durable persist-before-exposure wrapper, and the filesystem store; failed work never enters the dependency-satisfaction set, so its dependents stay blocked.
+- Persisted the failed disposition in the schema-v1 on-disk format (revised in place, no version bump) with exact restart recovery; a persisted terminal disposition is never re-run and only interrupted active work is requeued.
+- Recorded that the queue stores disposition only, not a failure reason, and that pre-existing local queue snapshots fail closed on read because the unreleased schema-v1 envelope rejects trailing bytes.
+- Proved each contract test-first (missing enum, constructor arity, methods, dropped serialization) and passed the full 59-suite/261-test regression (259 passed, 2 existing Windows symbolic-link skips, 0 failures, 0 errors) with Java 17 strict lint across 150 production sources.
+- Left `ResultPayload`/RunRecord result wiring, dispatcher-driven disposition recording, retry, automatic failure propagation, and a non-terminal waiting state as future connections.
+
 ## 2026-07-16 - Align Gate 8 Connection And Completion Boundaries
 
 - Cross-checked the seven `.ai/` bootstrap documents, canonical governance and architecture documents, and the implemented Gate 8 queue/runtime state contracts.
