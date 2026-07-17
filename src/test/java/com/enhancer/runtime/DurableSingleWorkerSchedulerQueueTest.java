@@ -47,7 +47,7 @@ class DurableSingleWorkerSchedulerQueueTest {
         WorkItem retried = recovered.claimNext().orElseThrow();
         assertEquals(first, retried);
         assertEquals(first.workMessage(), retried.workMessage());
-        recovered.completeActive(FIRST_ID);
+        recovered.completeActiveVerified(FIRST_ID);
 
         DurableSingleWorkerSchedulerQueue afterCompletion =
                 DurableSingleWorkerSchedulerQueue.recover(QUEUE_ID, store);
@@ -81,7 +81,7 @@ class DurableSingleWorkerSchedulerQueueTest {
 
         assertSame(first, queue.claimNext().orElseThrow());
         store.failNextUpdate();
-        assertThrows(IOException.class, () -> queue.completeActive(FIRST_ID));
+        assertThrows(IOException.class, () -> queue.completeActiveVerified(FIRST_ID));
         assertEquals(2, queue.revision());
         assertEquals(Optional.of(first), queue.activeWork());
         assertTrue(queue.completedWorkItemIds().isEmpty());
@@ -100,6 +100,45 @@ class DurableSingleWorkerSchedulerQueueTest {
                 DurableSingleWorkerSchedulerQueue.recover(
                         "00000000-0000-0000-0000-000000000299",
                         store));
+    }
+
+    @Test
+    void persistsFailedDispositionAndBlocksDependentsAcrossRecovery()
+            throws Exception {
+        MemoryQueueStore store = new MemoryQueueStore();
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.create(QUEUE_ID, 8, store);
+        WorkItem first = workItem(FIRST_ID, "read-file-worker");
+        WorkItem second = workItem(SECOND_ID, "review-worker");
+
+        queue.enqueue(new QueuedWork(first, List.of()));
+        queue.enqueue(new QueuedWork(second, List.of(FIRST_ID)));
+        assertSame(first, queue.claimNext().orElseThrow());
+        queue.failActive(FIRST_ID);
+
+        DurableSingleWorkerSchedulerQueue recovered =
+                DurableSingleWorkerSchedulerQueue.recover(QUEUE_ID, store);
+        assertEquals(Set.of(FIRST_ID), recovered.failedWorkItemIds());
+        assertEquals(Set.of(), recovered.completedWorkItemIds());
+        assertTrue(recovered.claimNext().isEmpty());
+        assertTrue(recovered.activeWork().isEmpty());
+    }
+
+    @Test
+    void failurePersistenceFailureLeavesTheActiveWorkVisible()
+            throws Exception {
+        MemoryQueueStore store = new MemoryQueueStore();
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.create(QUEUE_ID, 8, store);
+        WorkItem first = workItem(FIRST_ID, "read-file-worker");
+
+        queue.enqueue(new QueuedWork(first, List.of()));
+        assertSame(first, queue.claimNext().orElseThrow());
+        store.failNextUpdate();
+        assertThrows(IOException.class, () -> queue.failActive(FIRST_ID));
+
+        assertEquals(Optional.of(first), queue.activeWork());
+        assertTrue(queue.failedWorkItemIds().isEmpty());
     }
 
     private static WorkItem workItem(String workItemId, String capability) {

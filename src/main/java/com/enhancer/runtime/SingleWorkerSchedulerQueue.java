@@ -20,6 +20,7 @@ public final class SingleWorkerSchedulerQueue {
     private final Map<String, QueuedWork> pending = new LinkedHashMap<>();
     private final Set<String> admittedWorkItemIds = new LinkedHashSet<>();
     private final Set<String> completedWorkItemIds = new LinkedHashSet<>();
+    private final Set<String> failedWorkItemIds = new LinkedHashSet<>();
     private String logicalRunId;
     private QueuedWork active;
 
@@ -47,6 +48,8 @@ public final class SingleWorkerSchedulerQueue {
         }
         this.completedWorkItemIds.addAll(
                 state.completedWorkItemIds());
+        this.failedWorkItemIds.addAll(
+                state.failedWorkItemIds());
         this.active = state.activeWork().orElse(null);
     }
 
@@ -98,7 +101,7 @@ public final class SingleWorkerSchedulerQueue {
         return Optional.empty();
     }
 
-    public void completeActive(String workItemId) {
+    public void completeActiveVerified(String workItemId) {
         Objects.requireNonNull(workItemId, "workItemId must not be null");
         if (active == null) {
             throw new IllegalStateException("no active work item exists");
@@ -109,6 +112,34 @@ public final class SingleWorkerSchedulerQueue {
         }
         completedWorkItemIds.add(workItemId);
         active = null;
+    }
+
+    public void failActive(String workItemId) {
+        Objects.requireNonNull(workItemId, "workItemId must not be null");
+        if (active == null) {
+            throw new IllegalStateException("no active work item exists");
+        }
+        if (!active.workItem().workItemId().equals(workItemId)) {
+            throw new IllegalStateException(
+                    "only the active work item may be failed");
+        }
+        failedWorkItemIds.add(workItemId);
+        active = null;
+    }
+
+    public Set<String> failedWorkItemIds() {
+        return Set.copyOf(failedWorkItemIds);
+    }
+
+    public Optional<WorkItemDisposition> dispositionOf(String workItemId) {
+        Objects.requireNonNull(workItemId, "workItemId must not be null");
+        if (completedWorkItemIds.contains(workItemId)) {
+            return Optional.of(WorkItemDisposition.VERIFIED_COMPLETED);
+        }
+        if (failedWorkItemIds.contains(workItemId)) {
+            return Optional.of(WorkItemDisposition.FAILED);
+        }
+        return Optional.empty();
     }
 
     public Optional<WorkItem> activeWork() {
@@ -139,7 +170,8 @@ public final class SingleWorkerSchedulerQueue {
                 List.copyOf(admittedWorkItemIds),
                 List.copyOf(pending.values()),
                 Optional.ofNullable(active),
-                completedWorkItemIds);
+                completedWorkItemIds,
+                failedWorkItemIds);
     }
 
     boolean requeueActiveForRecovery() {

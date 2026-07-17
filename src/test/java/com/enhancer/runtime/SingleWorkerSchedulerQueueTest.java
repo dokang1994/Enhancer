@@ -39,13 +39,13 @@ class SingleWorkerSchedulerQueueTest {
         assertSame(first, claimedFirst);
         assertEquals(Optional.of(first), queue.activeWork());
         assertTrue(queue.claimNext().isEmpty());
-        assertThrows(IllegalStateException.class, () -> queue.completeActive(SECOND_ID));
+        assertThrows(IllegalStateException.class, () -> queue.completeActiveVerified(SECOND_ID));
 
-        queue.completeActive(FIRST_ID);
+        queue.completeActiveVerified(FIRST_ID);
         assertSame(second, queue.claimNext().orElseThrow());
-        queue.completeActive(SECOND_ID);
+        queue.completeActiveVerified(SECOND_ID);
         assertSame(third, queue.claimNext().orElseThrow());
-        queue.completeActive(THIRD_ID);
+        queue.completeActiveVerified(THIRD_ID);
 
         assertTrue(queue.claimNext().isEmpty());
         assertTrue(queue.activeWork().isEmpty());
@@ -70,7 +70,7 @@ class SingleWorkerSchedulerQueueTest {
                 queuedFirst.dependencyWorkItemIds().add(SECOND_ID));
         assertSame(first.workMessage(), queuedFirst.workItem().workMessage());
         assertSame(first, queue.claimNext().orElseThrow());
-        queue.completeActive(FIRST_ID);
+        queue.completeActiveVerified(FIRST_ID);
         assertSame(second, queue.claimNext().orElseThrow());
     }
 
@@ -106,8 +106,8 @@ class SingleWorkerSchedulerQueueTest {
                         workItem(THIRD_ID, "test-worker"),
                         List.of(SECOND_ID))));
 
-        assertThrows(IllegalStateException.class, () -> queue.completeActive(FIRST_ID));
-        assertThrows(NullPointerException.class, () -> queue.completeActive(null));
+        assertThrows(IllegalStateException.class, () -> queue.completeActiveVerified(FIRST_ID));
+        assertThrows(NullPointerException.class, () -> queue.completeActiveVerified(null));
         assertThrows(NullPointerException.class, () -> queue.enqueue(null));
         assertThrows(IllegalArgumentException.class, () ->
                 new SingleWorkerSchedulerQueue(0));
@@ -131,6 +131,46 @@ class SingleWorkerSchedulerQueueTest {
                                 "review-worker",
                                 "logical-run-queue-2"),
                         List.of(FIRST_ID))));
+    }
+
+    @Test
+    void failedWorkNeverSatisfiesDependentsAndRecordsFailedDisposition() {
+        WorkItem first = workItem(FIRST_ID, "read-file-worker");
+        WorkItem second = workItem(SECOND_ID, "review-worker");
+        SingleWorkerSchedulerQueue queue = new SingleWorkerSchedulerQueue();
+
+        queue.enqueue(new QueuedWork(first, List.of()));
+        queue.enqueue(new QueuedWork(second, List.of(FIRST_ID)));
+
+        assertSame(first, queue.claimNext().orElseThrow());
+        queue.failActive(FIRST_ID);
+
+        assertTrue(queue.claimNext().isEmpty());
+        assertTrue(queue.activeWork().isEmpty());
+        assertEquals(Set.of(), queue.completedWorkItemIds());
+        assertEquals(Set.of(FIRST_ID), queue.failedWorkItemIds());
+        assertEquals(Optional.of(WorkItemDisposition.FAILED),
+                queue.dispositionOf(FIRST_ID));
+        assertEquals(Optional.empty(), queue.dispositionOf(SECOND_ID));
+        assertThrows(IllegalStateException.class, () -> queue.failActive(FIRST_ID));
+        assertThrows(NullPointerException.class, () -> queue.failActive(null));
+    }
+
+    @Test
+    void verifiedCompletionRecordsVerifiedDispositionAndReleasesDependents() {
+        WorkItem first = workItem(FIRST_ID, "read-file-worker");
+        WorkItem second = workItem(SECOND_ID, "review-worker");
+        SingleWorkerSchedulerQueue queue = new SingleWorkerSchedulerQueue();
+
+        queue.enqueue(new QueuedWork(first, List.of()));
+        queue.enqueue(new QueuedWork(second, List.of(FIRST_ID)));
+
+        assertSame(first, queue.claimNext().orElseThrow());
+        queue.completeActiveVerified(FIRST_ID);
+
+        assertEquals(Optional.of(WorkItemDisposition.VERIFIED_COMPLETED),
+                queue.dispositionOf(FIRST_ID));
+        assertSame(second, queue.claimNext().orElseThrow());
     }
 
     private static List<String> oversizedDependencies() {
