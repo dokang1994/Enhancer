@@ -2,7 +2,7 @@
 
 ## Updated At
 
-2026-07-16
+2026-07-17
 
 ## Repository State
 
@@ -29,8 +29,8 @@
 - The Gate 6 authority-boundary evidence, `TargetFileMetadataCollector`, and `GitWorkspaceCollector` are published on `origin/main` through delivery commit `21e6230` (`feat: complete Gate 6 workspace observation surface`).
 - The Gate 6 maturity assessment, the re-scope-and-promotion, and the Gate 7 `MessageEnvelope` contract are published on `origin/main` through delivery commit `3423201` (`feat: promote Gate 6 and open Gate 7 with the message envelope contract`).
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 149 Java files.
-- Test source: 57 Java files.
+- Production source: 151 Java files.
+- Test source: 58 Java files.
 - The Gate 7 in-process delivery surface and its delivery-failure and dead-letter handling are published on `origin/main` through delivery commit `b278c53` (`feat: add Gate 7 in-process delivery with failure isolation and dead-letter`); the unrelated wall-clock test correction is published through `2a69182` (`fix: make RunRecordMetadataCollectorTest time-independent`).
 - PR #3 published bounded retry/dead-letter re-delivery, cancellation, and ordering through `52987f2`; replay-cascade correction followed through `2585a10`, and backpressure plus the four reliability/security corrections were published through `b3be720`.
 
@@ -38,6 +38,8 @@
 
 ### Contract Verified
 
+- Delivery Gate 8 RunRecord-backed result-path finalization under `com.enhancer.runtime`: `DurableAgentRunFinalizer` composes the durable queue, `AgentRuntimeStateStore`, and `RunRecordStore` and drives one recoverable, idempotent order (resolve RunRecord by reference -> runtime terminal `recordResult` -> queue disposition), deriving the disposition from the runtime terminal status (`COMPLETED -> completeActiveVerified`, `FAILED -> failActive`) so the two stores cannot diverge; it resolves but never persists the RunRecord, binds it to the Goal on `taskId` plus `sourceDocument`, fails closed on a missing/corrupt record while leaving the run `AWAITING_VERIFICATION`, rejects a different-task record, a different-reference re-finalize, and finalize before execution acknowledgement, and re-claims the queue's requeued active item before recording the disposition; `finalizeAgentRun` drives the forward path and `recoverFinalization` applies only the autonomous post-terminal queue disposition with no reference. It adds no new store, schema change, cross-store transaction, worker, Tool execution, retry, or failure propagation.
+- Delivery Gate 8 durable queue terminal disposition under `com.enhancer.runtime`: a terminal `WorkItemDisposition` (`VERIFIED_COMPLETED`, `FAILED`) where only verified completion satisfies dependencies, a disjoint `failedWorkItemIds` set extending the partition invariant to `pending + active + verified + failed`, the `completeActiveVerified`/`failActive` split across the in-memory queue, durable wrapper, and filesystem store, and in-place schema-v1 persistence with exact restart recovery; failed work never satisfies dependents and the queue stores disposition only, not a failure reason.
 - Delivery Gate 8 durable Goal/AgentRun lifecycle and fenced ownership under `com.enhancer.runtime`: one exact WorkItem-backed Goal, one schema-v1 AgentRun, distinct canonical identities, forward-only Planning/Ready/leased-Executing/Awaiting-Verification/terminal transitions, matching typed result provenance, Verified-only completion, explicit non-verified failure, bounded single-owner leases, injected expiry time, persisted monotonic fences, stale-owner rejection, durable expiry reclamation, monotonic persist-before-exposure revisions, bounded strict-UTF-8 integrity-checked atomic filesystem state, and exact restart recovery; no retry, worker, external-effect fencing, RunRecord resolution, migration, history, multi-process locking, distributed clock-skew protocol, or power-loss directory-sync claim.
 - Delivery Gate 8 durable queue state and restart recovery under `com.enhancer.runtime`: canonical queue identity and one-logical-run binding, immutable schema-v1 snapshots, a bounded strict-UTF-8 integrity-checked atomic filesystem store, exact WorkItem/envelope persistence, monotonic revisions, persist-before-exposure transitions, and admission-ordered active-work requeue on restart; no lease, fence, worker, effect deduplication, migration beyond v1, history retention, or power-loss directory-sync claim.
 - Delivery Gate 8 dependency-ready single-worker queue under `com.enhancer.runtime`: immutable queued work with at most 256 unique canonical earlier-admitted dependencies, a run-scoped 4096-admission ceiling, duplicate rejection, deterministic FIFO readiness, one active slot, and matching explicit completion; no persistence, lease, recovery, worker execution, or authority.
@@ -821,9 +823,21 @@ This assessment itself changed no production or test code and did not change Gat
 - Structural/reference checks found one Gate 8 next marker, one accepted-decision heading, one matching active-task reference, zero withdrawn directive/RFC wording occurrences, and no whitespace error.
 - `SESSION_HANDOFF.md` now explains the conflict's incremental origin and preserves three next-session choices: keep the active slot through verification (recommended minimum), add a durable non-terminal verification-wait state later for throughput, or reject execution acknowledgement as queue completion.
 
+## Gate 8 Result-Path Finalization Verification
+
+- Added `DurableAgentRunFinalizer` connecting a resolved RunRecord to the runtime terminal state and the matching queue disposition in one recoverable, idempotent order, with `finalizeAgentRun` for the forward path and `recoverFinalization` for autonomous post-terminal recovery.
+- Task 1 RED: `DurableAgentRunFinalizerTest` failed to compile with only the missing `DurableAgentRunFinalizer`; GREEN passed the verified and failed forward-path scenarios.
+- The forward-path GREEN surfaced the durable queue's recovery-requeue contract: a freshly recovered queue exposes no active work, so the finalizer re-claims the requeued WorkItem before recording the disposition, matching the claim-then-dispose pattern the queue's own recovery already mandates.
+- Task 2 RED: the class failed to compile with only the missing `recoverFinalization`; GREEN passed autonomous post-terminal recovery with no reference and idempotent re-finalize.
+- Task 3: the fail-closed, task/document-binding, different-reference, and finalize-before-acknowledgement guards implemented in Task 1 were pinned and passed on first run.
+- Focused suite passed 8 of 8 `DurableAgentRunFinalizerTest` cases with no skips, failures, or errors.
+- Full regression passed 60 suites and 269 tests: 267 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors under `--warning-mode all`; Java 17 strict lint passed across 151 production sources.
+- Structural/reference checks retained exactly one Gate 8 `Status: Specified - Next` marker, resolved `CURRENT_TASK.md` to its accepted decision, and passed `git diff --check`.
+- Gate 8 remains `Specified - Next`; the RunRecord-backed result path is now Contract Verified, and the process-isolated worker plus selected local IPC (connection 3) is the next bounded integration.
+
 ## Next Task
 
-Define the Gate 8 durable queue terminal-disposition contract so execution acknowledgement remains distinct from verified completion, failed work cannot satisfy dependencies, and later ResultPayload integration has an unambiguous recoverable target.
+Integrate the process-isolated Scheduler worker and a selected local IPC adapter (connection 3): the worker executes the Tool, produces the RunRecord, and drives `finalizeAgentRun`, durably retaining the `runRecordReference` across the pre-terminal recovery window. Transport acceptance never means bus delivery or work completion.
 
 ## Session Recovery
 
