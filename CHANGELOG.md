@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-07-20 - Add Gate 8 In-Process Scheduler Worker
+
+- Added `DurableAgentRunWorker` under `com.enhancer.runtime` (connection sub-increment 3a): one `runOneCycle(leaseDuration)` call drives claim + fenced lease, injected execution to a durable RunRecord, fence-checked `completeExecution`, `finalizeAgentRun`, and the queue disposition in one recoverable, idempotent order, returning the cycle's `WorkItemDisposition` or empty when nothing was claimable.
+- Added the worker-owned durable cycle-intent checkpoint: `PendingFinalization` (distinct canonical Goal/AgentRun UUIDs plus optional `runRecordReference`), `PendingFinalizationStore`, and the bounded, strict-UTF-8, digest-checked, atomically published, fail-closed `FileSystemPendingFinalizationStore` single-record adapter with `CorruptedPendingFinalizationException`.
+- Wrote the intent before the queue claim so a restarted worker re-supplies the same identities and the dispatcher's idempotent recovery resumes the exact prefix (no second Goal, no orphaned runtime state, no dispatcher change), and persisted the reference before acknowledgement, closing the finalizer's deferred pre-terminal recovery window.
+- Added `AgentRunExecution`, the injected execution port returning the RunRecord reference; the real `AgentLoop`-backed port is a named follow-on requiring a `WorkPayload` execution-input extension.
+- Routed recovery by runtime state as the source of truth: terminal -> `recoverFinalization`; `AWAITING_VERIFICATION` -> `finalizeAgentRun(ref)`; earlier, unstarted, or missing runtime state (`MissingAgentRuntimeStateException` tolerated) -> re-drive with the same identities, skipping re-execution when the reference exists; execution/finalizer failures fail closed with the intent retained, and an empty-queue cycle leaves no durable trace.
+- Proved each behaviour test-first (19 aligned checkpoint compile errors, 5 aligned worker compile errors, then 6 behavioural recovery failures against a deliberate resume stub) and passed 8/8 checkpoint, 9/9 worker, 2/2 filesystem end-to-end integration, and the 14-suite/73-test runtime package suites.
+- Passed the full 63-suite/288-test regression (286 passed, 2 existing Windows symbolic-link skips, 0 failures, 0 errors) under `--warning-mode all` with Java 17 strict lint across 157 production sources.
+- Left worker process isolation (3b), the concrete `MessageTransport` local IPC adapter (3c), the real execution port, retry, controls, and effect records as future connections; no dispatcher/runtime/finalizer/queue contract or schema changed.
+
 ## 2026-07-17 - Add RunRecord-Backed Result-Path Finalization
 
 - Added `DurableAgentRunFinalizer` under `com.enhancer.runtime`, one durable idempotent coordinator over the durable queue, `AgentRuntimeStateStore`, and `RunRecordStore` with no new store or schema change.
