@@ -127,6 +127,7 @@ class MessagingRuntimeIntegrationTest {
         assertEquals(snapshot.snapshotId(), workItem.snapshotId());
         assertEquals(snapshot.approvedTaskRevision(), workItem.taskRevision());
         assertEquals(approvedTask.allowedTools(), workItem.allowedTools());
+        assertEquals(Optional.empty(), workItem.executionInput());
         assertEquals("logical-run-1", workItem.logicalRunId());
         assertEquals("correlation-1", workItem.workMessage().correlationId());
         assertEquals("workspace-runtime-bridge", workItem.workMessage().producer());
@@ -136,6 +137,23 @@ class MessagingRuntimeIntegrationTest {
         assertEquals(1, replay.size());
         assertEquals(DeliveryStatus.DUPLICATE, replay.get(0).status());
         assertEquals(1, admitted.size());
+
+        com.enhancer.bus.WorkPayload.ExecutionInput executionInput =
+                new com.enhancer.bus.WorkPayload.ExecutionInput(
+                        "docs/target.md", "e".repeat(64));
+        List<DeliveryOutcome> declared = publisher.publish(
+                snapshot,
+                approvedTask,
+                Optional.of(executionInput),
+                "00000000-0000-0000-0000-0000000000ff",
+                "correlation-1",
+                Optional.empty(),
+                "logical-run-1",
+                "workspace-runtime-bridge",
+                OCCURRED_AT);
+        assertEquals(DeliveryStatus.DELIVERED, declared.get(0).status());
+        assertEquals(2, admitted.size());
+        assertEquals(Optional.of(executionInput), admitted.get(1).executionInput());
     }
 
     private void writeGovernedProject(Path projectRoot) throws Exception {

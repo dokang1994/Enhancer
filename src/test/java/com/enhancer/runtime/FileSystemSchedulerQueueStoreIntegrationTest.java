@@ -199,6 +199,55 @@ class FileSystemSchedulerQueueStoreIntegrationTest {
         assertTrue(recovered.claimNext().isEmpty());
     }
 
+    @Test
+    void roundTripsADeclaredExecutionInputAcrossStoreInstances()
+            throws Exception {
+        String workItemId = "00000000-0000-0000-0000-000000000361";
+        WorkPayload.ExecutionInput input = new WorkPayload.ExecutionInput(
+                "docs/target-🚀.md", "e".repeat(64));
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.create(
+                        QUEUE_ID,
+                        8,
+                        new FileSystemSchedulerQueueStore(storageRoot));
+        queue.enqueue(new QueuedWork(
+                workItemWithInput(workItemId, Optional.of(input)),
+                List.of()));
+
+        DurableSingleWorkerSchedulerQueue recovered =
+                DurableSingleWorkerSchedulerQueue.recover(
+                        QUEUE_ID,
+                        new FileSystemSchedulerQueueStore(storageRoot));
+        WorkItem claimed = recovered.claimNext().orElseThrow();
+        assertEquals(Optional.of(input), claimed.executionInput());
+        assertEquals(
+                workItem(workItemId, "worker").workMessage().messageId(),
+                claimed.workMessage().messageId());
+    }
+
+    private static WorkItem workItemWithInput(
+            String workItemId,
+            Optional<WorkPayload.ExecutionInput> executionInput) {
+        WorkItem base = workItem(workItemId, "worker");
+        MessageEnvelope message = base.workMessage();
+        WorkPayload payload = (WorkPayload) message.payload();
+        return new WorkItem(
+                workItemId,
+                base.requiredCapability(),
+                new MessageEnvelope(
+                        message.messageId(),
+                        message.correlationId(),
+                        message.causationId(),
+                        message.logicalRunId(),
+                        message.producer(),
+                        message.occurredAt(),
+                        new WorkPayload(
+                                payload.taskRevision(),
+                                payload.snapshotId(),
+                                payload.allowedTools(),
+                                executionInput)));
+    }
+
     private Path artifact(String queueId) {
         return storageRoot.resolve(queueId + ".scheduler-queue");
     }

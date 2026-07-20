@@ -388,6 +388,7 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
         writeApprovedTaskRevision(output, payload.taskRevision());
         writeString(output, payload.snapshotId());
         writeStringSet(output, payload.allowedTools());
+        writeExecutionInput(output, payload.executionInput());
     }
 
     private MessageEnvelope readMessageEnvelope(DataInputStream input)
@@ -408,6 +409,8 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
                 readApprovedTaskRevision(input);
         String snapshotId = readString(input);
         Set<String> allowedTools = readStringSet(input);
+        Optional<WorkPayload.ExecutionInput> executionInput =
+                readExecutionInput(input);
         return new MessageEnvelope(
                 messageId,
                 correlationId,
@@ -418,7 +421,30 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
                 new WorkPayload(
                         taskRevision,
                         snapshotId,
-                        allowedTools));
+                        allowedTools,
+                        executionInput));
+    }
+
+    private void writeExecutionInput(
+            DataOutputStream output,
+            Optional<WorkPayload.ExecutionInput> executionInput)
+            throws IOException {
+        output.writeBoolean(executionInput.isPresent());
+        if (executionInput.isPresent()) {
+            WorkPayload.ExecutionInput input = executionInput.orElseThrow();
+            writeString(output, input.targetPath());
+            writeString(output, input.expectedContentSha256());
+        }
+    }
+
+    private Optional<WorkPayload.ExecutionInput> readExecutionInput(
+            DataInputStream input) throws IOException {
+        if (!readPresence(input)) {
+            return Optional.empty();
+        }
+        return Optional.of(new WorkPayload.ExecutionInput(
+                readString(input),
+                readString(input)));
     }
 
     private void writeApprovedTaskRevision(
