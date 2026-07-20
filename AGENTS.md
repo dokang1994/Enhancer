@@ -31,6 +31,7 @@ Before planning or editing, read these files in order:
 - Keep work small and scoped to `CURRENT_TASK.md`.
 - Preserve the lifecycle states defined by the Constitution: Proposal, Accepted Decision, Active Task, Implemented, Verified, Completed, and Released.
 - Update project documents whenever implementation state, task state, roadmap, architecture, or decisions change.
+- Write each fact to its owning document only, per Constitution Section 4. The next task belongs to `CURRENT_TASK.md`, capability maturity to `PROJECT_STATE.md`, verification evidence to `docs/verification-log.md`, and delivery history to git and `CHANGELOG.md`. Delete duplicates instead of synchronizing them.
 - Run relevant tests before reporting completion when tests exist.
 - For observable feature and bug-fix behavior, use test-first unless `CURRENT_TASK.md` documents a justified alternative verification.
 - Classify RED failures against the active task, accepted decisions, Architecture, and repository settings. Proceed with the minimum implementation when the test contract is aligned; separate unrelated, flaky, conflicting, scope-expanding, or newly privileged failures instead of absorbing them.
@@ -56,12 +57,15 @@ Before ending a work session:
 
 1. Check changed files.
 2. Run relevant tests.
-3. Update `PROJECT_STATE.md`.
-4. Update `CURRENT_TASK.md`.
-5. Update `ROADMAP.md` if milestone state changed.
-6. Update `ARCHITECTURE.md` if architecture changed.
-7. Add new accepted decisions to `DECISION_LOG.md`.
-8. Update `SESSION_HANDOFF.md`.
-9. Update `CHANGELOG.md` when notable changes occurred.
-10. Review the diff.
-11. Commit if required.
+3. Append this increment's verification evidence to `docs/verification-log.md`. Write it once; never revise an earlier entry.
+4. Update `PROJECT_STATE.md` only where current state, maturity, or a known limitation actually changed. Verification records do not go here.
+5. Update `CURRENT_TASK.md`, including the next task.
+6. Update `ROADMAP.md` if milestone state changed.
+7. Update `ARCHITECTURE.md` only if a boundary, component, or contract changed. Maturity statements do not go here.
+8. Add new accepted decisions to `DECISION_LOG.md`.
+9. Reduce `SESSION_HANDOFF.md` to what is true now and would otherwise be lost. Delete anything another document owns.
+10. Update `CHANGELOG.md` when notable changes occurred.
+11. Review the diff.
+12. Commit if required.
+
+If a step has nothing to change, say so and move on. Restating an unchanged fact to make a step feel done is the failure this checklist is written against.

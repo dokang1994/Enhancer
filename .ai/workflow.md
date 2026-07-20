@@ -2,6 +2,10 @@
 
 Enhancer follows Document Driven Development.
 
+This is the operational expansion of `CONSTITUTION.md` Section 6, which states the
+same sequence in seven normative steps. Where the two differ, the Constitution wins;
+this file adds the executable detail, not new authority.
+
 Before every session:
 
 ```text
@@ -23,5 +27,12 @@ Then:
 7. Implement the smallest scoped change that turns the accepted RED case GREEN. A missing production type or other intentionally unimplemented symbol is valid RED evidence when the test contract passed the classification above; it is not by itself a reason to stop.
 8. Run fresh, claim-appropriate verification.
 9. Promote lifecycle state only when authority and evidence support it.
-10. Update project documents and `SESSION_HANDOFF.md`.
-11. Commit only when explicitly required; never infer permission to push.
+10. Append the increment's verification evidence to `docs/verification-log.md`.
+11. Update each affected document, writing every fact only to the document that owns it (Constitution Section 4). The next task belongs to `CURRENT_TASK.md`, capability maturity to `PROJECT_STATE.md`, delivery history to git and `CHANGELOG.md`. Delete duplicates rather than synchronizing them.
+12. Reduce `SESSION_HANDOFF.md` to what is true now and would otherwise be lost with the session.
+13. Commit only when explicitly required; never infer permission to push.
+
+A contract you describe must state what it connects to. Describing a contract
+correctly while leaving its connection to the next contract unstated is how the
+`completion` conflict reached implementation; `ARCHITECTURE.md` records that case
+under Completion Semantics.
