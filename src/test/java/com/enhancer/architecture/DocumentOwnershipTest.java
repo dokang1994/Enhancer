@@ -63,6 +63,14 @@ class DocumentOwnershipTest {
     private static final List<Pattern> MATURITY_CLAIMS =
             List.of(SUBJECT_FIRST, VERB_FIRST, PARENTHETICAL);
 
+    private static final Pattern NEXT_TASK_HEADING =
+            Pattern.compile("^##\\s+Next(?:\\s+Task)?\\s*$", Pattern.CASE_INSENSITIVE);
+
+    private static final Pattern NEXT_TASK_DECLARATION = Pattern.compile(
+            "^\\s*(?:-\\s*)?(?:the\\s+)?next\\s+(?:task|increment)\\s+"
+                    + "(?::|is\\s+(?!owned\\b)).*$",
+            Pattern.CASE_INSENSITIVE);
+
     /**
      * Documents that legitimately record maturity.
      *
@@ -125,8 +133,11 @@ class DocumentOwnershipTest {
             }
             String[] lines = read(document).split("\n", -1);
             for (int index = 0; index < lines.length; index++) {
-                if (lines[index].strip().equals("## Next Task")) {
-                    violations.add(relative + ":" + (index + 1));
+                String line = lines[index];
+                if (NEXT_TASK_HEADING.matcher(line).matches()
+                        || NEXT_TASK_DECLARATION.matcher(line).matches()) {
+                    violations.add(relative + ":" + (index + 1)
+                            + " -> \"" + line.strip() + "\"");
                 }
             }
         }

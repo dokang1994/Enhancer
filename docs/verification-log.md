@@ -798,3 +798,14 @@ This assessment itself changed no production or test code and did not change Gat
 - Authority boundary unchanged: `ProcessBuilder` still appears in exactly two production files.
 - Store roots reach the child only as launcher arguments. No payload field can redirect where evidence or RunRecords are written.
 - Structural: `git diff --check` clean.
+
+## Process-Isolated Execution Hardening Verification
+
+- Aligned RED before implementation: the two focused suites ran 17 tests and failed 9. The failures independently named foreign work identity, wrong work destination, multiple results triggering a launcher, wrong result destination, RunRecord source/target/digest mismatches, the public `executeWork` seam, and stale next-task declarations.
+- Focused GREEN after implementation: `ProcessIsolatedAgentRunExecutionTest` and `DurableAgentRunFinalizerTest` passed together; `ProcessIsolatedAgentRunExecutionTest` now has 16 cases, including a real child-JVM end-to-end case and adversarial records for a different task, source document, read target, and expected digest.
+- Launcher non-invocation is executable evidence, not inference: foreign work, a wrong work route, and several result files are each paired with a `WorkerProcessLauncher` that throws if called, and each request instead fails with the intended `IOException`.
+- Result authority is bounded before reference return: exact result route, correlation/logical-run/causation/task payload identity, reference resolution, shared finalizer task/source binding, read-file target, verification-bearing expected digest, and claimed-versus-recorded status all pass on the real child result and fail independently when tampered.
+- Document consistency guard was first widened while the stale ROADMAP and SESSION_HANDOFF declarations remained; `onlyCurrentTaskDeclaresTheNextTask` failed and named both documents. After repair, the guard accepts only `CURRENT_TASK.md`'s canonical `## Next`, while ROADMAP retains exactly one `Status: Specified - Next` maturity marker.
+- Fresh full regression under `--warning-mode all` after `cleanTest`: 71 suites, 348 tests, 346 passed, 2 existing Windows symbolic-link setup skips, 0 failures, 0 errors. Java 17 production compilation passed `-Xlint:all -Werror` across all 167 sources.
+- External-command authority is unchanged: `ProcessBuilder` still appears in exactly two production files, `GitWorkspaceCollector` and `IsolatedWorkerLauncher`.
+- Structural: stale 3d absence searches returned no matches; `git diff --check` clean.

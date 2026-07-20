@@ -6,11 +6,11 @@ Completed
 
 ## Task
 
-Implement Gate 8 connection sub-increment 3d: add `ProcessIsolatedAgentRunExecution`, which spools one dispatched WorkItem to a per-cycle work spool, runs it in a child process through `IsolatedWorkerMain`, and returns the persisted RunRecord reference after validating the child's published result against the resolved record.
+Harden Gate 8 connection sub-increment 3d at its authority and recovery boundaries, and repair the canonical-document ownership guard that allowed stale next-task declarations to survive.
 
 ## Task ID
 
-gate-8-process-isolated-execution
+gate-8-process-isolated-execution-hardening
 
 ## Justified By
 
@@ -18,18 +18,17 @@ gate-8-process-isolated-execution
 
 ## Context
 
-Connection 3's adapter (3c) and process lifecycle (3b) both existed but neither was wired, because `AgentRunExecution` must return a `run-record/<uuid>` string and the child's only channel back was an exit code. The accepted decision fixed the return path as a reverse spool carrying an existing `ResultPayload`, keyed by a per-cycle invocation root, with the RunRecord as the authority the child's claim is checked against.
+The first 3d implementation proved a real child JVM execution path, but review found four fail-closed gaps: a pre-existing foreign work message was reused without identity validation; a resolved RunRecord was not bound back to the dispatched source and execution input; multiple result messages were treated as no result and could trigger another child; and the shared execution seam was unnecessarily public. The same review found stale canonical documents and showed that the document-ownership test recognized `## Next Task` but not the repository's actual `## Next` heading or declarative next-increment prose.
 
 ## Acceptance Criteria
 
-- `ProcessIsolatedAgentRunExecution` implements `AgentRunExecution` and returns a reference resolvable in the shared `RunRecordStore`.
-- Work and result travel through separate spools under an invocation root private to the Goal and AgentRun; exactly one valid message is expected in each direction.
-- The child runs the same Gate 1-4 pipeline as the in-process path through a shared `AgentLoopAgentRunExecution.executeWork` seam rather than a second implementation.
-- Store roots reach the child as parent-supplied launcher arguments, never as payload data.
-- The result is validated before a reference is returned: correlation, logical-run, causation, and task identities match the dispatched work; the payload is exactly a `ResultPayload`; the reference resolves; and the claimed verification status equals the resolved record's own. Any mismatch fails closed.
-- A non-completed launcher outcome or a non-zero exit fails closed.
-- Re-entry returns an already-published valid result without launching a second child.
-- The launcher is reached through a `WorkerProcessLauncher` port so the parent's failure paths are provable without spawning a process.
+- A pre-existing work spool entry is decoded and reused only when its destination and complete envelope exactly equal the current WorkItem; foreign work fails before launch.
+- Result spool cardinality distinguishes zero, one, and several entries; several entries fail before launch instead of being treated as unpublished.
+- A result is accepted only from the exact result destination and only when its resolved RunRecord binds back to the dispatched task, source document, execution target, expected digest, and claimed verification status.
+- Adversarial tests prove foreign work, foreign RunRecord references, wrong result destinations, and multiple results cannot launch or advance execution.
+- `AgentLoopAgentRunExecution.executeWork` is package-private, keeping the shared child seam inside the runtime package.
+- `PROJECT_STATE.md`, `ARCHITECTURE.md`, `.ai/architecture.md`, `ROADMAP.md`, and `SESSION_HANDOFF.md` agree on 3d's current boundary and leave next-task ownership to `CURRENT_TASK.md`.
+- `DocumentOwnershipTest` detects both canonical next-task headings and declarative next-task/next-increment prose outside `CURRENT_TASK.md`.
 - Full regression passes with 0 failures and 0 errors, and strict lint passes across all production sources.
 
 ## Out Of Scope
@@ -41,12 +40,12 @@ Connection 3's adapter (3c) and process lifecycle (3b) both existed but neither 
 
 ## Approval
 
-Approved by the user's 2026-07-20 direction to proceed with the reverse result spool after review added the execution-request, result-authority, and spool-consumption contracts to the decision.
+Approved by the user's 2026-07-20 request to implement the four reviewed findings, repair the document consistency guard, verify the repository, and commit, push, and merge the completed work.
 
 ## Verification
 
-Recorded in `docs/verification-log.md` under Process Isolated Execution Verification.
+Recorded in `docs/verification-log.md` under Process-Isolated Execution Hardening Verification.
 
 ## Next
 
-Wire `ProcessIsolatedAgentRunExecution` into `DurableAgentRunWorker` and decide spool retention, since an invocation root currently persists for every cycle with nothing to remove it.
+After this hardening increment, wire `ProcessIsolatedAgentRunExecution` into `DurableAgentRunWorker` and decide spool retention, since an invocation root currently persists for every cycle with nothing to remove it.

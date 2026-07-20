@@ -78,7 +78,7 @@ public final class AgentLoopAgentRunExecution implements AgentRunExecution {
      * the parent's concern and are never read here. Behaviour is otherwise identical, so the
      * in-process and isolated paths run the same pipeline rather than two similar ones.
      */
-    public String executeWork(WorkItem workItem, String goalId, String agentRunId)
+    String executeWork(WorkItem workItem, String goalId, String agentRunId)
             throws IOException {
         Objects.requireNonNull(workItem, "workItem must not be null");
         Objects.requireNonNull(goalId, "goalId must not be null");

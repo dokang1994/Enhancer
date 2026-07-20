@@ -97,13 +97,15 @@ public final class DurableAgentRunFinalizer {
         return run;
     }
 
-    private void requireBinding(RunRecord record, WorkItem workItem) {
+    static void requireBinding(RunRecord record, WorkItem workItem) {
         ApprovedTaskRevision revision = workItem.taskRevision();
-        if (!record.approvedTask().taskId().equals(revision.taskId())
-                || !record.approvedTask().sourceDocument()
-                        .equals(revision.sourceDocument())) {
+        if (!record.approvedTask().taskId().equals(revision.taskId())) {
             throw new IllegalArgumentException(
-                    "RunRecord approved task does not match the Goal work");
+                    "RunRecord task identity does not match the Goal work");
+        }
+        if (!record.approvedTask().sourceDocument().equals(revision.sourceDocument())) {
+            throw new IllegalArgumentException(
+                    "RunRecord source document does not match the Goal work");
         }
     }
 

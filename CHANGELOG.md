@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-07-20 - Harden Process-Isolated Execution Boundaries
+
+- Re-entry now decodes the sole existing work message and requires both the exact `work` queue destination and complete dispatched envelope before reuse. Foreign work and multiple work or result entries fail before the launcher can run.
+- Result validation now requires the exact `isolated-worker-result` queue destination and resolves the claimed reference before returning it. The resolved RunRecord must bind to the dispatched task, source document, read-file target, verification-bearing expected digest, and claimed status.
+- Reused `DurableAgentRunFinalizer`'s task/source binding before the execution port returns a reference, with separate diagnostics for task and source mismatches.
+- Reduced `AgentLoopAgentRunExecution.executeWork` to package-private so the isolated child can share the pipeline without exposing a public lease-free execution surface.
+- Added adversarial coverage for foreign work and routes, multiple results, RunRecords for a different task/source/target/digest, and launcher non-invocation on corrupt re-entry state.
+- Repaired the canonical documentation after 3d: `PROJECT_STATE.md`, `ARCHITECTURE.md`, `.ai/architecture.md`, `ROADMAP.md`, and `SESSION_HANDOFF.md` now agree that 3b/3c/3d exist while durable-worker selection and spool retention remain.
+- Extended `DocumentOwnershipTest` beyond the obsolete `## Next Task` spelling to catch `## Next` and declarative next-task/next-increment prose outside `CURRENT_TASK.md`.
+- Regression: 71 suites, 348 tests, 346 passed, 2 existing Windows symbolic-link skips, 0 failures, 0 errors; strict lint across 167 production sources.
+
 ## 2026-07-20 - Connect Isolated Execution End To End
 
 - Added `ProcessIsolatedAgentRunExecution` (Gate 8 connection sub-increment 3d), the second production `AgentRunExecution`. It spools the work envelope under an invocation root private to the Goal and AgentRun, launches `IsolatedWorkerMain` with the project, evidence, and RunRecord roots as parent-supplied arguments, and returns the persisted RunRecord reference read back from a result spool. Connection 3's adapter and process lifecycle are now connected.
