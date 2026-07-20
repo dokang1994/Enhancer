@@ -6,11 +6,11 @@ Completed
 
 ## Task
 
-Give every project fact one owning document: move the historical verification and assessment sections out of `PROJECT_STATE.md` into a new append-only `docs/verification-log.md`, reduce `SESSION_HANDOFF.md` to session-scoped facts after rescuing its durable root-cause and rejected-alternative content into `ARCHITECTURE.md`, strip per-gate maturity trailers from `ARCHITECTURE.md`, and rewrite the `CONSTITUTION.md`, `AGENTS.md`, `.ai/workflow.md`, and `prompts/SESSION_CLOSE.md` instructions that required the duplication.
+Finish applying the accepted single-document ownership rule to the documents left out of the first pass: remove every capability-maturity verdict from `.ai/architecture.md` while preserving its architectural content, and record in `.ai/memory.md` and `docs/05-Memory.md` where per-increment verification evidence belongs and that it is deliberately not a session-start document.
 
 ## Task ID
 
-docs-single-owner-restructure
+docs-ownership-completion
 
 ## Justified By
 
@@ -18,35 +18,32 @@ docs-single-owner-restructure
 
 ## Context
 
-Six root documents were rewritten in almost every commit because the same fact had to be edited in three or four places per increment, and the duplicates had already diverged: three documents stated three different next tasks, the handoff instructed the next agent to confirm a task ID that no longer existed, and the recorded test-source count was one higher than the actual. `prompts/SESSION_CLOSE.md` required the duplication explicitly, so the instruction had to change before the documents could stay clean.
+The accepted decision named `.ai/architecture.md` as a document that must not state capability maturity, but its residual maturity language was left out of scope in the first increment because a bulk rewrite of dense technical prose risked losing content. Fourteen of its bullets still carried Contract Verified, Integrated, or Operational verdicts duplicating `PROJECT_STATE.md`, so the file still had to be edited on every maturity change. The memory documents also did not say where verification evidence now lives.
 
 ## Acceptance Criteria
 
-- `docs/verification-log.md` exists and holds the 58 historical verification and assessment sections in append order, with content preserved exactly; line accounting reconciles against the original 861-line `PROJECT_STATE.md`.
-- `PROJECT_STATE.md` retains only current state, capability maturity, accepted product direction, negative-space claims, known limitations, and the current delivery position, and it preserves every hand-authored judgment that no test, decision, or run record can reproduce.
-- `SESSION_HANDOFF.md` states only working-tree facts and next-agent instructions; the completion-conflict root-cause analysis and the Option A/B/C queue-capacity alternatives survive in `ARCHITECTURE.md` with the Option letters intact so the existing decision cross-reference stays resolvable.
-- `ARCHITECTURE.md` states no per-gate maturity verdict and no ordinal increment narration.
-- `CONSTITUTION.md` Section 4 binds single-document ownership; `AGENTS.md`, `.ai/workflow.md`, and `prompts/SESSION_CLOSE.md` instruct writing each fact only to its owning document and no longer require the handoff to restate state, evidence, maturity, the next task, or decisions.
-- No production or test source changes; the full regression matches the pre-change baseline of 65 suites and 299 tests with 0 failures and 0 errors.
-- `CURRENT_TASK.md`'s `## Justified By` resolves against the new accepted decision through the real `TaskJustificationProjector` path, proving the document pipeline still works end to end.
+- `.ai/architecture.md` states no capability-maturity verdict, and every architectural fact in the edited bullets is preserved.
+- Its header states that the file does not own maturity and that the bullets state what each contract is and connects to.
+- `.ai/memory.md` and `docs/05-Memory.md` record that per-increment verification evidence is appended to `docs/verification-log.md`, written once, never revised, and deliberately excluded from the session-start reading order because it grows without bound.
+- The required startup reading order is unchanged; `docs/verification-log.md` is not added to it, because `RequiredProjectDocument` fixes that set and the log is evidence rather than context.
+- No production or test source changes; the full regression matches the 65-suite/299-test baseline with 0 failures and 0 errors.
 
 ## Out Of Scope
 
-- Splitting `DECISION_LOG.md` into per-decision files; it requires changes to `AcceptedDecisionProjector`, `RequiredProjectDocument`, and `TaskJustificationProjector` and is its own bounded task.
-- Generating `PROJECT_STATE.md` from its sources, and any SQLite or database projection of the documents.
-- The residual maturity language in `.ai/architecture.md` beyond the ownership header and the `Specified - Next` bookkeeping removed here.
+- Splitting `DECISION_LOG.md` into per-decision files; it remains a Project Brain code change and its own bounded task.
+- Generating `PROJECT_STATE.md` from its sources, and any database projection of the documents.
+- The `## ... Slice` and `### Delivery Gate N Boundary` sections of `ARCHITECTURE.md`, which are stable historical scope boundaries rather than per-increment churn.
+- The `docs/superpowers/plans/**` records, which are point-in-time archives and are correct as written.
 - Any production or test code change, schema change, or capability maturity promotion.
 
 ## Approval
 
-Approved by the user's 2026-07-20 selection of the deduplication-only scope after the code-coupling investigation, with verification by a real increment and merge to `main` through a pull request.
+Approved by the user's 2026-07-20 request to finish the documentation cleanup after the first restructure merged through PR #9.
 
 ## Verification
 
-- Baseline before the change: 65 suites, 299 tests, 297 passed, 2 existing Windows symbolic-link setup skips, 0 failures, 0 errors under `--warning-mode all`.
-- Line accounting on the split: the original 861-line `PROJECT_STATE.md` reconciles exactly as 657 historical lines plus 185 retained lines plus 19 lines of duplicated next-task and reading-order content deleted at source.
-- Post-change regression and structural checks are recorded in `docs/verification-log.md`.
+Recorded in `docs/verification-log.md` under Document Ownership Completion Verification.
 
 ## Next
 
-Choose the next bounded Gate 8 sub-increment: worker process isolation (3b) or the concrete `MessageTransport` local IPC adapter (3c).
+Gate 8 connection sub-increment 3b (worker process isolation) or 3c (the concrete `MessageTransport` local IPC adapter), which the user is taking up in a separate session.

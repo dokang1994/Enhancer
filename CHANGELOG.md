@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-20 - Complete The Document Ownership Cleanup
+
+- Removed every capability-maturity verdict from `.ai/architecture.md`: 14 bullets carrying Contract Verified, Integrated, or Operational duplicated `PROJECT_STATE.md` and forced an edit on every maturity change. Each bullet now states what its contract is and what it connects to, with all architectural content preserved; the header states the file does not own maturity.
+- Recorded in `.ai/memory.md` and `docs/05-Memory.md` that per-increment verification evidence is appended to `docs/verification-log.md`, written once and never revised, and deliberately excluded from the session-start reading order because it grows without bound.
+- Left the required startup reading order unchanged: `RequiredProjectDocument` fixes that set of 15 paths, and the verification log is evidence rather than startup context.
+- No production or test source changed; the full regression matches the baseline (65 suites, 299 tests, 0 failures, 0 errors).
+
 ## 2026-07-20 - Give Every Project Fact One Owning Document
 
 - Established single-document ownership in `CONSTITUTION.md` Section 4: every fact has exactly one owning document, a document references rather than restates a fact it does not own, and a discovered duplicate is deleted rather than synchronized. Bound three rules explicitly because each had already produced a contradiction — the next task belongs to `CURRENT_TASK.md`, capability maturity to `PROJECT_STATE.md`, and delivery history to git and `CHANGELOG.md`.
