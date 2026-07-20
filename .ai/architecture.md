@@ -1,11 +1,24 @@
 # AI Architecture Notes
 
-The canonical architecture document is `ARCHITECTURE.md`.
+The canonical architecture document is `ARCHITECTURE.md`. This file is its compact
+executable-context mirror.
+
+It does not own capability maturity. Read maturity from `PROJECT_STATE.md` and the
+evidence behind it from `docs/verification-log.md`. Where a bullet below still carries
+a maturity verdict, `PROJECT_STATE.md` wins.
+
+A contract description here MUST state what the contract connects to, not only what it
+is. A described-but-unconnected contract is how the `completion` conflict happened:
+this file described each queue, runtime, and result contract correctly while omitting
+the ordered connection backlog between them, so the missing middle transition was not
+visible. `ARCHITECTURE.md` holds that backlog under Gate 8 Connection Sequence And
+Completion Boundary, and Completion Semantics states the three distinct facts that
+`completion` names.
 
 Current direction:
 
 - Enhancer is a self-hosting AI Development Operating System.
-- Delivery Gate 0 Context, planning, Assisted Loop, repeated-loop safety, ToolResult, VerificationEvidence, and governance contracts are Integrated through an authority-preserving lifecycle test; the bounded read-only Tool, persisted evidence, Tool-driven Agent Loop, verification, and RunRecord boundaries are Integrated, and their first supported read-only CLI composition is Operational.
+- Delivery Gate 0 Context, planning, Assisted Loop, repeated-loop safety, ToolResult, VerificationEvidence, and governance contracts are connected through an authority-preserving lifecycle test; the bounded read-only Tool, persisted evidence, Tool-driven Agent Loop, verification, and RunRecord boundaries compose into the first supported read-only CLI.
 - Executable repository context loads the seven governed `.ai/` documents before the eight canonical root documents.
 - The Planner follows the canonical Delivery Gate / Specified - Next grammar and is regression-tested against the actual Enhancer Roadmap.
 - Capability maturity is Specified, Contract Verified, Integrated, Operational, or Released; do not use Implemented alone as a roadmap state.
@@ -21,7 +34,7 @@ Current direction:
 - Delivery Gate 5 provides the supported `EnhancerCli` `run` and `replay` commands with bounded output, stable exit codes, verified-only completion, and durable replay.
 - Gate 0 integration proves planning -> explicit external activation -> verified Gate 5 execution and replay without automatic Proposal approval or a second production orchestrator.
 - Delivery Gate 6 Workspace and Project Brain Foundation is Integrated by the 2026-07-15 user-approved re-scope decision: diagnostics, terminal-session, and active/selected-file observation moved to Gate 12, which owns those capabilities. Its snapshot, view, graph, query, projector, and collector sub-capabilities are Integrated, and the production CLI `run` path composes the view and graph Operationally. The snapshot identity is not stored in the RunRecord; Gate 7 envelopes own cross-handoff identity.
-- Delivery Gate 7 Event Bus and IPC Foundation is Contract Verified. Its reference-only `MessageEnvelope`, deterministic single-threaded `InProcessMessageBus`, and transport-neutral `MessageTransport` boundary cover bounded payloads, topic fan-out, single-consumer queues, idempotency, journal replay, failure isolation, bounded retry and dead-letter re-delivery, correlation cancellation, run-to-completion ordering, finite non-blocking backpressure, and hop-level transport acceptance without granting authority. Persistence, threading, production wiring, and concrete adapters remain deferred; Delivery Gate 8 Agent Runtime and Scheduler is the sole `Specified - Next` product gate.
+- Delivery Gate 7 Event Bus and IPC Foundation is Contract Verified. Its reference-only `MessageEnvelope`, deterministic single-threaded `InProcessMessageBus`, and transport-neutral `MessageTransport` boundary cover bounded payloads, topic fan-out, single-consumer queues, idempotency, journal replay, failure isolation, bounded retry and dead-letter re-delivery, correlation cancellation, run-to-completion ordering, finite non-blocking backpressure, and hop-level transport acceptance without granting authority. Persistence, threading, production wiring, and concrete adapters remain deferred. The current `Specified - Next` gate is stated in `ROADMAP.md` and `PROJECT_STATE.md`, not here.
 - Gate 7 has one Integrated work-message queue path: `WorkMessagePublisher` derives an envelope from a matching real approved task and Workspace snapshot, the in-process bus delivers/journals/replays it, and `WorkItemAdmissionHandler` retains it unchanged in Gate 8 admission without duplicate work. The gate-level assessment keeps Gate 7 Contract Verified because result/control/handoff and causation flows, topic and reliability branches, and `MessageTransport` still lack named real production connections.
 - Gate 8's first sub-capability is Contract Verified: immutable `WorkItem` admission retains one unchanged Gate 7 work envelope, adds a distinct canonical work identity and bounded required capability, and exposes approved task, snapshot, run, and Tool scope only as projections. It adds no runtime state, persistence, lease, or authority; the dependency-ready single-worker Scheduler queue is now its first consumer.
 - Gate 8's dependency-ready single-worker queue is Contract Verified: immutable queued work carries up to 256 earlier-admitted dependency identities, a run-scoped queue admits at most 4096 work items, FIFO selection releases only fully completed dependencies, and exactly one active slot exists. The base queue remains in-memory and creates no lease, failure policy, worker execution, or authority; the separate durable wrapper now supplies schema-v1 state and restart recovery.

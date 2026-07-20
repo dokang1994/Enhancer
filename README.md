@@ -143,14 +143,17 @@ prompts/SESSION_CLOSE.md를 읽고 세션을 종료해라.
 
 ## Core Documents
 
+각 사실은 정확히 하나의 문서가 소유한다. 다른 문서는 그 사실을 다시 적지 않고 참조한다.
+
 - `CONSTITUTION.md`: 최상위 헌법
 - `AGENTS.md`: AI Agent 작업 규칙
-- `ARCHITECTURE.md`: 현재 아키텍처
-- `PROJECT_STATE.md`: 실제 구현 상태
-- `CURRENT_TASK.md`: 현재 단 하나의 Task
+- `ARCHITECTURE.md`: 현재 아키텍처 (성숙도는 기술하지 않음)
+- `PROJECT_STATE.md`: 검증된 현재 구현 상태, 성숙도 판단, 알려진 한계
+- `docs/verification-log.md`: 그 상태의 근거가 되는 증분별 검증 기록 (append-only)
+- `CURRENT_TASK.md`: 현재 단 하나의 Task와 다음 Task
 - `ROADMAP.md`: 단계별 진행 계획
 - `DECISION_LOG.md`: 승인된 설계 결정
-- `SESSION_HANDOFF.md`: 다음 세션 인수인계
+- `SESSION_HANDOFF.md`: 지금 사실이면서 세션과 함께 사라질 내용만
 - `CHANGELOG.md`: 변경 기록
 
 ## Codex-Ready Specification Documents

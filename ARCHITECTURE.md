@@ -2,9 +2,13 @@
 
 ## Status
 
-Delivery Gate 0 foundation contracts are Integrated through an authority-preserving planning-to-approved-execution lifecycle test. The self-hosting context and planning path is verified against the current `.ai/` bootstrap set and canonical Roadmap grammar. Delivery Gates 1 through 4 integrate bounded read-only Tool execution, durable integrity-checked evidence, Tool-result-driven Agent Loop transitions, sequential independent verification, and replayable RunRecords. Delivery Gate 5 makes that deliberately narrow read-only vertical slice Operational through a supported local CLI. Delivery Gate 6 is Integrated, Delivery Gate 7 messaging foundations are Contract Verified, and Delivery Gate 8 Agent Runtime and Scheduler is the next specified product gate.
-
 The accepted product direction is Self-hosting AI Development Operating System.
+
+This document describes the architecture: what each component is, what it connects
+to, and which boundaries it must not cross. It does not state per-gate maturity.
+Current maturity is in `PROJECT_STATE.md` and the evidence behind it in
+`docs/verification-log.md`; a section here that claims a gate is Integrated or
+Operational is duplication and should be removed rather than updated.
 
 ## Capability Maturity Model
 
@@ -130,33 +134,31 @@ Project Brain is the reasoning-facing aggregate of canonical repository memory, 
 
 ### Gate 6 Workspace Snapshot Contract
 
-The first Gate 6 increment is a metadata-only immutable snapshot under `com.enhancer.workspace`. `ApprovedTaskRevision` records task identity, source-document identity, and the SHA-256 revision of the approved source. `WorkspaceSourceObservation` records a typed source, stable source identity, adapter provenance, observation time, optional source-update time, explicit Available/Stale/Unavailable state, optional content digest, and bounded reason metadata.
+The Workspace snapshot contract is a metadata-only immutable snapshot under `com.enhancer.workspace`. `ApprovedTaskRevision` records task identity, source-document identity, and the SHA-256 revision of the approved source. `WorkspaceSourceObservation` records a typed source, stable source identity, adapter provenance, observation time, optional source-update time, explicit Available/Stale/Unavailable state, optional content digest, and bounded reason metadata.
 
 `WorkspaceSnapshot` normalizes the absolute project root, sorts observations canonically, rejects duplicate kind/identity pairs and more than 4096 observations, and computes its own SHA-256 identity over every identity-bearing metadata field. Caller order cannot change the identity. Source payloads, Tool scope, policy, approval creation, and command authority are absent by construction.
 
-This metadata contract is Integrated: the real Context Reader feeds it through the repository-memory collector and the view, producer, and query consume it. Gate 7 message envelopes later carry the same snapshot identity across handoffs.
+Gate 7 message envelopes carry the same snapshot identity across handoffs.
 
 ### Gate 6 Project Brain View
 
-The second Gate 6 increment is the read-only `ProjectBrainView` aggregate under `com.enhancer.brain`. It composes exactly one `WorkspaceSnapshot`, one `ProjectContext` repository memory, and one `RunRecord`, and derives everything it exposes from those inputs. It performs no collection of its own.
+`ProjectBrainView` is the read-only aggregate under `com.enhancer.brain`. It composes exactly one `WorkspaceSnapshot`, one `ProjectContext` repository memory, and one `RunRecord`, and derives everything it exposes from those inputs. It performs no collection of its own.
 
 The view is keyed to the snapshot's canonical identity rather than computing a second one. Repository memory is projected to `RepositoryMemoryEntry` metadata of document path, read order, and a computed lowercase SHA-256 of the document content; no document content is retained. Each entry carries an explicit `MemoryFreshness` derived by comparing that digest against the snapshot's `REPOSITORY_DOCUMENT` observation with the same source identity: `SNAPSHOT_MATCHED` for equal digests, `SNAPSHOT_DIVERGED` when the snapshot observed a different or unconfirmed revision, and `NOT_OBSERVED` when the snapshot never observed the document. `RunProvenance` projects the RunRecord to logical run identity, record time, approved task identity, and verification status only; Tool requests, results, evidence bodies, and chat history are absent by construction.
 
 The view requires the RunRecord's approved task identity and source document to equal the snapshot's `ApprovedTaskRevision` and rejects an unrelated run rather than aggregating misattributed provenance. Workspace Available, Stale, and Unavailable states pass through unchanged.
 
-This aggregate is Integrated: it is composed from really-collected snapshots, really-loaded memory, and really-persisted RunRecords by the integration path below and on the production CLI run path.
-
 ### Gate 6 Repository Memory Collection
 
-The third Gate 6 increment is the read-only `RepositoryMemorySnapshotCollector`, the first Workspace source adapter. It derives a real `WorkspaceSnapshot` from repository memory that the Context Reader already loaded: one `AVAILABLE` `REPOSITORY_DOCUMENT` observation per document with `context-reader` provenance and a computed content digest, plus an `ApprovedTaskRevision` digested from the approved task's source document in the same memory. It reads no files itself, reuses `WorkspaceSnapshot.capture` for identity and bounds, takes its capture time as an explicit parameter, and rejects memory that lacks the approved task source document.
+`RepositoryMemorySnapshotCollector` is the read-only Workspace source adapter over repository memory. It derives a real `WorkspaceSnapshot` from repository memory that the Context Reader already loaded: one `AVAILABLE` `REPOSITORY_DOCUMENT` observation per document with `context-reader` provenance and a computed content digest, plus an `ApprovedTaskRevision` digested from the approved task's source document in the same memory. It reads no files itself, reuses `WorkspaceSnapshot.capture` for identity and bounds, takes its capture time as an explicit parameter, and rejects memory that lacks the approved task source document.
 
-The repository-memory path is Integrated: an integration test connects a real governed CLI run, the real persisted RunRecord, the real Context Reader, the collector, and `ProjectBrainView.compose`, including an explicit `SNAPSHOT_DIVERGED` observation after the source document changes. Because the collector observes only loaded memory, `STALE` and `UNAVAILABLE` observations first appear with real per-source adapters.
+Because the collector observes only loaded memory, `STALE` and `UNAVAILABLE` observations first appear with real per-source adapters.
 
 ### Gate 6 Production Composition
 
 The `EnhancerCli` `run` path composes the view in production. The CLI keeps the `ProjectContext` it already loads for task approval, collects the snapshot with a capture time taken before worker execution, composes the view after finalization with the persisted RunRecord for every outcome that produces a record, and appends `workspaceSnapshotId`, `workspaceObservations`, and a `memoryFreshness` summary to the bounded run output. No content, digest list, or evidence is printed; no command, argument, exit code, or authority was added. The RunRecord does not store the snapshot identity; carrying that identity across handoffs belongs to the Gate 7 envelope contracts.
 
-This makes the repository-memory composition Operational for the governed read-only CLI scenario. Delivery Gate 6 is Integrated by the 2026-07-15 re-scope-and-promotion decision: diagnostics, terminal-session, and active/selected-file observation moved to Gate 12, which owns those capabilities. Gate 7 Event Bus and IPC Foundation is now Contract Verified, and Gate 8 Agent Runtime and Scheduler is the sole `Specified - Next` product gate.
+Diagnostics, terminal-session, and active/selected-file observation are owned by Gate 12, moved there by the 2026-07-15 re-scope-and-promotion decision.
 
 ### Gate 6 Graph Projection Contract
 
@@ -164,19 +166,15 @@ The graph projection contract under `com.enhancer.brain` types the Project Brain
 
 Every element carries `GraphProvenance`: a bounded source reference, an optional lowercase SHA-256 source revision, and explicit `CURRENT`/`STALE`/`SOURCE_MISSING` freshness with derived rebuild-required status; Current and Stale require a revision and Source-Missing prohibits one. `ProjectBrainGraph.project` keys the projection to one valid Workspace snapshot identity with an explicit projection time and the `project-brain-graph-v1` version, orders nodes and edges deterministically, and rejects duplicates, self-loops, unknown endpoints, endpoint-kind violations, and more than 4096 elements per collection.
 
-This contract is Integrated: real producers populate it exclusively and the impact query consumes it. Modifies, verified-by, justified-by, supersedes, and depends-on producers remain deferred to their own evidence sources.
+Modifies, verified-by, justified-by, supersedes, and depends-on producers remain deferred to their own evidence sources.
 
 ### Gate 6 Task Impact Query
 
 `TaskImpactQuery` answers the first rebuildable task-to-decision-to-code-to-test question over exactly one projected graph. From the queried task node it traverses only the named chain — `JUSTIFIED_BY` to decisions, `MODIFIES` to artifacts, `VERIFIED_BY` from those modified artifacts to their verifying artifacts, and `RECORDED_AS` to executions — and returns an immutable `TaskImpact` carrying the graph's source snapshot identity and one derived rebuild-required status. The status is true exactly when the task node, a traversed edge, or a returned node requires rebuild, so the answer says when it stops being trustworthy; unrelated stale elements do not taint it. Transitive `DEPENDS_ON` closure is deliberately deferred until real dependency projections exist.
 
-The query is Integrated: it answers over really-produced graphs through the producer below, naming the real stored execution, on both the integration path and the production CLI run path.
-
 ### Gate 6 Run Evidence Graph Producer
 
-`RunEvidenceGraphProducer` is the first graph producer. From one Workspace snapshot and one task-matched stored run record it projects only what that evidence proves: a task node from the approved task revision, one artifact node per repository document/file observation with the observation state mapped one-to-one to element freshness (Available to Current, Stale to Stale, Unavailable to Source-Missing), an execution node carrying the stored envelope SHA-256 and durable reference, and a single `RECORDED_AS` edge. It never emits decision, modifies, verified-by, justified-by, supersedes, or depends-on elements, because no current evidence source justifies them; each of those arrives with its own producer and decision.
-
-The run-evidence production path is Integrated: the end-to-end integration test flows a real governed CLI run and a really-collected snapshot through the producer into a `TaskImpactQuery` answer naming the real stored execution.
+`RunEvidenceGraphProducer` projects graph elements from stored evidence. From one Workspace snapshot and one task-matched stored run record it projects only what that evidence proves: a task node from the approved task revision, one artifact node per repository document/file observation with the observation state mapped one-to-one to element freshness (Available to Current, Stale to Stale, Unavailable to Source-Missing), an execution node carrying the stored envelope SHA-256 and durable reference, and a single `RECORDED_AS` edge. It never emits decision, modifies, verified-by, justified-by, supersedes, or depends-on elements, because no current evidence source justifies them; each of those arrives with its own producer and decision.
 
 ### Gate 6 Decision Projection And Run Record Observation
 
@@ -198,21 +196,21 @@ The CLI `run` path composes the graph in production: the RunRecord store is cons
 
 Graph metadata that is available from the snapshot and repository memory is projected and structurally preflighted before evidence creation or Tool execution. Repository-document and target-file observations sharing one path collapse to one artifact node with the target-specific observation preferred, and graph node identities share the Workspace 1024-character source bound. After the finalized RunRecord is persisted, Project Brain view/graph/query composition is optional diagnostics: a runtime failure emits bounded `brainStatus=UNAVAILABLE` metadata and cannot replace the durable record-derived exit code with an internal error.
 
-This makes the production graph composition Operational for the governed read-only CLI scenario. Impact answers carry executions and explicitly justified decisions; modifies and verified-by evidence does not exist yet.
+Impact answers carry executions and explicitly justified decisions; modifies and verified-by evidence does not exist yet.
 
 ## Gate 7 Message Envelope Contract
 
-The first Gate 7 increment is the reference-only envelope contract under `com.enhancer.bus`. `MessageEnvelope` is versioned (`message-envelope-v1`) and carries a canonical-UUID message identity, a bounded correlation identity, an optional canonical-UUID causation identity that must differ from the message identity, bounded logical-run and producer identities, an occurrence time, and one typed payload.
+The Gate 7 envelope contract is reference-only, under `com.enhancer.bus`. `MessageEnvelope` is versioned (`message-envelope-v1`) and carries a canonical-UUID message identity, a bounded correlation identity, an optional canonical-UUID causation identity that must differ from the message identity, bounded logical-run and producer identities, an occurrence time, and one typed payload.
 
 `MessagePayload` is sealed to exactly four kinds. The work payload carries the approved task revision, a valid Workspace snapshot identity, and an immutable allowed-tool scope of 1 through 256 unique names, each bounded to 256 characters; the result payload carries the task identity, a run-record reference, and the verification status; the control payload carries a typed cancel/pause/resume signal with a bounded reason; the handoff payload carries the task revision, snapshot identity, and run-record reference. Authorization is carried as data, never created: possessing an envelope grants nothing, and delivery code must validate contents against repository authority rather than trust the sender.
 
-The explicit allowed-tool cardinality ceiling closes the payload-bound gap found by the Gate 7 maturity assessment. Together with the existing per-name ceiling, the only collection-bearing payload has a finite aggregate tool-name ceiling of 65,536 characters, so the Roadmap exit criterion that payloads are bounded or replaced by evidence references is satisfied at Contract Verified maturity. The fresh follow-up assessment promoted Gate 7 without selecting or requiring a concrete IPC adapter.
+Together with the per-name ceiling, the explicit allowed-tool cardinality ceiling gives the only collection-bearing payload a finite aggregate tool-name ceiling of 65,536 characters, satisfying the Roadmap exit criterion that payloads are bounded or replaced by evidence references.
 
-This contract is Contract Verified and consumed by both the deterministic in-process topic and queue delivery surface and the transport-neutral IPC boundary below. Together with those delivery contracts, it completes the Contract Verified Gate 7 foundation; production integration remains deferred.
+The contract is consumed by both the deterministic in-process topic and queue delivery surface and the transport-neutral IPC boundary below. Production integration remains deferred.
 
 ## Gate 7 In-Process Delivery
 
-The second Gate 7 increment is `InProcessMessageBus` under `com.enhancer.bus`: a synchronous, single-threaded, deterministic delivery surface over `MessageEnvelope`. A `DeliveryDestination` is a typed `DeliveryDestinationKind` (`TOPIC` or `QUEUE`) plus a bounded name; a topic publication fans out to every subscriber in registration order, and a queue publication is delivered point-to-point to a single consumer, rejecting a second consumer. Each publication returns an immutable ordered list of per-subscriber `DeliveryOutcome`s carrying a `DeliveryStatus` of `DELIVERED`, `DUPLICATE`, or `UNROUTED`.
+`InProcessMessageBus` under `com.enhancer.bus` is a synchronous, single-threaded, deterministic delivery surface over `MessageEnvelope`. A `DeliveryDestination` is a typed `DeliveryDestinationKind` (`TOPIC` or `QUEUE`) plus a bounded name; a topic publication fans out to every subscriber in registration order, and a queue publication is delivered point-to-point to a single consumer, rejecting a second consumer. Each publication returns an immutable ordered list of per-subscriber `DeliveryOutcome`s carrying a `DeliveryStatus` of `DELIVERED`, `DUPLICATE`, or `UNROUTED`.
 
 Delivery is idempotent per `(destination, subscriber, message identity)`: re-publishing the same envelope invokes the handler at most once and reports `DUPLICATE`. Every publication is appended to an ordered immutable journal of `JournaledMessage` entries, and `replay` re-dispatches a journal deterministically without appending to it, reproducing the original outcomes on a fresh bus and producing only `DUPLICATE` with no duplicate side effect when replayed against a bus that already processed them. The bus carries whole envelopes without mutation, so authorization and provenance survive every hop; it never creates authority.
 
@@ -232,13 +230,13 @@ This delivery, its failure handling, its bounded retry and explicit re-delivery,
 
 ### Gate 7 Pending-Queue Backpressure
 
-The run-to-completion pending queue is bounded by immutable `BackpressurePolicy` with a capacity from 1 through 4096 and a finite default. Because a re-entrant publisher is executing inside the single-threaded drain, the bus never blocks it: capacity exhaustion reports the scope-level `BACKPRESSURED` status immediately. Refused work is not admitted, journaled, dispatched, deduplicated, dead-lettered, or cancelled and may be explicitly retried later. Accepted work remains FIFO. Replay accepts the deterministic prefix that fits the configured capacity and reports the refused suffix while retaining replay's non-journaling behavior. This contract is Contract Verified. The policy bounds pending publications only; retention bounds, threading, persistence, scheduling, and IPC remain separate concerns.
+The run-to-completion pending queue is bounded by immutable `BackpressurePolicy` with a capacity from 1 through 4096 and a finite default. Because a re-entrant publisher is executing inside the single-threaded drain, the bus never blocks it: capacity exhaustion reports the scope-level `BACKPRESSURED` status immediately. Refused work is not admitted, journaled, dispatched, deduplicated, dead-lettered, or cancelled and may be explicitly retried later. Accepted work remains FIFO. Replay accepts the deterministic prefix that fits the configured capacity and reports the refused suffix while retaining replay's non-journaling behavior. The policy bounds pending publications only; retention bounds, threading, persistence, scheduling, and IPC remain separate concerns.
 
 ### Gate 7 Transport-Neutral IPC Boundary
 
 `TransportMessage` carries exactly one existing `DeliveryDestination` and one existing `MessageEnvelope` without copying or reinterpreting either. Provider-neutral `MessageTransport.send` accepts that immutable route and envelope and returns a `TransportOutcome` whose `TransportStatus` is `ACCEPTED`, `BACKPRESSURED`, or `UNAVAILABLE`. Accepted outcomes carry no reason; non-acceptance carries a bounded diagnostic reason.
 
-Transport acceptance is deliberately not Message Bus delivery. `ACCEPTED` means only that the configured adapter accepted responsibility for attempting one hop; it does not mean a receiving bus admitted, journaled, dispatched, or delivered the envelope. A transport refusal consumes no bus journal, idempotency, cancellation, failure, or dead-letter state, and higher-level scheduling owns any retry timing. The interface contains no provider endpoint, serialization, protocol, authentication, lifecycle, threading, persistence, or authority type. This boundary is Contract Verified; no concrete adapter exists and no process boundary has been crossed.
+Transport acceptance is deliberately not Message Bus delivery. `ACCEPTED` means only that the configured adapter accepted responsibility for attempting one hop; it does not mean a receiving bus admitted, journaled, dispatched, or delivered the envelope. A transport refusal consumes no bus journal, idempotency, cancellation, failure, or dead-letter state, and higher-level scheduling owns any retry timing. The interface contains no provider endpoint, serialization, protocol, authentication, lifecycle, threading, persistence, or authority type. No concrete adapter exists and no process boundary has been crossed.
 
 ### Gate 7 Runtime Integration Preparation
 
@@ -261,9 +259,9 @@ Planner, Coder, Reviewer, Tester, and Memory are roles or workers behind message
 
 ### Gate 8 WorkItem Admission Contract
 
-The first Gate 8 increment is an immutable scheduler-facing `WorkItem` under `com.enhancer.runtime`. A work-item identity is a canonical UUID distinct from the Gate 7 message identity because logical work and one delivery attempt are different identities. The item retains exactly one existing `MessageEnvelope` carrying `WorkPayload` plus one bounded required-capability name; logical run identity, approved task revision, Workspace snapshot identity, and allowed Tools are projections of that unchanged envelope rather than caller-supplied copies.
+The Gate 8 admission contract is an immutable scheduler-facing `WorkItem` under `com.enhancer.runtime`. A work-item identity is a canonical UUID distinct from the Gate 7 message identity because logical work and one delivery attempt are different identities. The item retains exactly one existing `MessageEnvelope` carrying `WorkPayload` plus one bounded required-capability name; logical run identity, approved task revision, Workspace snapshot identity, and allowed Tools are projections of that unchanged envelope rather than caller-supplied copies.
 
-Admission rejects non-work payloads, malformed or reused identities, and blank or oversized capabilities. It creates no approval, Tool permission, state transition, dependency, queue, lease, persistence, or execution authority. This admission sub-capability is Contract Verified; the dependency-ready single-worker Scheduler queue is its first consumer, and the separate durable Goal/AgentRun lifecycle below retains the same exact WorkItem. Budgets, cancellation, leases, worker execution, and broader recovery remain later Gate 8 increments.
+Admission rejects non-work payloads, malformed or reused identities, and blank or oversized capabilities. It creates no approval, Tool permission, state transition, dependency, queue, lease, persistence, or execution authority. The dependency-ready single-worker Scheduler queue is its first consumer, and the separate durable Goal/AgentRun lifecycle below retains the same exact WorkItem. Budgets, cancellation, leases, worker execution, and broader recovery remain later Gate 8 increments.
 
 ### Gate 8 Dependency-Ready Single-Worker Queue
 
@@ -271,7 +269,7 @@ Admission rejects non-work payloads, malformed or reused identities, and blank o
 
 `SingleWorkerSchedulerQueue` admits at most 4096 work items per run-scoped instance, rejects duplicate work identities, preserves admission order, and claims the first item whose dependencies are completed. It has exactly one active slot: another claim returns empty until the matching active identity is explicitly completed, and only completion releases dependent work. The queue retains each `WorkItem` and its Gate 7 envelope by identity and creates no task approval, Tool authority, verification result, or execution outcome.
 
-This queue sub-capability is Contract Verified. Its base implementation is deliberately in-memory and single-threaded: claim is not a lease, completion is not a durable AgentRun terminal state, and there is no failure/retry/cancellation, priority, budget, timeout, fence, orphan recovery, worker execution, or production wiring. The separate durable wrapper below now supplies schema-v1 queue state and restart recovery without changing those limits.
+The base queue implementation is deliberately in-memory and single-threaded: claim is not a lease, completion is not a durable AgentRun terminal state, and there is no failure/retry/cancellation, priority, budget, timeout, fence, orphan recovery, worker execution, or production wiring. The separate durable wrapper below supplies schema-v1 queue state and restart recovery without changing those limits.
 
 ### Gate 8 Durable Queue State And Restart Recovery
 
@@ -299,7 +297,7 @@ This sub-capability and its fenced single-owner lease are Contract Verified. Lea
 
 The queue and runtime stores remain separate atomic artifacts. Queue claim occurs first, so a claim failure creates no runtime state. A later runtime-store failure intentionally leaves the queue item active and retains any durable runtime prefix. Re-entry with the same WorkItem, Goal, AgentRun, and current owner resumes that prefix; an existing unexpired same-owner lease is returned without renewal or revision, while mismatched WorkItem, AgentRun, owner, or post-execution state fails closed. Runtime recovery checks exact WorkItem equality before expiry reclamation, so mismatched state is not mutated.
 
-The filesystem integration recovers both real stores: queue recovery requeues the interrupted active item, the dispatcher claims that same admission-ordered WorkItem again, and runtime recovery returns the exact existing Unicode-bearing unexpired lease. This named path is Integrated, but it does not complete the queue, invoke a Tool or worker, consume a result message, record or fence an external effect, add retry, or claim cross-store atomicity.
+The filesystem integration recovers both real stores: queue recovery requeues the interrupted active item, the dispatcher claims that same admission-ordered WorkItem again, and runtime recovery returns the exact existing Unicode-bearing unexpired lease. The path does not complete the queue, invoke a Tool or worker, consume a result message, record or fence an external effect, add retry, or claim cross-store atomicity.
 
 ### Gate 8 Connection Sequence And Completion Boundary
 
@@ -336,6 +334,30 @@ Each cross-store step persists its earlier authoritative artifact before the lat
 The Scheduler provides at-least-once work delivery; it does not claim universal exactly-once execution across arbitrary Tools or external systems. Near-exactly-once user-visible behavior is composed from a stable idempotency key per logical work/effect, durable state transitions, fenced leases that reject stale owners, checkpointed recovery, versioned state migration, explicit orphan detection and reclamation, and replay-safe or compensatable external effects.
 
 A worker may repeat after timeout, crash, lost acknowledgement, or lease expiry. The current fence token must accompany every state write and effect commit, stale tokens must fail closed, and the durable result must record whether an effect was applied, deduplicated, compensated, or left for user recovery. Priority and fairness cannot bypass dependency readiness, authority, data classification, cost/time budgets, or cancellation. Recovery must be testable across process restart and supported schema versions before the Scheduler is Operational.
+
+### Completion Semantics
+
+`Completion` names three distinct lifecycle facts. They were implemented in separate increments, and conflating them is the one modelling error this area has actually produced, so they are stated separately here:
+
+1. **Worker execution completion:** the fenced owner has stopped executing and the runtime moves to `AWAITING_VERIFICATION`.
+2. **Verified runtime completion:** an independently supported `ResultPayload` completes or fails the AgentRun and Goal.
+3. **Scheduler queue completion:** the WorkItem enters `completedWorkItemIds`, releases the active slot, and allows dependent work to become ready.
+
+Each contract is internally consistent; the failure mode is connecting fact 1 directly to fact 3 without re-checking fact 2. Three interpretations are therefore rejected outright:
+
+- `EXECUTING -> AWAITING_VERIFICATION` must not call `completeActive`.
+- A worker acknowledgement must not add a WorkItem to the dependency-satisfaction set.
+- Releasing capacity must not be represented as successful completion merely because a queue happens to have only pending, active, and completed states.
+
+The conflict was possible because the compact `.ai/architecture.md` described current contracts without an ordered connection backlog, so it could not expose a missing middle transition. A contract description that does not state what it connects to is incomplete.
+
+### Queue Capacity During Verification: Accepted And Rejected Options
+
+**Option A — keep the queue item active through verification.** Accepted, and in force. It is the smallest change consistent with the schema-v1 queue and single-worker design, preserves Verified-only completion without a new intermediate queue state, keeps crash recovery and cross-store ordering provable, and prevents another WorkItem from starting while the current result is unresolved. Its cost is real: verification latency occupies the single Scheduler slot, and a slow or unavailable verifier blocks unrelated ready work in that queue.
+
+**Option B — add a non-terminal awaiting-verification queue state.** Deferred, not rejected. It releases the execution slot while verification proceeds and permits another independent WorkItem to execute without falsely satisfying dependencies. It requires a durable queue-state and schema change with recovery rules for the waiting set, separate execution and verification capacity limits and backpressure, ordering and fairness between the two stages, cancellation/timeout/restart/orphan behaviour for both, and an explicit rule that waiting work stays outside the dependency-satisfaction set. Reconsider only once the terminal-disposition and result paths are Contract Verified and verification throughput is a demonstrated bottleneck.
+
+**Option C — mark the queue completed at execution acknowledgement.** Rejected. It is simple and releases capacity, but it lets dependent work start before independent verification and makes a worker receipt equivalent to completion authority, which conflicts with the Constitution-backed verification model, Gate 3/4 behaviour, the runtime AgentRun states, and the Gate 8 Verified-only terminal contract.
 
 ## Agent Orchestration Contract
 

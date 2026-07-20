@@ -45,13 +45,14 @@ Each document class has one canonical responsibility:
 - **CONSTITUTION.md:** stable identity, authority, safety, lifecycle, verification, self-hosting, and amendment rules.
 - **AGENTS.md:** repository-wide operating instructions for Agents.
 - **.ai/:** bootstrap rules and compact machine-readable operating context.
-- **ARCHITECTURE.md:** system boundaries, components, contracts, and architectural constraints.
+- **ARCHITECTURE.md:** system boundaries, components, contracts, and architectural constraints. It does not state capability maturity.
 - **RFCs:** detailed proposals and specifications.
 - **DECISION_LOG.md:** accepted decisions and their rationale.
-- **CURRENT_TASK.md:** the single active task, scope, acceptance criteria, and evidence.
-- **PROJECT_STATE.md:** verified current implementation state.
+- **CURRENT_TASK.md:** the single active task, its scope, acceptance criteria, evidence, and the next task.
+- **PROJECT_STATE.md:** verified current implementation state, the maturity judgment it rests on, and known limitations. It states the present, not the history of how the present was reached.
+- **docs/verification-log.md:** append-only per-increment verification evidence behind that state. Written once per increment and never revised.
 - **ROADMAP.md:** planned sequence and milestones, not implemented truth.
-- **SESSION_HANDOFF.md:** continuation context between work sessions.
+- **SESSION_HANDOFF.md:** continuation context between work sessions, limited to what is true now and would otherwise be lost with the session.
 - **CHANGELOG.md:** notable completed changes.
 - **README.md:** human entry point and project overview.
 - **Prompts and Skills:** repeatable invocation and reusable operating procedures.
@@ -69,6 +70,14 @@ After this Constitution and repository operating instructions have been applied,
 8. Chat history
 
 This priority order resolves project facts and work context. It does not permit CURRENT_TASK.md or another lower-level document to override AGENTS.md, .ai/, or this Constitution.
+
+Every fact has exactly one owning document. A document MUST NOT restate a fact another document owns; it references that document instead. Three consequences are binding because each has already produced a contradiction in this repository:
+
+- The next task is owned by CURRENT_TASK.md alone. PROJECT_STATE.md and SESSION_HANDOFF.md MUST NOT state it.
+- Capability maturity is owned by PROJECT_STATE.md alone. ARCHITECTURE.md, .ai/architecture.md, and SESSION_HANDOFF.md MUST NOT state it.
+- Delivery history is owned by git and CHANGELOG.md. No document restates which commit published which increment.
+
+When a document is found restating a fact it does not own, the duplicate is deleted rather than synchronized.
 
 ## 5. Lifecycle State Model
 

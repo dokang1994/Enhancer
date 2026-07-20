@@ -6,19 +6,22 @@ Read and execute this prompt before ending a Codex work session.
 
 1. Check changed files.
 2. Run relevant tests.
-3. Update `PROJECT_STATE.md`.
-4. Update `CURRENT_TASK.md`.
-5. Update `ARCHITECTURE.md` if architecture changed.
-6. Add new accepted decisions to `DECISION_LOG.md`.
-7. Distill reusable knowledge:
+3. Append this increment's verification evidence to `docs/verification-log.md`. Write it once; never revise an earlier entry.
+4. Update `PROJECT_STATE.md` only where current state, maturity, or a known limitation actually changed. Verification records do not go here.
+5. Update `CURRENT_TASK.md`, including the next task.
+6. Update `ARCHITECTURE.md` only if a boundary, component, or contract changed. Maturity statements do not go here.
+7. Add new accepted decisions to `DECISION_LOG.md`.
+8. Distill reusable knowledge:
    - Promote project-independent repeatable procedures to a validated Skill and synchronize `skills/INDEX.md`.
    - Promote repository-specific rationale or pitfalls to `DECISION_LOG.md` or an ADR.
    - Do not duplicate promoted knowledge in `SESSION_HANDOFF.md`.
-8. Update `SESSION_HANDOFF.md` so the next agent can continue.
-9. Update `CHANGELOG.md` when notable changes occurred.
-10. Review the final diff.
-11. Commit with an appropriate message if commit is part of this session.
-12. Confirm the recorded lifecycle state is supported by fresh evidence and does not imply release.
+9. Reduce `SESSION_HANDOFF.md` to what is true now and would otherwise be lost. Delete anything another document owns.
+10. Update `CHANGELOG.md` when notable changes occurred.
+11. Review the final diff.
+12. Commit with an appropriate message if commit is part of this session.
+13. Confirm the recorded lifecycle state is supported by fresh evidence and does not imply release.
+
+If a step has nothing to change, say so and move on. Restating an unchanged fact to make a step feel done is the failure these steps are written against.
 
 ## Final Report
 
@@ -36,15 +39,17 @@ Do not push unless the user explicitly asks.
 
 ## Handoff Requirement
 
-`SESSION_HANDOFF.md` must be complete enough for a future AI session to recover without chat history.
+The repository must be complete enough for a future AI session to recover without chat
+history. That is a property of the documents as a set, not of any single file.
 
-At minimum, include:
+`SESSION_HANDOFF.md` carries only what no other document owns:
 
-- completed work
-- current state
-- next task
-- relevant files
-- decisions made
-- open issues
-- commands verified
-- instructions for the next agent
+- the state of the working tree and branches right now
+- work in flight and where it stopped
+- instructions for the next agent that are not already repository rules
+
+It MUST NOT restate completed work, current state, capability maturity, the next task,
+accepted decisions, or verification commands. Those belong to `CHANGELOG.md` and git,
+`PROJECT_STATE.md`, `CURRENT_TASK.md`, `DECISION_LOG.md`, and
+`docs/verification-log.md` respectively. If the next agent could learn a fact by
+reading its owning document, it does not belong in the handoff.
