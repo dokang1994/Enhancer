@@ -1,9 +1,11 @@
 package com.enhancer.bus;
 
 /**
- * Immutable admission bound for publications waiting in the in-process bus's pending queue.
- * Capacity exhaustion never blocks the single-threaded drain; the attempted publication is
- * refused with {@link DeliveryStatus#BACKPRESSURED} instead.
+ * Immutable finite admission bound, used by the in-process bus for publications waiting in its
+ * pending queue and by {@link FileSpoolMessageTransport} for messages waiting in its spool.
+ * Capacity exhaustion never blocks: the in-process bus refuses the attempted publication with
+ * {@link DeliveryStatus#BACKPRESSURED} rather than stalling its single-threaded drain, and the
+ * transport refuses the hop with {@link TransportStatus#BACKPRESSURED} without spooling it.
  */
 public record BackpressurePolicy(int maxPendingPublications) {
 

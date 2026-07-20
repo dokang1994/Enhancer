@@ -236,7 +236,17 @@ The run-to-completion pending queue is bounded by immutable `BackpressurePolicy`
 
 `TransportMessage` carries exactly one existing `DeliveryDestination` and one existing `MessageEnvelope` without copying or reinterpreting either. Provider-neutral `MessageTransport.send` accepts that immutable route and envelope and returns a `TransportOutcome` whose `TransportStatus` is `ACCEPTED`, `BACKPRESSURED`, or `UNAVAILABLE`. Accepted outcomes carry no reason; non-acceptance carries a bounded diagnostic reason.
 
-Transport acceptance is deliberately not Message Bus delivery. `ACCEPTED` means only that the configured adapter accepted responsibility for attempting one hop; it does not mean a receiving bus admitted, journaled, dispatched, or delivered the envelope. A transport refusal consumes no bus journal, idempotency, cancellation, failure, or dead-letter state, and higher-level scheduling owns any retry timing. The interface contains no provider endpoint, serialization, protocol, authentication, lifecycle, threading, persistence, or authority type. No concrete adapter exists and no process boundary has been crossed.
+Transport acceptance is deliberately not Message Bus delivery. `ACCEPTED` means only that the configured adapter accepted responsibility for attempting one hop; it does not mean a receiving bus admitted, journaled, dispatched, or delivered the envelope. A transport refusal consumes no bus journal, idempotency, cancellation, failure, or dead-letter state, and higher-level scheduling owns any retry timing. The interface contains no provider endpoint, serialization, protocol, authentication, lifecycle, threading, persistence, or authority type.
+
+#### File Spool Adapter
+
+`FileSpoolMessageTransport` is the first implementation. It encodes one `TransportMessage` and writes it to its own file under a configured spool directory that a peer process reads, mapping the three statuses to conditions it can actually observe: a durably spooled message is `ACCEPTED`, capacity exhaustion measured against a `BackpressurePolicy` is `BACKPRESSURED`, and an unusable spool root is `UNAVAILABLE`. A refused message spools nothing.
+
+The wire format belongs to `MessageEnvelopeCodec`, not the adapter: the frame is `[magic][bodyLength][sha-256 of body][body]`, with length-prefixed strict UTF-8 strings, all four payload kinds, and an unknown kind rejected on both encode and decode. Decoding is fail-closed on bad magic, invalid lengths, digest mismatch, malformed UTF-8, trailing bytes, and any envelope invariant violation, and reports `CorruptedSpooledMessageException` — distinct from a plain `IOException` because a corrupt message stays corrupt and should be dead-lettered, while a filesystem condition may be transient. Occurrence time is carried as epoch-second plus nanosecond, since rounding an `Instant` to milliseconds would rewrite provenance the receiver is meant to trust. The frame holds no wall-clock or random state, so one message always encodes to identical bytes and a peer may deduplicate on content.
+
+The adapter owns publication only: a temporary file published by atomic move into its own freshly generated name, so resending an envelope never overwrites an earlier hop and a reader never observes a partial message.
+
+The adapter promises no ordering across separately spooled messages: the contract is per hop, and a spool directory has no ordering. It is one-directional by construction — a peer reads with the static `read`, and results returning the other way need their own spool. Nothing wires it into production; no CLI, worker, or bus path constructs it.
 
 ### Gate 7 Runtime Integration Preparation
 

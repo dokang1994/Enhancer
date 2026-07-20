@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-07-20 - Add The First Transport Adapter As A Local File Spool
+
+- Added `FileSpoolMessageTransport`, the first concrete `MessageTransport` (Gate 8 connection sub-increment 3c). It writes one encoded route and envelope to its own file under a configured spool directory a peer process reads: durably spooled is `ACCEPTED`, capacity exhaustion against a `BackpressurePolicy` is `BACKPRESSURED`, an unusable root is `UNAVAILABLE`, and a refused message spools nothing.
+- Each hop is published through a temporary file and an atomic move into a freshly generated name, so a reader never observes a partial message and resending an envelope never overwrites an earlier hop. The adapter promises no ordering across separately spooled messages, because the contract is per hop.
+- Added `MessageEnvelopeCodec`, owning the wire format separately from publication so its cases are verifiable without a filesystem and a second adapter can reuse it. The frame is `[magic][bodyLength][sha-256 of body][body]` with length-prefixed strict UTF-8 strings and all four payload kinds.
+- Occurrence time is carried as epoch-second plus nanosecond. An earlier draft used `toEpochMilli`, silently truncating an `Instant` and rewriting provenance the receiver is meant to trust; a nanosecond-bearing test proved the loss before the fix.
+- The frame holds no wall-clock or random state, so one message always encodes to identical bytes and a peer may deduplicate on content. An earlier draft put spool time in the header, making two hops of one message differ.
+- Added `CorruptedSpooledMessageException`, distinct from a plain `IOException`: a corrupt message stays corrupt and should be dead-lettered, while a filesystem condition may be transient and worth retrying.
+- Selected the file spool over a Unix domain socket because it needs no capability the project does not already exercise and its tests are deterministic. Worker process isolation (3b) is deliberately excluded: it needs `ProcessBuilder`, and `.ai/workflow.md` step 6 forbids implementing work requiring new external authority inside a RED cycle.
+- Nothing wires the adapter into production; no CLI, worker, or bus path constructs it, so no runtime behaviour changed.
+- Regression: 69 suites, 320 tests, 318 passed, 2 existing Windows symbolic-link skips, 0 failures, 0 errors; strict lint across 161 production sources.
+
 ## 2026-07-20 - Close The Documentation Audit Gaps
 
 - Widened `DocumentOwnershipTest` to three explicit claim shapes — subject-first, verb-first with an `at`/`to`/`as` connector, and a parenthetical verdict beside a gate in a table row. The first version matched only subject-first, which is how `ARCHITECTURE.md`'s "retains Gate 7 at Contract Verified" and two table verdicts survived the increment that introduced the guard. Plain co-occurrence was tried and rejected: it flagged forward-looking conditions and the commentary explaining a removed claim.
