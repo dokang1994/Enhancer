@@ -15,12 +15,16 @@ import com.enhancer.bus.WorkPayload;
 import com.enhancer.kernel.VerificationStatus;
 import com.enhancer.run.FileSystemRunRecordStore;
 import com.enhancer.run.RunRecordStore;
+import com.enhancer.tool.EvidenceStoragePolicy;
+import com.enhancer.tool.FileSystemEvidenceStore;
 import com.enhancer.workspace.ApprovedTaskRevision;
 import java.io.IOException;
+import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HexFormat;
@@ -63,19 +67,52 @@ class ProcessIsolatedAgentRunExecutionTest {
         Fixture fixture = Fixture.create(temporaryRoot);
         String reference = fixture.execution().execute(fixture.dispatch());
 
-        // A launcher that would fail the test if used at all: re-entry must recover from the
-        // published result rather than re-execute, which is what closes the interrupted-cycle
-        // window without orphaning a second RunRecord.
-        ProcessIsolatedAgentRunExecution recovering = fixture.executionWith(
-                new WorkerProcessLauncher() {
-                    @Override
-                    public IsolatedWorkerOutcome run(
-                            Class<?> entryPoint, List<String> arguments, Duration timeout) {
-                        throw new AssertionError("a second child must not be launched");
-                    }
-                });
+        ProcessIsolatedAgentRunExecution recovering =
+                fixture.executionWith(failIfLaunched());
 
         assertEquals(reference, recovering.execute(fixture.dispatch()));
+    }
+
+    @Test
+    void refusesForeignWorkAlreadyInTheCycleBeforeLaunchingAChild() throws IOException {
+        Fixture fixture = Fixture.create(temporaryRoot);
+        MessageEnvelope expected = fixture.dispatch().workItem().workMessage();
+        MessageEnvelope foreign = new MessageEnvelope(
+                UUID.randomUUID().toString(),
+                expected.correlationId(),
+                expected.causationId(),
+                expected.logicalRunId(),
+                expected.producer(),
+                expected.occurredAt(),
+                expected.payload());
+        spool(
+                fixture.cycleRoot().resolve(IsolatedWorkerMain.WORK_SPOOL),
+                new TransportMessage(
+                        DeliveryDestination.queue(IsolatedWorkerMain.WORK_SPOOL), foreign),
+                1);
+
+        IOException refused = assertThrows(
+                IOException.class,
+                () -> fixture.executionWith(failIfLaunched()).execute(fixture.dispatch()));
+
+        assertTrue(refused.getMessage().contains("dispatched work"), refused.getMessage());
+    }
+
+    @Test
+    void refusesWorkWithTheWrongDestinationBeforeLaunchingAChild() throws IOException {
+        Fixture fixture = Fixture.create(temporaryRoot);
+        spool(
+                fixture.cycleRoot().resolve(IsolatedWorkerMain.WORK_SPOOL),
+                new TransportMessage(
+                        DeliveryDestination.queue("foreign-work"),
+                        fixture.dispatch().workItem().workMessage()),
+                1);
+
+        IOException refused = assertThrows(
+                IOException.class,
+                () -> fixture.executionWith(failIfLaunched()).execute(fixture.dispatch()));
+
+        assertTrue(refused.getMessage().contains("destination"), refused.getMessage());
     }
 
     @Test
@@ -86,7 +123,7 @@ class ProcessIsolatedAgentRunExecutionTest {
 
         // Same reference and same claimed status, but produced for a different cycle. Accepting
         // it would let an earlier or foreign run stand in for this one.
-        republish(resultSpool, fixture, envelope -> new MessageEnvelope(
+        republish(resultSpool, envelope -> new MessageEnvelope(
                 UUID.randomUUID().toString(),
                 "a-different-correlation",
                 envelope.causationId(),
@@ -109,7 +146,7 @@ class ProcessIsolatedAgentRunExecutionTest {
 
         // The RunRecord is the authority. A child that reports a verdict the record does not
         // carry must not be able to promote its own run.
-        republish(resultSpool, fixture, envelope -> new MessageEnvelope(
+        republish(resultSpool, envelope -> new MessageEnvelope(
                 envelope.messageId(),
                 envelope.correlationId(),
                 envelope.causationId(),
@@ -122,6 +159,121 @@ class ProcessIsolatedAgentRunExecutionTest {
                 () -> fixture.execution().execute(fixture.dispatch()));
         assertTrue(refused.getMessage().contains("claimed verification status"),
                 refused.getMessage());
+    }
+
+    @Test
+    void refusesAResultPublishedToTheWrongDestination() throws IOException {
+        Fixture fixture = Fixture.create(temporaryRoot);
+        fixture.execution().execute(fixture.dispatch());
+        Path resultSpool = fixture.cycleRoot().resolve(IsolatedWorkerMain.RESULT_SPOOL);
+
+        republishTransport(resultSpool, message -> new TransportMessage(
+                DeliveryDestination.queue("foreign-result"),
+                message.envelope()));
+
+        IOException refused = assertThrows(
+                IOException.class,
+                () -> fixture.executionWith(failIfLaunched()).execute(fixture.dispatch()));
+        assertTrue(refused.getMessage().contains("destination"), refused.getMessage());
+    }
+
+    @Test
+    void refusesAResolvedRunRecordForAnotherSourceDocument() throws IOException {
+        Fixture fixture = Fixture.create(temporaryRoot);
+        fixture.execution().execute(fixture.dispatch());
+        String foreignReference = fixture.recordFor(
+                "FOREIGN_TASK.md",
+                "TARGET.md",
+                fixture.targetDigest());
+
+        republishReference(
+                fixture, foreignReference, VerificationStatus.VERIFIED);
+
+        IOException refused = assertThrows(
+                IOException.class,
+                () -> fixture.executionWith(failIfLaunched()).execute(fixture.dispatch()));
+        assertTrue(refused.getMessage().contains("source document"), refused.getMessage());
+    }
+
+    @Test
+    void refusesAResolvedRunRecordForAnotherTask() throws IOException {
+        Fixture fixture = Fixture.create(temporaryRoot);
+        fixture.execution().execute(fixture.dispatch());
+        String foreignReference = fixture.recordFor(
+                "foreign-task",
+                "TARGET.md",
+                "TARGET.md",
+                fixture.targetDigest());
+
+        republishReference(
+                fixture, foreignReference, VerificationStatus.VERIFIED);
+
+        IOException refused = assertThrows(
+                IOException.class,
+                () -> fixture.executionWith(failIfLaunched()).execute(fixture.dispatch()));
+        assertTrue(refused.getMessage().contains("task identity"), refused.getMessage());
+    }
+
+    @Test
+    void refusesAResolvedRunRecordForAnotherExecutionTarget() throws IOException {
+        Fixture fixture = Fixture.create(temporaryRoot);
+        fixture.execution().execute(fixture.dispatch());
+        fixture.writeProjectFile("OTHER_TARGET.md", "isolated worker target\n");
+        String foreignReference = fixture.recordFor(
+                "TARGET.md",
+                "OTHER_TARGET.md",
+                fixture.targetDigest());
+
+        republishReference(
+                fixture, foreignReference, VerificationStatus.VERIFIED);
+
+        IOException refused = assertThrows(
+                IOException.class,
+                () -> fixture.executionWith(failIfLaunched()).execute(fixture.dispatch()));
+        assertTrue(refused.getMessage().contains("execution target"), refused.getMessage());
+    }
+
+    @Test
+    void refusesAResolvedRunRecordForAnotherExpectedDigest() throws IOException {
+        Fixture fixture = Fixture.create(temporaryRoot);
+        fixture.execution().execute(fixture.dispatch());
+        String foreignReference = fixture.recordFor(
+                "TARGET.md",
+                "TARGET.md",
+                "0".repeat(64));
+
+        republishReference(
+                fixture, foreignReference, VerificationStatus.REJECTED);
+
+        IOException refused = assertThrows(
+                IOException.class,
+                () -> fixture.executionWith(failIfLaunched()).execute(fixture.dispatch()));
+        assertTrue(refused.getMessage().contains("expected digest"), refused.getMessage());
+    }
+
+    @Test
+    void refusesSeveralResultsBeforeLaunchingAChild() throws IOException {
+        Fixture fixture = Fixture.create(temporaryRoot);
+        fixture.execution().execute(fixture.dispatch());
+        Path resultSpool = fixture.cycleRoot().resolve(IsolatedWorkerMain.RESULT_SPOOL);
+        Path existing = IsolatedWorkerMain.soleSpooledMessage(resultSpool).orElseThrow();
+        Files.copy(existing, resultSpool.resolve("duplicate.transport"));
+
+        IOException refused = assertThrows(
+                IOException.class,
+                () -> fixture.executionWith(failIfLaunched()).execute(fixture.dispatch()));
+        assertTrue(refused.getMessage().contains("result spool"), refused.getMessage());
+    }
+
+    @Test
+    void keepsTheLeaseFreeExecutionSeamInsideTheRuntimePackage()
+            throws NoSuchMethodException {
+        int modifiers = AgentLoopAgentRunExecution.class
+                .getDeclaredMethod(
+                        "executeWork", WorkItem.class, String.class, String.class)
+                .getModifiers();
+
+        assertTrue(!Modifier.isPublic(modifiers), "executeWork must not be public");
     }
 
     @Test
@@ -182,15 +334,48 @@ class ProcessIsolatedAgentRunExecutionTest {
     }
 
     private static void republish(
-            Path resultSpool, Fixture fixture, java.util.function.UnaryOperator<MessageEnvelope> rewrite)
+            Path resultSpool, java.util.function.UnaryOperator<MessageEnvelope> rewrite)
+            throws IOException {
+        republishTransport(resultSpool, message -> new TransportMessage(
+                DeliveryDestination.queue(IsolatedWorkerMain.RESULT_DESTINATION),
+                rewrite.apply(message.envelope())));
+    }
+
+    private static void republishReference(
+            Fixture fixture, String reference, VerificationStatus status) throws IOException {
+        Path resultSpool = fixture.cycleRoot().resolve(IsolatedWorkerMain.RESULT_SPOOL);
+        republish(resultSpool, envelope -> new MessageEnvelope(
+                envelope.messageId(),
+                envelope.correlationId(),
+                envelope.causationId(),
+                envelope.logicalRunId(),
+                envelope.producer(),
+                envelope.occurredAt(),
+                new ResultPayload(fixture.taskId(), reference, status)));
+    }
+
+    private static void republishTransport(
+            Path resultSpool,
+            java.util.function.UnaryOperator<TransportMessage> rewrite)
             throws IOException {
         Path existing = IsolatedWorkerMain.soleSpooledMessage(resultSpool).orElseThrow();
-        MessageEnvelope original = FileSpoolMessageTransport.read(existing).envelope();
+        TransportMessage original = FileSpoolMessageTransport.read(existing);
         Files.delete(existing);
-        new FileSpoolMessageTransport(resultSpool, BackpressurePolicy.of(1))
-                .send(new TransportMessage(
-                        DeliveryDestination.queue(IsolatedWorkerMain.RESULT_DESTINATION),
-                        rewrite.apply(original)));
+        spool(resultSpool, rewrite.apply(original), 1);
+    }
+
+    private static void spool(Path root, TransportMessage message, int capacity) {
+        new FileSpoolMessageTransport(root, BackpressurePolicy.of(capacity)).send(message);
+    }
+
+    private static WorkerProcessLauncher failIfLaunched() {
+        return new WorkerProcessLauncher() {
+            @Override
+            public IsolatedWorkerOutcome run(
+                    Class<?> entryPoint, List<String> arguments, Duration timeout) {
+                throw new AssertionError("a child must not be launched");
+            }
+        };
     }
 
     /** One dispatched cycle with real filesystem stores and a real target to read. */
@@ -200,7 +385,8 @@ class ProcessIsolatedAgentRunExecutionTest {
             RunRecordStore runRecordStore,
             ProcessIsolatedAgentRunExecution execution,
             Path cycleRoot,
-            String taskId) {
+            String taskId,
+            String targetDigest) {
 
         static Fixture create(Path temporaryRoot) throws IOException {
             Path root = Files.createDirectories(
@@ -240,14 +426,16 @@ class ProcessIsolatedAgentRunExecutionTest {
                     runRecordStore,
                     null,
                     invocationRoot.resolve(dispatch.goalId()).resolve(dispatch.agentRunId()),
-                    taskId);
+                    taskId,
+                    digest);
             return new Fixture(
                     root,
                     dispatch,
                     runRecordStore,
                     fixture.executionWith(new IsolatedWorkerLauncher()),
                     fixture.cycleRoot(),
-                    taskId);
+                    taskId,
+                    digest);
         }
 
         ProcessIsolatedAgentRunExecution executionWith(WorkerProcessLauncher launcher) {
@@ -259,6 +447,58 @@ class ProcessIsolatedAgentRunExecutionTest {
                     runRecordStore,
                     launcher,
                     GENEROUS);
+        }
+
+        String recordFor(
+                String sourceDocument,
+                String targetPath,
+                String expectedDigest)
+                throws IOException {
+            return recordFor(taskId, sourceDocument, targetPath, expectedDigest);
+        }
+
+        String recordFor(
+                String recordTaskId,
+                String sourceDocument,
+                String targetPath,
+                String expectedDigest)
+                throws IOException {
+            Path source = root.resolve("project").resolve(sourceDocument);
+            if (!Files.exists(source)) {
+                Files.writeString(source, "foreign task source\n");
+            }
+            MessageEnvelope work = new MessageEnvelope(
+                    UUID.randomUUID().toString(),
+                    "correlation-" + UUID.randomUUID(),
+                    Optional.empty(),
+                    "run-" + UUID.randomUUID(),
+                    "scheduler",
+                    Instant.parse("2026-07-20T09:00:00Z"),
+                    new WorkPayload(
+                            new ApprovedTaskRevision(
+                                    recordTaskId, sourceDocument, sha256(source)),
+                            "b".repeat(64),
+                            Set.of("read-file"),
+                            Optional.of(new WorkPayload.ExecutionInput(
+                                    targetPath, expectedDigest))));
+            WorkItem workItem = new WorkItem(
+                    UUID.randomUUID().toString(), "read-file", work);
+            return new AgentLoopAgentRunExecution(
+                    root.resolve("project"),
+                    new FileSystemEvidenceStore(
+                            root.resolve("evidence"),
+                            new EvidenceStoragePolicy(
+                                    EvidenceStoragePolicy.MAX_SUPPORTED_CONTENT_BYTES)),
+                    runRecordStore,
+                    Clock.systemUTC())
+                    .executeWork(
+                            workItem,
+                            UUID.randomUUID().toString(),
+                            UUID.randomUUID().toString());
+        }
+
+        void writeProjectFile(String relative, String content) throws IOException {
+            Files.writeString(root.resolve("project").resolve(relative), content);
         }
 
         private static AgentRunLease lease() {

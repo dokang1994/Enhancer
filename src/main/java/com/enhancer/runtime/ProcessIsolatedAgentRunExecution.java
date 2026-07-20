@@ -9,11 +9,15 @@ import com.enhancer.bus.ResultPayload;
 import com.enhancer.bus.TransportMessage;
 import com.enhancer.bus.TransportOutcome;
 import com.enhancer.kernel.VerificationStatus;
+import com.enhancer.run.RunRecord;
 import com.enhancer.run.RunRecordStore;
+import com.enhancer.tool.ReadFileTool;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -30,9 +34,10 @@ import java.util.Optional;
  * <p>The returned result is a claim, never authority. Before a reference is returned this class
  * checks that the result envelope correlates to the work that was dispatched, that its payload is
  * exactly a {@link ResultPayload}, that the reference resolves in the same shared
- * {@link RunRecordStore} the finalizer uses, and that the status the child claimed equals the
- * resolved record's own status. {@code DurableAgentRunFinalizer} remains the final authority and
- * still derives the runtime terminal state and queue disposition from the record.
+ * {@link RunRecordStore} the finalizer uses, that the resolved record binds to the dispatched
+ * task, source, and execution input, and that the status the child claimed equals the resolved
+ * record's own status. {@code DurableAgentRunFinalizer} remains the final authority and still
+ * derives the runtime terminal state and queue disposition from the record.
  *
  * <p>On re-entry an already-published valid result is returned without launching a second child,
  * so a cycle interrupted after the child published recovers without re-executing. A child that
@@ -111,15 +116,26 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
      *
      * <p>Re-entry after a child died before publishing must not add a second work message: the
      * child expects exactly one and would otherwise refuse the whole cycle. A spool that already
-     * holds something other than exactly one message is a corrupt cycle and fails closed.
+     * holds several messages, a foreign route, or a foreign envelope is a corrupt cycle and fails
+     * closed before launch.
      */
     private void spoolWork(Path cycleRoot, WorkItem workItem) throws IOException {
         Path workSpool = cycleRoot.resolve(IsolatedWorkerMain.WORK_SPOOL);
-        if (IsolatedWorkerMain.soleSpooledMessage(workSpool).isPresent()) {
+        Optional<Path> existing = soleSpooledMessage(workSpool, "work");
+        if (existing.isPresent()) {
+            TransportMessage actual =
+                    FileSpoolMessageTransport.read(existing.orElseThrow());
+            DeliveryDestination expectedDestination =
+                    DeliveryDestination.queue(IsolatedWorkerMain.WORK_SPOOL);
+            if (!actual.destination().equals(expectedDestination)) {
+                throw new IOException(
+                        "the existing work message has the wrong destination");
+            }
+            if (!actual.envelope().equals(workItem.workMessage())) {
+                throw new IOException(
+                        "the existing work message does not equal the dispatched work");
+            }
             return;
-        }
-        if (spooledMessageCount(workSpool) != 0) {
-            throw new IOException("the work spool does not hold exactly one message");
         }
         TransportOutcome outcome = new FileSpoolMessageTransport(
                 workSpool, BackpressurePolicy.of(1))
@@ -140,12 +156,16 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
      */
     private Optional<String> publishedResult(Path cycleRoot, WorkItem workItem)
             throws IOException {
-        Optional<Path> spooled = IsolatedWorkerMain.soleSpooledMessage(
-                cycleRoot.resolve(IsolatedWorkerMain.RESULT_SPOOL));
+        Optional<Path> spooled = soleSpooledMessage(
+                cycleRoot.resolve(IsolatedWorkerMain.RESULT_SPOOL), "result");
         if (spooled.isEmpty()) {
             return Optional.empty();
         }
         TransportMessage message = FileSpoolMessageTransport.read(spooled.orElseThrow());
+        if (!message.destination().equals(
+                DeliveryDestination.queue(IsolatedWorkerMain.RESULT_DESTINATION))) {
+            throw new IOException("the result message has the wrong destination");
+        }
         MessageEnvelope work = workItem.workMessage();
         MessageEnvelope result = message.envelope();
 
@@ -164,11 +184,11 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
         requireEqual(
                 workItem.taskRevision().taskId(), resultPayload.taskId(), "task identity");
 
-        VerificationStatus recorded = runRecordStore
+        RunRecord record = runRecordStore
                 .resolve(resultPayload.runRecordReference())
-                .record()
-                .verification()
-                .status();
+                .record();
+        requireRunRecordBinding(record, workItem);
+        VerificationStatus recorded = record.verification().status();
         if (recorded != resultPayload.verificationStatus()) {
             throw new IOException("the child claimed verification status "
                     + resultPayload.verificationStatus()
@@ -177,14 +197,62 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
         return Optional.of(resultPayload.runRecordReference());
     }
 
-    private static long spooledMessageCount(Path spoolRoot) throws IOException {
-        if (!Files.isDirectory(spoolRoot)) {
-            return 0;
+    private static Optional<Path> soleSpooledMessage(Path spoolRoot, String direction)
+            throws IOException {
+        if (!Files.isDirectory(spoolRoot, LinkOption.NOFOLLOW_LINKS)) {
+            return Optional.empty();
         }
         try (var paths = Files.list(spoolRoot)) {
-            return paths.filter(path -> path.getFileName().toString()
-                    .endsWith(FileSpoolMessageTransport.FILE_SUFFIX)).count();
+            List<Path> spooled = paths
+                    .filter(path -> path.getFileName().toString()
+                            .endsWith(FileSpoolMessageTransport.FILE_SUFFIX))
+                    .filter(path -> Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS))
+                    .sorted(Comparator.comparing(Path::getFileName))
+                    .toList();
+            if (spooled.size() > 1) {
+                throw new IOException(
+                        "the " + direction + " spool holds several messages");
+            }
+            return spooled.stream().findFirst();
         }
+    }
+
+    private static void requireRunRecordBinding(RunRecord record, WorkItem workItem)
+            throws IOException {
+        try {
+            DurableAgentRunFinalizer.requireBinding(record, workItem);
+        } catch (IllegalArgumentException mismatch) {
+            throw new IOException(mismatch.getMessage(), mismatch);
+        }
+
+        ExecutionInput expected = executionInput(workItem);
+        if (!record.toolRequest().toolName().equals(ReadFileTool.NAME)) {
+            throw new IOException(
+                    "the RunRecord Tool request does not match isolated execution");
+        }
+        String target = record.toolRequest()
+                .arguments()
+                .get(ReadFileTool.PATH_ARGUMENT);
+        if (!expected.targetPath().equals(target)) {
+            throw new IOException(
+                    "the RunRecord execution target does not match the dispatched work");
+        }
+        if (record.verification().status() != VerificationStatus.NOT_PERFORMED
+                && !record.expectedContentSha256()
+                        .equals(Optional.of(expected.expectedContentSha256()))) {
+            throw new IOException(
+                    "the RunRecord expected digest does not match the dispatched work");
+        }
+    }
+
+    private static ExecutionInput executionInput(WorkItem workItem) {
+        return workItem.executionInput()
+                .map(declared -> new ExecutionInput(
+                        declared.targetPath(),
+                        declared.expectedContentSha256()))
+                .orElseGet(() -> new ExecutionInput(
+                        workItem.taskRevision().sourceDocument(),
+                        workItem.taskRevision().sourceSha256()));
     }
 
     private static void requireEqual(String expected, String actual, String label)
@@ -199,5 +267,8 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
         return Objects.requireNonNull(path, name + " must not be null")
                 .toAbsolutePath()
                 .normalize();
+    }
+
+    private record ExecutionInput(String targetPath, String expectedContentSha256) {
     }
 }
