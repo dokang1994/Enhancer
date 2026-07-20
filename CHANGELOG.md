@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-07-20 - Connect Isolated Execution End To End
+
+- Added `ProcessIsolatedAgentRunExecution` (Gate 8 connection sub-increment 3d), the second production `AgentRunExecution`. It spools the work envelope under an invocation root private to the Goal and AgentRun, launches `IsolatedWorkerMain` with the project, evidence, and RunRecord roots as parent-supplied arguments, and returns the persisted RunRecord reference read back from a result spool. Connection 3's adapter and process lifecycle are now connected.
+- Rewrote `IsolatedWorkerMain` to run the Gate 1-4 pipeline and publish a matching `ResultPayload` rather than only decoding a message. It reaches the pipeline through a new `AgentLoopAgentRunExecution.executeWork` seam, so the in-process and isolated paths run one implementation instead of two similar ones; a child holds no lease and cannot construct an `AgentRunDispatch`, and the lease and queue identity were never read by the pipeline.
+- The child's result is treated as a claim, never authority. Before returning a reference the parent requires matching correlation, logical-run, causation, and task identities, a payload that is exactly a `ResultPayload`, a reference that resolves in the shared `RunRecordStore`, and a claimed verification status equal to the resolved record's own. A child cannot promote its own run, and `DurableAgentRunFinalizer` stays the final authority.
+- Store roots reach the child only as launcher arguments, never as payload data, because a payload that crossed a process boundary is untrusted input and must not redirect where artifacts are written.
+- Re-entry returns an already-published valid result without launching a second child. A child that persisted a RunRecord and died before publishing leaves an orphan and is re-executed, which is the documented at-least-once consequence the in-process worker already accepts.
+- Extracted a `WorkerProcessLauncher` port so the parent's failure paths are provable without spawning a process, matching the port-and-adapter shape already used by `AgentRunExecution`, `SchedulerQueueStore`, and `MessageTransport`.
+- Nothing wires the execution into `DurableAgentRunWorker`, and nothing cleans up an invocation root. External command authority is unchanged at exactly two production files.
+- Regression: 71 suites, 339 tests, 337 passed, 2 existing Windows symbolic-link skips, 0 failures, 0 errors; strict lint across 167 production sources.
+
 ## 2026-07-20 - Isolate The Worker In A Bounded Child Process
 
 - Added `IsolatedWorkerLauncher` (Gate 8 connection sub-increment 3b), the process lifecycle half of connection 3. It runs one worker in a child process and returns a typed `IsolatedWorkerOutcome`: `COMPLETED` carries an exit code, while `TIMED_OUT` and `START_FAILED` carry a bounded reason and no exit code, so a destroyed or unstartable child can never present a code that reads as a clean exit.

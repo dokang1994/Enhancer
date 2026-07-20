@@ -66,13 +66,28 @@ public final class AgentLoopAgentRunExecution implements AgentRunExecution {
     @Override
     public String execute(AgentRunDispatch dispatch) throws IOException {
         Objects.requireNonNull(dispatch, "dispatch must not be null");
-        WorkItem workItem = dispatch.workItem();
+        return executeWork(
+                dispatch.workItem(), dispatch.goalId(), dispatch.agentRunId());
+    }
+
+    /**
+     * Runs the pipeline for one WorkItem under a named Goal and AgentRun.
+     *
+     * <p>Separated from {@link #execute(AgentRunDispatch)} because a process-isolated child holds
+     * no lease and cannot construct an {@link AgentRunDispatch}: the lease and queue identity are
+     * the parent's concern and are never read here. Behaviour is otherwise identical, so the
+     * in-process and isolated paths run the same pipeline rather than two similar ones.
+     */
+    public String executeWork(WorkItem workItem, String goalId, String agentRunId)
+            throws IOException {
+        Objects.requireNonNull(workItem, "workItem must not be null");
+        Objects.requireNonNull(goalId, "goalId must not be null");
+        Objects.requireNonNull(agentRunId, "agentRunId must not be null");
         ExecutionInput input = deriveExecutionInput(workItem);
         ApprovedTask approvedTask = new ApprovedTask(
                 workItem.taskRevision().taskId(),
-                "Execute the approved work dispatched to Goal "
-                        + dispatch.goalId(),
-                "AgentRun " + dispatch.agentRunId()
+                "Execute the approved work dispatched to Goal " + goalId,
+                "AgentRun " + agentRunId
                         + " dispatched from WorkItem " + workItem.workItemId(),
                 workItem.allowedTools(),
                 workItem.taskRevision().sourceDocument());
