@@ -691,3 +691,19 @@ This assessment itself changed no production or test code and did not change Gat
 - End-to-end production verification through the real CLI `run` path: `status=COMPLETED`, `exitCode=0`, `verificationStatus=VERIFIED`, `brainStatus=AVAILABLE`, `memoryFreshness=matched=15,diverged=0,notObserved=0`, `graphDecisions=84`, `impactDecisions=1`. The 15 matched documents include the rewritten `.ai/architecture.md`, confirming it still loads and digest-matches through `ProjectContextReader`.
 - `CURRENT_TASK.md` was temporarily set to `In Progress` with a `read-file` allowed-tool scope for that single governed run and restored to `Completed` immediately afterwards.
 - Structural: `git diff --check` clean.
+
+## Document Ownership Enforcement Verification
+
+- RED first: `DocumentOwnershipTest.onlyProjectStateClaimsGateMaturity` failed on the unmodified repository and named six violations — `README.md:13`, `docs/08-Multi-Agent.md:5`, `docs/10-Roadmap.md:21`, `docs/10-Roadmap.md:23`, `docs/11-Architecture.md:37`, and `docs/rfcs/RFC-0009-Multi-Agent.md:7`. `onlyCurrentTaskDeclaresTheNextTask` passed on the same run, confirming the earlier restructure had already fixed next-task ownership.
+- Every one of the five documents naming Gate 7 claimed it was `Specified - Next`, which stopped being true when Gate 8 took the marker. The same fact copied to five places had drifted in all five.
+- GREEN after replacing the six claims with references to `PROJECT_STATE.md`: `DocumentOwnershipTest` passed 2 of 2 with no skips.
+- Full regression under `--warning-mode all` after `cleanTest`: 66 suites, 301 tests, 299 passed, 2 existing Windows symbolic-link setup skips, 0 failures, 0 errors. The suite and test deltas against the previous 65/299 baseline are exactly the new structural test.
+- The maturity pattern is matched on a gate-scoped subject, so a document may still define or discuss the maturity vocabulary without asserting a verdict; `CONSTITUTION.md`, `AGENTS.md`, and `.ai/architecture.md` all state the rule and pass.
+- Store write-root audit finding re-examined and rejected as a defect: the 2026-07-15 Gate 5 decision requires the evidence and RunRecord roots as explicit caller inputs, `README.md` describes `.enhancer/` as the example runtime directory, both filesystem stores already refuse a symbolic-link root through `Files.isDirectory(root, LinkOption.NOFOLLOW_LINKS)`, and `FileSystemRunRecordStore.references()` filters by suffix, regular-file status, and canonical UUID, so overlapping roots are harmless. No behaviour was changed; `ARCHITECTURE.md` and `README.md` now state the contract exactly.
+- Known gap left open: the symbolic-link root refusal in both stores has no test. Inducing it requires symbolic-link creation privilege this Windows host denies, which already causes the two existing skips, so a test would give no signal here.
+- Adversarial verification of the guard itself, because a guard that is merged without being provoked is only a belief that it works. Three violations were injected into the working tree and the focused suite re-run:
+  - `docs/07-MCP.md` (not exempt) gained "Delivery Gate 9 is Operational." -> `onlyProjectStateClaimsGateMaturity` failed and named `docs/07-MCP.md:57 -> "Gate 9 is Operational"`, with the file, line, and matched text.
+  - `docs/06-Planner.md` (not exempt) gained a `## Next Task` heading -> `onlyCurrentTaskDeclaresTheNextTask` failed and named `docs/06-Planner.md:71`.
+  - `CHANGELOG.md` (exempt) gained the identical maturity sentence -> not reported by either test, confirming the exemption list suppresses the append-only records without suppressing real violations.
+  All three injections were then reverted and the suite returned to green, with `CHANGELOG.md`'s legitimate entries intact.
+- Structural: `git diff --check` clean.

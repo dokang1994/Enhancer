@@ -18,9 +18,11 @@ These states do not replace the Constitution task lifecycle. A task can be Compl
 
 ## Current Boundary
 
-Delivery Gates 0 through 4 are Integrated: governed planning remains separate from explicit approval, and approved work passes through policy and the read-only Tool boundary into bounded, resolvable evidence, a Tool-result-driven loop transition, independent verification, and a replayable RunRecord. Delivery Gate 5 is Operational through the supported local `EnhancerCli` `run` and `replay` commands.
+Current gate maturity and the current `Specified - Next` marker are in `PROJECT_STATE.md` and `ROADMAP.md`. This chapter describes the delivery sequence, not the position within it.
 
-Enhancer now has one deliberately narrow Operational read-only scenario. Gate 6 Workspace and Project Brain is Integrated, with the production CLI composing its view and graph Operationally. Gate 7 is Specified - Next: its reference-only envelope and deterministic in-process delivery contracts cover topic/queue delivery, idempotency, replay, failure isolation, bounded retry, dead letters, cancellation, run-to-completion ordering, and finite non-blocking pending-queue backpressure. It still has no durable or IPC transport, LLM call, scheduler, broader Agent Runtime, or multi-agent runtime.
+What the sequence has built so far, as capability rather than status: governed planning separated from explicit approval, with approved work passing through policy and the read-only Tool boundary into bounded resolvable evidence, a Tool-result-driven loop transition, independent verification, and a replayable RunRecord; the supported local `EnhancerCli` `run` and `replay` commands over that slice; Workspace and Project Brain with the production CLI composing its view and graph; and a reference-only envelope with deterministic in-process delivery covering topic/queue delivery, idempotency, replay, failure isolation, bounded retry, dead letters, cancellation, run-to-completion ordering, and finite non-blocking pending-queue backpressure.
+
+Enhancer has one deliberately narrow read-only scenario end to end. There is no durable or IPC transport, LLM call, or multi-agent runtime.
 
 ## Delivery Sequence
 

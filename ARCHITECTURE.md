@@ -604,7 +604,9 @@ The first `ToolRequest` uses a non-blank Tool name, a non-blank correlation iden
 
 The first concrete Tool is `ReadFileTool`. It accepts only a relative path, resolves the real target path, rejects traversal and symbolic-link escape outside the real project root, requires a regular file, enforces the size limit before reading, and decodes UTF-8 strictly. Its no-argument Gate 1 mode returns no fictional complete-output reference and therefore fails structurally if oversized output would truncate; the Gate 2 constructor supplies `EvidenceRecorder` for larger successful reads.
 
-Policy denial, unknown Tool, cancellation, timeout, malformed arguments, path escape, missing file, size overflow, invalid UTF-8, and unexpected Tool exceptions are represented as bounded failure `ToolResult` values. The Gate 1 boundary itself does not persist full evidence and does not authorize mutation; Gate 2 adds only governed evidence-root writes.
+Policy denial, unknown Tool, cancellation, timeout, malformed arguments, path escape, missing file, size overflow, invalid UTF-8, and unexpected Tool exceptions are represented as bounded failure `ToolResult` values. The Gate 1 boundary itself does not persist full evidence and does not authorize mutation; Gate 2 adds only evidence-root writes.
+
+The evidence and RunRecord roots are explicit caller inputs, by the Gate 5 decision that every run input is stated rather than inferred. They are deliberately **not** confined to the project root: a caller may place either store anywhere it can write, and `.enhancer/` is the example layout the README uses, not an enforced property. What the stores do guarantee is narrower and worth stating exactly — each normalizes its root, refuses a root that is a symbolic link rather than a real directory (`NOFOLLOW_LINKS`), and only ever creates freshly generated UUID-named entries, so a store can add files to a caller-named directory but cannot overwrite or delete anything already there. Read-side containment is a separate and stricter boundary: the run target is real-path checked against the project root and a path escape is an error.
 
 ### Delivery Gate 2 Boundary
 
