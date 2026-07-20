@@ -47,8 +47,35 @@ public final class WorkMessagePublisher {
             String logicalRunId,
             String producer,
             Instant occurredAt) {
+        return publish(
+                snapshot,
+                approvedTask,
+                Optional.empty(),
+                messageId,
+                correlationId,
+                causationId,
+                logicalRunId,
+                producer,
+                occurredAt);
+    }
+
+    /**
+     * Publishes one work envelope with an explicit caller-supplied execution input. The input is
+     * caller authority data; the publisher adds no validation beyond the payload's own contract.
+     */
+    public List<DeliveryOutcome> publish(
+            WorkspaceSnapshot snapshot,
+            ApprovedTask approvedTask,
+            Optional<WorkPayload.ExecutionInput> executionInput,
+            String messageId,
+            String correlationId,
+            Optional<String> causationId,
+            String logicalRunId,
+            String producer,
+            Instant occurredAt) {
         Objects.requireNonNull(snapshot, "snapshot must not be null");
         Objects.requireNonNull(approvedTask, "approvedTask must not be null");
+        Objects.requireNonNull(executionInput, "executionInput must not be null");
         Objects.requireNonNull(occurredAt, "occurredAt must not be null");
         requireMatchingTask(snapshot.approvedTaskRevision(), approvedTask);
         if (occurredAt.isBefore(snapshot.capturedAt())) {
@@ -66,7 +93,8 @@ public final class WorkMessagePublisher {
                 new WorkPayload(
                         snapshot.approvedTaskRevision(),
                         snapshot.snapshotId(),
-                        approvedTask.allowedTools()));
+                        approvedTask.allowedTools(),
+                        executionInput));
         return bus.publish(destination, envelope);
     }
 

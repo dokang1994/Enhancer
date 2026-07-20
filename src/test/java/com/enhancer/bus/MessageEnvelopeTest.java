@@ -110,6 +110,39 @@ class MessageEnvelopeTest {
     }
 
     @Test
+    void carriesAnOptionalCallerSuppliedExecutionInput() {
+        WorkPayload defaulted = new WorkPayload(
+                TASK_REVISION, SNAPSHOT_ID, Set.of("read-file"));
+        assertEquals(Optional.empty(), defaulted.executionInput());
+
+        WorkPayload.ExecutionInput input = new WorkPayload.ExecutionInput(
+                "docs/target.md", "e".repeat(64));
+        WorkPayload declared = new WorkPayload(
+                TASK_REVISION,
+                SNAPSHOT_ID,
+                Set.of("read-file"),
+                Optional.of(input));
+        assertEquals(Optional.of(input), declared.executionInput());
+        assertEquals("docs/target.md", input.targetPath());
+        assertEquals("e".repeat(64), input.expectedContentSha256());
+
+        assertThrows(IllegalArgumentException.class, () ->
+                new WorkPayload.ExecutionInput(" ", "e".repeat(64)));
+        assertThrows(IllegalArgumentException.class, () ->
+                new WorkPayload.ExecutionInput(
+                        "x".repeat(1025), "e".repeat(64)));
+        assertThrows(IllegalArgumentException.class, () ->
+                new WorkPayload.ExecutionInput(
+                        "docs/target.md", "E".repeat(64)));
+        assertThrows(NullPointerException.class, () ->
+                new WorkPayload(
+                        TASK_REVISION,
+                        SNAPSHOT_ID,
+                        Set.of("read-file"),
+                        null));
+    }
+
+    @Test
     void rejectsInvalidIdentitiesAndSelfCausation() {
         WorkPayload work = new WorkPayload(TASK_REVISION, SNAPSHOT_ID, Set.of("read-file"));
 

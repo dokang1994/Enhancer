@@ -225,8 +225,54 @@ class FileSystemAgentRuntimeStateStoreIntegrationTest {
                 store.resolve(GOAL_ID));
     }
 
+    @Test
+    void restoresADeclaredExecutionInputAcrossStoreInstances()
+            throws Exception {
+        WorkPayload.ExecutionInput input = new WorkPayload.ExecutionInput(
+                "docs/target-🚀.md", "e".repeat(64));
+        DurableAgentRuntime.create(
+                GOAL_ID,
+                workItemWithInput(Optional.of(input)),
+                new FileSystemAgentRuntimeStateStore(storageRoot),
+                Clock.fixed(
+                        Instant.parse("2026-07-16T20:00:00Z"),
+                        ZoneOffset.UTC));
+
+        DurableAgentRuntime recovered = DurableAgentRuntime.recover(
+                GOAL_ID,
+                new FileSystemAgentRuntimeStateStore(storageRoot),
+                Clock.fixed(
+                        Instant.parse("2026-07-16T20:01:00Z"),
+                        ZoneOffset.UTC));
+
+        assertEquals(Optional.of(input),
+                recovered.goal().workItem().executionInput());
+    }
+
     private Path artifact(String goalId) {
         return storageRoot.resolve(goalId + ".agent-runtime");
+    }
+
+    private static WorkItem workItemWithInput(
+            Optional<WorkPayload.ExecutionInput> executionInput) {
+        WorkItem base = workItem();
+        MessageEnvelope message = base.workMessage();
+        WorkPayload payload = (WorkPayload) message.payload();
+        return new WorkItem(
+                base.workItemId(),
+                base.requiredCapability(),
+                new MessageEnvelope(
+                        message.messageId(),
+                        message.correlationId(),
+                        message.causationId(),
+                        message.logicalRunId(),
+                        message.producer(),
+                        message.occurredAt(),
+                        new WorkPayload(
+                                payload.taskRevision(),
+                                payload.snapshotId(),
+                                payload.allowedTools(),
+                                executionInput)));
     }
 
     private static WorkItem workItem() {

@@ -2,6 +2,66 @@
 
 ## Accepted Decisions
 
+### 2026-07-20: Record Caller-Supplied WorkPayload Execution Input Enabling Arbitrary-Target Worker Execution
+
+Status: Accepted Decision
+
+Context:
+
+- The AgentLoop-backed execution port derives its target and expected digest from the approved task revision behind one private seam, bounding executed work to re-reading the task document; the same-day decision deferred the payload extension and named its open question: which producer supplies the target and digest at publish time.
+- The CLI's authority model already answers that shape: the caller supplies `target-path` and `expected-sha256` as explicit governed inputs, distinct from the approved task document that binds the work.
+- Deriving the pair from Workspace snapshot observations would treat observation-time digests as approval authority and couple publication to observation states; both are wrong — observations are evidence, not authority.
+- Both filesystem stores already serialize an optional string with a presence flag (`causationId`), and the terminal-disposition increment established the precedent of revising schema v1 in place for the unreleased artifact with pre-existing snapshots failing closed.
+
+Decision:
+
+- Extend `WorkPayload` with one optional nested `ExecutionInput(targetPath, expectedContentSha256)` component — `targetPath` bounded non-blank (max 1024 characters), the digest 64 lowercase hex — plus a three-argument convenience constructor delegating to empty so every existing call site stays valid.
+- Expose the `WorkItem.executionInput()` projection; append a presence flag plus the two strings after `allowedTools` in both filesystem serializers, revising schema v1 in place with no version bump.
+- Give `WorkMessagePublisher.publish` an overload carrying `Optional<WorkPayload.ExecutionInput>`; the caller supplies the execution input explicitly and the publisher adds no validation beyond the payload contract.
+- Make the port's derivation seam prefer the payload-declared input and fall back to `(sourceDocument, sourceSha256)` when absent; the `ApprovedTask` construction and Goal binding are unchanged.
+
+Rationale:
+
+Caller-supplied execution input matches the only Operational authority model the product has and keeps the envelope the single source of what the work is; the seam localizes the change to one derivation, and the in-place schema revision reuses an accepted precedent instead of inventing migration machinery for an unreleased artifact.
+
+Consequences:
+
+- A WorkItem can now declare an arbitrary governed target with its expected digest, and the durable worker executes it through the same contained read-file, evidence, verification, and RunRecord pipeline; absent input preserves the source-document behaviour exactly.
+- Pre-existing local queue/runtime snapshots without the new field fail closed on read (accepted for the unreleased artifact).
+- Out of scope: write/mutation Tools, multiple execution inputs, payload-carried plans or scripts, 3b/3c, retry, controls, and schema version bumps.
+
+### 2026-07-20: Record AgentLoop-Backed Execution Port Running The Approved Source Document Through The Gate 1-4 Pipeline Without A Payload Schema Change
+
+Status: Accepted Decision
+
+Context:
+
+- The Gate 8 in-process worker (connection 3a) executes through an injected `AgentRunExecution` port, and every existing implementation is a deterministic test stub persisting a hand-built RunRecord; no production implementation runs real Tool-driven work, so `DurableAgentRunWorker` has never driven a claim to a verifier-produced disposition.
+- The real read-file pipeline needs a target relative path (the `read-file` `path` argument) and an expected content SHA-256 (`VerificationRequest.expectedContentSha256`), and the dispatched `WorkPayload` carries neither: it holds only `(taskRevision, snapshotId, allowedTools)`.
+- Re-reading the full `ApprovedTask` through `ApprovedTaskReader` is not viable for the Scheduler path: it always reads the current `CURRENT_TASK.md`, hard-fails unless its status is `In Progress`, and cannot reproduce the approved revision — `sourceSha256` detects drift but cannot restore content.
+- Resolving execution inputs from `snapshotId` is not viable either: no Workspace snapshot persistence exists, so the identity is not resolvable to content or metadata.
+- A side store of execution inputs keyed by workItemId would split "what the work is" away from the envelope, contradicting the rule that the retained envelope is the source of run, task, snapshot, and Tool-scope provenance.
+- `DurableAgentRunFinalizer` binds the resolved RunRecord to the Goal on `approvedTask.taskId()` plus `approvedTask.sourceDocument()` and reads `record.verification().status()` to derive the queue disposition, so any port must persist through the same `RunRecordStore` and satisfy that binding.
+
+Decision:
+
+- Add `AgentLoopAgentRunExecution` under `com.enhancer.runtime` as the first production `AgentRunExecution`: it drives the already-Integrated Gate 1-4 pipeline (`ToolExecutor`/`ReadFileTool` -> `EvidenceRecorder`/`FileSystemEvidenceStore` -> `AgentRunController` over `AgentLoop` -> `DeterministicReadFileVerifier` -> application `AgentRunFinalizer`) and returns `FinalizedAgentRun.storedRecord().reference()`.
+- Execute the approved task's own governed source document: the `read-file` target is `taskRevision().sourceDocument()` and the expected content SHA-256 is `taskRevision().sourceSha256()`, so the increment needs no Gate 7 envelope, queue, or runtime serialization change. This matches the product's only Operational scenario (governed read-file plus digest verification), and a digest mismatch is real drift detection: the task document changed between approval and execution.
+- Construct the `ApprovedTask` directly from the WorkItem's own fields (`taskId`, deterministic description/approvalEvidence naming the Goal and AgentRun, `allowedTools`, `sourceDocument`); no loader, no `In Progress` coupling, and the finalizer's taskId-plus-sourceDocument binding holds by construction.
+- Isolate the derivation of `(targetPath, expectedContentSha256)` from the WorkItem behind one private seam inside the port, so the named follow-on `WorkPayload` execution-input extension changes only that derivation and reuses the whole pipeline assembly.
+- Pin the wiring rule: the port must persist through the same `RunRecordStore` instance/root the worker's `DurableAgentRunFinalizer` resolves from, mirroring the existing same-queue-instance rule.
+- Defer the `WorkPayload` execution-input extension (arbitrary target distinct from the task document) as the named next increment; it requires deciding which producer supplies the target and digest at publish time (`WorkMessagePublisher` currently derives the payload from the approved task and snapshot alone) and touches the Gate 7 envelope plus both filesystem serializers.
+
+Rationale:
+
+Deriving the execution inputs from data the WorkItem already carries is the smallest honest increment that gives the worker real Tool-driven execution end to end, and the loader and snapshot alternatives are demonstrably broken (In-Progress hard-fail, unresolvable snapshot identity). Extending the payload without a designed producer for the new fields would be a speculative schema change; the private derivation seam keeps that follow-on a data-source swap rather than a rewrite.
+
+Consequences:
+
+- `DurableAgentRunWorker` can now drive one durable claim through real Tool execution, real evidence, real independent verification, and a real persisted RunRecord to a verifier-produced `VERIFIED_COMPLETED` or `FAILED` disposition.
+- The executed work is bounded to reading and digest-verifying the approved source document until the payload extension lands; arbitrary-target execution remains named follow-on work.
+- Out of scope: the `WorkPayload` execution-input extension and its serializer changes, worker process isolation (3b), a concrete local IPC adapter (3c), write/mutation Tools, retry through additional AgentRuns, cancel/pause/resume, budgets, priority/fairness, multi-agent execution, and schema migration.
+
 ### 2026-07-17: Record In-Process Scheduler Worker Driving One Recoverable Claim-To-Disposition Cycle Through A Durable Cycle-Intent Checkpoint
 
 Status: Accepted Decision

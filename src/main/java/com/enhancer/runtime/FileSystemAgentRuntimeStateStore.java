@@ -406,6 +406,7 @@ public final class FileSystemAgentRuntimeStateStore
             writeApprovedTaskRevision(output, payload.taskRevision());
             writeString(output, payload.snapshotId());
             writeStringSet(output, payload.allowedTools());
+            writeExecutionInput(output, payload.executionInput());
             return;
         }
         if (envelope.payload() instanceof ResultPayload payload) {
@@ -443,7 +444,8 @@ public final class FileSystemAgentRuntimeStateStore
                     new WorkPayload(
                             readApprovedTaskRevision(input),
                             readString(input),
-                            readStringSet(input)));
+                            readStringSet(input),
+                            readExecutionInput(input)));
         }
         if (RESULT_PAYLOAD_KIND.equals(payloadKind)) {
             return new MessageEnvelope(
@@ -479,6 +481,28 @@ public final class FileSystemAgentRuntimeStateStore
                 readString(input),
                 readString(input),
                 readString(input));
+    }
+
+    private void writeExecutionInput(
+            DataOutputStream output,
+            Optional<WorkPayload.ExecutionInput> executionInput)
+            throws IOException {
+        output.writeBoolean(executionInput.isPresent());
+        if (executionInput.isPresent()) {
+            WorkPayload.ExecutionInput input = executionInput.orElseThrow();
+            writeString(output, input.targetPath());
+            writeString(output, input.expectedContentSha256());
+        }
+    }
+
+    private Optional<WorkPayload.ExecutionInput> readExecutionInput(
+            DataInputStream input) throws IOException {
+        if (!readPresence(input)) {
+            return Optional.empty();
+        }
+        return Optional.of(new WorkPayload.ExecutionInput(
+                readString(input),
+                readString(input)));
     }
 
     private void writeStringSet(

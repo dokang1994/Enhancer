@@ -42,6 +42,27 @@ class WorkItemTest {
     }
 
     @Test
+    void projectsTheDeclaredExecutionInput() {
+        assertEquals(Optional.empty(),
+                new WorkItem(WORK_ITEM_ID, "read-file-worker", workEnvelope())
+                        .executionInput());
+
+        WorkPayload.ExecutionInput input = new WorkPayload.ExecutionInput(
+                "docs/target.md", "e".repeat(64));
+        MessageEnvelope declared = envelope(
+                MESSAGE_ID,
+                new WorkPayload(
+                        TASK_REVISION,
+                        SNAPSHOT_ID,
+                        Set.of("read-file"),
+                        Optional.of(input)));
+
+        assertEquals(Optional.of(input),
+                new WorkItem(WORK_ITEM_ID, "read-file-worker", declared)
+                        .executionInput());
+    }
+
+    @Test
     void rejectsNonWorkEnvelopesAndInvalidAdmissionMetadata() {
         MessageEnvelope work = workEnvelope();
         MessageEnvelope control = envelope(

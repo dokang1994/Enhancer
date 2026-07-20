@@ -48,6 +48,10 @@ public record WorkItem(
         return workPayload().allowedTools();
     }
 
+    public java.util.Optional<WorkPayload.ExecutionInput> executionInput() {
+        return workPayload().executionInput();
+    }
+
     private WorkPayload workPayload() {
         return (WorkPayload) workMessage.payload();
     }
