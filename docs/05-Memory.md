@@ -64,7 +64,9 @@ Gate 4 stores each finalized run as a typed, versioned, SHA-256-checked binary e
 
 - Promote project-independent repeatable procedures to validated Skills.
 - Promote repository-specific rationale and pitfalls to `DECISION_LOG.md` or an ADR.
+- Append per-increment verification evidence to `docs/verification-log.md`. It is written once and never revised, and it is not a session-start document.
 - Do not duplicate promoted knowledge in `SESSION_HANDOFF.md`.
+- Write each fact only to its owning document, per Constitution Section 4. Delete duplicates rather than synchronizing them.
 - Keep embeddings and vector search deferred until Markdown memory is reliable.
 
 ## Tests

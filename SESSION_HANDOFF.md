@@ -17,8 +17,10 @@ the active task in `CURRENT_TASK.md`, and delivery history in `CHANGELOG.md` and
 - The Gate 8 `WorkPayload` execution-input extension and the AgentLoop-backed
   execution port beneath it are merged to `origin/main` through PR #8
   (`ca745c7`).
-- The document single-owner restructure is on `refactor/docs-deduplication`,
-  recorded in the accepted decision of the same date.
+- The document single-owner restructure is merged to `origin/main` through PR #9,
+  and its completion pass (residual maturity language in `.ai/architecture.md`,
+  memory-document pointers) follows on `refactor/docs-ownership-completion`.
+  Both are recorded under one accepted decision dated 2026-07-20.
 - A governed CLI run was executed against the restructured documents to verify the
   Project Brain composition; its evidence and RunRecord are in the Git-ignored
   `.enhancer/` tree and no document records them.

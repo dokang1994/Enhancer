@@ -17,4 +17,8 @@ For architecture work, also read:
 - `ARCHITECTURE.md`
 - `DECISION_LOG.md`
 
+`docs/verification-log.md` holds the append-only evidence behind the state in
+`PROJECT_STATE.md`. It is deliberately not a session-start document: it grows without
+bound and is consulted only when a specific past verification claim matters.
+
 - Promotion boundary: a project-independent repeatable procedure becomes a Skill under RFC-0007; repository-specific rationale or pitfalls remain repository memory. Execute distillation through `prompts/SESSION_CLOSE.md` Step 7.

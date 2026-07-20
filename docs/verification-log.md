@@ -680,3 +680,14 @@ This assessment itself changed no production or test code and did not change Gat
 - End-to-end production verification through the real CLI `run` path against the changed documents: `status=COMPLETED`, `exitCode=0`, `verificationStatus=VERIFIED`, `brainStatus=AVAILABLE`, `workspaceObservations=24`, `memoryFreshness=matched=15,diverged=0,notObserved=0`, `graphNodes=102`, `graphEdges=2`, `graphDecisions=84`, `impactExecutions=1`, `impactDecisions=1`. The 15 matched documents prove every required document loaded and digest-matched after the restructure; `graphDecisions=84` proves the real decision log parsed including the new entry; `impactDecisions=1` proves the new `Justified By` reference resolved through the production composition rather than a fixture.
 - `CURRENT_TASK.md` was temporarily set to `In Progress` with a `read-file` allowed-tool scope for that single governed run and restored to `Completed` immediately afterwards; the run's evidence and RunRecord live in the Git-ignored `.enhancer/` tree.
 - Structural: `git diff --check` clean.
+
+## Document Ownership Completion Verification
+
+- Full regression under `--warning-mode all` after `cleanTest`: 65 suites, 299 tests, 297 passed, 2 existing Windows symbolic-link setup skips, 0 failures, 0 errors. Identical to the baseline, as required for a documentation-only change.
+- No production or test source file was modified.
+- `.ai/architecture.md` now contains zero capability-maturity verdicts; the only remaining occurrence of the maturity vocabulary is the header sentence stating that the file does not carry such verdicts, plus the vocabulary definition bullet that names the five maturity levels without asserting one.
+- The required startup reading order is unchanged at the 15 `RequiredProjectDocument` paths; `docs/verification-log.md` was deliberately not added, because the log grows without bound and is evidence rather than startup context.
+- Parser contracts re-checked: 84 `###` decision headings, all unique; the `## Justified By` bullet exact-matches its accepted-decision heading; `ROADMAP.md` retains exactly one `Status: Specified - Next` marker.
+- End-to-end production verification through the real CLI `run` path: `status=COMPLETED`, `exitCode=0`, `verificationStatus=VERIFIED`, `brainStatus=AVAILABLE`, `memoryFreshness=matched=15,diverged=0,notObserved=0`, `graphDecisions=84`, `impactDecisions=1`. The 15 matched documents include the rewritten `.ai/architecture.md`, confirming it still loads and digest-matches through `ProjectContextReader`.
+- `CURRENT_TASK.md` was temporarily set to `In Progress` with a `read-file` allowed-tool scope for that single governed run and restored to `Completed` immediately afterwards.
+- Structural: `git diff --check` clean.
