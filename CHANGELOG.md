@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-20 - Split The Decision Log Behind A Heading-Only Index
+
+- Moved all 85 accepted decision bodies to `docs/decisions/<date>-<slug>.md`, each opening with its exact heading as a level-1 title, and reduced `DECISION_LOG.md` to an index carrying every `### <heading>` line, its `Status: Accepted Decision` line, and a link.
+- No production source changed. `AcceptedDecisionProjector` reads only headings and status lines and never a decision body, so an index preserving those two things leaves the decision graph identical; `TaskJustificationProjector`, `RequiredProjectDocument`, and `ProjectContextReader` are untouched and `DECISION_LOG.md` stays at its required path.
+- Startup context fell from 439,497 to 248,063 bytes (43%), with `DECISION_LOG.md` dropping from 211,121 bytes and 48% of that context to 19,687 bytes and 7%. Headroom against the 1 MiB `MAX_DOCUMENT_BYTES` ceiling rose from 337 to roughly 4,454 further decisions, retiring a dated boot failure.
+- Added `DecisionLogIndexTest`: index and files must correspond one to one by exact heading, both sides must carry the acceptance status, no decision file may use the level-3 heading the index reserves for identity, paths must stay clear of the Windows `MAX_PATH` ceiling, and every `CURRENT_TASK.md` `## Justified By` bullet must resolve against the index.
+- Exempted `docs/decisions` in `DocumentOwnershipTest` for the same reason `DECISION_LOG.md` was exempt: the files are append-only records of what was true at acceptance.
+- Updated `AGENTS.md`, `prompts/SESSION_CLOSE.md`, `.ai/workflow.md`, `CONSTITUTION.md`, `.ai/memory.md`, and `README.md` so recording a decision means writing both the file and the index entry.
+- Regression: 67 suites, 306 tests, 304 passed, 2 existing Windows symbolic-link skips, 0 failures, 0 errors.
+
 ## 2026-07-20 - Enforce Document Ownership With A Structural Test
 
 - Added `DocumentOwnershipTest` under `com.enhancer.architecture`, alongside the existing `RuntimePackageBoundaryTest`, asserting that gate maturity appears only in `PROJECT_STATE.md` and that `## Next Task` appears only in `CURRENT_TASK.md`. Exemptions cover the owner plus `ROADMAP.md` (which owns the `Status: Specified - Next` grammar the Planner parses) and the append-only records `DECISION_LOG.md`, `CHANGELOG.md`, `docs/verification-log.md`, and `docs/superpowers/**`.

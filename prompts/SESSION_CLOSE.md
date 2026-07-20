@@ -10,7 +10,7 @@ Read and execute this prompt before ending a Codex work session.
 4. Update `PROJECT_STATE.md` only where current state, maturity, or a known limitation actually changed. Verification records do not go here.
 5. Update `CURRENT_TASK.md`, including the next task.
 6. Update `ARCHITECTURE.md` only if a boundary, component, or contract changed. Maturity statements do not go here.
-7. Add new accepted decisions to `DECISION_LOG.md`.
+7. Record a new accepted decision as a file under `docs/decisions/` opening with its exact heading as a level-1 title, and add the matching `### <heading>` entry with its `Status: Accepted Decision` line to the `DECISION_LOG.md` index. Both sides are required; the heading text is the decision's identity and must never change after acceptance.
 8. Distill reusable knowledge:
    - Promote project-independent repeatable procedures to a validated Skill and synchronize `skills/INDEX.md`.
    - Promote repository-specific rationale or pitfalls to `DECISION_LOG.md` or an ADR.

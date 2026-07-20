@@ -62,7 +62,7 @@ Before ending a work session:
 5. Update `CURRENT_TASK.md`, including the next task.
 6. Update `ROADMAP.md` if milestone state changed.
 7. Update `ARCHITECTURE.md` only if a boundary, component, or contract changed. Maturity statements do not go here.
-8. Add new accepted decisions to `DECISION_LOG.md`.
+8. Record a new accepted decision as a file under `docs/decisions/` opening with its exact heading as a level-1 title, and add the matching `### <heading>` entry with its `Status: Accepted Decision` line to the `DECISION_LOG.md` index. Both sides are required; the heading text is the decision's identity and must never change after acceptance.
 9. Reduce `SESSION_HANDOFF.md` to what is true now and would otherwise be lost. Delete anything another document owns.
 10. Update `CHANGELOG.md` when notable changes occurred.
 11. Review the diff.

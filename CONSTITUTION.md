@@ -47,7 +47,8 @@ Each document class has one canonical responsibility:
 - **.ai/:** bootstrap rules and compact machine-readable operating context.
 - **ARCHITECTURE.md:** system boundaries, components, contracts, and architectural constraints. It does not state capability maturity.
 - **RFCs:** detailed proposals and specifications.
-- **DECISION_LOG.md:** accepted decisions and their rationale.
+- **DECISION_LOG.md:** the index of accepted decisions, carrying each one's canonical heading and acceptance status.
+- **docs/decisions/:** one file per accepted decision holding its context, decision, rationale, and consequences. The heading text is the decision's identity and never changes after acceptance.
 - **CURRENT_TASK.md:** the single active task, its scope, acceptance criteria, evidence, and the next task.
 - **PROJECT_STATE.md:** verified current implementation state, the maturity judgment it rests on, and known limitations. It states the present, not the history of how the present was reached.
 - **docs/verification-log.md:** append-only per-increment verification evidence behind that state. Written once per increment and never revised.

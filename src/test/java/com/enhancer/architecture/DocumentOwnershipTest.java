@@ -48,7 +48,14 @@ class DocumentOwnershipTest {
             "CHANGELOG.md",
             "docs/verification-log.md");
 
-    private static final Set<String> EXEMPT_DIRECTORIES = Set.of("docs/superpowers");
+    /**
+     * {@code docs/decisions} holds the per-decision files split out of {@code DECISION_LOG.md}.
+     * They are the same append-only records that document was exempt for: each states the
+     * maturity that was true when the decision was accepted and is never revised afterwards.
+     */
+    private static final Set<String> EXEMPT_DIRECTORIES = Set.of(
+            "docs/superpowers",
+            "docs/decisions");
 
     @Test
     void onlyProjectStateClaimsGateMaturity() throws IOException {

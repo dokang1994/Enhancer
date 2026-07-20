@@ -707,3 +707,22 @@ This assessment itself changed no production or test code and did not change Gat
   - `CHANGELOG.md` (exempt) gained the identical maturity sentence -> not reported by either test, confirming the exemption list suppresses the append-only records without suppressing real violations.
   All three injections were then reverted and the suite returned to green, with `CHANGELOG.md`'s legitimate entries intact.
 - Structural: `git diff --check` clean.
+
+## Decision Log Split Verification
+
+- Content preservation, checked by reconstructing every entry from the pre-split original and comparing to the written files: 85 of 85 bodies matched byte for byte, 0 mismatches, 0 headings missing, 0 headings added, and index heading order identical to the original document order.
+- Full regression under `--warning-mode all` after `cleanTest`: 67 suites, 306 tests, 304 passed, 2 existing Windows symbolic-link setup skips, 0 failures, 0 errors. The suite and test deltas against the previous 66/301 baseline are exactly `DecisionLogIndexTest`.
+- No production source changed. `AcceptedDecisionProjector` scans only `### ` headings and `Status: Accepted Decision` lines and never reads a decision body, so the index preserves everything it consumes.
+- Per-suite results for every document-reading path: `AcceptedDecisionProjectorTest` 4/4, `TaskJustificationProjectorTest` 4/4, `ProjectContextReaderTest` 8 with 1 pre-existing skip, `RepositoryTaskPlannerTest` 4/4, `ApprovedTaskReaderTest` 3/3, `RunRecordMetadataCollectorTest` 6/6, `ProjectBrainViewIntegrationTest` 5/5, `WorkspaceCollectionIntegrationTest` 1/1, `RuntimePackageBoundaryTest` 1/1, `DocumentOwnershipTest` 2/2, `DecisionLogIndexTest` 5/5.
+- Live production path through the real CLI `run` against the split documents: `status=COMPLETED`, `exitCode=0`, `verificationStatus=VERIFIED`, `brainStatus=AVAILABLE`, `workspaceObservations=27`, `memoryFreshness=matched=15,diverged=0,notObserved=0`, `graphNodes=104`, `graphEdges=2`, `graphDecisions=86`, `impactExecutions=1`, `impactDecisions=1`. `graphDecisions=86` proves the projector rebuilt every decision node from the index alone, and `impactDecisions=1` proves the new `Justified By` reference resolved through the production composition.
+- Durable history unaffected: `replay` of `run-record/6d7c9b5f-dbef-493c-9783-5c935bfc8839` returned `COMPLETED`/`VERIFIED` with the task binding intact and no Tool re-execution.
+- Startup context fell from 439,497 to 248,063 bytes (43%); `DECISION_LOG.md` fell from 211,121 bytes and 48% of that context to 19,687 bytes and 7%. Average index entry is 231 bytes against 2,483 per full decision, raising headroom against the 1 MiB `MAX_DOCUMENT_BYTES` ceiling from 337 to roughly 4,454 further decisions.
+- Adversarial verification of `DecisionLogIndexTest` with five injected drifts, each caught and named:
+  - decision file deleted -> `index entry has no decision file: "2026-07-10: Use Repository Documents As Durable Memory"`.
+  - orphan file added -> `decision file is not in the index: docs\decisions\2099-01-01-orphan.md`.
+  - file heading tampered -> reported on both sides at once, as a missing file for the original heading and an unindexed file for the tampered one.
+  - acceptance status removed from a file -> `decision file omits "Status: Accepted Decision"`.
+  - level-3 heading injected into a decision file -> `### 2026-07-16: Shadow Heading`.
+  The path-ceiling and `Justified By` assertions passed throughout, so the guard produced no false positives. All five injections were reverted and content preservation re-verified at 85 of 85.
+- `DocumentOwnershipTest` initially failed after the split because the decision bodies had moved into an unexempt directory; `docs/decisions` was added to its exemption list for the same reason `DECISION_LOG.md` already held one, and the failure was the guard behaving correctly rather than a defect.
+- Structural: `git diff --check` clean.
