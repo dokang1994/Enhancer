@@ -809,3 +809,15 @@ This assessment itself changed no production or test code and did not change Gat
 - Fresh full regression under `--warning-mode all` after `cleanTest`: 71 suites, 348 tests, 346 passed, 2 existing Windows symbolic-link setup skips, 0 failures, 0 errors. Java 17 production compilation passed `-Xlint:all -Werror` across all 167 sources.
 - External-command authority is unchanged: `ProcessBuilder` still appears in exactly two production files, `GitWorkspaceCollector` and `IsolatedWorkerLauncher`.
 - Structural: stale 3d absence searches returned no matches; `git diff --check` clean.
+
+## Strict Lint Build Enforcement Verification
+
+- Gap confirmed before the change rather than taken from the review: `-Xlint` and `-Werror` appear nowhere in `build.gradle`, `scripts/`, or any CI configuration, and the repository has no `.github/` directory. Every increment's recorded "strict lint passed" line therefore rested on a manual javac invocation the build never ran.
+- The gap was live, not theoretical. `./gradlew build` on the unmodified tree succeeded while applying no lint flags, so a warning introduced by any increment would have shipped green.
+- Applied `-Xlint:all -Werror` through `tasks.withType(JavaCompile).configureEach`, covering test sources as well as production. Test sources were probed first and already compiled clean under the same flags, so the wider scope cost nothing and closes an equally easy regression path.
+- The guard is proven to fire rather than asserted. A raw-type declaration injected into `UnicodeText` failed `:compileJava` with `error: warnings found and -Werror specified`; the same injection in `UnicodeTextTest` failed `:compileTestJava`. Both probes were reverted and the tree confirmed clean.
+- Without those probes this entry would claim only that a clean tree still compiles, which a no-op configuration would also satisfy. The failure cases are what distinguish an enforced flag from a decorative one.
+- Behaviour preserved: full `./gradlew clean build --warning-mode all` passed 71 suites, 348 tests, 346 passed, 2 existing Windows symbolic-link setup skips, 0 failures, 0 errors — identical to the count before the change. No production or test source was modified.
+- No existing source required a fix under the newly enforced flags. That is the evidence that the manual practice had genuinely been followed; the defect was in its enforcement, not in the code it governed.
+- Scope held: one file changed. `git diff --stat` reports `build.gradle` alone.
+- Structural: `git diff --check` clean.

@@ -20,6 +20,16 @@ repositories {
     mavenCentral()
 }
 
+// Every increment's verification recorded that production sources pass
+// `-Xlint:all -Werror`, but the flags lived only in an ad-hoc javac invocation the
+// build never ran. A lint regression therefore could not fail the build, and the
+// guard held only while each session remembered to run it by hand. Declaring it here
+// makes the recorded claim executable. Test sources are covered too: they already
+// compile clean under the same flags, and a warning is as easy to introduce there.
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << '-Xlint:all' << '-Werror'
+}
+
 dependencies {
     testImplementation platform('org.junit:junit-bom:5.10.2')
     testImplementation 'org.junit.jupiter:junit-jupiter'
