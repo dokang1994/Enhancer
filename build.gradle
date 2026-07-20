@@ -37,4 +37,13 @@ test {
     doFirst {
         testTempDirectory.mkdirs()
     }
+
+    // DocumentOwnershipTest and DecisionLogIndexTest assert over the project's own Markdown.
+    // Without declaring those files as inputs, Gradle treats the task as up to date after a
+    // documentation-only change and the guards silently do not run, reporting a green build
+    // for a repository they would have rejected.
+    inputs.files(fileTree(projectDir) {
+        include '**/*.md'
+        exclude 'build/**', '.git/**', '.gradle/**', '.tools/**', '.enhancer/**'
+    }).withPropertyName('projectDocuments').withPathSensitivity(PathSensitivity.RELATIVE)
 }

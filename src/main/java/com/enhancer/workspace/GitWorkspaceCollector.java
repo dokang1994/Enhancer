@@ -39,7 +39,7 @@ public final class GitWorkspaceCollector {
             "tracked worktree diff observation is disabled because Git may execute clean filters";
 
     private static final String PROVENANCE = "git-cli";
-    private static final long TIMEOUT_SECONDS = 5;
+    static final long TIMEOUT_SECONDS = 5;
     private static final int MAX_REASON_CHARACTERS =
             WorkspaceSourceObservation.MAX_REASON_CHARACTERS;
 

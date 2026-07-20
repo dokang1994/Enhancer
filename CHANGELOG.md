@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-20 - Close The Documentation Audit Gaps
+
+- Widened `DocumentOwnershipTest` to three explicit claim shapes — subject-first, verb-first with an `at`/`to`/`as` connector, and a parenthetical verdict beside a gate in a table row. The first version matched only subject-first, which is how `ARCHITECTURE.md`'s "retains Gate 7 at Contract Verified" and two table verdicts survived the increment that introduced the guard. Plain co-occurrence was tried and rejected: it flagged forward-looking conditions and the commentary explaining a removed claim.
+- **Fixed a defect that made the guards silently not run.** `DocumentOwnershipTest` and `DecisionLogIndexTest` assert over the project's Markdown, which Gradle did not track as a task input, so `gradle test` after a documentation-only change reported the task up to date and executed neither. An injected violation produced a green build. The `test` task now declares the Markdown as an input.
+- Removed the three surviving maturity claims from `ARCHITECTURE.md` and reworded the sentence in `docs/11-Architecture.md` that reproduced a claim while explaining its removal, rather than exempting it.
+- Documented `SchedulerQueueStore` in `ARCHITECTURE.md` and `.ai/architecture.md` as the Gate 8 durability seam, stating that readiness, the active slot, and disposition stay in `DurableSingleWorkerSchedulerQueue` above it, so sub-increments 3b and 3c swap an implementation rather than the queue contract, and restating the same-instance revision rule as implementation-independent.
+- Documented `TaskProposal`, `ProposalState`, and `PlanningException`, including why the state enum has exactly one constant: a proposal cannot represent itself as accepted.
+- Added `GitWorkspaceCollector` coverage for every `resolveGitExecutable` rejection branch — candidates inside the observed project at any depth, relative and absent PATH entries, a directory named like the executable, an absent or blank PATH — plus case-insensitive PATH lookup and pinned `MAX_OUTPUT_BYTES` and `TIMEOUT_SECONDS`. `TIMEOUT_SECONDS` widened from private to package-private for the assertion; no behaviour changed.
+- Regression: 67 suites, 310 tests, 308 passed, 2 existing Windows symbolic-link skips, 0 failures, 0 errors.
+
 ## 2026-07-20 - Split The Decision Log Behind A Heading-Only Index
 
 - Moved all 85 accepted decision bodies to `docs/decisions/<date>-<slug>.md`, each opening with its exact heading as a level-1 title, and reduced `DECISION_LOG.md` to an index carrying every `### <heading>` line, its `Status: Accepted Decision` line, and a link.
