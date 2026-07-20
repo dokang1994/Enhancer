@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-20 - Strengthen The Transport Codec Tests
+
+- Grew `MessageEnvelopeCodecTest` from 4 cases to 11 after review against an independently written test for the same codec. No production source changed.
+- Nanosecond-bearing occurrence time now runs through every round trip rather than one dedicated case, supplementary characters appear in the producer and control-reason fields as well as a target path, and a short garbage frame is rejected alongside an empty one.
+- Added four cases for a peer on an incompatible format that neither test had: an unsupported codec version, an unknown destination kind, an unknown payload kind, and an unknown verification status. Added a maximum-tool-cardinality round trip and an over-cardinality rejection.
+- Added `acceptsTheHandCraftedBaselineFrame`, which decodes the same hand-built frame with every field valid, so the rejection cases must differ from a decodable frame in exactly one field.
+- That guard exists because mutation testing caught its absence: an earlier version of the incompatible-peer test passed against a codec whose codec-version check had been deleted, because its hand-built bodies were incomplete and failed on EOF first. After the correction, deleting the codec-version check, the envelope-version check, the nanosecond field, or the trailing-byte check each fails the suite.
+- The decode-side `allowedTools` ceiling survives its mutation and is recorded as an equivalent mutant rather than a gap: `WorkPayload`'s constructor already rejects over-cardinality, so the codec check is redundant defense in depth.
+- Regression: 69 suites, 327 tests, 325 passed, 2 existing Windows symbolic-link skips, 0 failures, 0 errors.
+
 ## 2026-07-20 - Add The First Transport Adapter As A Local File Spool
 
 - Added `FileSpoolMessageTransport`, the first concrete `MessageTransport` (Gate 8 connection sub-increment 3c). It writes one encoded route and envelope to its own file under a configured spool directory a peer process reads: durably spooled is `ACCEPTED`, capacity exhaustion against a `BackpressurePolicy` is `BACKPRESSURED`, an unusable root is `UNAVAILABLE`, and a refused message spools nothing.

@@ -751,3 +751,14 @@ This assessment itself changed no production or test code and did not change Gat
 - Nothing wires the adapter into production: no CLI, worker, or bus path constructs it, so no runtime behaviour changed.
 - Verified that this increment stands alone. Three files belonging to a parallel session in the same working tree were moved aside and the full regression re-run before staging, confirming the commit compiles and passes without them.
 - Structural: `git diff --check` clean.
+
+## File Spool Codec Test Strengthening Verification
+
+- `MessageEnvelopeCodecTest` grew from 4 cases to 11 after review against an independently written test for the same codec. Full regression rose from 320 to 327 tests; 69 suites, 325 passed, 2 existing Windows symbolic-link setup skips, 0 failures, 0 errors under `--warning-mode all`. Java 17 strict lint passed across 161 production sources. No production source changed.
+- Three coverage gaps came from the comparison: nanosecond-bearing occurrence time now runs through every round trip rather than one dedicated case, supplementary characters now appear in the producer and control-reason fields as well as a target path, and a short garbage frame is rejected alongside an empty one.
+- Four cases cover a peer on an incompatible format, which neither test had: an unsupported codec version, an unknown destination kind, an unknown payload kind, and an unknown verification status.
+- Those four are guarded by `acceptsTheHandCraftedBaselineFrame`, which decodes the same hand-built frame with every field valid. Without it a malformed body would let the rejection cases pass by truncation instead of by the guard under test.
+- That guard was added because mutation testing caught exactly that defect. An earlier version of the incompatible-peer test passed against a codec whose codec-version check had been deleted, because its hand-built bodies were incomplete and failed on EOF first.
+- Mutation results after the correction, deleting one guard at a time and re-running the suite: codec-version check caught, envelope-version check caught, nanosecond field zeroed on encode caught, trailing-byte check caught.
+- The decode-side `allowedTools` ceiling survived its mutation. This is an equivalent mutant rather than a coverage gap: `WorkPayload`'s own constructor rejects more than `MAX_ALLOWED_TOOLS` entries, so removing the codec's check still produces `CorruptedSpooledMessageException` through the wrapped `IllegalArgumentException`. The codec check is redundant defense in depth, and `failsClosedOnACollectionLargerThanTheContractAllows` still pins that an over-cardinality frame is refused whichever layer refuses it.
+- Structural: `git diff --check` clean.
