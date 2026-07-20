@@ -6,43 +6,42 @@ Completed
 
 ## Task
 
-Split `DECISION_LOG.md` into one file per accepted decision under `docs/decisions/`, reduce the log itself to a heading-and-status index that preserves exactly what `AcceptedDecisionProjector` reads, and add `DecisionLogIndexTest` so the index and the files cannot drift apart.
+Close the four open documentation-audit items: widen `DocumentOwnershipTest` to the word orders it was missing and remove the claims that survived, make Gradle re-run the guards when only Markdown changes, document `SchedulerQueueStore` as the Gate 8 durability seam and the planner result types, and cover `GitWorkspaceCollector.resolveGitExecutable`'s rejection branches.
 
 ## Task ID
 
-split-decision-log-behind-index
+close-documentation-audit-gaps
 
 ## Justified By
 
-- 2026-07-20: Split The Decision Log Into Per-Decision Files Behind A Heading-Only Index
+- 2026-07-20: Close The Audit Gaps And Make The Ownership Guard Run On Documentation Changes
 
 ## Context
 
-`DECISION_LOG.md` was 211,121 bytes and 48% of the startup context that every session loads, growing about 2,483 bytes per decision against a hard 1 MiB ceiling in `ProjectContextReader` — 337 decisions from the point where the CLI would stop booting. An earlier assessment deferred the split as a three-class code change; reading `AcceptedDecisionProjector` showed it scans only `### ` headings and `Status: Accepted Decision` lines and never reads a body, so an index preserving those two things leaves the decision graph unchanged.
+The ownership guard matched only the subject-first word order and let the verb-first form with an `at` connector through, along with two parenthetical verdicts in a table. Adversarial testing then exposed a worse defect: because the guards read Markdown that Gradle does not track as a task input, a documentation-only change left `test` up to date and the guards silently did not run. `SchedulerQueueStore` is the seam Gate 8 sub-increments 3b and 3c will replace and was documented only through its adapter, and the only class holding external command authority had its positive resolution path covered but none of its rejections.
 
 ## Acceptance Criteria
 
-- All 85 decision bodies move to `docs/decisions/` byte for byte, with headings and document order preserved exactly.
-- `DECISION_LOG.md` keeps every `### <heading>` line and `Status: Accepted Decision` line, stays at its `RequiredProjectDocument` path, and retains the `## Proposals` section.
-- No production source changes; the projected graph still carries every decision node and `## Justified By` still resolves.
-- `DecisionLogIndexTest` fails when index and files drift in any direction and passes when they agree.
-- `DocumentOwnershipTest` exempts `docs/decisions`, matching the exemption `DECISION_LOG.md` already had as an append-only record.
+- `DocumentOwnershipTest` matches subject-first, verb-first with an `at`/`to`/`as` connector, and parenthetical table verdicts, and stays quiet on forward-looking conditions and commentary about removed claims.
+- The Gradle `test` task declares the project's Markdown as an input, so a documentation-only edit invalidates it.
+- `ARCHITECTURE.md` and `docs/11-Architecture.md` carry no surviving maturity claim.
+- `ARCHITECTURE.md` and `.ai/architecture.md` describe `SchedulerQueueStore` as the durability seam, stating what stays above it; `ARCHITECTURE.md` describes `TaskProposal`, `ProposalState`, and `PlanningException`.
+- `GitWorkspaceCollectorTest` covers candidates inside the observed project at any depth, relative and absent PATH entries, a directory named like the executable, an absent or blank PATH, case-insensitive PATH lookup, and pins the output cap and timeout constants.
 - Full regression passes with 0 failures and 0 errors.
 
 ## Out Of Scope
 
-- A `SUPERSEDES` producer that would let superseded decisions be archived out of the index.
-- Any database projection of the decisions, and per-decision frontmatter beyond the heading and status.
-- Loading decision files into `ProjectContext`; they are deliberately outside the session-start set.
-- Gate 8 sub-increments 3b and 3c, which the user is taking up in a separate session.
+- Inducing the 4 MiB output cap or the five-second watchdog with a purpose-built git; both are pinned as constants instead.
+- The remaining undocumented public types the audit judged trivial, and a `SUPERSEDES` producer.
+- Gate 8 sub-increments 3b and 3c.
 
 ## Approval
 
-Approved by the user's 2026-07-20 direction to start the split immediately, change the code to match, and verify repeatedly by several methods so no exception arises.
+Approved by the user's 2026-07-20 direction to continue with the remaining audit items, test the modified parts, then run the full regression, then commit, push, and merge to main.
 
 ## Verification
 
-Recorded in `docs/verification-log.md` under Decision Log Split Verification.
+Recorded in `docs/verification-log.md` under Documentation Audit Closure Verification.
 
 ## Next
 

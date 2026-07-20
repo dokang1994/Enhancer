@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### 2026-07-20: Close The Audit Gaps And Make The Ownership Guard Run On Documentation Changes
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-20-close-the-audit-gaps-and-make-the-ownership-guard-run-on-documentation-changes.md)
+
 ### 2026-07-20: Split The Decision Log Into Per-Decision Files Behind A Heading-Only Index
 
 Status: Accepted Decision

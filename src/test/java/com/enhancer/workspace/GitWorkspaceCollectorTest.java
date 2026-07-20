@@ -166,6 +166,97 @@ class GitWorkspaceCollectorTest {
     }
 
     @Test
+    void refusesEveryCandidateTheObservedProjectCouldControl() throws Exception {
+        Path repository = Files.createDirectories(temporaryRoot.resolve("hostile-project"));
+        String executableName = isWindows() ? "git.exe" : "git";
+        Path projectCandidate = Files.writeString(
+                repository.resolve(executableName), "project-controlled", StandardCharsets.UTF_8);
+        projectCandidate.toFile().setExecutable(true);
+        Path nestedDirectory = Files.createDirectories(repository.resolve("tools"));
+        Path nestedCandidate = Files.writeString(
+                nestedDirectory.resolve(executableName), "also-project-controlled",
+                StandardCharsets.UTF_8);
+        nestedCandidate.toFile().setExecutable(true);
+
+        // A repository that ships its own git and puts it on PATH must never be invoked, at the
+        // project root or nested beneath it. With no trusted entry there is no fallback.
+        Map<String, String> environment = Map.of(
+                "PATH", repository + java.io.File.pathSeparator + nestedDirectory);
+
+        assertEquals(
+                Optional.empty(),
+                GitWorkspaceCollector.resolveGitExecutable(repository, environment),
+                "a candidate inside the observed project must never be resolved");
+    }
+
+    @Test
+    void refusesRelativeMissingAndNonRegularCandidates() throws Exception {
+        Path repository = Files.createDirectories(temporaryRoot.resolve("project"));
+        Path relativeDirectory = Files.createDirectories(temporaryRoot.resolve("relative-bin"));
+        String executableName = isWindows() ? "git.exe" : "git";
+        Files.writeString(relativeDirectory.resolve(executableName), "unreachable",
+                StandardCharsets.UTF_8);
+
+        // A relative PATH entry resolves against the child's working directory rather than the
+        // host's, so it is not trustworthy provenance even when a file sits there.
+        assertEquals(
+                Optional.empty(),
+                GitWorkspaceCollector.resolveGitExecutable(
+                        repository, Map.of("PATH", "relative-bin")));
+
+        // An entry naming a directory that does not exist contributes no candidate.
+        assertEquals(
+                Optional.empty(),
+                GitWorkspaceCollector.resolveGitExecutable(
+                        repository,
+                        Map.of("PATH", temporaryRoot.resolve("absent-bin").toString())));
+
+        // A directory named git.exe is not a regular file and must not be executed.
+        Path directoryCandidate = Files.createDirectories(
+                temporaryRoot.resolve("directory-bin").resolve(executableName));
+        assertEquals(
+                Optional.empty(),
+                GitWorkspaceCollector.resolveGitExecutable(
+                        repository,
+                        Map.of("PATH", directoryCandidate.getParent().toString())));
+    }
+
+    @Test
+    void treatsAnAbsentOrBlankPathAsNoGitRatherThanABareCommandName() throws Exception {
+        Path repository = Files.createDirectories(temporaryRoot.resolve("no-path-project"));
+
+        assertEquals(
+                Optional.empty(),
+                GitWorkspaceCollector.resolveGitExecutable(repository, Map.of()),
+                "no PATH must not fall back to invoking a bare command name");
+        assertEquals(
+                Optional.empty(),
+                GitWorkspaceCollector.resolveGitExecutable(repository, Map.of("PATH", "   ")));
+
+        // The lookup is case-insensitive on the variable name, as Windows supplies "Path".
+        Path trustedDirectory = Files.createDirectories(temporaryRoot.resolve("case-bin"));
+        String executableName = isWindows() ? "git.exe" : "git";
+        Path trustedCandidate = Files.writeString(
+                trustedDirectory.resolve(executableName), "host-controlled",
+                StandardCharsets.UTF_8);
+        trustedCandidate.toFile().setExecutable(true);
+
+        assertEquals(
+                Optional.of(trustedCandidate.toRealPath()),
+                GitWorkspaceCollector.resolveGitExecutable(
+                        repository, Map.of("Path", trustedDirectory.toString())));
+    }
+
+    @Test
+    void boundsGitOutputAndRuntimeExplicitly() {
+        // The output cap and watchdog are the containment the authority decision rests on. They
+        // are asserted as pinned constants because inducing either needs a purpose-built git that
+        // stalls or floods, which this suite deliberately does not ship.
+        assertEquals(4 * 1024 * 1024, GitWorkspaceCollector.MAX_OUTPUT_BYTES);
+        assertEquals(5L, GitWorkspaceCollector.TIMEOUT_SECONDS);
+    }
+
+    @Test
     void removesInheritedGitOverridesWithoutRemovingTheExecutablePath() {
         Map<String, String> environment = new HashMap<>();
         environment.put("PATH", "expected-path");
