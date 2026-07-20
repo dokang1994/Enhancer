@@ -737,3 +737,17 @@ This assessment itself changed no production or test code and did not change Gat
 - `GitWorkspaceCollector` coverage added for the rejection branches of `resolveGitExecutable`: a candidate at the observed project root and one nested beneath it are both refused with no fallback, a relative PATH entry is skipped even when a file sits there, an absent directory contributes nothing, a directory named like the executable is refused as not a regular file, an absent or blank PATH resolves to empty rather than a bare command name, and the PATH variable is matched case-insensitively. `MAX_OUTPUT_BYTES` and `TIMEOUT_SECONDS` are pinned as constants; inducing either would require a purpose-built git that floods or stalls and is deliberately not shipped.
 - `TIMEOUT_SECONDS` was widened from private to package-private for that assertion. No behaviour changed.
 - Structural: `git diff --check` clean; decision index and files agree at 87 each; all 15 required documents present.
+
+## File Spool Transport Verification
+
+- Aligned RED first: 17 test-compile errors, every one naming only the absent `FileSpoolMessageTransport`; production compiled unchanged.
+- Focused GREEN after implementation: `FileSpoolMessageTransportTest` 6/6 and `MessageEnvelopeCodecTest` 4/4, no skips.
+- Full regression under `--warning-mode all` after `cleanTest`: 69 suites, 320 tests, 318 passed, 2 existing Windows symbolic-link setup skips, 0 failures, 0 errors. Java 17 strict lint passed across 161 production sources.
+- Three defects in the first draft were found by comparing it against an independently written implementation of the same contract, and each was proven before being fixed:
+  - Occurrence time was encoded with `toEpochMilli`, truncating an `Instant`. A test carrying `2026-07-20T09:00:00.123456789Z` failed against the draft and passes against epoch-second plus nanosecond.
+  - The frame carried the spool time in its header and digested over it, so two hops of one message differed. The frame now holds no wall-clock or random state and `encodesDeterministically` asserts byte equality.
+  - Decode failures surfaced as plain `IOException`, leaving a caller unable to separate a permanently corrupt message from a transient filesystem error. `CorruptedSpooledMessageException` is now distinct and asserted for truncation, tampering, trailing bytes, bad magic, and an empty frame.
+- The wire format was split into `MessageEnvelopeCodec` so its cases are assertable without a filesystem; `MessageEnvelopeCodecTest` touches no temporary directory, while `FileSpoolMessageTransportTest` covers only publication — round trip through real files, backpressure at capacity spooling nothing further, an unusable spool root, a distinct file per hop, identical bytes for a resent message, and that `read` surfaces the typed corruption failure from a real file.
+- Nothing wires the adapter into production: no CLI, worker, or bus path constructs it, so no runtime behaviour changed.
+- Verified that this increment stands alone. Three files belonging to a parallel session in the same working tree were moved aside and the full regression re-run before staging, confirming the commit compiles and passes without them.
+- Structural: `git diff --check` clean.

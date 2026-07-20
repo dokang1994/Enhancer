@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### 2026-07-20: Carry The First Transport Hop Through A Local File Spool
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-20-carry-the-first-transport-hop-through-a-local-file-spool.md)
+
 ### 2026-07-20: Close The Audit Gaps And Make The Ownership Guard Run On Documentation Changes
 
 Status: Accepted Decision

@@ -6,43 +6,43 @@ Completed
 
 ## Task
 
-Close the four open documentation-audit items: widen `DocumentOwnershipTest` to the word orders it was missing and remove the claims that survived, make Gradle re-run the guards when only Markdown changes, document `SchedulerQueueStore` as the Gate 8 durability seam and the planner result types, and cover `GitWorkspaceCollector.resolveGitExecutable`'s rejection branches.
+Implement Gate 8 connection sub-increment 3c: give `MessageTransport` its first concrete adapter as `FileSpoolMessageTransport`, carrying one route and envelope to a local spool directory a peer process reads, with the wire format owned separately by `MessageEnvelopeCodec`.
 
 ## Task ID
 
-close-documentation-audit-gaps
+gate-8-file-spool-transport
 
 ## Justified By
 
-- 2026-07-20: Close The Audit Gaps And Make The Ownership Guard Run On Documentation Changes
+- 2026-07-20: Carry The First Transport Hop Through A Local File Spool
 
 ## Context
 
-The ownership guard matched only the subject-first word order and let the verb-first form with an `at` connector through, along with two parenthetical verdicts in a table. Adversarial testing then exposed a worse defect: because the guards read Markdown that Gradle does not track as a task input, a documentation-only change left `test` up to date and the guards silently did not run. `SchedulerQueueStore` is the seam Gate 8 sub-increments 3b and 3c will replace and was documented only through its adapter, and the only class holding external command authority had its positive resolution path covered but none of its rejections.
+The 2026-07-16 transport decision deliberately deferred serialization, endpoint discovery, concrete adapters, and persistence, so `MessageTransport` had no implementation and no process boundary had been crossed. The Roadmap records that connection 3 requires a separately selected adapter, making the selection its own decision. A file spool was chosen over a Unix domain socket because it needs no capability the project does not already exercise and its tests are deterministic. Worker process isolation (3b) needs `ProcessBuilder`, which `.ai/workflow.md` step 6 forbids implementing inside a RED cycle without explicit authority, so it is deliberately not part of this increment.
 
 ## Acceptance Criteria
 
-- `DocumentOwnershipTest` matches subject-first, verb-first with an `at`/`to`/`as` connector, and parenthetical table verdicts, and stays quiet on forward-looking conditions and commentary about removed claims.
-- The Gradle `test` task declares the project's Markdown as an input, so a documentation-only edit invalidates it.
-- `ARCHITECTURE.md` and `docs/11-Architecture.md` carry no surviving maturity claim.
-- `ARCHITECTURE.md` and `.ai/architecture.md` describe `SchedulerQueueStore` as the durability seam, stating what stays above it; `ARCHITECTURE.md` describes `TaskProposal`, `ProposalState`, and `PlanningException`.
-- `GitWorkspaceCollectorTest` covers candidates inside the observed project at any depth, relative and absent PATH entries, a directory named like the executable, an absent or blank PATH, case-insensitive PATH lookup, and pins the output cap and timeout constants.
-- Full regression passes with 0 failures and 0 errors.
+- `FileSpoolMessageTransport` implements `MessageTransport`, mapping a durably spooled message to `ACCEPTED`, capacity exhaustion measured against a `BackpressurePolicy` to `BACKPRESSURED`, and an unusable spool root to `UNAVAILABLE`, with a refused message spooling nothing.
+- Each hop is published through a temporary file and an atomic move into its own freshly generated name, so a reader never observes a partial message and resending never overwrites an earlier hop.
+- `MessageEnvelopeCodec` owns the frame, carries all four payload kinds, preserves nanosecond occurrence time, encodes deterministically, and fails closed with `CorruptedSpooledMessageException` on bad magic, invalid length, digest mismatch, malformed UTF-8, trailing bytes, or an envelope invariant violation.
+- The codec is verifiable without a filesystem; the adapter's own tests cover publication only.
+- No production path constructs the adapter, so no runtime behaviour changes.
+- Full regression passes with 0 failures and 0 errors, and strict lint passes across all production sources.
 
 ## Out Of Scope
 
-- Inducing the 4 MiB output cap or the five-second watchdog with a purpose-built git; both are pinned as constants instead.
-- The remaining undocumented public types the audit judged trivial, and a `SUPERSEDES` producer.
-- Gate 8 sub-increments 3b and 3c.
+- Worker process isolation (3b) and the `ProcessBuilder` authority it requires.
+- A receiving-side bus, endpoint discovery, authentication, framing for streamed transports, retry policy, and spool retention or cleanup.
+- Wiring the adapter into the CLI, worker, or bus.
 
 ## Approval
 
-Approved by the user's 2026-07-20 direction to continue with the remaining audit items, test the modified parts, then run the full regression, then commit, push, and merge to main.
+Approved by the user's 2026-07-20 selection of 3c with a file spool adapter after being shown that 3b requires explicit external-command authority, followed by their direction to adopt the stronger elements of an independently written implementation of the same contract.
 
 ## Verification
 
-Recorded in `docs/verification-log.md` under Documentation Audit Closure Verification.
+Recorded in `docs/verification-log.md` under File Spool Transport Verification.
 
 ## Next
 
-Gate 8 connection sub-increment 3b (worker process isolation) or 3c (the concrete `MessageTransport` local IPC adapter).
+Gate 8 connection sub-increment 3b, worker process isolation, which requires explicit user authority for process spawning before it can be designed or implemented.
