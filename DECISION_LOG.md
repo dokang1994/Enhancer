@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### 2026-07-20: Return Isolated Worker Results Through A Correlated Per-Cycle Spool With RunRecord As Authority
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-20-return-isolated-worker-results-through-a-correlated-per-cycle-spool.md)
+
 ### 2026-07-20: Isolate The Worker In A Bounded Self-JVM Child Process
 
 Status: Accepted Decision

@@ -6,44 +6,47 @@ Completed
 
 ## Task
 
-Implement Gate 8 connection sub-increment 3b: add `IsolatedWorkerLauncher`, which starts one bounded child process running the current JVM and returns a typed terminal outcome, plus `IsolatedWorkerMain` as a real child entry point that reads one message from a 3c spool so the boundary is proven by a message crossing it.
+Implement Gate 8 connection sub-increment 3d: add `ProcessIsolatedAgentRunExecution`, which spools one dispatched WorkItem to a per-cycle work spool, runs it in a child process through `IsolatedWorkerMain`, and returns the persisted RunRecord reference after validating the child's published result against the resolved record.
 
 ## Task ID
 
-gate-8-worker-process-isolation
+gate-8-process-isolated-execution
 
 ## Justified By
 
-- 2026-07-20: Isolate The Worker In A Bounded Self-JVM Child Process
+- 2026-07-20: Return Isolated Worker Results Through A Correlated Per-Cycle Spool With RunRecord As Authority
 
 ## Context
 
-Connection 3 needs both an adapter and a process lifecycle; 3c supplied the adapter and all execution still runs in the Scheduler's own process. The architecture already records the limit that makes isolation necessary: `ToolExecutor` bounds live in-process workers at 64 and a permanently stuck worker holds capacity until process restart, because in-process containment cannot terminate running code. Spawning a process is new external authority, which `.ai/workflow.md` step 6 forbids taking inside a RED cycle; the user granted it on 2026-07-20 scoped to the current JVM only.
+Connection 3's adapter (3c) and process lifecycle (3b) both existed but neither was wired, because `AgentRunExecution` must return a `run-record/<uuid>` string and the child's only channel back was an exit code. The accepted decision fixed the return path as a reverse spool carrying an existing `ResultPayload`, keyed by a per-cycle invocation root, with the RunRecord as the authority the child's claim is checked against.
 
 ## Acceptance Criteria
 
-- `IsolatedWorkerLauncher` resolves its executable from `java.home`, canonicalized and required to be a regular file, and runs the current classpath. No caller-supplied executable, command name, or shell reaches `ProcessBuilder`.
-- The entry point is taken as a `Class<?>`, so the caller selects one of this project's own entry points and cannot name a program.
-- A child that exits within its timeout yields `COMPLETED` with its exit code; a child that overruns is forcibly destroyed and yields `TIMED_OUT` with a bounded reason and no exit code; a child that cannot start yields `START_FAILED`.
-- Child output is capped and discarded, the environment is sanitized of inherited overrides, and only the exit code and a bounded reason are retained.
-- `IsolatedWorkerMain` reads one spooled message through the 3c adapter and exits with a stable code for a decoded message, an empty spool, a corrupt message, and a usage error.
-- No production path constructs the launcher, so no runtime behaviour changes.
+- `ProcessIsolatedAgentRunExecution` implements `AgentRunExecution` and returns a reference resolvable in the shared `RunRecordStore`.
+- Work and result travel through separate spools under an invocation root private to the Goal and AgentRun; exactly one valid message is expected in each direction.
+- The child runs the same Gate 1-4 pipeline as the in-process path through a shared `AgentLoopAgentRunExecution.executeWork` seam rather than a second implementation.
+- Store roots reach the child as parent-supplied launcher arguments, never as payload data.
+- The result is validated before a reference is returned: correlation, logical-run, causation, and task identities match the dispatched work; the payload is exactly a `ResultPayload`; the reference resolves; and the claimed verification status equals the resolved record's own. Any mismatch fails closed.
+- A non-completed launcher outcome or a non-zero exit fails closed.
+- Re-entry returns an already-published valid result without launching a second child.
+- The launcher is reached through a `WorkerProcessLauncher` port so the parent's failure paths are provable without spawning a process.
 - Full regression passes with 0 failures and 0 errors, and strict lint passes across all production sources.
 
 ## Out Of Scope
 
-- Running the real Gate 1-4 pipeline inside the child, and wiring the launcher into `AgentRunExecution` or `DurableAgentRunWorker`.
-- A result-return spool, restart or supervision policy, concurrency limits across children, and cancelling a running child from another process.
-- Any change to the in-process 64-worker isolation ceiling, which still governs in-process execution.
+- Wiring the execution into `DurableAgentRunWorker`.
+- Spool retention and cleanup; nothing removes an invocation root today.
+- Retry policy, cancellation of a running child, and concurrent cycles sharing one invocation root.
+- Closing the window where a child persists a RunRecord and dies before publishing; that orphan and its re-execution stay documented at-least-once behaviour.
 
 ## Approval
 
-Approved by the user's 2026-07-20 grant of process-execution authority scoped to the current JVM only, after being shown that a configured-executable scope would be wider than the increment needs.
+Approved by the user's 2026-07-20 direction to proceed with the reverse result spool after review added the execution-request, result-authority, and spool-consumption contracts to the decision.
 
 ## Verification
 
-Recorded in `docs/verification-log.md` under Worker Process Isolation Verification.
+Recorded in `docs/verification-log.md` under Process Isolated Execution Verification.
 
 ## Next
 
-Wire the isolated worker into the execution port so the Gate 1-4 pipeline runs in the child, which needs its own bounded task and a decision on how a result returns across the boundary.
+Wire `ProcessIsolatedAgentRunExecution` into `DurableAgentRunWorker` and decide spool retention, since an invocation root currently persists for every cycle with nothing to remove it.

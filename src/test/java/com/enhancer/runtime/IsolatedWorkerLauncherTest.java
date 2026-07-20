@@ -4,30 +4,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.enhancer.bus.BackpressurePolicy;
-import com.enhancer.bus.DeliveryDestination;
-import com.enhancer.bus.FileSpoolMessageTransport;
-import com.enhancer.bus.MessageEnvelope;
-import com.enhancer.bus.TransportMessage;
-import com.enhancer.bus.WorkPayload;
-import com.enhancer.workspace.ApprovedTaskRevision;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 class IsolatedWorkerLauncherTest {
     private static final Duration GENEROUS = Duration.ofSeconds(60);
-
-    @TempDir
-    Path temporaryRoot;
 
     private final IsolatedWorkerLauncher launcher = new IsolatedWorkerLauncher();
 
@@ -106,64 +92,6 @@ class IsolatedWorkerLauncherTest {
         ProcessHandle.current().info().command().ifPresent(running ->
                 assertEquals(resolved, Path.of(running).toAbsolutePath().normalize(),
                         "the resolved executable must be the one this process is running"));
-    }
-
-    @Test
-    void carriesASpooledMessageAcrossTheProcessBoundary() throws IOException {
-        Path spool = temporaryRoot.resolve("spool");
-        new FileSpoolMessageTransport(spool, BackpressurePolicy.standard()).send(workMessage());
-
-        IsolatedWorkerOutcome outcome = launcher.run(
-                IsolatedWorkerMain.class, List.of(spool.toString()), GENEROUS);
-
-        assertEquals(IsolatedWorkerStatus.COMPLETED, outcome.status());
-        assertEquals(IsolatedWorkerMain.EXIT_MESSAGE_READ, outcome.exitCode().orElseThrow(),
-                "the child decoded a real message written by this process");
-    }
-
-    @Test
-    void reportsAnEmptySpoolAndACorruptMessageWithDistinctExitCodes() throws IOException {
-        Path empty = Files.createDirectories(temporaryRoot.resolve("empty-spool"));
-
-        assertEquals(
-                IsolatedWorkerMain.EXIT_SPOOL_EMPTY,
-                launcher.run(IsolatedWorkerMain.class, List.of(empty.toString()), GENEROUS)
-                        .exitCode().orElseThrow());
-
-        Path corrupt = temporaryRoot.resolve("corrupt-spool");
-        new FileSpoolMessageTransport(corrupt, BackpressurePolicy.standard()).send(workMessage());
-        Path spooled;
-        try (var paths = Files.list(corrupt)) {
-            spooled = paths.filter(path -> path.toString()
-                    .endsWith(FileSpoolMessageTransport.FILE_SUFFIX)).findFirst().orElseThrow();
-        }
-        byte[] original = Files.readAllBytes(spooled);
-        Files.write(spooled, java.util.Arrays.copyOf(original, original.length - 1));
-
-        assertEquals(
-                IsolatedWorkerMain.EXIT_MESSAGE_CORRUPT,
-                launcher.run(IsolatedWorkerMain.class, List.of(corrupt.toString()), GENEROUS)
-                        .exitCode().orElseThrow());
-
-        assertEquals(
-                IsolatedWorkerMain.EXIT_USAGE,
-                launcher.run(IsolatedWorkerMain.class, List.of(), GENEROUS)
-                        .exitCode().orElseThrow());
-    }
-
-    private static TransportMessage workMessage() {
-        return new TransportMessage(
-                DeliveryDestination.queue("worker-tasks"),
-                new MessageEnvelope(
-                        UUID.randomUUID().toString(), "correlation-1", Optional.empty(),
-                        "run-1", "scheduler", Instant.parse("2026-07-20T09:00:00.123456789Z"),
-                        new WorkPayload(
-                                new ApprovedTaskRevision(
-                                        "gate-8-worker-process-isolation",
-                                        "CURRENT_TASK.md",
-                                        "a".repeat(64)),
-                                "b".repeat(64),
-                                Set.of("read-file"))));
     }
 
     /** Exits with the code named by its first argument. */

@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
  * stripped of the variables that would let an inherited setting inject JVM arguments. A watchdog
  * destroys a child that overruns its timeout. Only the exit code and a bounded reason survive.
  */
-public final class IsolatedWorkerLauncher {
+public final class IsolatedWorkerLauncher implements WorkerProcessLauncher {
     /** Upper bound on any single child's runtime, so a caller cannot disable the watchdog. */
     public static final Duration MAX_TIMEOUT = Duration.ofMinutes(5);
 
@@ -50,6 +50,7 @@ public final class IsolatedWorkerLauncher {
     private static final List<String> REMOVED_ENVIRONMENT = List.of(
             "JAVA_TOOL_OPTIONS", "_JAVA_OPTIONS", "JDK_JAVA_OPTIONS");
 
+    @Override
     public IsolatedWorkerOutcome run(
             Class<?> entryPoint, List<String> arguments, Duration timeout) {
         Objects.requireNonNull(entryPoint, "entryPoint must not be null");
