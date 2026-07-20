@@ -6,49 +6,48 @@ Completed
 
 ## Task
 
-Add one in-process `DurableAgentRunWorker` that drives a single scheduling cycle end to end — claim + lease, execute via an injected port to a durable RunRecord, acknowledge execution, finalize runtime and queue disposition — and recovers a cycle interrupted at any seam via a worker-owned durable cycle-intent checkpoint.
+Extend `WorkPayload` with an optional caller-supplied `ExecutionInput(targetPath, expectedContentSha256)`, project it through `WorkItem`, persist it in both filesystem serializers (schema v1 revised in place), publish it through a `WorkMessagePublisher` overload, and make the AgentLoop-backed execution port's derivation seam prefer the declared input over the source-document fallback, so the durable worker executes an arbitrary governed target file end to end.
 
 ## Task ID
 
-gate-8-in-process-scheduler-worker
+gate-8-workpayload-execution-input
 
 ## Justified By
 
-- 2026-07-17: Record In-Process Scheduler Worker Driving One Recoverable Claim-To-Disposition Cycle Through A Durable Cycle-Intent Checkpoint
+- 2026-07-20: Record Caller-Supplied WorkPayload Execution Input Enabling Arbitrary-Target Worker Execution
 
 ## Context
 
-Gate 8 held every durable piece of one work cycle as separate, tested contracts — durable queue claim plus fenced lease (`DurableAgentRunDispatcher`), fence-checked execution acknowledgement (`DurableAgentRuntime.completeExecution`), and RunRecord-backed result finalization (`DurableAgentRunFinalizer`) — but nothing drove them end to end. The finalizer had no production consumer and explicitly deferred the pre-terminal recovery window (retaining the `runRecordReference` across a crash before finalization) to the connection-3 worker/driver, which did not exist. Connection 3 was split into 3a (in-process worker, this task), 3b (process isolation), and 3c (concrete local IPC adapter).
+The AgentLoop-backed execution port (Contract Verified, worker path Integrated) bounds executed work to re-reading the approved task document because the payload states no work. The accepted decision supplies the missing statement as caller-provided authority data — mirroring the CLI's `target-path`/`expected-sha256` model — and rejects snapshot-derived digests (observations are evidence, not authority). Both stores already carry an optional-string precedent (`causationId`) and the in-place schema-v1 revision precedent is established.
 
 ## Acceptance Criteria
 
-- Add `PendingFinalization`, `PendingFinalizationStore`, `CorruptedPendingFinalizationException`, and `FileSystemPendingFinalizationStore` under `com.enhancer.runtime`: a single-record durable cycle-intent checkpoint, bounded, strict-UTF-8, digest-checked, atomically published, failing closed on corrupt/truncated/oversized state.
-- Add `AgentRunExecution` (injected execution port returning a `runRecordReference`) and `DurableAgentRunWorker` with `runOneCycle(leaseDuration) -> Optional<WorkItemDisposition>`.
-- Drive the authoritative order: cycle-intent (ids) -> queue claim + lease -> RunRecord persisted (ref) -> intent updated with ref -> `completeExecution` -> `finalizeAgentRun` -> queue disposition -> clear intent; the intent is written before the claim and the reference before acknowledgement.
-- Route recovery by runtime state as the source of truth: terminal -> `recoverFinalization`; `AWAITING_VERIFICATION` -> `finalizeAgentRun(ref)`; `EXECUTING`/`READY`/`PLANNING`, unstarted AgentRun, or missing runtime (`MissingAgentRuntimeStateException` tolerated) -> re-drive with the same identities, skipping re-execution when the reference exists.
-- Fail closed: an execution/finalizer failure propagates with the intent retained; a cycle that claimed nothing clears its intent and leaves no durable trace.
-- No change to `DurableAgentRunDispatcher`, `DurableAgentRuntime`, `DurableAgentRunFinalizer`, `DurableSingleWorkerSchedulerQueue`, or any schema; the dispatcher and finalizer wrap the same queue instance.
+- `WorkPayload` gains `Optional<ExecutionInput> executionInput` with nested `ExecutionInput(targetPath, expectedContentSha256)` (`targetPath` bounded non-blank, max 1024 characters; digest 64 lowercase hex) and a three-argument convenience constructor delegating to empty; every existing call site compiles unchanged.
+- `WorkItem.executionInput()` projects the payload value; both `FileSystemSchedulerQueueStore` and `FileSystemAgentRuntimeStateStore` round-trip the input (present and absent) via a presence flag after `allowedTools`, schema v1 in place, pre-existing snapshots failing closed.
+- `WorkMessagePublisher.publish` gains the overload carrying `Optional<WorkPayload.ExecutionInput>`; the existing signature delegates with empty.
+- `AgentLoopAgentRunExecution` prefers the declared input and falls back to `(sourceDocument, sourceSha256)`; the `ApprovedTask` construction and Goal binding are unchanged; a declared arbitrary target executes through the governed pipeline to a `VERIFIED` RunRecord (matching digest) or a non-`VERIFIED` RunRecord finalized to `FAILED` (mismatch/missing), never thrown.
+- `DurableAgentRunWorker` over the real port drives an arbitrary-target WorkItem to `VERIFIED_COMPLETED` end to end on real filesystem stores.
+- No change to the sealed payload hierarchy shape beyond the `WorkPayload` component, and no version bump or migration machinery.
 
 ## Out Of Scope
 
-- Process isolation of the worker (3b) and a concrete `MessageTransport` local IPC adapter (3c).
-- The real `AgentLoop`-backed execution port and the `WorkPayload` execution-input extension it needs.
-- Retry through additional AgentRuns, cancel/pause/resume, budgets, priority/fairness, multi-agent execution, schema migration, and any capability-maturity promotion beyond Contract Verified.
+- Write/mutation Tools, multiple execution inputs per WorkItem, payload-carried plans or Tool-call scripts.
+- Worker process isolation (3b) and the concrete `MessageTransport` local IPC adapter (3c).
+- Retry, cancel/pause/resume, budgets, priority/fairness, multi-agent execution, schema version bumps, migration.
 - Commit, push, PR, merge, release, or deployment without a new explicit user request.
 
 ## Approval
 
-Approved by the user's 2026-07-17 request to continue the project on the merged worker design/plan (PR #6), executing `docs/superpowers/plans/2026-07-17-gate-8-in-process-scheduler-worker.md` against the design spec as amended by commit `cf06808`.
+Approved by the user's 2026-07-20 selection of "C first, A as the named follow-on" and the subsequent request to proceed with A after C completed.
 
 ## Verification
 
-- Task 1 RED: `FileSystemPendingFinalizationStoreIntegrationTest` failed compilation with 19 errors naming only the absent `PendingFinalization`, `FileSystemPendingFinalizationStore`, and `CorruptedPendingFinalizationException`; GREEN passed 8 of 8 checkpoint round-trip, overwrite, idempotent-clear, corrupt, truncated, and oversized cases.
-- Task 2 RED: `DurableAgentRunWorkerTest` failed compilation with 5 errors naming only the absent `AgentRunExecution` and `DurableAgentRunWorker`; GREEN passed the verified-cycle, failed-cycle, and empty-queue happy paths (3 of 3).
-- Task 3 RED: the six added recovery tests failed behaviourally with the deliberate `UnsupportedOperationException` resume stub while the three Task 2 tests stayed green; GREEN passed all 9 after the recovery routing replaced the stub, covering resume-after-acknowledgement, post-terminal disposition recovery, re-drive while `EXECUTING`, re-drive with no runtime state, empty-queue intent convergence, and execution-failure recoverability.
-- Task 4: `FileSystemAgentRunWorkerIntegrationTest` passed 2 of 2 on first run — an interrupted cycle resumed on a fresh worker and drove the dependent end to end, and a failed outcome blocked the dependent — composing all four real filesystem stores.
-- Runtime package suite: 14 suites, 73 tests, 0 skips, 0 failures, 0 errors.
-- Full regression and strict lint recorded in `SESSION_HANDOFF.md` and `PROJECT_STATE.md`.
+- RED: test compilation failed with exactly 30 aligned errors across the seven extended suites, naming only the absent `WorkPayload.ExecutionInput`, the four-argument `WorkPayload` constructor, and the `executionInput()` accessor; production compilation passed.
+- Focused GREEN: `MessageEnvelopeTest` 6/6, `WorkItemTest` 3/3, `AgentLoopAgentRunExecutionTest` 4/4, `FileSystemAgentLoopWorkerIntegrationTest` 3/3, `FileSystemSchedulerQueueStoreIntegrationTest` 7/7, `FileSystemAgentRuntimeStateStoreIntegrationTest` 7/7, and `MessagingRuntimeIntegrationTest` 1/1, covering the optional payload contract and bounds, the `WorkItem` projection, present/absent round trips on both filesystem stores, the publisher overload carrying the input through the bus into admission, a declared arbitrary target executed to a `VERIFIED` RunRecord with the source-document binding preserved, and the worker end-to-end over a declared target.
+- Full regression under `--warning-mode all`: 65 suites, 299 tests, 297 passed, 2 existing Windows symbolic-link setup skips, 0 failures, 0 errors.
+- Java 17 strict lint (`javac -Xlint:all -Werror`) passed across all 158 production sources.
+- Structural: `git diff --check` clean; exactly one `Status: Specified - Next` gate marker (Gate 8) in `ROADMAP.md`.
 
 ## Next
 
-Choose the next bounded sub-increment: worker process isolation (3b), the concrete local IPC adapter (3c), or the `AgentLoop`-backed execution port with its `WorkPayload` execution-input extension.
+Choose the next bounded sub-increment: worker process isolation (3b) or the concrete `MessageTransport` local IPC adapter (3c).
