@@ -6,46 +6,51 @@ Completed
 
 ## Task
 
-Harden Gate 8 connection sub-increment 3d at its authority and recovery boundaries, and repair the canonical-document ownership guard that allowed stale next-task declarations to survive.
+Make the recorded `-Xlint:all -Werror` guarantee executable by enforcing it in the Gradle build instead of an ad-hoc javac invocation the build never ran.
 
 ## Task ID
 
-gate-8-process-isolated-execution-hardening
-
-## Justified By
-
-- 2026-07-20: Return Isolated Worker Results Through A Correlated Per-Cycle Spool With RunRecord As Authority
+enforce-strict-lint-in-build
 
 ## Context
 
-The first 3d implementation proved a real child JVM execution path, but review found four fail-closed gaps: a pre-existing foreign work message was reused without identity validation; a resolved RunRecord was not bound back to the dispatched source and execution input; multiple result messages were treated as no result and could trigger another child; and the shared execution seam was unnecessarily public. The same review found stale canonical documents and showed that the document-ownership test recognized `## Next Task` but not the repository's actual `## Next` heading or declarative next-increment prose.
+Every increment since Gate 1 recorded "Java 17 strict lint passed" in
+`docs/verification-log.md`, but neither `-Xlint:all` nor `-Werror` appeared in
+`build.gradle`, `scripts/`, or any CI configuration. The flags lived only in a manual
+javac invocation each session was trusted to remember. A lint regression therefore
+could not fail the build, and `./gradlew build` reported green for a tree the recorded
+standard would have rejected. This is the same class of gap the Markdown `inputs.files`
+declaration already closes for the document guards: a check that does not run is not a
+check.
 
 ## Acceptance Criteria
 
-- A pre-existing work spool entry is decoded and reused only when its destination and complete envelope exactly equal the current WorkItem; foreign work fails before launch.
-- Result spool cardinality distinguishes zero, one, and several entries; several entries fail before launch instead of being treated as unpublished.
-- A result is accepted only from the exact result destination and only when its resolved RunRecord binds back to the dispatched task, source document, execution target, expected digest, and claimed verification status.
-- Adversarial tests prove foreign work, foreign RunRecord references, wrong result destinations, and multiple results cannot launch or advance execution.
-- `AgentLoopAgentRunExecution.executeWork` is package-private, keeping the shared child seam inside the runtime package.
-- `PROJECT_STATE.md`, `ARCHITECTURE.md`, `.ai/architecture.md`, `ROADMAP.md`, and `SESSION_HANDOFF.md` agree on 3d's current boundary and leave next-task ownership to `CURRENT_TASK.md`.
-- `DocumentOwnershipTest` detects both canonical next-task headings and declarative next-task/next-increment prose outside `CURRENT_TASK.md`.
-- Full regression passes with 0 failures and 0 errors, and strict lint passes across all production sources.
+- `-Xlint:all -Werror` is applied by the build itself, so `./gradlew build` enforces
+  what the verification log has been claiming.
+- The guard is proven to fire rather than assumed: a deliberate warning fails the
+  build, and the failure is observed on both production and test sources.
+- Enforcement covers test sources as well, which already compile clean under the same
+  flags and can regress just as easily.
+- The change is behaviour-preserving: the regression count and outcome are unchanged.
 
 ## Out Of Scope
 
-- Wiring the execution into `DurableAgentRunWorker`.
-- Spool retention and cleanup; nothing removes an invocation root today.
-- Retry policy, cancellation of a running child, and concurrent cycles sharing one invocation root.
-- Closing the window where a child persists a RunRecord and dies before publishing; that orphan and its re-execution stay documented at-least-once behaviour.
+- CI configuration; this repository has none, and adding it is Gate 16 work.
+- Any static-analysis tool beyond javac's own lint.
+- Suppressing or reformatting existing code; nothing required a fix, which is the
+  evidence that the manual practice had in fact been followed.
 
 ## Approval
 
-Approved by the user's 2026-07-20 request to implement the four reviewed findings, repair the document consistency guard, verify the repository, and commit, push, and merge the completed work.
+Approved by the user's 2026-07-20 request to remedy the enforcement gap identified in
+the completeness review, then commit, push, and merge the result.
 
 ## Verification
 
-Recorded in `docs/verification-log.md` under Process-Isolated Execution Hardening Verification.
+Recorded in `docs/verification-log.md` under Strict Lint Build Enforcement Verification.
 
 ## Next
 
-After this hardening increment, wire `ProcessIsolatedAgentRunExecution` into `DurableAgentRunWorker` and decide spool retention, since an invocation root currently persists for every cycle with nothing to remove it.
+Wire `ProcessIsolatedAgentRunExecution` into `DurableAgentRunWorker` and decide spool
+retention, since an invocation root currently persists for every cycle with nothing to
+remove it. This increment did not touch that work and it remains the next connection.

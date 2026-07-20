@@ -116,6 +116,7 @@ it does not restate which commit published which increment.
 - Explicit lifecycle, authorization, fresh-evidence, self-hosting, recovery, and amendment rules.
 - Git-backed project memory and session handoff.
 - RED failures are classified against active task authority, accepted decisions, Architecture, and repository settings before aligned missing implementation proceeds to the minimum GREEN change.
+- Java 17 strict lint (`-Xlint:all -Werror`) is enforced by the build across production and test sources, so `./gradlew build` refuses a warning rather than relying on a manual invocation being remembered.
 
 ## Accepted Product Direction
 

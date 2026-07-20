@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-20 - Enforce Strict Lint In The Build
+
+- Applied `-Xlint:all -Werror` through `tasks.withType(JavaCompile).configureEach` in `build.gradle`. Every increment since Gate 1 recorded that strict lint passed, but the flags lived only in a manual javac invocation the build never ran, so a lint regression could not fail `./gradlew build`.
+- Extended enforcement to test sources as well as production. They already compiled clean under the same flags, and a warning is as easy to introduce there.
+- Proved the guard fires rather than assuming it: an injected raw-type declaration failed `:compileJava`, the same injection in a test failed `:compileTestJava`, and both were reverted. A no-op configuration would have passed a clean-tree check alone.
+- Behaviour-preserving: 71 suites, 348 tests, 346 passed, 2 existing Windows symbolic-link skips, 0 failures, 0 errors, unchanged from before the change. No production or test source was modified, and nothing required a fix under the newly enforced flags.
+
 ## 2026-07-20 - Harden Process-Isolated Execution Boundaries
 
 - Re-entry now decodes the sole existing work message and requires both the exact `work` queue destination and complete dispatched envelope before reuse. Foreign work and multiple work or result entries fail before the launcher can run.
