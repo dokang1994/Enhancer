@@ -34,7 +34,11 @@ The product evolves from V1 development experience, through V2 Agent/workflow pl
 
 ## Current Capability Maturity
 
-The Gate 0 foundation contracts and the bounded read-only Tool, complete-evidence, Tool-driven loop, sequential verification, and RunRecord boundaries are **Integrated**. Delivery Gate 5 composes them into one **Operational** supported local read-only CLI scenario. Gate 6 Workspace and Project Brain is **Integrated**, and its production view and graph composition are Operational sub-capabilities. Gate 7 is **Specified - Next**: its versioned envelope and deterministic in-process topic/queue delivery, idempotency, replay, failure isolation, bounded retry/dead letters, cancellation, run-to-completion ordering, and finite non-blocking pending-queue backpressure are **Contract Verified**. The transport-neutral IPC interface is next; persistence, concrete IPC adapters, production bus wiring, Scheduler, and broader Agent Runtime remain planned.
+This chapter describes the architecture's shape: which boundaries exist, what each one covers, and what it must not do. It does not state how far any gate has progressed.
+
+Current capability maturity is in `PROJECT_STATE.md` and the evidence behind it in `docs/verification-log.md`. Read them for the present position; this chapter went stale claiming Gate 7 was `Specified - Next` long after Gate 8 had taken that marker, which is why the claim no longer lives here.
+
+The boundaries themselves: Gate 0 foundation contracts, the bounded read-only Tool, complete evidence, the Tool-driven loop, sequential verification, and RunRecords, composed by Delivery Gate 5 into one supported local read-only CLI scenario. Gate 6 adds Workspace and Project Brain, with the production `run` path composing its view and graph. Gate 7 adds a versioned envelope and deterministic in-process topic/queue delivery covering idempotency, replay, failure isolation, bounded retry and dead letters, cancellation, run-to-completion ordering, and finite non-blocking pending-queue backpressure, plus a transport-neutral IPC interface. Persistence, concrete IPC adapters, and production bus wiring are not part of it.
 
 Capability maturity uses:
 

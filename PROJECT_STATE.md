@@ -10,7 +10,7 @@
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
 - Production source: 158 Java files.
-- Test source: 65 Java files.
+- Test source: 66 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;

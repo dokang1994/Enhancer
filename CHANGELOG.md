@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-20 - Enforce Document Ownership With A Structural Test
+
+- Added `DocumentOwnershipTest` under `com.enhancer.architecture`, alongside the existing `RuntimePackageBoundaryTest`, asserting that gate maturity appears only in `PROJECT_STATE.md` and that `## Next Task` appears only in `CURRENT_TASK.md`. Exemptions cover the owner plus `ROADMAP.md` (which owns the `Status: Specified - Next` grammar the Planner parses) and the append-only records `DECISION_LOG.md`, `CHANGELOG.md`, `docs/verification-log.md`, and `docs/superpowers/**`.
+- The test failed on the unmodified repository with six violations. All five documents naming Gate 7 claimed it was `Specified - Next` after Gate 8 had taken the marker — the same fact copied to five places had drifted in all five, one day after the ownership rule was accepted in prose. Replaced each with a reference to `PROJECT_STATE.md` rather than updating it.
+- Stated the store write-root contract exactly in `ARCHITECTURE.md` and `README.md`: `--evidence-root` and `--run-record-root` are explicit caller inputs by the Gate 5 decision, deliberately not confined to the project root, with `.enhancer/` an example layout rather than an enforced property. Each store normalizes its root, refuses a symbolic-link root through `NOFOLLOW_LINKS`, and only creates freshly generated UUID-named entries, so it can add to a caller-named directory but cannot overwrite or delete what is already there. Read-side containment remains the separate and stricter boundary.
+- Rejected the audit finding that proposed confining store roots to the project root: it contradicts the accepted Gate 5 explicit-input model and would break the existing `CliArgumentsTest` case that deliberately uses sibling roots. No store or CLI behaviour changed.
+- Regression: 66 suites, 301 tests, 299 passed, 2 existing Windows symbolic-link skips, 0 failures, 0 errors. The deltas against the previous 65/299 baseline are exactly the new structural test.
+
 ## 2026-07-20 - Complete The Document Ownership Cleanup
 
 - Removed every capability-maturity verdict from `.ai/architecture.md`: 14 bullets carrying Contract Verified, Integrated, or Operational duplicated `PROJECT_STATE.md` and forced an edit on every maturity change. Each bullet now states what its contract is and what it connects to, with all architectural content preserved; the header states the file does not own maturity.
