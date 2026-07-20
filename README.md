@@ -154,7 +154,8 @@ prompts/SESSION_CLOSE.md를 읽고 세션을 종료해라.
 - `docs/verification-log.md`: 그 상태의 근거가 되는 증분별 검증 기록 (append-only)
 - `CURRENT_TASK.md`: 현재 단 하나의 Task와 다음 Task
 - `ROADMAP.md`: 단계별 진행 계획
-- `DECISION_LOG.md`: 승인된 설계 결정
+- `DECISION_LOG.md`: 승인된 설계 결정의 인덱스 (제목 + 승인 상태)
+- `docs/decisions/`: 결정별 파일 하나씩 — 맥락·결정·근거·결과. 제목 문자열이 곧 결정의 식별자
 - `SESSION_HANDOFF.md`: 지금 사실이면서 세션과 함께 사라질 내용만
 - `CHANGELOG.md`: 변경 기록
 

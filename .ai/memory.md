@@ -21,4 +21,8 @@ For architecture work, also read:
 `PROJECT_STATE.md`. It is deliberately not a session-start document: it grows without
 bound and is consulted only when a specific past verification claim matters.
 
+`DECISION_LOG.md` is an index carrying each accepted decision's heading and status; the
+reasoning lives in `docs/decisions/`. Those files are also deliberately outside the
+session-start set — read the one you need rather than all of them.
+
 - Promotion boundary: a project-independent repeatable procedure becomes a Skill under RFC-0007; repository-specific rationale or pitfalls remain repository memory. Execute distillation through `prompts/SESSION_CLOSE.md` Step 7.

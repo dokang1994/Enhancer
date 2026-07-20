@@ -17,7 +17,7 @@ Then:
 1. Read `CONSTITUTION.md` and confirm the work fits the project rules.
 2. Identify the current lifecycle state and required authority.
 3. Read or update `ARCHITECTURE.md`.
-4. Record accepted decisions in `DECISION_LOG.md`.
+4. Record accepted decisions as a file under `docs/decisions/` plus a matching entry in the `DECISION_LOG.md` index; the heading text is the decision's identity and is resolved by exact string.
 5. Define or confirm the current task in `CURRENT_TASK.md`.
 6. For observable behavior, establish a focused RED test and classify the failure before implementation:
    - confirm the failure is caused by the missing or incorrect behavior the test is intended to expose;
