@@ -9,8 +9,8 @@
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 161 Java files.
-- Test source: 69 Java files.
+- Production source: 165 Java files.
+- Test source: 70 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;

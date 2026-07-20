@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### 2026-07-20: Isolate The Worker In A Bounded Self-JVM Child Process
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-20-isolate-the-worker-in-a-bounded-self-jvm-child-process.md)
+
 ### 2026-07-20: Carry The First Transport Hop Through A Local File Spool
 
 Status: Accepted Decision

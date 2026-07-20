@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-20 - Isolate The Worker In A Bounded Child Process
+
+- Added `IsolatedWorkerLauncher` (Gate 8 connection sub-increment 3b), the process lifecycle half of connection 3. It runs one worker in a child process and returns a typed `IsolatedWorkerOutcome`: `COMPLETED` carries an exit code, while `TIMED_OUT` and `START_FAILED` carry a bounded reason and no exit code, so a destroyed or unstartable child can never present a code that reads as a clean exit.
+- Bounded the new authority to the JVM already running. The executable is resolved from `java.home`, canonicalized, and required to be a regular file; the child runs the current classpath; and the entry point is a `Class<?>` rather than a command string, so no caller-supplied executable, command name, or shell reaches `ProcessBuilder`. Unlike the Git adapter there is no lookup to poison, so the executable's location is deliberately not constrained — this project vendors its own JDK inside the project root.
+- Bounded the child the way the Git adapter is bounded: output discarded by the operating system rather than read, an environment stripped of `JAVA_TOOL_OPTIONS`/`_JAVA_OPTIONS`/`JDK_JAVA_OPTIONS`, a capped timeout a caller cannot disable, and forcible destruction on overrun. Only the exit code and a bounded reason survive.
+- Added `IsolatedWorkerMain`, the child entry point. It reads one message from a 3c spool and exits with a stable code for a decoded message, an empty spool, a corrupt message, or a usage error, so the boundary is proven by a real message crossing it rather than by a stub.
+- External command authority now exists in exactly two places, each scoped by its own accepted decision. `GitWorkspaceCollector` remains the only one that runs a configured external program.
+- Nothing wires the launcher into `AgentRunExecution` or `DurableAgentRunWorker`; running the Gate 1-4 pipeline inside the child is the named follow-on. No runtime behaviour changed.
+- Regression: 70 suites, 334 tests, 332 passed, 2 existing Windows symbolic-link skips, 0 failures, 0 errors; strict lint across 165 production sources.
+
 ## 2026-07-20 - Strengthen The Transport Codec Tests
 
 - Grew `MessageEnvelopeCodecTest` from 4 cases to 11 after review against an independently written test for the same codec. No production source changed.
