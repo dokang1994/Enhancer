@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-07-21 - Persist Fence-Checked External Effect Outcomes
+
+- Added one bounded schema-v1 external-effect ledger per Goal, with stable idempotency
+  keys and semantic operation digests bound to the exact Goal, AgentRun, and WorkItem.
+- Persisted `PREPARED` before exposure and exactly one current-owner/fence-checked
+  `APPLIED`, `DEDUPLICATED`, `COMPENSATED`, or `REQUIRES_USER_RECOVERY` result. Exact
+  replay is revision-free; key reuse, stale ownership, and terminal rewrite fail closed.
+- Added a bounded strict-UTF-8 integrity-checked atomic filesystem store that preserves
+  append/terminal history across restart and leaves unresolved preparation explicit
+  rather than automatically replaying an effect.
+- Added focused and real-filesystem coverage for all outcomes, bounds, stale/expired
+  fences, exact replay, restart, Unicode, persistence failure, corruption, unsupported
+  state, capacity, and history-rewrite refusal.
+- Fresh `clean build` passed 76 suites and 379 tests with 3 existing privilege-dependent
+  Windows symbolic-link setup skips, 0 failures, and 0 errors under build-enforced Java
+  17 `-Xlint:all -Werror`.
+
 ## 2026-07-21 - Persist Development Session Checkpoints
 
 - Added one machine-written development-session checkpoint below the Git-ignored
