@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-07-21 - Persist Bound Runtime Control Requests
+
+- Added a bounded ordered control-request ledger to durable Goal state. Exact `ControlPayload` envelopes must bind to the retained work logical run, correlation, and causation; runtime-identity collisions, changed-content identity reuse, terminal admission, and capacity overflow fail closed.
+- Made exact restart replay idempotent without advancing the runtime revision, retained the ledger across later lifecycle transitions, and enforced prefix-monotonic filesystem updates with persist-before-exposure behavior. Schema v1 was revised in place, and older payloads without the ledger fail closed.
+- Added `RuntimeControlAdmissionHandler`, connecting a real Gate 7 queue to Gate 8 durable request state. Storage I/O participates in the bus's existing retry/dead-letter path; producer and reason remain diagnostic and no request changes Goal, AgentRun, lease, fence, queue, worker, Tool, or bus-cancellation state.
+- Added a control-admission recovery path that deliberately does not reclaim expired leases, keeping request handling observational with respect to runtime ownership while normal runtime recovery retains expiry reclamation.
+- Added focused lifecycle, corruption, restart/replay, supplementary-Unicode, storage-failure, retry, dead-letter, and expired-lease non-interference coverage.
+
+## 2026-07-21 - Select The Process-Isolated Durable Worker
+
+- Added `DurableAgentRunWorker.processIsolated`, the production composition selecting `ProcessIsolatedAgentRunExecution` with the real bounded self-JVM launcher, caller-supplied durable stores, and one queue instance shared by dispatch and finalization.
+- Added an idempotent post-checkpoint cleanup operation to `AgentRunExecution`. The durable worker calls it only after the RunRecord reference is present in its cycle-intent checkpoint, so cleanup failure is retried after restart without executing the work again.
+- Process-isolated cleanup removes only the exact Goal/AgentRun work/result spool and an empty Goal parent. It never removes the invocation root, Evidence, or RunRecords; failed or incomplete current cycles retain their spool.
+- Added a real child-JVM durable-worker integration and focused recovery coverage. Full `clean build` passed 71 suites and 351 tests with 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors under build-enforced `-Xlint:all -Werror`.
+
 ## 2026-07-20 - Enforce Strict Lint In The Build
 
 - Applied `-Xlint:all -Werror` through `tasks.withType(JavaCompile).configureEach` in `build.gradle`. Every increment since Gate 1 recorded that strict lint passed, but the flags lived only in a manual javac invocation the build never ran, so a lint regression could not fail `./gradlew build`.

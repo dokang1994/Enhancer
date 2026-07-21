@@ -1,10 +1,13 @@
 package com.enhancer.runtime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.enhancer.bus.ControlPayload;
+import com.enhancer.bus.ControlSignal;
 import com.enhancer.bus.MessageEnvelope;
 import com.enhancer.bus.ResultPayload;
 import com.enhancer.bus.WorkPayload;
@@ -438,6 +441,157 @@ class DurableAgentRuntimeTest {
     }
 
     @Test
+    void persistsBoundControlRequestsWithoutChangingRuntimeAuthority()
+            throws Exception {
+        MemoryAgentRuntimeStateStore store =
+                new MemoryAgentRuntimeStateStore();
+        DurableAgentRuntime runtime = DurableAgentRuntime.create(
+                GOAL_ID, workItem(), store);
+        runtime.beginAgentRun(AGENT_RUN_ID);
+        runtime.markReady(AGENT_RUN_ID);
+        RuntimeGoal goalBefore = runtime.goal();
+        RuntimeAgentRun runBefore = runtime.agentRun().orElseThrow();
+        MessageEnvelope pause = controlMessage(
+                "00000000-0000-0000-0000-000000000406",
+                ControlSignal.PAUSE,
+                "operator requested pause");
+
+        assertTrue(runtime.recordControlRequest(pause));
+        assertEquals(3, runtime.revision());
+        assertEquals(goalBefore, runtime.goal());
+        assertEquals(runBefore, runtime.agentRun().orElseThrow());
+        assertEquals(0, runtime.lastIssuedFenceToken());
+        assertEquals(java.util.List.of(pause), runtime.controlRequests());
+
+        assertFalse(runtime.recordControlRequest(pause));
+        assertEquals(3, runtime.revision());
+        assertEquals(java.util.List.of(pause), runtime.controlRequests());
+
+        AgentRunLease lease = runtime.acquireLease(
+                AGENT_RUN_ID,
+                "worker-primary",
+                Duration.ofMinutes(5));
+        runtime.completeExecution(
+                AGENT_RUN_ID, lease.ownerId(), lease.fenceToken());
+        runtime.recordResult(
+                AGENT_RUN_ID,
+                resultMessage(VerificationStatus.VERIFIED));
+        assertEquals(java.util.List.of(pause), runtime.controlRequests());
+        assertThrows(IllegalStateException.class, () ->
+                runtime.recordControlRequest(controlMessage(
+                        "00000000-0000-0000-0000-000000000407",
+                        ControlSignal.CANCEL,
+                        "too late")));
+    }
+
+    @Test
+    void rejectsUnboundCollidingAndOverCapacityControlRequests()
+            throws Exception {
+        DurableAgentRuntime runtime = DurableAgentRuntime.create(
+                GOAL_ID,
+                workItem(),
+                new MemoryAgentRuntimeStateStore());
+        assertThrows(IllegalStateException.class, () ->
+                runtime.recordControlRequest(controlMessage(
+                        "00000000-0000-0000-0000-000000000406",
+                        ControlSignal.PAUSE,
+                        "no run")));
+        runtime.beginAgentRun(AGENT_RUN_ID);
+        runtime.markReady(AGENT_RUN_ID);
+
+        assertThrows(IllegalArgumentException.class, () ->
+                runtime.recordControlRequest(workItem().workMessage()));
+        for (String collision : java.util.List.of(
+                GOAL_ID, WORK_ITEM_ID, WORK_MESSAGE_ID, AGENT_RUN_ID)) {
+            assertThrows(IllegalArgumentException.class, () ->
+                    runtime.recordControlRequest(new MessageEnvelope(
+                            collision,
+                            "correlation-runtime-1",
+                            Optional.of(WORK_MESSAGE_ID),
+                            "logical-run-runtime-1",
+                            "runtime-control-test",
+                            Instant.parse("2026-07-16T17:45:00Z"),
+                            new ControlPayload(
+                                    ControlSignal.PAUSE,
+                                    "identity collision"))));
+        }
+        assertThrows(IllegalArgumentException.class, () ->
+                runtime.recordControlRequest(controlMessage(
+                        "00000000-0000-0000-0000-000000000406",
+                        "other-correlation",
+                        Optional.of(WORK_MESSAGE_ID),
+                        "logical-run-runtime-1",
+                        ControlSignal.PAUSE,
+                        "mismatch")));
+        assertThrows(IllegalArgumentException.class, () ->
+                runtime.recordControlRequest(controlMessage(
+                        "00000000-0000-0000-0000-000000000406",
+                        "correlation-runtime-1",
+                        Optional.empty(),
+                        "logical-run-runtime-1",
+                        ControlSignal.PAUSE,
+                        "mismatch")));
+        assertThrows(IllegalArgumentException.class, () ->
+                runtime.recordControlRequest(controlMessage(
+                        "00000000-0000-0000-0000-000000000406",
+                        "correlation-runtime-1",
+                        Optional.of(WORK_MESSAGE_ID),
+                        "other-logical-run",
+                        ControlSignal.PAUSE,
+                        "mismatch")));
+
+        MessageEnvelope first = controlMessage(
+                "00000000-0000-0000-0000-000000000406",
+                ControlSignal.PAUSE,
+                "first");
+        assertTrue(runtime.recordControlRequest(first));
+        assertThrows(IllegalArgumentException.class, () ->
+                runtime.recordControlRequest(controlMessage(
+                        first.messageId(),
+                        ControlSignal.PAUSE,
+                        "different content")));
+        for (int index = 1;
+                index < AgentRuntimeState.MAX_CONTROL_REQUESTS;
+                index++) {
+            runtime.recordControlRequest(controlMessage(
+                    String.format(
+                            "00000000-0000-0000-0000-%012d",
+                            406 + index),
+                    ControlSignal.RESUME,
+                    "request-" + index));
+        }
+        assertEquals(
+                AgentRuntimeState.MAX_CONTROL_REQUESTS,
+                runtime.controlRequests().size());
+        assertThrows(IllegalStateException.class, () ->
+                runtime.recordControlRequest(controlMessage(
+                        "00000000-0000-0000-0000-000000000999",
+                        ControlSignal.CANCEL,
+                        "over capacity")));
+    }
+
+    @Test
+    void controlPersistenceFailureLeavesPreviousRevisionInvisible()
+            throws Exception {
+        MemoryAgentRuntimeStateStore store =
+                new MemoryAgentRuntimeStateStore();
+        DurableAgentRuntime runtime = DurableAgentRuntime.create(
+                GOAL_ID, workItem(), store);
+        runtime.beginAgentRun(AGENT_RUN_ID);
+        runtime.markReady(AGENT_RUN_ID);
+        store.failNextUpdate();
+
+        assertThrows(IOException.class, () ->
+                runtime.recordControlRequest(controlMessage(
+                        "00000000-0000-0000-0000-000000000406",
+                        ControlSignal.CANCEL,
+                        "persist first")));
+        assertEquals(2, runtime.revision());
+        assertTrue(runtime.controlRequests().isEmpty());
+        assertTrue(store.resolve(GOAL_ID).controlRequests().isEmpty());
+    }
+
+    @Test
     void rejectsIdentityCollisionsAndExistingOrMissingState()
             throws Exception {
         MemoryAgentRuntimeStateStore store =
@@ -500,6 +654,36 @@ class DurableAgentRuntimeTest {
                 "logical-run-runtime-1",
                 "gate-8-durable-goal-agent-run-lifecycle",
                 status);
+    }
+
+    private static MessageEnvelope controlMessage(
+            String messageId,
+            ControlSignal signal,
+            String reason) {
+        return controlMessage(
+                messageId,
+                "correlation-runtime-1",
+                Optional.of(WORK_MESSAGE_ID),
+                "logical-run-runtime-1",
+                signal,
+                reason);
+    }
+
+    private static MessageEnvelope controlMessage(
+            String messageId,
+            String correlationId,
+            Optional<String> causationId,
+            String logicalRunId,
+            ControlSignal signal,
+            String reason) {
+        return new MessageEnvelope(
+                messageId,
+                correlationId,
+                causationId,
+                logicalRunId,
+                "runtime-control-test",
+                Instant.parse("2026-07-16T17:45:00Z"),
+                new ControlPayload(signal, reason));
     }
 
     private static MessageEnvelope resultMessage(

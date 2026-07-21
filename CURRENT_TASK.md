@@ -6,51 +6,78 @@ Completed
 
 ## Task
 
-Make the recorded `-Xlint:all -Werror` guarantee executable by enforcing it in the Gradle build instead of an ad-hoc javac invocation the build never ran.
+Persist bounded cancel/pause/resume control requests in the durable Agent runtime and
+connect one real Gate 7 control-message queue delivery to that request boundary without
+applying an unauthenticated runtime transition.
 
 ## Task ID
 
-enforce-strict-lint-in-build
+persist-bound-runtime-control-requests
 
 ## Context
 
-Every increment since Gate 1 recorded "Java 17 strict lint passed" in
-`docs/verification-log.md`, but neither `-Xlint:all` nor `-Werror` appeared in
-`build.gradle`, `scripts/`, or any CI configuration. The flags lived only in a manual
-javac invocation each session was trusted to remember. A lint regression therefore
-could not fail the build, and `./gradlew build` reported green for a tree the recorded
-standard would have rejected. This is the same class of gap the Markdown `inputs.files`
-declaration already closes for the document guards: a check that does not run is not a
-check.
+Gate 7 already carries `ControlPayload(CANCEL|PAUSE|RESUME, reason)` and provides
+deterministic delivery, retry, dead letter, and replay, but no real consumer connects a
+control envelope to Gate 8 durable state. Gate 12 owns authenticated user controls and
+does not exist yet, so treating possession of a control envelope as permission to pause,
+resume, cancel, release a lease, or change queue state would create authority from
+untrusted message data.
+
+The first safe connection is therefore a durable, exact request ledger inside the
+existing Goal state. It records what was requested and binds it to the Goal's immutable
+work provenance. A later authenticated controller may evaluate and apply a request; the
+current worker, dispatcher, finalizer, queue, and Tool policy ignore it.
+
+## Justified By
+
+- 2026-07-21: Persist Bound Runtime Control Requests Without Applying Unauthenticated Transitions
+- 2026-07-16: Separate Execution Acknowledgement From Verified Queue Completion And Sequence Remaining Connections
+- 2026-07-16: Propagate Cancellation As A Terminal Correlation-Scoped Delivery Refusal
+- 2026-07-15: Start Gate 7 With Reference-Only Versioned Envelopes And Exactly Four Payload Kinds
 
 ## Acceptance Criteria
 
-- `-Xlint:all -Werror` is applied by the build itself, so `./gradlew build` enforces
-  what the verification log has been claiming.
-- The guard is proven to fire rather than assumed: a deliberate warning fails the
-  build, and the failure is observed on both production and test sources.
-- Enforcement covers test sources as well, which already compile clean under the same
-  flags and can regress just as easily.
-- The change is behaviour-preserving: the regression count and outcome are unchanged.
+- `AgentRuntimeState` retains an immutable ordered ledger of at most 256 exact
+  `MessageEnvelope` values carrying `ControlPayload`.
+- Every admitted request matches the Goal work's logical run, correlation, and work
+  message causation. Identity collisions, non-control payloads, mismatches, terminal
+  Goals, and over-capacity requests fail closed.
+- Re-delivery of the exact same message identity and envelope is idempotent and does not
+  advance the runtime revision; reusing an identity with different content is rejected.
+- The runtime store persists the complete control envelope before the request becomes
+  visible. Store failure leaves the previous in-memory and durable revision authoritative.
+- One `MessageHandler` connects the real in-process queue to the durable runtime. An I/O
+  failure becomes a handler failure so existing bounded bus retry/dead-letter behavior
+  remains observable.
+- Recording requests changes no Goal status, AgentRun status, lease, fence, queue state,
+  allowed Tool scope, execution input, or bus cancellation state. Producer and reason
+  fields remain diagnostic data, not authority.
+- A fresh filesystem store instance recovers the exact ordered requests, including
+  supplementary Unicode. The unreleased schema-v1 payload is revised in place and
+  pre-existing snapshots without the control ledger fail closed.
+- Focused RED/GREEN tests, the full build, strict lint, and document structural checks
+  pass with fresh output.
 
 ## Out Of Scope
 
-- CI configuration; this repository has none, and adding it is Gate 16 work.
-- Any static-analysis tool beyond javac's own lint.
-- Suppressing or reformatting existing code; nothing required a fix, which is the
-  evidence that the manual practice had in fact been followed.
+- Applying pause, resume, or cancel to a Goal, AgentRun, lease, worker process, queue, or
+  Tool execution.
+- Authenticating or authorizing a user control; Gate 12 owns that boundary.
+- Persisting the Gate 7 bus journal/cancellation set, remote controls, concurrent
+  consumers, retries through new AgentRuns, or external-effect fencing.
+- Schema migration for pre-existing unreleased runtime artifacts.
 
 ## Approval
 
-Approved by the user's 2026-07-20 request to remedy the enforcement gap identified in
-the completeness review, then commit, push, and merge the result.
+Approved by the user's 2026-07-21 request to continue the recorded next task and, once
+verified, commit it, push the feature branch, and merge it into `main`.
 
 ## Verification
 
-Recorded in `docs/verification-log.md` under Strict Lint Build Enforcement Verification.
+Fresh RED/GREEN, full-build, strict-lint, and structural evidence is recorded in
+`docs/verification-log.md`.
 
 ## Next
 
-Wire `ProcessIsolatedAgentRunExecution` into `DurableAgentRunWorker` and decide spool
-retention, since an invocation root currently persists for every cycle with nothing to
-remove it. This increment did not touch that work and it remains the next connection.
+Persist a bounded external-effect ledger with fence-checked, idempotent effect outcomes
+before connecting retry through additional AgentRuns.

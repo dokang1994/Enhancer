@@ -11,4 +11,16 @@ import java.io.IOException;
  */
 public interface AgentRunExecution {
     String execute(AgentRunDispatch dispatch) throws IOException;
+
+    /**
+     * Retires execution-only artifacts after the returned RunRecord reference has been durably
+     * checkpointed by the worker. Implementations with no such artifacts need no cleanup.
+     *
+     * <p>The operation must be idempotent because worker recovery may repeat it. A failure leaves
+     * the checkpoint authoritative and is retried before execution acknowledgement; it must not
+     * cause the approved work to execute again.
+     */
+    default void cleanupAfterCheckpoint(AgentRunDispatch dispatch) throws IOException {
+        // Most execution implementations own no per-cycle transport artifacts.
+    }
 }

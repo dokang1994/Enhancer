@@ -35,6 +35,7 @@ import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -265,6 +266,47 @@ class DurableAgentRunWorkerTest {
         // A fresh worker over the same stores finishes the interrupted cycle.
         assertEquals(Optional.of(WorkItemDisposition.VERIFIED_COMPLETED),
                 worker(s, executionPersisting(s, true)).runOneCycle(LEASE));
+        assertTrue(s.checkpointStore().findPending().isEmpty());
+    }
+
+    @Test
+    void retriesSpoolCleanupAfterCheckpointWithoutExecutingAgain() throws Exception {
+        Stores s = stores();
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.create(QUEUE_ID, 8, s.queueStore());
+        queue.enqueue(new QueuedWork(workItem(WORK_ID), List.of()));
+        AtomicInteger executions = new AtomicInteger();
+        AtomicInteger cleanups = new AtomicInteger();
+        AgentRunExecution execution = new AgentRunExecution() {
+            @Override
+            public String execute(AgentRunDispatch dispatch) throws IOException {
+                executions.incrementAndGet();
+                return s.runRecordStore().persist(runRecord(true)).reference();
+            }
+
+            @Override
+            public void cleanupAfterCheckpoint(AgentRunDispatch dispatch) throws IOException {
+                if (cleanups.incrementAndGet() == 1) {
+                    throw new IOException("spool cleanup failed");
+                }
+            }
+        };
+
+        IOException failedCleanup = assertThrows(
+                IOException.class,
+                () -> worker(s, execution).runOneCycle(LEASE));
+
+        assertTrue(failedCleanup.getMessage().contains("spool cleanup failed"));
+        assertTrue(s.checkpointStore().findPending().orElseThrow()
+                .runRecordReference().isPresent());
+        assertEquals(1, executions.get());
+        assertEquals(1, cleanups.get());
+
+        assertEquals(Optional.of(WorkItemDisposition.VERIFIED_COMPLETED),
+                worker(s, execution).runOneCycle(LEASE));
+        assertEquals(1, executions.get(),
+                "a checkpointed reference must suppress re-execution");
+        assertEquals(2, cleanups.get());
         assertTrue(s.checkpointStore().findPending().isEmpty());
     }
 

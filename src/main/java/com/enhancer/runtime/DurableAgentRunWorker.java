@@ -1,6 +1,8 @@
 package com.enhancer.runtime;
 
+import com.enhancer.run.RunRecordStore;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.Objects;
@@ -45,6 +47,49 @@ public final class DurableAgentRunWorker {
         this.ownerId = Objects.requireNonNull(
                 ownerId, "ownerId must not be null");
         this.clock = Objects.requireNonNull(clock, "clock must not be null");
+    }
+
+    /**
+     * Production composition for the process-isolated worker path.
+     *
+     * <p>The same queue instance is deliberately shared by dispatch and finalization. Work and
+     * results cross per-cycle file spools, while the child process is limited to re-running the
+     * current JVM through {@link IsolatedWorkerLauncher}.
+     */
+    public static DurableAgentRunWorker processIsolated(
+            DurableSingleWorkerSchedulerQueue queue,
+            AgentRuntimeStateStore runtimeStore,
+            PendingFinalizationStore checkpoint,
+            Path projectRoot,
+            Path evidenceRoot,
+            Path runRecordRoot,
+            Path invocationRoot,
+            RunRecordStore runRecordStore,
+            String ownerId,
+            Clock clock,
+            Duration processTimeout) {
+        Objects.requireNonNull(queue, "queue must not be null");
+        Objects.requireNonNull(runtimeStore, "runtimeStore must not be null");
+        Objects.requireNonNull(checkpoint, "checkpoint must not be null");
+        Objects.requireNonNull(runRecordStore, "runRecordStore must not be null");
+        Objects.requireNonNull(clock, "clock must not be null");
+        AgentRunExecution isolatedExecution = new ProcessIsolatedAgentRunExecution(
+                invocationRoot,
+                projectRoot,
+                evidenceRoot,
+                runRecordRoot,
+                runRecordStore,
+                new IsolatedWorkerLauncher(),
+                processTimeout);
+        return new DurableAgentRunWorker(
+                new DurableAgentRunDispatcher(queue, runtimeStore, clock),
+                isolatedExecution,
+                checkpoint,
+                new DurableAgentRunFinalizer(
+                        queue, runtimeStore, runRecordStore, clock),
+                runtimeStore,
+                ownerId,
+                clock);
     }
 
     public Optional<WorkItemDisposition> runOneCycle(Duration leaseDuration)
@@ -135,6 +180,10 @@ public final class DurableAgentRunWorker {
             checkpoint.record(new PendingFinalization(
                     goalId, agentRunId, Optional.of(reference)));
         }
+        // Process-specific transport artifacts are no longer needed once the reference is
+        // checkpointed. If cleanup fails, the checkpoint remains and recovery retries this
+        // operation without executing the work again.
+        execution.cleanupAfterCheckpoint(dispatch);
         DurableAgentRuntime runtime = DurableAgentRuntime.recover(
                 goalId, runtimeStore, clock);
         runtime.completeExecution(

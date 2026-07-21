@@ -1,5 +1,7 @@
 package com.enhancer.runtime;
 
+import com.enhancer.bus.ControlPayload;
+import com.enhancer.bus.ControlSignal;
 import com.enhancer.bus.MessageEnvelope;
 import com.enhancer.bus.ResultPayload;
 import com.enhancer.bus.WorkPayload;
@@ -30,7 +32,9 @@ import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -53,6 +57,7 @@ public final class FileSystemAgentRuntimeStateStore
     private static final String PAYLOAD_KIND = "agent-runtime-state";
     private static final String WORK_PAYLOAD_KIND = "work";
     private static final String RESULT_PAYLOAD_KIND = "result";
+    private static final String CONTROL_PAYLOAD_KIND = "control";
 
     private final Path storageRoot;
 
@@ -93,6 +98,17 @@ public final class FileSystemAgentRuntimeStateStore
                 current.goal().workItem())) {
             throw new IOException(
                     "Agent runtime WorkItem must not change");
+        }
+        List<MessageEnvelope> currentControls =
+                current.controlRequests();
+        List<MessageEnvelope> nextControls =
+                nextState.controlRequests();
+        if (nextControls.size() < currentControls.size()
+                || nextControls.size() > currentControls.size() + 1
+                || !nextControls.subList(0, currentControls.size())
+                        .equals(currentControls)) {
+            throw new IOException(
+                    "Agent runtime control ledger must retain its exact prefix");
         }
         long currentFence = current.lastIssuedFenceToken();
         long nextFence = nextState.lastIssuedFenceToken();
@@ -253,6 +269,7 @@ public final class FileSystemAgentRuntimeStateStore
             if (state.agentRun().isPresent()) {
                 writeAgentRun(output, state.agentRun().orElseThrow());
             }
+            writeMessageEnvelopes(output, state.controlRequests());
         }
         return bytes.toByteArray();
     }
@@ -288,6 +305,8 @@ public final class FileSystemAgentRuntimeStateStore
             Optional<RuntimeAgentRun> agentRun = readPresence(input)
                     ? Optional.of(readAgentRun(input))
                     : Optional.empty();
+            List<MessageEnvelope> controlRequests =
+                    readMessageEnvelopes(input);
             if (input.available() != 0) {
                 throw corrupted(
                         expectedGoalId,
@@ -298,7 +317,8 @@ public final class FileSystemAgentRuntimeStateStore
                     revision,
                     lastIssuedFenceToken,
                     new RuntimeGoal(goalId, workItem, goalStatus),
-                    agentRun);
+                    agentRun,
+                    controlRequests);
         } catch (CorruptedAgentRuntimeStateException exception) {
             throw exception;
         } catch (EOFException exception) {
@@ -416,6 +436,12 @@ public final class FileSystemAgentRuntimeStateStore
             writeString(output, payload.verificationStatus().name());
             return;
         }
+        if (envelope.payload() instanceof ControlPayload payload) {
+            writeString(output, CONTROL_PAYLOAD_KIND);
+            writeString(output, payload.signal().name());
+            writeString(output, payload.reason());
+            return;
+        }
         throw new IOException(
                 "Agent runtime message payload kind is unsupported");
     }
@@ -463,8 +489,50 @@ public final class FileSystemAgentRuntimeStateStore
                                     VerificationStatus.class,
                                     "verification status")));
         }
+        if (CONTROL_PAYLOAD_KIND.equals(payloadKind)) {
+            return new MessageEnvelope(
+                    messageId,
+                    correlationId,
+                    causationId,
+                    logicalRunId,
+                    producer,
+                    occurredAt,
+                    new ControlPayload(
+                            readEnum(
+                                    input,
+                                    ControlSignal.class,
+                                    "control signal"),
+                            readString(input)));
+        }
         throw new IOException(
                 "Agent runtime message payload kind is invalid");
+    }
+
+    private void writeMessageEnvelopes(
+            DataOutputStream output,
+            List<MessageEnvelope> envelopes) throws IOException {
+        if (envelopes.size() > AgentRuntimeState.MAX_CONTROL_REQUESTS) {
+            throw new IOException(
+                    "Agent runtime control ledger exceeds supported bounds");
+        }
+        output.writeInt(envelopes.size());
+        for (MessageEnvelope envelope : envelopes) {
+            writeMessageEnvelope(output, envelope);
+        }
+    }
+
+    private List<MessageEnvelope> readMessageEnvelopes(
+            DataInputStream input) throws IOException {
+        int size = input.readInt();
+        if (size < 0 || size > AgentRuntimeState.MAX_CONTROL_REQUESTS) {
+            throw new IOException(
+                    "Agent runtime control ledger size is invalid");
+        }
+        List<MessageEnvelope> envelopes = new ArrayList<>(size);
+        for (int index = 0; index < size; index++) {
+            envelopes.add(readMessageEnvelope(input));
+        }
+        return List.copyOf(envelopes);
     }
 
     private void writeApprovedTaskRevision(

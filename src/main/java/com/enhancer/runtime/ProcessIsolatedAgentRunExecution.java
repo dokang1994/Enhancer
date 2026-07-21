@@ -13,9 +13,13 @@ import com.enhancer.run.RunRecord;
 import com.enhancer.run.RunRecordStore;
 import com.enhancer.tool.ReadFileTool;
 import java.io.IOException;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
@@ -75,9 +79,7 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
     public String execute(AgentRunDispatch dispatch) throws IOException {
         Objects.requireNonNull(dispatch, "dispatch must not be null");
         WorkItem workItem = dispatch.workItem();
-        Path cycleRoot = invocationRoot
-                .resolve(dispatch.goalId())
-                .resolve(dispatch.agentRunId());
+        Path cycleRoot = cycleRoot(dispatch);
 
         Optional<String> recovered = publishedResult(cycleRoot, workItem);
         if (recovered.isPresent()) {
@@ -109,6 +111,62 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
         }
         return publishedResult(cycleRoot, workItem).orElseThrow(() -> new IOException(
                 "the isolated worker reported success but published no valid result"));
+    }
+
+    /**
+     * Removes the per-cycle transport namespace only after the worker has durably checkpointed
+     * the returned RunRecord reference. Evidence and RunRecords are separate roots and are never
+     * touched. A missing tree is already retired; symbolic-link cycle boundaries fail closed.
+     */
+    @Override
+    public void cleanupAfterCheckpoint(AgentRunDispatch dispatch) throws IOException {
+        Objects.requireNonNull(dispatch, "dispatch must not be null");
+        Path cycleRoot = cycleRoot(dispatch);
+        Path goalRoot = cycleRoot.getParent();
+        rejectSymbolicBoundary(invocationRoot, "invocation root");
+        rejectSymbolicBoundary(goalRoot, "Goal invocation root");
+        rejectSymbolicBoundary(cycleRoot, "AgentRun invocation root");
+        if (Files.exists(cycleRoot, LinkOption.NOFOLLOW_LINKS)) {
+            deleteTree(cycleRoot);
+        }
+        try {
+            Files.deleteIfExists(goalRoot);
+        } catch (DirectoryNotEmptyException siblingCycleExists) {
+            // Another AgentRun namespace under the Goal is not owned by this cleanup.
+        }
+    }
+
+    private Path cycleRoot(AgentRunDispatch dispatch) {
+        return invocationRoot
+                .resolve(dispatch.goalId())
+                .resolve(dispatch.agentRunId());
+    }
+
+    private static void rejectSymbolicBoundary(Path path, String label) throws IOException {
+        if (Files.isSymbolicLink(path)) {
+            throw new IOException(label + " must not be a symbolic link");
+        }
+    }
+
+    private static void deleteTree(Path root) throws IOException {
+        Files.walkFileTree(root, new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attributes)
+                    throws IOException {
+                Files.delete(file);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(Path directory, IOException failure)
+                    throws IOException {
+                if (failure != null) {
+                    throw failure;
+                }
+                Files.delete(directory);
+                return FileVisitResult.CONTINUE;
+            }
+        });
     }
 
     /**
