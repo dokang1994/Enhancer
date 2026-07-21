@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### 2026-07-22: Decide Bounded AgentRun Retry On Attempt Budget And External Effect Resolution
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-22-decide-bounded-agentrun-retry-on-attempt-budget-and-external-effect-resolution.md)
+
 ### 2026-07-21: Persist Fence-Checked External Effect Outcomes Before AgentRun Retry
 
 Status: Accepted Decision

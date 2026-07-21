@@ -991,3 +991,31 @@ This assessment itself changed no production or test code and did not change Gat
   task alone owns the subsequent task, and Gate 8 remains the sole `Specified - Next`
   marker.
 - Post-synchronization `git diff --check` produced no output and exited 0.
+
+## Bounded AgentRun Retry Decision Verification
+
+- Aligned RED first for the attempt bound: the focused
+  `AgentRunRetryPolicyTest` command reached `compileTestJava` and failed with
+  missing-symbol errors for `AgentRunRetryPolicy`, confined to the active task. The
+  minimum implementation then passed 4 tests (lower/upper bound accepted, 0 and
+  `MAX_ATTEMPTS + 1` rejected).
+- The decision value and reason enum passed 4 tests
+  (`AgentRunRetryDecisionTest`) after a corrected boolean accessor. A first
+  compilation failed because a static `admitted()` factory and a same-signature
+  instance `admitted()` accessor cannot coexist in Java; the accessor was renamed
+  `isAdmitted()` while the `admitted()`/`refused(reason)` factories were kept.
+- The pure decider passed 11 tests (`AgentRunRetryDeciderTest`) covering every
+  behaviour-table row: admits a FAILED run with a resolved or empty ledger and
+  remaining budget; refuses `NOT_FAILED`, `UNRESOLVED_EXTERNAL_EFFECT` (a
+  `PREPARED` effect), `EFFECT_REQUIRES_USER_RECOVERY`, and `ATTEMPTS_EXHAUSTED`;
+  the two safety precedences (a `PREPARED` effect beats an exhausted budget and
+  beats a co-present `REQUIRES_USER_RECOVERY` effect); and the `completedAttempts`
+  and null-disposition input bounds. Ledger states were built only through the
+  real `ExternalEffectLedgerState` prepare/record-outcome transitions.
+- Fresh `.\\gradlew.bat build` passed 79 suites and 398 tests: 395 passed, 3
+  privilege-dependent Windows symbolic-link setup skips, 0 failures, and 0 errors,
+  under build-enforced Java 17 `-Xlint:all -Werror`, with document ownership and
+  decision-index checks inside the full build.
+- Scope held: the decider creates, persists, and runs no AgentRun, mutates no
+  queue/runtime/lease/fence/ledger state, resolves no ledger from a Goal, adds no
+  durable store, schema, CLI, or production wiring, and grants no authority.
