@@ -913,3 +913,41 @@ This assessment itself changed no production or test code and did not change Gat
   and 359 tests: 357 passed, 2 existing Windows symbolic-link setup skips, 0 failures,
   and 0 errors. All 8 tasks executed under build-enforced strict lint, and
   `git diff --check` remained clean.
+
+## Development Session Checkpoint Verification
+
+- Aligned RED first: the focused command reached production compilation and failed at
+  `compileTestJava` with 27 missing-contract errors for the checkpoint manager, immutable
+  state, typed lifecycle, inspection, and conflict/corruption boundaries. No unrelated
+  production failure was absorbed.
+- Minimum GREEN introduced the `com.enhancer.session` contract, task-contract reader,
+  artifact collector, atomic filesystem store, manager, and four CLI operations. The
+  first focused session/CLI/argument run passed 8 tests under build-enforced
+  `-Xlint:all -Werror` after the strict compiler correctly rejected two new exceptions
+  until their serialization contracts were supplied.
+- Forced-stop recovery is executable: a fresh manager/store recovers the exact pending
+  step, last successful step, next action, evidence reference, task-contract match, and
+  artifact match. Status, Verification, and Next edits leave the task contract identity
+  stable, while an acceptance-scope edit fails closed without overwriting the checkpoint.
+- Single-writer and retirement behavior is executable: a different run and stale
+  expected revision fail closed; start never overwrites an active run; corruption fails
+  closed; clear refuses non-stable state and post-stability artifact drift.
+- Real-path containment is executable on this host: the new Windows junction test passes
+  and proves `.enhancer` cannot redirect checkpoint reads or writes outside the project.
+  The privilege-dependent symbolic-link setup is explicitly skipped, matching the host's
+  existing link-test limitation.
+- Actual-repository operation passed in a new JVM process: `checkpoint-show` recovered
+  run `7a6d9392-7171-4d6c-abcc-0f802d97cf61` at revision 8 with
+  `STEP_PENDING`, `run-focused-tests` as the last successful step,
+  `taskContractMatches=true`, and `artifactMismatches=0` across 33 changed artifacts.
+- Focused post-hardening boundary verification passed 7 tests: 6 passed, 1
+  privilege-dependent symbolic-link setup skipped, 0 failures, and 0 errors. The Windows
+  junction case executed rather than skipping.
+- Fresh final `.\\gradlew.bat clean build --warning-mode all` passed 74 suites and 368
+  tests: 365 passed, 3 privilege-dependent Windows symbolic-link setup skips, 0 failures,
+  and 0 errors. All 8 build tasks executed; production and test compilation ran under
+  Java 17 `-Xlint:all -Werror`, and document ownership, decision-index identity, and
+  canonical next-task structure passed inside the full build.
+- Scope held: the checkpoint is ignored local recovery metadata. It creates no task,
+  approval, verification, maturity, commit, push, merge, or product-runtime authority;
+  one active local session is the explicit first-increment ceiling.

@@ -9,8 +9,8 @@
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 168 Java files.
-- Test source: 72 Java files.
+- Production source: 183 Java files.
+- Test source: 74 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -118,6 +118,12 @@ it does not restate which commit published which increment.
 - Constitution 1.1 Kernel and Document Driven Development.
 - Explicit lifecycle, authorization, fresh-evidence, self-hosting, recovery, and amendment rules.
 - Git-backed project memory and session handoff.
+- Machine-written development-session recovery checkpoints below the ignored
+  `.enhancer/session-checkpoint/` boundary: active-task contract binding, monotonic
+  single-writer revisions, pending/succeeded/failed/stable execution positions,
+  evidence references, working-artifact digests, atomic integrity-checked recovery, and
+  start/record/show/clear CLI operations. The checkpoint is recovery metadata and cannot
+  promote task, verification, maturity, or delivery state.
 - RED failures are classified against active task authority, accepted decisions, Architecture, and repository settings before aligned missing implementation proceeds to the minimum GREEN change.
 - Java 17 strict lint (`-Xlint:all -Werror`) is enforced by the build across production and test sources, so `./gradlew build` refuses a warning rather than relying on a manual invocation being remembered.
 
@@ -182,10 +188,13 @@ system, not open tasks; each is retired only by a bounded increment of its own.
 - The CLI uses the existing 64 MiB per-artifact/in-memory ceiling, five-second Tool timeout, five-iteration loop ceiling, and three-transition stagnation threshold. Evidence has no time-based retention or automatic cleanup contract.
 - Atomic stores do not fsync parent directories and therefore make no power-loss durability claim.
 - Permanently stuck Tool workers consume isolation capacity until process restart; the runtime contains them finitely but cannot terminate them.
-- Two privilege-dependent symbolic-link containment tests are skipped on this Windows host; two Windows junction tests execute and pass against the same production real-path guards.
+- Three privilege-dependent symbolic-link containment tests are skipped on this Windows host; three Windows junction tests execute and pass against the corresponding production real-path guards.
 - Gradle remains at Wrapper 8.4. The known Gradle 9 test-runtime deprecation is removed, but an actual major Wrapper upgrade requires a separate compatibility task.
 - Gate 5 is a bootstrap CLI, not the future multi-interface control surface planned for Gate 12.
 - Failed, corrupt, timed-out, or incomplete process-isolated cycles retain their current invocation spool; successful checkpointed cycles retire it. No time-based spool cleanup service or history exists.
+- Development-session checkpoints support one active local session per repository and
+  have no background timer, token-budget introspection, platform shutdown hook,
+  multi-session merge, remote replication, or automatic Git commit/stash behavior.
 
 ## Verification Evidence
 

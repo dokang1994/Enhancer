@@ -18,6 +18,13 @@ Completion Boundary, and Completion Semantics states the three distinct facts th
 
 Current direction:
 
+- Development-session recovery uses one ignored machine-written checkpoint below
+  `.enhancer/session-checkpoint/`, bound to the active task contract and a monotonic
+  single-writer revision. It records only execution position, evidence references, and
+  artifact identities; canonical documents, Git, and fresh verification retain their
+  existing authority. Start/record/show/clear CLI operations support forced-stop resume,
+  and clear requires a stable artifact-matched state.
+
 - Enhancer is a self-hosting AI Development Operating System.
 - Delivery Gate 0 Context, planning, Assisted Loop, repeated-loop safety, ToolResult, VerificationEvidence, and governance contracts are connected through an authority-preserving lifecycle test; the bounded read-only Tool, persisted evidence, Tool-driven Agent Loop, verification, and RunRecord boundaries compose into the first supported read-only CLI.
 - Executable repository context loads the seven governed `.ai/` documents before the eight canonical root documents.

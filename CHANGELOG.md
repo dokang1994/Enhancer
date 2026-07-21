@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-07-21 - Persist Development Session Checkpoints
+
+- Added one machine-written development-session checkpoint below the Git-ignored
+  `.enhancer/session-checkpoint/` runtime boundary. It binds a generated run identity to
+  the active task contract without copying canonical task, maturity, decision, or
+  verification facts.
+- Added monotonic expected-revision fencing, pending/succeeded/failed/stable execution
+  positions, last-successful and next-action recovery, bounded evidence references, and
+  present/missing content identities for up to 256 project-relative artifacts.
+- Added bounded strict-UTF-8 integrity envelopes with atomic replacement, exact task and
+  writer conflict checks, real-path storage containment, corruption rejection, and
+  stable-plus-artifact-match requirements before retirement.
+- Added `checkpoint-start`, `checkpoint-record`, `checkpoint-show`, and
+  `checkpoint-clear` CLI operations and integrated them into session start,
+  implementation, resume, close, and Agent operating rules.
+- Verified forced-stop recovery in a fresh manager/process, actual-repository checkpoint
+  inspection, task/artifact drift rejection, Windows junction containment, and the full
+  strict-lint regression.
+
 ## 2026-07-21 - Persist Bound Runtime Control Requests
 
 - Added a bounded ordered control-request ledger to durable Goal state. Exact `ControlPayload` envelopes must bind to the retained work logical run, correlation, and causation; runtime-identity collisions, changed-content identity reuse, terminal admission, and capacity overflow fail closed.

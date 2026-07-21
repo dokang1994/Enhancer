@@ -18,8 +18,14 @@ Read and execute this prompt before ending a Codex work session.
 9. Reduce `SESSION_HANDOFF.md` to what is true now and would otherwise be lost. Delete anything another document owns.
 10. Update `CHANGELOG.md` when notable changes occurred.
 11. Review the final diff.
-12. Commit with an appropriate message if commit is part of this session.
-13. Confirm the recorded lifecycle state is supported by fresh evidence and does not imply release.
+12. Record a `STABLE` development-session checkpoint containing every currently changed
+    artifact and the applicable evidence references. Do not clear it yet.
+13. Commit, push, merge, release, or perform another external delivery action only when
+    that action is explicitly authorized, recording checkpoint intent and outcome around
+    each action.
+14. Confirm the recorded lifecycle state is supported by fresh evidence and does not imply release.
+15. After the intended final Git and external state is freshly verified, clear the stable
+    checkpoint. If clearing fails or drift is reported, leave it intact and report why.
 
 If a step has nothing to change, say so and move on. Restating an unchanged fact to make a step feel done is the failure these steps are written against.
 
@@ -32,6 +38,7 @@ Report:
 - Lifecycle state and checks not run
 - Commit hash, if committed
 - Remaining risks or next task
+- Final checkpoint state, including why it was retained if it could not be cleared
 
 ## Constraint
 

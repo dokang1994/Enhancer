@@ -4,6 +4,11 @@ AI memory is not trusted.
 
 The Git repository is the durable memory.
 
+The ignored `.enhancer/session-checkpoint/` artifact is durable execution position for
+one local development session. It references the active task and evidence but is not
+canonical project memory, verification, completion, or delivery history. Inspect it on
+resume and clear it only from a stable, artifact-matched state after orderly close.
+
 At minimum, a new session must recover state from:
 
 - `CONSTITUTION.md`

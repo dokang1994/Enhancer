@@ -750,6 +750,39 @@ Process results use stable exit codes for completed, usage/configuration error, 
 
 ## Constitution Kernel Architecture
 
+### Development Session Recovery Boundary
+
+Development-session recovery is separate from product Agent Runtime recovery. Canonical
+documents retain their existing ownership: `CURRENT_TASK.md` owns approved work and the
+next task, `PROJECT_STATE.md` owns current maturity, `docs/verification-log.md` owns
+promoted verification evidence, Git owns the diff and delivery history, and
+`SESSION_HANDOFF.md` owns only current facts that would otherwise disappear. A session
+checkpoint cannot promote or replace any of them.
+
+One machine-written checkpoint below `.enhancer/session-checkpoint/` records only the
+execution position of the repository's current development session. It binds a generated
+run identity to the active task identity and a SHA-256 revision of the task's contract
+sections; status, verification, and next-task sections are deliberately excluded so
+normal lifecycle synchronization does not change the approved-scope identity. The state
+retains a monotonic revision, typed pending/succeeded/failed/stable position, current and
+last-successful step, next action, bounded evidence references, and a bounded manifest of
+relative artifact paths with presence and content identity.
+
+The filesystem adapter publishes a bounded strict-UTF-8 integrity envelope by atomic
+replacement and fails closed on corruption, unsupported schema, symbolic-link storage
+boundaries, task drift, stale revision, or a different run. The expected revision is the
+single-writer fence. Clearing is permitted only after the checkpoint is stable and its
+recorded artifact manifest still matches the working tree. A checkpoint is recovery
+metadata, never verification or completion evidence; resume still reads canonical
+documents, inspects Git state, and runs fresh applicable verification.
+
+The existing local CLI exposes start, record, show, and clear operations. Session rules
+write intent before mutation or verification, write outcome afterward, and clear only
+after orderly verification and document synchronization. The first contract supports one
+active development session per repository and adds no timers, platform shutdown hook,
+multi-session merge, automatic commit/stash, remote replication, or external-effect
+deduplication.
+
 `CONSTITUTION.md` is the stable normative Kernel, not the complete Codex guidebook. It defines identity, document authority, lifecycle states, authorization boundaries, verification principles, self-hosting safeguards, and amendment governance.
 
 Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts belong in RFCs and `docs/`; active and implemented state belong in `CURRENT_TASK.md` and `PROJECT_STATE.md`; repeatable invocations belong in prompts and validated Skills. The 300-page documentation target is distributed across this document system so every session does not need to load the entire guidebook as constitutional context.
