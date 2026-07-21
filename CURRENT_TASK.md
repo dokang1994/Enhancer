@@ -6,85 +6,76 @@ Completed
 
 ## Task
 
-Persist a bounded external-effect ledger that prepares each effect before execution and
-records one fence-checked, idempotent outcome before retry through additional AgentRuns
-is connected.
+Decide whether a failed AgentRun may be retried through a further AgentRun with a pure,
+fail-closed decision over an attempt budget and the external-effect ledger, before any
+mechanism that creates or runs a second AgentRun exists.
 
 ## Task ID
 
-persist-fence-checked-external-effect-ledger
+gate-8-agentrun-retry-decision
 
 ## Context
 
-Gate 8 now drives one at-least-once WorkItem through a fenced AgentRun and a recoverable
-RunRecord-backed terminal disposition. A worker can still repeat after lease expiry,
-process interruption, or a lost acknowledgement, and no durable record currently says
-whether a non-read-only external effect was prepared, applied, deduplicated,
-compensated, or left for explicit user recovery.
+Gate 8 drives one at-least-once WorkItem through a fenced AgentRun to a recoverable
+terminal `WorkItemDisposition`, and the bounded fence-checked external-effect ledger
+records each non-read-only effect as `PREPARED`, `APPLIED`, `DEDUPLICATED`, `COMPENSATED`,
+or `REQUIRES_USER_RECOVERY`. Nothing yet decides whether a failed AgentRun may be retried.
 
-Retry must not be connected while that fact can disappear. The first bounded increment
-therefore adds a separate persist-before-exposure ledger tied to one Goal and its current
-AgentRun lease. It records effect intent and outcome only; it neither invokes an external
-system nor grants Tool authority.
+Connection #6 in the Gate 8 sequence (retry through additional AgentRuns) is next, but a
+second AgentRun must not launch while an external effect's real-world outcome is unknown
+(`PREPARED`) or explicitly awaiting a human (`REQUIRES_USER_RECOVERY`). This first slice
+therefore adds only the decision: a pure, deterministic, fail-closed judgement. It creates,
+persists, and runs no AgentRun, mutates no store, and grants no authority.
 
 ## Justified By
 
+- 2026-07-22: Decide Bounded AgentRun Retry On Attempt Budget And External Effect Resolution
 - 2026-07-21: Persist Fence-Checked External Effect Outcomes Before AgentRun Retry
-- 2026-07-16: Separate Execution Acknowledgement From Verified Queue Completion And Sequence Remaining Connections
-- 2026-07-16: Fence One AgentRun Owner Before Worker Execution
-- 2026-07-16: Add Product Journeys Evaluation And Layered Security Across Delivery Gates
 
 ## Acceptance Criteria
 
-- One immutable effect request binds a stable idempotency key and semantic operation
-  digest to the exact Goal, AgentRun, and WorkItem identities without carrying external
-  credentials, payload content, or new Tool authority.
-- One bounded ledger retains at most 256 effects for one Goal. Each effect is durably
-  `PREPARED` before exposure and may terminate exactly once as `APPLIED`, `DEDUPLICATED`,
-  `COMPENSATED`, or `REQUIRES_USER_RECOVERY`.
-- Prepare and terminal-outcome writes require the currently executing AgentRun's matching
-  unexpired owner and fence token. A stale owner, stale fence, expired lease, wrong Goal,
-  wrong AgentRun, or wrong WorkItem fails closed before ledger mutation.
-- Replaying the exact request or terminal outcome is idempotent and does not advance the
-  ledger revision. Reusing an idempotency key for different identities, operation name,
-  or semantic digest and replacing one terminal outcome with another are rejected.
-- The effect store persists each monotonic revision before exposure in a bounded,
-  strict-UTF-8, integrity-checked atomic schema-v1 artifact and rejects missing, corrupt,
-  oversized, trailing, unsupported, symbolic-link-root, or stale-revision state.
-- A fresh runtime and effect-store instance recovers the exact ordered ledger, including
-  supplementary Unicode metadata and unresolved `PREPARED` effects. Recovery never
-  automatically replays an effect; unresolved intent remains explicit for a later retry
-  controller or user decision.
-- Named filesystem integration evidence connects a real durable executing AgentRun and
-  its current fence to effect preparation, terminal recording, restart recovery, exact
-  replay, stale-fence refusal, and persistence-failure behavior.
-- Focused RED/GREEN tests, the full build, strict Java lint, and document structural
-  checks pass with fresh output.
+- An immutable `AgentRunRetryPolicy` bounds `maxAttempts` to 1 through 16 inclusive,
+  counting the first attempt, and provides no production default.
+- A pure `AgentRunRetryDecider.decide(lastDisposition, completedAttempts, policy,
+  ledgerState)` reads no store, creates/persists/runs no AgentRun, and mutates nothing.
+- The decision is deterministic with fixed first-match precedence: a non-`FAILED`
+  disposition is `NOT_FAILED`; any `PREPARED` effect is `UNRESOLVED_EXTERNAL_EFFECT`; any
+  `REQUIRES_USER_RECOVERY` effect is `EFFECT_REQUIRES_USER_RECOVERY`; an exhausted budget is
+  `ATTEMPTS_EXHAUSTED`; otherwise a further AgentRun is admitted.
+- Safety-critical ledger reasons precede the budget check, so an unresolved or
+  recovery-pending effect blocks retry regardless of remaining attempts; only `APPLIED`,
+  `DEDUPLICATED`, and `COMPENSATED` effects, or an empty ledger, count as resolved.
+- `completedAttempts` is validated to 1 through 16 inclusive; a null disposition, policy, or
+  ledger fails closed.
+- Focused RED/GREEN tests, the full build, strict Java lint, and document structural checks
+  pass with fresh output.
 
 ## Out Of Scope
 
-- Invoking an external Tool, storing an external payload or credential, or claiming that
-  a ledger record proves the remote system's state without adapter evidence.
-- Retry through a second AgentRun, automatic replay, compensation execution, or automatic
-  resolution of a `PREPARED` effect.
-- Multi-process locking, distributed clock-skew handling, schema migration beyond v1,
-  parent-directory power-loss durability, or time-based history cleanup.
-- Release packaging, deployment, or external state changes beyond the explicitly
-  authorized repository commit, feature-branch push, and merge into `main`.
+- Creating, persisting, or executing a second AgentRun; driving the worker; any queue,
+  runtime, lease, fence, or ledger mutation.
+- Deriving attempt counts from durable history; any new durable store, schema, or CLI
+  command; resolving a ledger from a Goal identity.
+- Backoff or delay, stagnation, budgets beyond attempt count, priority/fairness, orphan
+  detection/reclamation, authenticated cancel/pause/resume, and external-adapter execution.
+- Release packaging, deployment, or external state changes beyond an explicitly authorized
+  repository commit, feature-branch push, and merge into `main`.
 
 ## Approval
 
-Implementation was approved by the user's 2026-07-21 request to continue the project
-from the recorded next task. Repository delivery is additionally approved by the user's
-2026-07-21 request to commit the completed increment, push its feature branch, and merge
-it into `main`.
+Implementation was approved by the user's 2026-07-22 request to continue the project from
+the recorded next task, and the design was reviewed and approved before implementation.
+Repository delivery beyond the local feature branch requires a separate explicit request.
 
 ## Verification
 
-Fresh RED/GREEN, filesystem integration, full regression, strict-lint, and document
-structural evidence is recorded in `docs/verification-log.md`.
+Fresh RED/GREEN, full regression, strict-lint, and document structural evidence is recorded
+in `docs/verification-log.md` under "Bounded AgentRun Retry Decision Verification".
 
 ## Next
 
-Connect bounded retry through additional immutable AgentRuns using the external-effect
-ledger to prevent hidden effect replay.
+Wire the decider into the durable worker or a retry controller so a FAILED AgentRun's
+admitted decision actually creates and drives a second immutable AgentRun for the same
+WorkItem (connection #6 second slice): resolve the Goal's external-effect ledger, supply a
+durable per-WorkItem attempt count, preserve terminal history, and prove it with named
+integration evidence.
