@@ -464,7 +464,8 @@ Current increment:
 - Integrated sub-path: `DurableAgentRunWorker.processIsolated` selects 3d with the real self-JVM launcher, one shared queue for dispatch/finalization, and the caller-supplied durable stores; a real filesystem integration crosses both spools and the child process through verified queue disposition;
 - retention boundary: the RunRecord reference persists in the cycle-intent checkpoint before the exact Goal/AgentRun spool is retired; cleanup failure retries from that checkpoint without re-execution, while failed/incomplete cycles and the orphaned-RunRecord publication window retain explicit at-least-once semantics;
 - Contract Verified and Integrated request path: one real Gate 7 control queue delivers into `RuntimeControlAdmissionHandler`, which binds an exact control envelope to active Goal work and persists it in a bounded, ordered, restart-idempotent Gate 8 ledger before handler success; storage failure uses the bus retry/dead-letter path, while no request applies an unauthenticated transition or changes runtime authority;
-- deferred: general forward-reference graph/cycle handling, multiple AgentRuns and retry, authenticated cancellation/pause/resume application, priority/fairness, budgets, external-effect idempotency/fencing, checkpoints beyond current snapshots, worker execution, schema migration beyond v1, power-loss directory durability, multi-process coordination, distributed clock-skew handling, and production wiring.
+- Contract Verified: one bounded external-effect ledger per Goal persists stable idempotency-keyed semantic intent as `PREPARED` and exactly one current-owner/fence-checked terminal `APPLIED`, `DEDUPLICATED`, `COMPENSATED`, or `REQUIRES_USER_RECOVERY` outcome. Exact replay is revision-free, key reuse and terminal rewrite fail closed, filesystem history is monotonic and integrity checked, and unresolved preparation survives restart without automatic replay;
+- deferred: general forward-reference graph/cycle handling, multiple AgentRuns and retry, authenticated cancellation/pause/resume application, priority/fairness, budgets, authorized external-adapter execution and outcome evidence, checkpoints beyond current snapshots, schema migration beyond v1, power-loss directory durability, multi-process coordination, distributed clock-skew handling, and broader production wiring.
 
 Ordered connection sequence:
 
@@ -474,7 +475,7 @@ Ordered connection sequence:
 | 2 | RunRecord-backed result finalization | Gate 7 result delivery and Gate 8 runtime; persist/resolve RunRecord, persist terminal runtime state, then persist matching queue disposition |
 | 3 | process-isolated worker and local IPC | Gate 7 transport, Gate 8 worker runtime, and Gate 11 Tool controls; checkpoint the returned RunRecord reference before retiring the per-cycle spool and acknowledging execution |
 | 4 | durable cancel/pause/resume | Gate 7 control delivery and Gate 8 request state now exist; Gate 12 authenticated application remains |
-| 5 | external-effect ledger and fencing | Gate 8 plus the owning Tool/adapter gate; stable effect identity and explicit applied/deduplicated/compensated/recovery states |
+| 5 | external-effect execution and adapter evidence | The bounded Gate 8 ledger and current-fence checks exist; the owning Tool/adapter must execute with stable effect identity and establish the applied/deduplicated/compensated/recovery outcome |
 | 6 | retry through additional AgentRuns | Gate 8; preserve terminal history and bound attempts, budgets, stagnation, and orphan recovery |
 | 7 | typed handoff and multi-agent execution | Gate 13; requires an Operational single-agent runtime and measured baseline |
 

@@ -951,3 +951,43 @@ This assessment itself changed no production or test code and did not change Gat
 - Scope held: the checkpoint is ignored local recovery metadata. It creates no task,
   approval, verification, maturity, commit, push, merge, or product-runtime authority;
   one active local session is the explicit first-increment ceiling.
+
+## Fence-Checked External Effect Ledger Verification
+
+- Aligned RED first: the focused command reached production compilation and failed at
+  `compileTestJava` with 66 missing-contract errors for the effect request, record,
+  status, durable ledger, store, state, and corruption/missing boundaries. The failure
+  was confined to the active effect-ledger task.
+- Initial focused GREEN passed 8 tests. Diff review then found that the filesystem store
+  enforced revision advancement but could still accept a revision-valid removal or
+  terminal-outcome rewrite through its public store port. A new hardening test failed at
+  the expected `IOException` assertion because the invalid initial history was accepted.
+- The minimum correction made initial state empty-only and every persisted successor
+  either append one `PREPARED` record or change exactly one unchanged request from
+  `PREPARED` to one terminal outcome. Removal, request rewrite, terminal replacement,
+  no-op revision advancement, and multi-record changes now fail closed.
+- Final focused verification passed 11 tests across
+  `DurableExternalEffectLedgerTest` and
+  `FileSystemExternalEffectLedgerIntegrationTest`: 11 passed, 0 failed, 0 errors, and 0
+  skipped. The cases cover all four terminal outcomes, exact replay, key collisions,
+  capacity and field bounds, Goal/AgentRun/WorkItem binding, stale/expired fences,
+  persistence failure, fresh-store restart, supplementary Unicode, unresolved
+  preparation, corruption, trailing/oversized/unsupported state, and history rewrite.
+- Fresh `.\\gradlew.bat clean build` passed 76 suites and 379 tests: 376 passed, 3
+  privilege-dependent Windows symbolic-link setup skips, 0 failures, and 0 errors. All
+  8 build tasks executed; production and test compilation ran under build-enforced Java
+  17 `-Xlint:all -Werror`, and document ownership plus decision-index checks ran inside
+  the full build.
+- Scope held: no external adapter or Tool was invoked, no payload content or credential
+  was persisted, no retry or second AgentRun was introduced, and an unresolved
+  `PREPARED` record remains explicit rather than being treated as safe automatic replay.
+
+### Post-Synchronization Structural Addendum
+
+- After canonical document synchronization, focused structural verification passed 11
+  tests: `DocumentOwnershipTest` 2/2, `DecisionLogIndexTest` 5/5, and
+  `RepositoryTaskPlannerTest` 4/4, with no failure, error, or skip. The accepted decision
+  file and index heading match exactly, document ownership remains valid, the completed
+  task alone owns the subsequent task, and Gate 8 remains the sole `Specified - Next`
+  marker.
+- Post-synchronization `git diff --check` produced no output and exited 0.

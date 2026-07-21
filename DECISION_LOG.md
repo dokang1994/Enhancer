@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### 2026-07-21: Persist Fence-Checked External Effect Outcomes Before AgentRun Retry
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-21-persist-fence-checked-external-effect-outcomes-before-agentrun-retry.md)
+
 ### 2026-07-21: Persist Development Session Checkpoints Outside Canonical Project Documents
 
 Status: Accepted Decision

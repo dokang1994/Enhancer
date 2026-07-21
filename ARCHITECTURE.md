@@ -353,6 +353,32 @@ Under the current schema-v1 contracts, a queue item remains active while its Age
 
 This boundary records an untrusted request, not an accepted transition. The envelope producer and control reason are diagnostic provenance and cannot pause, resume, cancel, release a lease, mutate the queue, interrupt a worker, expand Tool scope, or change bus cancellation. Gate 12 must authenticate and authorize a later application path before any of those state changes can exist.
 
+### Gate 8 Durable External-Effect Ledger
+
+`DurableExternalEffectLedger` records external-effect intent and adapter-established
+outcomes without invoking an external system. One schema-v1 ledger belongs to one exact
+Goal and retains at most 256 ordered effects. An `ExternalEffectRequest` binds a bounded
+stable idempotency key and semantic operation SHA-256 to the Goal, its current AgentRun,
+the retained WorkItem, and a bounded operation name; payload content and credentials do
+not enter the ledger.
+
+Preparation validates the exact executing AgentRun and its matching unexpired owner and
+fence against `AgentRuntimeStateStore`, then persists `PREPARED` before returning it to a
+caller that may invoke an adapter. Terminal recording repeats the same lease check and
+may transition one prepared effect exactly once to `APPLIED`, `DEDUPLICATED`,
+`COMPENSATED`, or `REQUIRES_USER_RECOVERY`. Exact request and outcome replay returns the
+existing record without a revision; key reuse with changed bound data, a stale or expired
+lease, identity mismatch, and terminal-outcome replacement fail closed.
+
+`ExternalEffectLedgerStore` is a separate atomic boundary from runtime state.
+`FileSystemExternalEffectLedgerStore` publishes one bounded strict-UTF-8 integrity
+envelope per Goal, enforces exactly-one revision advancement plus append-only preparation
+or one-way prepared-to-terminal history, and rejects missing, corrupt, oversized,
+trailing, unsupported, symbolic-link-root, or non-monotonic state. An unresolved
+`PREPARED` record survives restart and never authorizes automatic replay. The next retry
+connection consumes this ledger; an owning Tool or adapter must still supply evidence
+for the reported remote outcome.
+
 Which connections exist today is stated in `PROJECT_STATE.md`; the cross-boundary connection sequence remains dependency ordered:
 
 | Order | Connection | Owning boundary | Required durable ordering |
@@ -361,11 +387,11 @@ Which connections exist today is stated in `PROJECT_STATE.md`; the cross-boundar
 | 2 | RunRecord-backed result finalization | Gate 7 result delivery + Gate 8 runtime | durable RunRecord resolution -> matching `ResultPayload` -> persisted AgentRun/Goal terminal state -> matching queue disposition |
 | 3 | process-isolated worker and local IPC | Gate 7 transport + Gate 8 worker runtime + Gate 11 Tool controls | worker cycle-intent persists before the claim; the RunRecord reference persists before spool cleanup and acknowledgement; exact work/result route and record binding fail closed; transport acceptance never means bus delivery or work completion |
 | 4 | durable cancel/pause/resume | Gate 7 control delivery + Gate 8 request state + Gate 12 authenticated application | persist the bound request before handler success; later application must persist accepted control state before exposure and cannot create scope or authority |
-| 5 | external-effect ledger | Gate 8 Scheduler, with the owning Tool/adapter gate | fence-check and idempotently record applied, deduplicated, compensated, or user-recovery outcomes |
+| 5 | external-effect commit and adapter evidence | Gate 8 Scheduler, with the owning Tool/adapter gate | persist prepared intent under the current fence -> invoke through an authorized adapter -> persist the evidenced applied, deduplicated, compensated, or user-recovery outcome |
 | 6 | retry and replacement AgentRuns | Gate 8 Scheduler | preserve terminal history and create a new immutable AgentRun under bounded policy rather than rewriting a failed run |
 | 7 | typed handoff and multi-agent execution | Gate 13 over Gates 7 and 8 | require an Operational single-agent baseline, isolated ownership, deterministic synthesis, and one Kernel terminal-state coordinator |
 
-Each cross-store step persists its earlier authoritative artifact before the later derived artifact. Recovery re-enters idempotently from the durable prefix; it does not claim an atomic transaction. Authenticated control application, effect ledger, retry policy, and handoff coordination remain unimplemented until their own bounded tasks and fresh integration evidence exist.
+Each cross-store step persists its earlier authoritative artifact before the later derived artifact. Recovery re-enters idempotently from the durable prefix; it does not claim an atomic transaction. Authenticated control application, external-adapter effect execution/evidence, retry policy, and handoff coordination remain unimplemented until their own bounded tasks and fresh integration evidence exist.
 
 ### Gate 8 Scheduler Delivery Semantics
 
