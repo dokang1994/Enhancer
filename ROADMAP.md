@@ -461,16 +461,17 @@ Current increment:
 - Contract Verified: an isolated worker process lifecycle (connection 3b) running one child bounded by a capped timeout, forcible destruction, discarded output, and a sanitized environment, scoped by accepted decision to re-running the current JVM only, with a child entry point that reads one spooled message so the boundary is proven by a real message crossing it;
 - corrected boundary: fence-checked execution completion persists only `AWAITING_VERIFICATION`; it does not complete the queue, satisfy dependencies, or imply Verified/Completed;
 - Contract Verified: process-isolated execution (connection 3d) connecting the adapter and process lifecycle into a second production `AgentRunExecution`, with exact pre-existing work identity and route checks, distinct zero/one/several result handling, the child running the same Gate 1-4 pipeline through an internal shared seam, and the returned claim checked for route, correlation, payload, task, reference resolution, RunRecord source/target/digest binding, and status agreement before a reference is returned;
-- remaining connection work: select process-isolated execution in a `DurableAgentRunWorker` production composition and define invocation-spool retention without claiming to close the orphaned-RunRecord at-least-once window;
+- Integrated sub-path: `DurableAgentRunWorker.processIsolated` selects 3d with the real self-JVM launcher, one shared queue for dispatch/finalization, and the caller-supplied durable stores; a real filesystem integration crosses both spools and the child process through verified queue disposition;
+- retention boundary: the RunRecord reference persists in the cycle-intent checkpoint before the exact Goal/AgentRun spool is retired; cleanup failure retries from that checkpoint without re-execution, while failed/incomplete cycles and the orphaned-RunRecord publication window retain explicit at-least-once semantics;
 - deferred: general forward-reference graph/cycle handling, multiple AgentRuns and retry, cancellation/pause/resume, priority/fairness, budgets, external-effect idempotency/fencing, checkpoints beyond current snapshots, worker execution, schema migration beyond v1, power-loss directory durability, multi-process coordination, distributed clock-skew handling, and production wiring.
 
-Ordered connection backlog:
+Ordered connection sequence:
 
 | Order | Connection | Owner and prerequisite |
 |---|---|---|
 | 1 | terminal queue disposition | Gate 8; distinguish verified completion from failure before changing dependency satisfaction |
 | 2 | RunRecord-backed result finalization | Gate 7 result delivery and Gate 8 runtime; persist/resolve RunRecord, persist terminal runtime state, then persist matching queue disposition |
-| 3 | process-isolated worker and local IPC | Gate 7 transport, Gate 8 worker runtime, and Gate 11 Tool controls; 3b/3c/3d exist, while worker composition and spool retention remain |
+| 3 | process-isolated worker and local IPC | Gate 7 transport, Gate 8 worker runtime, and Gate 11 Tool controls; checkpoint the returned RunRecord reference before retiring the per-cycle spool and acknowledging execution |
 | 4 | durable cancel/pause/resume | Gate 7 control delivery, Gate 8 state, and Gate 12 authenticated controls |
 | 5 | external-effect ledger and fencing | Gate 8 plus the owning Tool/adapter gate; stable effect identity and explicit applied/deduplicated/compensated/recovery states |
 | 6 | retry through additional AgentRuns | Gate 8; preserve terminal history and bound attempts, budgets, stagnation, and orphan recovery |

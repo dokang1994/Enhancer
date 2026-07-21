@@ -6,51 +6,73 @@ Completed
 
 ## Task
 
-Make the recorded `-Xlint:all -Werror` guarantee executable by enforcing it in the Gradle build instead of an ad-hoc javac invocation the build never ran.
+Select `ProcessIsolatedAgentRunExecution` in the production composition of
+`DurableAgentRunWorker` and retire each successful per-cycle invocation spool only
+after its RunRecord reference is durably checkpointed.
 
 ## Task ID
 
-enforce-strict-lint-in-build
+wire-process-isolated-worker-and-retire-checkpointed-spools
 
 ## Context
 
-Every increment since Gate 1 recorded "Java 17 strict lint passed" in
-`docs/verification-log.md`, but neither `-Xlint:all` nor `-Werror` appeared in
-`build.gradle`, `scripts/`, or any CI configuration. The flags lived only in a manual
-javac invocation each session was trusted to remember. A lint regression therefore
-could not fail the build, and `./gradlew build` reported green for a tree the recorded
-standard would have rejected. This is the same class of gap the Markdown `inputs.files`
-declaration already closes for the document guards: a check that does not run is not a
-check.
+Connection 3b, 3c, and 3d provide the bounded child-process lifecycle, local file
+spool transport, and process-isolated `AgentRunExecution`, but the only real durable
+worker composition still selects `AgentLoopAgentRunExecution` directly. Every
+process-isolated cycle also leaves `work/` and `result/` messages below a private
+Goal/AgentRun invocation root with no retirement boundary.
+
+The durable worker already persists the returned RunRecord reference before execution
+acknowledgement. That checkpoint is the earliest point at which the spool is no longer
+needed for result recovery. Cleanup before it would reopen avoidable re-execution;
+cleanup after it can be retried from the retained checkpoint without re-running the
+child.
+
+## Justified By
+
+- 2026-07-21: Select The Process-Isolated Durable Worker And Retire Spools After Checkpoint
+- 2026-07-17: Record In-Process Scheduler Worker Driving One Recoverable Claim-To-Disposition Cycle Through A Durable Cycle-Intent Checkpoint
+- 2026-07-20: Carry The First Transport Hop Through A Local File Spool
+- 2026-07-20: Isolate The Worker In A Bounded Self-JVM Child Process
+- 2026-07-20: Return Isolated Worker Results Through A Correlated Per-Cycle Spool With RunRecord As Authority
 
 ## Acceptance Criteria
 
-- `-Xlint:all -Werror` is applied by the build itself, so `./gradlew build` enforces
-  what the verification log has been claiming.
-- The guard is proven to fire rather than assumed: a deliberate warning fails the
-  build, and the failure is observed on both production and test sources.
-- Enforcement covers test sources as well, which already compile clean under the same
-  flags and can regress just as easily.
-- The change is behaviour-preserving: the regression count and outcome are unchanged.
+- One production composition constructs `DurableAgentRunWorker` with
+  `ProcessIsolatedAgentRunExecution`, one shared durable queue instance for dispatch and
+  finalization, the real child launcher, and the caller-supplied durable stores.
+- A real filesystem integration drives a WorkItem through the durable worker, child JVM,
+  work/result spools, Gate 1-4 execution, RunRecord resolution, runtime finalization,
+  and the matching queue disposition.
+- A successful cycle keeps its invocation spool until the RunRecord reference is
+  durably recorded, then removes only that Goal/AgentRun-owned spool tree.
+- If cleanup fails after checkpointing, the worker leaves the checkpoint intact and a
+  resumed worker retries cleanup without launching or executing the work again.
+- Empty, failed, corrupt, or not-yet-checkpointed cycles are not silently treated as
+  retired, and the documented orphaned-RunRecord at-least-once window remains explicit.
+- Focused tests, the full regression, strict Java lint, and document ownership checks
+  pass with fresh output.
 
 ## Out Of Scope
 
-- CI configuration; this repository has none, and adding it is Gate 16 work.
-- Any static-analysis tool beyond javac's own lint.
-- Suppressing or reformatting existing code; nothing required a fix, which is the
-  evidence that the manual practice had in fact been followed.
+- Closing the child-persisted RunRecord / result-publication orphan window.
+- Retry through additional AgentRuns, cancellation, pause/resume, concurrent cycles,
+  external-effect fencing, or schema migration.
+- A supported Gate 8 CLI or promotion of the whole gate to Operational.
+- Retention or deletion of Evidence and RunRecord artifacts.
 
 ## Approval
 
-Approved by the user's 2026-07-20 request to remedy the enforcement gap identified in
-the completeness review, then commit, push, and merge the result.
+Approved by the user's 2026-07-21 request to continue with the next task recorded by
+the completed strict-lint increment.
 
 ## Verification
 
-Recorded in `docs/verification-log.md` under Strict Lint Build Enforcement Verification.
+Recorded in `docs/verification-log.md` under Process-Isolated Durable Worker Composition
+And Spool Retirement Verification.
 
 ## Next
 
-Wire `ProcessIsolatedAgentRunExecution` into `DurableAgentRunWorker` and decide spool
-retention, since an invocation root currently persists for every cycle with nothing to
-remove it. This increment did not touch that work and it remains the next connection.
+Define the first durable cancel/pause/resume control-state increment, preserving the
+existing rule that a control message can request a transition but cannot create task or
+Tool authority.

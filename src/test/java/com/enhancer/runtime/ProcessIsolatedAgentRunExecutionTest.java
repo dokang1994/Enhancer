@@ -333,6 +333,22 @@ class ProcessIsolatedAgentRunExecutionTest {
                 "distinct Goal and AgentRun identities must not share a spool");
     }
 
+    @Test
+    void cleanupAfterCheckpointIsIdempotentAndDeletesOnlyTheOwnedCycle()
+            throws IOException {
+        Fixture fixture = Fixture.create(temporaryRoot);
+        fixture.execution().execute(fixture.dispatch());
+        Path sibling = Files.createDirectories(
+                fixture.cycleRoot().getParent().resolve("sibling-cycle"));
+        Files.writeString(sibling.resolve("keep.txt"), "foreign cycle\n");
+
+        fixture.execution().cleanupAfterCheckpoint(fixture.dispatch());
+        fixture.execution().cleanupAfterCheckpoint(fixture.dispatch());
+
+        assertTrue(Files.notExists(fixture.cycleRoot()));
+        assertTrue(Files.exists(sibling.resolve("keep.txt")));
+    }
+
     private static void republish(
             Path resultSpool, java.util.function.UnaryOperator<MessageEnvelope> rewrite)
             throws IOException {

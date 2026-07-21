@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-21 - Select The Process-Isolated Durable Worker
+
+- Added `DurableAgentRunWorker.processIsolated`, the production composition selecting `ProcessIsolatedAgentRunExecution` with the real bounded self-JVM launcher, caller-supplied durable stores, and one queue instance shared by dispatch and finalization.
+- Added an idempotent post-checkpoint cleanup operation to `AgentRunExecution`. The durable worker calls it only after the RunRecord reference is present in its cycle-intent checkpoint, so cleanup failure is retried after restart without executing the work again.
+- Process-isolated cleanup removes only the exact Goal/AgentRun work/result spool and an empty Goal parent. It never removes the invocation root, Evidence, or RunRecords; failed or incomplete current cycles retain their spool.
+- Added a real child-JVM durable-worker integration and focused recovery coverage. Full `clean build` passed 71 suites and 351 tests with 2 existing Windows symbolic-link setup skips, 0 failures, and 0 errors under build-enforced `-Xlint:all -Werror`.
+
 ## 2026-07-20 - Enforce Strict Lint In The Build
 
 - Applied `-Xlint:all -Werror` through `tasks.withType(JavaCompile).configureEach` in `build.gradle`. Every increment since Gate 1 recorded that strict lint passed, but the flags lived only in a manual javac invocation the build never ran, so a lint regression could not fail `./gradlew build`.

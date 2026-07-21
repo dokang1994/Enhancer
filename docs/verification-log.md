@@ -821,3 +821,41 @@ This assessment itself changed no production or test code and did not change Gat
 - No existing source required a fix under the newly enforced flags. That is the evidence that the manual practice had genuinely been followed; the defect was in its enforcement, not in the code it governed.
 - Scope held: one file changed. `git diff --stat` reports `build.gradle` alone.
 - Structural: `git diff --check` clean.
+
+## Process-Isolated Durable Worker Composition And Spool Retirement Verification
+
+- Aligned RED first: the focused worker command failed at `compileTestJava` with exactly
+  two missing-contract errors â€” `AgentRunExecution.cleanupAfterCheckpoint` did not
+  exist and `DurableAgentRunWorker.processIsolated(...)` could not be resolved. Production
+  sources were unchanged and compiled, so the failure was classified as the active
+  connection-3 composition/retention gap rather than an unrelated regression.
+- Focused GREEN after the minimum implementation: `DurableAgentRunWorkerTest`,
+  `ProcessIsolatedAgentRunExecutionTest`, and
+  `FileSystemAgentLoopWorkerIntegrationTest` passed 31 tests across 3 suites. The
+  integration uses the production composition and a real child JVM, crosses the work
+  and result spools, resolves the real RunRecord, records the terminal runtime and queue
+  disposition, clears the checkpoint, and leaves the invocation root without cycle
+  entries.
+- Durable ordering is executable: a forced post-checkpoint cleanup failure leaves a
+  `PendingFinalization` containing the RunRecord reference; a fresh worker retries
+  cleanup and reaches `VERIFIED_COMPLETED` with the execution count still exactly one.
+  The reference therefore persists before cleanup, and cleanup persists before execution
+  acknowledgement.
+- Cleanup scope is executable: two cleanup calls remove the exact Goal/AgentRun cycle
+  idempotently while a sibling cycle and its file remain. The production implementation
+  also rejects symbolic-link invocation, Goal, or AgentRun boundaries rather than
+  traversing them, and never addresses the invocation, Evidence, or RunRecord roots for
+  deletion.
+- Fresh full `./gradlew clean build` passed 71 suites, 351 tests, 349 passed, 2 existing
+  Windows symbolic-link setup skips, 0 failures, and 0 errors. All 8 build tasks executed;
+  production and test compilation ran under the build-enforced `-Xlint:all -Werror`.
+- Focused document consistency after synchronization: `DocumentOwnershipTest` 2/2,
+  `DecisionLogIndexTest` 5/5, and `RepositoryTaskPlannerTest` 4/4, with no failures,
+  errors, or skips. The accepted decision file and index heading match exactly,
+  `CURRENT_TASK.md` alone owns the next task, and Gate 8 remains the sole
+  `Specified - Next` marker.
+- The known at-least-once boundary is unchanged: a child that persists a RunRecord and
+  dies before publishing its result may leave an orphan and be re-executed. Failed,
+  corrupt, timed-out, or incomplete current cycles retain their spool; no time-based
+  cleanup service or Evidence/RunRecord deletion was added.
+- Structural before document synchronization: `git diff --check` clean.

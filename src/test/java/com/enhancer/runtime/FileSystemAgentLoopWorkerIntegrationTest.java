@@ -1,6 +1,7 @@
 package com.enhancer.runtime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.enhancer.bus.MessageEnvelope;
@@ -125,6 +126,39 @@ class FileSystemAgentLoopWorkerIntegrationTest {
         assertTrue(s.checkpointStore().findPending().isEmpty());
     }
 
+    @Test
+    void productionProcessIsolatedCompositionCompletesAndRetiresItsSpool()
+            throws Exception {
+        Stores s = stores();
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.create(QUEUE_ID, 8, s.queueStore());
+        queue.enqueue(new QueuedWork(workItem(WORK_ID, approvedDigest), List.of()));
+        Path invocationRoot = tempDir.resolve("invocations");
+
+        DurableAgentRunWorker worker = DurableAgentRunWorker.processIsolated(
+                queue,
+                s.runtimeStore(),
+                s.checkpointStore(),
+                projectRoot,
+                tempDir.resolve("evidence"),
+                tempDir.resolve("records"),
+                invocationRoot,
+                s.runRecordStore(),
+                OWNER_ID,
+                CLOCK,
+                Duration.ofSeconds(20));
+
+        assertEquals(Optional.of(WorkItemDisposition.VERIFIED_COMPLETED),
+                worker.runOneCycle(LEASE));
+        assertEquals(Set.of(WORK_ID),
+                DurableSingleWorkerSchedulerQueue.recover(QUEUE_ID, s.queueStore())
+                        .completedWorkItemIds());
+        assertEquals(1, s.runRecordStore().references().size());
+        assertTrue(s.checkpointStore().findPending().isEmpty());
+        assertFalse(hasEntries(invocationRoot),
+                "checkpointed work/result spools must be retired after the cycle");
+    }
+
     // ---- shared helpers ----
 
     private DurableAgentRunWorker worker(Stores s) throws IOException {
@@ -155,6 +189,15 @@ class FileSystemAgentLoopWorkerIntegrationTest {
                         tempDir.resolve("evidence"),
                         new EvidenceStoragePolicy(
                                 EvidenceStoragePolicy.MAX_SUPPORTED_CONTENT_BYTES)));
+    }
+
+    private static boolean hasEntries(Path root) throws IOException {
+        if (!Files.exists(root)) {
+            return false;
+        }
+        try (var entries = Files.list(root)) {
+            return entries.findAny().isPresent();
+        }
     }
 
     private WorkItem workItem(String workItemId, String sourceSha256) {
