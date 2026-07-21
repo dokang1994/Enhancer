@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-21 - Persist Bound Runtime Control Requests
+
+- Added a bounded ordered control-request ledger to durable Goal state. Exact `ControlPayload` envelopes must bind to the retained work logical run, correlation, and causation; runtime-identity collisions, changed-content identity reuse, terminal admission, and capacity overflow fail closed.
+- Made exact restart replay idempotent without advancing the runtime revision, retained the ledger across later lifecycle transitions, and enforced prefix-monotonic filesystem updates with persist-before-exposure behavior. Schema v1 was revised in place, and older payloads without the ledger fail closed.
+- Added `RuntimeControlAdmissionHandler`, connecting a real Gate 7 queue to Gate 8 durable request state. Storage I/O participates in the bus's existing retry/dead-letter path; producer and reason remain diagnostic and no request changes Goal, AgentRun, lease, fence, queue, worker, Tool, or bus-cancellation state.
+- Added a control-admission recovery path that deliberately does not reclaim expired leases, keeping request handling observational with respect to runtime ownership while normal runtime recovery retains expiry reclamation.
+- Added focused lifecycle, corruption, restart/replay, supplementary-Unicode, storage-failure, retry, dead-letter, and expired-lease non-interference coverage.
+
 ## 2026-07-21 - Select The Process-Isolated Durable Worker
 
 - Added `DurableAgentRunWorker.processIsolated`, the production composition selecting `ProcessIsolatedAgentRunExecution` with the real bounded self-JVM launcher, caller-supplied durable stores, and one queue instance shared by dispatch and finalization.

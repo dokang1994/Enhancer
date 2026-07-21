@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.enhancer.bus.ControlPayload;
+import com.enhancer.bus.ControlSignal;
 import com.enhancer.bus.MessageEnvelope;
 import com.enhancer.bus.ResultPayload;
 import com.enhancer.bus.WorkPayload;
@@ -20,6 +22,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -140,6 +143,37 @@ class FileSystemAgentRuntimeStateStoreIntegrationTest {
     }
 
     @Test
+    void refusesToRemoveAPreviouslyPersistedControlRequest()
+            throws Exception {
+        FileSystemAgentRuntimeStateStore store =
+                new FileSystemAgentRuntimeStateStore(storageRoot);
+        DurableAgentRuntime runtime = DurableAgentRuntime.create(
+                GOAL_ID, workItem(), store);
+        runtime.beginAgentRun(AGENT_RUN_ID);
+        runtime.markReady(AGENT_RUN_ID);
+        runtime.recordControlRequest(new MessageEnvelope(
+                "00000000-0000-0000-0000-000000000506",
+                "correlation-runtime-store",
+                Optional.of(WORK_MESSAGE_ID),
+                "logical-run-runtime-store",
+                "runtime-control-test",
+                Instant.parse("2026-07-16T18:45:00Z"),
+                new ControlPayload(
+                        ControlSignal.PAUSE,
+                        "retain this request")));
+        AgentRuntimeState current = store.resolve(GOAL_ID);
+        AgentRuntimeState stripped = new AgentRuntimeState(
+                current.schemaVersion(),
+                current.revision() + 1,
+                current.lastIssuedFenceToken(),
+                current.goal(),
+                current.agentRun());
+
+        assertThrows(IOException.class, () -> store.update(stripped));
+        assertEquals(1, store.resolve(GOAL_ID).controlRequests().size());
+    }
+
+    @Test
     void rejectsMissingCorruptTrailingAndUnsupportedState()
             throws Exception {
         FileSystemAgentRuntimeStateStore store =
@@ -196,6 +230,29 @@ class FileSystemAgentRuntimeStateStoreIntegrationTest {
         invalidUtf8[payloadKindOffset] = (byte) 0xC3;
         replaceDigest(invalidUtf8);
         Files.write(artifact, invalidUtf8);
+
+        assertThrows(CorruptedAgentRuntimeStateException.class, () ->
+                store.resolve(GOAL_ID));
+    }
+
+    @Test
+    void rejectsIntegrityValidSchemaV1StateWithoutControlLedger()
+            throws Exception {
+        FileSystemAgentRuntimeStateStore store =
+                new FileSystemAgentRuntimeStateStore(storageRoot);
+        store.create(AgentRuntimeState.initial(GOAL_ID, workItem()));
+        Path artifact = artifact(GOAL_ID);
+        byte[] current = Files.readAllBytes(artifact);
+        byte[] previousSchemaV1 = Arrays.copyOf(
+                current, current.length - Integer.BYTES);
+        ByteBuffer header = ByteBuffer.wrap(previousSchemaV1);
+        int payloadLength = header.getInt(
+                Integer.BYTES + Long.BYTES);
+        header.putInt(
+                Integer.BYTES + Long.BYTES,
+                payloadLength - Integer.BYTES);
+        replaceDigest(previousSchemaV1);
+        Files.write(artifact, previousSchemaV1);
 
         assertThrows(CorruptedAgentRuntimeStateException.class, () ->
                 store.resolve(GOAL_ID));

@@ -4,6 +4,7 @@ import com.enhancer.bus.MessageEnvelope;
 import java.io.IOException;
 import java.time.Clock;
 import java.time.Duration;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -54,7 +55,8 @@ public final class DurableAgentRuntime {
             String goalId,
             AgentRuntimeStateStore store,
             Clock clock) throws IOException {
-        return recoverLoaded(goalId, Optional.empty(), store, clock);
+        return recoverLoaded(
+                goalId, Optional.empty(), store, clock, true);
     }
 
     static DurableAgentRuntime recoverMatching(
@@ -68,14 +70,24 @@ public final class DurableAgentRuntime {
                         expectedWorkItem,
                         "expectedWorkItem must not be null")),
                 store,
-                clock);
+                clock,
+                true);
+    }
+
+    static DurableAgentRuntime recoverForControlAdmission(
+            String goalId,
+            AgentRuntimeStateStore store,
+            Clock clock) throws IOException {
+        return recoverLoaded(
+                goalId, Optional.empty(), store, clock, false);
     }
 
     private static DurableAgentRuntime recoverLoaded(
             String goalId,
             Optional<WorkItem> expectedWorkItem,
             AgentRuntimeStateStore store,
-            Clock clock) throws IOException {
+            Clock clock,
+            boolean reclaimExpiredLease) throws IOException {
         Objects.requireNonNull(store, "store must not be null");
         Objects.requireNonNull(clock, "clock must not be null");
         Objects.requireNonNull(
@@ -93,7 +105,9 @@ public final class DurableAgentRuntime {
                 store,
                 clock,
                 loaded);
-        runtime.reclaimExpiredLease();
+        if (reclaimExpiredLease) {
+            runtime.reclaimExpiredLease();
+        }
         return runtime;
     }
 
@@ -161,6 +175,17 @@ public final class DurableAgentRuntime {
                 state.recordResult(agentRunId, resultMessage));
     }
 
+    public boolean recordControlRequest(
+            MessageEnvelope request) throws IOException {
+        Optional<AgentRuntimeState> next =
+                state.recordControlRequest(request);
+        if (next.isEmpty()) {
+            return false;
+        }
+        adoptAfterPersistence(next.orElseThrow());
+        return true;
+    }
+
     public long revision() {
         return state.revision();
     }
@@ -175,6 +200,10 @@ public final class DurableAgentRuntime {
 
     public Optional<RuntimeAgentRun> agentRun() {
         return state.agentRun();
+    }
+
+    public List<MessageEnvelope> controlRequests() {
+        return state.controlRequests();
     }
 
     private void adoptAfterPersistence(

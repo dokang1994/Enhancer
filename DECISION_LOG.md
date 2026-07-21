@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### 2026-07-21: Persist Bound Runtime Control Requests Without Applying Unauthenticated Transitions
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-21-persist-bound-runtime-control-requests-without-applying-unauthenticated-transitions.md)
+
 ### 2026-07-21: Select The Process-Isolated Durable Worker And Retire Spools After Checkpoint
 
 Status: Accepted Decision

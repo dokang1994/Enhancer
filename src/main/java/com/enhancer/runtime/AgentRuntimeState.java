@@ -1,24 +1,31 @@
 package com.enhancer.runtime;
 
+import com.enhancer.bus.ControlPayload;
 import com.enhancer.bus.MessageEnvelope;
 import com.enhancer.bus.ResultPayload;
 import com.enhancer.kernel.VerificationStatus;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Immutable schema-v1 Goal and AgentRun lifecycle state.
  */
 public final class AgentRuntimeState {
     public static final int CURRENT_SCHEMA_VERSION = 1;
+    public static final int MAX_CONTROL_REQUESTS = 256;
 
     private final int schemaVersion;
     private final long revision;
     private final long lastIssuedFenceToken;
     private final RuntimeGoal goal;
     private final Optional<RuntimeAgentRun> agentRun;
+    private final List<MessageEnvelope> controlRequests;
 
     AgentRuntimeState(
             int schemaVersion,
@@ -26,6 +33,22 @@ public final class AgentRuntimeState {
             long lastIssuedFenceToken,
             RuntimeGoal goal,
             Optional<RuntimeAgentRun> agentRun) {
+        this(
+                schemaVersion,
+                revision,
+                lastIssuedFenceToken,
+                goal,
+                agentRun,
+                List.of());
+    }
+
+    AgentRuntimeState(
+            int schemaVersion,
+            long revision,
+            long lastIssuedFenceToken,
+            RuntimeGoal goal,
+            Optional<RuntimeAgentRun> agentRun,
+            List<MessageEnvelope> controlRequests) {
         if (schemaVersion != CURRENT_SCHEMA_VERSION) {
             throw new IllegalArgumentException(
                     "Agent runtime schema version is unsupported");
@@ -44,6 +67,8 @@ public final class AgentRuntimeState {
         this.goal = Objects.requireNonNull(goal, "goal must not be null");
         this.agentRun = Objects.requireNonNull(
                 agentRun, "agentRun must not be null");
+        this.controlRequests = List.copyOf(Objects.requireNonNull(
+                controlRequests, "controlRequests must not be null"));
         validateStructure();
     }
 
@@ -79,6 +104,10 @@ public final class AgentRuntimeState {
 
     public Optional<RuntimeAgentRun> agentRun() {
         return agentRun;
+    }
+
+    public List<MessageEnvelope> controlRequests() {
+        return controlRequests;
     }
 
     AgentRuntimeState beginAgentRun(String agentRunId) {
@@ -216,6 +245,39 @@ public final class AgentRuntimeState {
                 Optional.of(current.terminate(runStatus, resultMessage)));
     }
 
+    Optional<AgentRuntimeState> recordControlRequest(
+            MessageEnvelope request) {
+        if (goal.status() != RuntimeGoalStatus.ACTIVE
+                || agentRun.isEmpty()) {
+            throw new IllegalStateException(
+                    "control requests require an active Goal and AgentRun");
+        }
+        validateControlRequest(request, agentRun.orElseThrow());
+        for (MessageEnvelope existing : controlRequests) {
+            if (existing.messageId().equals(request.messageId())) {
+                if (existing.equals(request)) {
+                    return Optional.empty();
+                }
+                throw new IllegalArgumentException(
+                        "control request identity already has different content");
+            }
+        }
+        if (controlRequests.size() >= MAX_CONTROL_REQUESTS) {
+            throw new IllegalStateException(
+                    "control request ledger is at capacity");
+        }
+        List<MessageEnvelope> nextRequests =
+                new ArrayList<>(controlRequests);
+        nextRequests.add(request);
+        return Optional.of(new AgentRuntimeState(
+                schemaVersion,
+                revision + 1,
+                lastIssuedFenceToken,
+                goal,
+                agentRun,
+                nextRequests));
+    }
+
     static String requireCanonicalGoalId(String goalId) {
         return RuntimeIdentity.canonicalUuid(goalId, "goalId");
     }
@@ -295,7 +357,8 @@ public final class AgentRuntimeState {
                 revision + 1,
                 lastIssuedFenceToken,
                 nextGoal,
-                nextRun);
+                nextRun,
+                controlRequests);
     }
 
     private AgentRuntimeState next(
@@ -307,10 +370,58 @@ public final class AgentRuntimeState {
                 revision + 1,
                 nextFenceToken,
                 nextGoal,
-                nextRun);
+                nextRun,
+                controlRequests);
+    }
+
+    private void validateControlRequest(
+            MessageEnvelope request,
+            RuntimeAgentRun run) {
+        Objects.requireNonNull(request, "request must not be null");
+        if (!(request.payload() instanceof ControlPayload)) {
+            throw new IllegalArgumentException(
+                    "control request must carry ControlPayload");
+        }
+        WorkItem workItem = goal.workItem();
+        MessageEnvelope workMessage = workItem.workMessage();
+        if (request.messageId().equals(goal.goalId())
+                || request.messageId().equals(workItem.workItemId())
+                || request.messageId().equals(workMessage.messageId())
+                || request.messageId().equals(run.agentRunId())) {
+            throw new IllegalArgumentException(
+                    "control request identity must be distinct from runtime identities");
+        }
+        if (!workItem.logicalRunId().equals(request.logicalRunId())) {
+            throw new IllegalArgumentException(
+                    "control logical run does not match Goal work");
+        }
+        if (!workMessage.correlationId().equals(request.correlationId())) {
+            throw new IllegalArgumentException(
+                    "control correlation does not match Goal work");
+        }
+        if (!request.causationId().equals(
+                Optional.of(workMessage.messageId()))) {
+            throw new IllegalArgumentException(
+                    "control causation must name the Goal work message");
+        }
     }
 
     private void validateStructure() {
+        if (controlRequests.size() > MAX_CONTROL_REQUESTS) {
+            throw new IllegalArgumentException(
+                    "control request ledger exceeds capacity");
+        }
+        Set<String> controlIds = new HashSet<>();
+        for (MessageEnvelope request : controlRequests) {
+            RuntimeAgentRun run = agentRun.orElseThrow(() ->
+                    new IllegalArgumentException(
+                            "control requests require an AgentRun"));
+            validateControlRequest(request, run);
+            if (!controlIds.add(request.messageId())) {
+                throw new IllegalArgumentException(
+                        "control request identities must be unique");
+            }
+        }
         if (agentRun.isEmpty()) {
             if (goal.status() != RuntimeGoalStatus.ACCEPTED
                     || revision != 0

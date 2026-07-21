@@ -859,3 +859,57 @@ This assessment itself changed no production or test code and did not change Gat
   corrupt, timed-out, or incomplete current cycles retain their spool; no time-based
   cleanup service or Evidence/RunRecord deletion was added.
 - Structural before document synchronization: `git diff --check` clean.
+
+## Durable Runtime Control-Request Admission Verification
+
+- Aligned RED first: the focused runtime command reached production compilation and
+  failed at `compileTestJava` with 28 missing-contract errors for
+  `recordControlRequest`, `controlRequests`, `MAX_CONTROL_REQUESTS`, and
+  `RuntimeControlAdmissionHandler`. The failures were confined to the active durable
+  control-request task and no unrelated production failure was absorbed.
+- Focused GREEN passed 23 tests across `DurableAgentRuntimeTest`,
+  `FileSystemAgentRuntimeStateStoreIntegrationTest`, and
+  `RuntimeControlAdmissionIntegrationTest`, with no failure, error, or skip.
+- The lifecycle contract is executable: requests require an active Goal/AgentRun and
+  exact work logical-run/correlation/causation binding; runtime identity collisions,
+  changed-content identity reuse, terminal admission, and entry 257 fail closed. Exact
+  replay does not advance revision, later lifecycle transitions retain the ledger, and
+  a failed store update leaves both in-memory and durable prior revisions visible.
+- The filesystem contract is executable: exact ordered envelopes including
+  supplementary Unicode recover through a fresh store, updates cannot remove or rewrite
+  the persisted prefix, and an integrity-valid schema-v1 payload missing the new ledger
+  field fails closed.
+- The named connection is executable: a real in-process control queue persists through
+  `RuntimeControlAdmissionHandler`; a fresh bus replays its journal into a fresh
+  filesystem-store instance without duplicate state, while two simulated store failures
+  exhaust `RetryPolicy.of(2)` into one two-attempt dead letter and expose no request.
+- Fresh full `.\\gradlew.bat clean build --warning-mode all` passed 72 suites and 358
+  tests: 356 passed, 2 existing Windows symbolic-link setup skips, 0 failures, and 0
+  errors. All 8 build tasks executed, and production plus test compilation ran under the
+  build-enforced Java 17 `-Xlint:all -Werror`.
+- Document structural coverage in that full build passed: `DocumentOwnershipTest` 2/2,
+  `DecisionLogIndexTest` 5/5, and `RepositoryTaskPlannerTest` 4/4. The accepted decision
+  file and index identity match, `CURRENT_TASK.md` alone owns the subsequent task, and
+  Gate 8 remains the sole `Specified - Next` marker.
+- Scope held: the implementation records untrusted intent only. No Goal/AgentRun status,
+  lease, fence, queue state, worker behavior, Tool scope, execution input, or bus
+  cancellation state changes, and authenticated application remains Gate 12 work.
+- Structural after implementation and document synchronization: `git diff --check`
+  clean.
+
+### Post-Review Lease Non-Interference Addendum
+
+- Final diff review found that the first handler implementation used ordinary runtime
+  recovery, whose existing expiry behavior could reclaim an expired executing lease
+  before recording a control request. A new focused test failed exactly on the status
+  assertion (`READY` observed instead of the persisted `EXECUTING` state), proving an
+  indirect violation of the no-lease-change acceptance criterion.
+- The minimum correction added a package-private control-admission recovery path that
+  loads exact durable state without expiry reclamation; normal and matching runtime
+  recovery retain their existing reclamation behavior. Focused GREEN then passed all 24
+  tests across the three runtime/store/control suites, including exact lease/status/fence
+  preservation after the handler clock has passed lease expiry.
+- Fresh post-correction `.\\gradlew.bat clean build --warning-mode all` passed 72 suites
+  and 359 tests: 357 passed, 2 existing Windows symbolic-link setup skips, 0 failures,
+  and 0 errors. All 8 tasks executed under build-enforced strict lint, and
+  `git diff --check` remained clean.

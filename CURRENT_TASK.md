@@ -6,73 +6,78 @@ Completed
 
 ## Task
 
-Select `ProcessIsolatedAgentRunExecution` in the production composition of
-`DurableAgentRunWorker` and retire each successful per-cycle invocation spool only
-after its RunRecord reference is durably checkpointed.
+Persist bounded cancel/pause/resume control requests in the durable Agent runtime and
+connect one real Gate 7 control-message queue delivery to that request boundary without
+applying an unauthenticated runtime transition.
 
 ## Task ID
 
-wire-process-isolated-worker-and-retire-checkpointed-spools
+persist-bound-runtime-control-requests
 
 ## Context
 
-Connection 3b, 3c, and 3d provide the bounded child-process lifecycle, local file
-spool transport, and process-isolated `AgentRunExecution`, but the only real durable
-worker composition still selects `AgentLoopAgentRunExecution` directly. Every
-process-isolated cycle also leaves `work/` and `result/` messages below a private
-Goal/AgentRun invocation root with no retirement boundary.
+Gate 7 already carries `ControlPayload(CANCEL|PAUSE|RESUME, reason)` and provides
+deterministic delivery, retry, dead letter, and replay, but no real consumer connects a
+control envelope to Gate 8 durable state. Gate 12 owns authenticated user controls and
+does not exist yet, so treating possession of a control envelope as permission to pause,
+resume, cancel, release a lease, or change queue state would create authority from
+untrusted message data.
 
-The durable worker already persists the returned RunRecord reference before execution
-acknowledgement. That checkpoint is the earliest point at which the spool is no longer
-needed for result recovery. Cleanup before it would reopen avoidable re-execution;
-cleanup after it can be retried from the retained checkpoint without re-running the
-child.
+The first safe connection is therefore a durable, exact request ledger inside the
+existing Goal state. It records what was requested and binds it to the Goal's immutable
+work provenance. A later authenticated controller may evaluate and apply a request; the
+current worker, dispatcher, finalizer, queue, and Tool policy ignore it.
 
 ## Justified By
 
-- 2026-07-21: Select The Process-Isolated Durable Worker And Retire Spools After Checkpoint
-- 2026-07-17: Record In-Process Scheduler Worker Driving One Recoverable Claim-To-Disposition Cycle Through A Durable Cycle-Intent Checkpoint
-- 2026-07-20: Carry The First Transport Hop Through A Local File Spool
-- 2026-07-20: Isolate The Worker In A Bounded Self-JVM Child Process
-- 2026-07-20: Return Isolated Worker Results Through A Correlated Per-Cycle Spool With RunRecord As Authority
+- 2026-07-21: Persist Bound Runtime Control Requests Without Applying Unauthenticated Transitions
+- 2026-07-16: Separate Execution Acknowledgement From Verified Queue Completion And Sequence Remaining Connections
+- 2026-07-16: Propagate Cancellation As A Terminal Correlation-Scoped Delivery Refusal
+- 2026-07-15: Start Gate 7 With Reference-Only Versioned Envelopes And Exactly Four Payload Kinds
 
 ## Acceptance Criteria
 
-- One production composition constructs `DurableAgentRunWorker` with
-  `ProcessIsolatedAgentRunExecution`, one shared durable queue instance for dispatch and
-  finalization, the real child launcher, and the caller-supplied durable stores.
-- A real filesystem integration drives a WorkItem through the durable worker, child JVM,
-  work/result spools, Gate 1-4 execution, RunRecord resolution, runtime finalization,
-  and the matching queue disposition.
-- A successful cycle keeps its invocation spool until the RunRecord reference is
-  durably recorded, then removes only that Goal/AgentRun-owned spool tree.
-- If cleanup fails after checkpointing, the worker leaves the checkpoint intact and a
-  resumed worker retries cleanup without launching or executing the work again.
-- Empty, failed, corrupt, or not-yet-checkpointed cycles are not silently treated as
-  retired, and the documented orphaned-RunRecord at-least-once window remains explicit.
-- Focused tests, the full regression, strict Java lint, and document ownership checks
+- `AgentRuntimeState` retains an immutable ordered ledger of at most 256 exact
+  `MessageEnvelope` values carrying `ControlPayload`.
+- Every admitted request matches the Goal work's logical run, correlation, and work
+  message causation. Identity collisions, non-control payloads, mismatches, terminal
+  Goals, and over-capacity requests fail closed.
+- Re-delivery of the exact same message identity and envelope is idempotent and does not
+  advance the runtime revision; reusing an identity with different content is rejected.
+- The runtime store persists the complete control envelope before the request becomes
+  visible. Store failure leaves the previous in-memory and durable revision authoritative.
+- One `MessageHandler` connects the real in-process queue to the durable runtime. An I/O
+  failure becomes a handler failure so existing bounded bus retry/dead-letter behavior
+  remains observable.
+- Recording requests changes no Goal status, AgentRun status, lease, fence, queue state,
+  allowed Tool scope, execution input, or bus cancellation state. Producer and reason
+  fields remain diagnostic data, not authority.
+- A fresh filesystem store instance recovers the exact ordered requests, including
+  supplementary Unicode. The unreleased schema-v1 payload is revised in place and
+  pre-existing snapshots without the control ledger fail closed.
+- Focused RED/GREEN tests, the full build, strict lint, and document structural checks
   pass with fresh output.
 
 ## Out Of Scope
 
-- Closing the child-persisted RunRecord / result-publication orphan window.
-- Retry through additional AgentRuns, cancellation, pause/resume, concurrent cycles,
-  external-effect fencing, or schema migration.
-- A supported Gate 8 CLI or promotion of the whole gate to Operational.
-- Retention or deletion of Evidence and RunRecord artifacts.
+- Applying pause, resume, or cancel to a Goal, AgentRun, lease, worker process, queue, or
+  Tool execution.
+- Authenticating or authorizing a user control; Gate 12 owns that boundary.
+- Persisting the Gate 7 bus journal/cancellation set, remote controls, concurrent
+  consumers, retries through new AgentRuns, or external-effect fencing.
+- Schema migration for pre-existing unreleased runtime artifacts.
 
 ## Approval
 
-Approved by the user's 2026-07-21 request to continue with the next task recorded by
-the completed strict-lint increment.
+Approved by the user's 2026-07-21 request to continue the recorded next task and, once
+verified, commit it, push the feature branch, and merge it into `main`.
 
 ## Verification
 
-Recorded in `docs/verification-log.md` under Process-Isolated Durable Worker Composition
-And Spool Retirement Verification.
+Fresh RED/GREEN, full-build, strict-lint, and structural evidence is recorded in
+`docs/verification-log.md`.
 
 ## Next
 
-Define the first durable cancel/pause/resume control-state increment, preserving the
-existing rule that a control message can request a transition but cannot create task or
-Tool authority.
+Persist a bounded external-effect ledger with fence-checked, idempotent effect outcomes
+before connecting retry through additional AgentRuns.
