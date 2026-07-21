@@ -22,6 +22,20 @@ Read `.ai/` first, then read these files in order:
 7. `DECISION_LOG.md`
 8. `SESSION_HANDOFF.md`
 
+## Recovery Checkpoint
+
+After the required reading and before planning or editing, run:
+
+```text
+checkpoint-show --project-root <project-root>
+```
+
+If it reports `ACTIVE`, compare its task contract, last successful step, pending step,
+next action, and artifact mismatch count with `CURRENT_TASK.md`, `git status`, and the
+working-tree diff. Do not treat the checkpoint as verification or completion evidence.
+Resolve corruption, task drift, a stale writer, or unexplained artifact drift before
+mutating the repository.
+
 ## Report
 
 After reading, report:
@@ -34,6 +48,7 @@ After reading, report:
 6. Risks
 7. Current lifecycle state and required authority
 8. Work plan
+9. Checkpoint recovery state and reconciliation result
 
 ## Constraint
 

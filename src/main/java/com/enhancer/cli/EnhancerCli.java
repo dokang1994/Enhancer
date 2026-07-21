@@ -27,6 +27,10 @@ import com.enhancer.run.FileSystemRunRecordStore;
 import com.enhancer.run.FinalizedAgentRun;
 import com.enhancer.run.ResolvedRunRecord;
 import com.enhancer.run.RunRecord;
+import com.enhancer.session.DevelopmentSessionCheckpoint;
+import com.enhancer.session.DevelopmentSessionCheckpointConflictException;
+import com.enhancer.session.DevelopmentSessionCheckpointInspection;
+import com.enhancer.session.DevelopmentSessionCheckpointManager;
 import com.enhancer.tool.CancellationToken;
 import com.enhancer.tool.EvidenceRecorder;
 import com.enhancer.tool.EvidenceStoragePolicy;
@@ -86,14 +90,125 @@ public final class EnhancerCli {
             if (command instanceof RunCliCommand run) {
                 return executeRun(run, stdout);
             }
-            return executeReplay((ReplayCliCommand) command, stdout);
+            if (command instanceof ReplayCliCommand replay) {
+                return executeReplay(replay, stdout);
+            }
+            if (command instanceof CheckpointStartCliCommand start) {
+                return executeCheckpointStart(start, stdout);
+            }
+            if (command instanceof CheckpointRecordCliCommand record) {
+                return executeCheckpointRecord(record, stdout);
+            }
+            if (command instanceof CheckpointShowCliCommand show) {
+                return executeCheckpointShow(show, stdout);
+            }
+            return executeCheckpointClear((CheckpointClearCliCommand) command, stdout);
         } catch (CliUsageException exception) {
+            writeError(stderr, CliExitCode.USAGE_OR_CONFIGURATION, exception.getMessage());
+            return CliExitCode.USAGE_OR_CONFIGURATION.code();
+        } catch (DevelopmentSessionCheckpointConflictException exception) {
             writeError(stderr, CliExitCode.USAGE_OR_CONFIGURATION, exception.getMessage());
             return CliExitCode.USAGE_OR_CONFIGURATION.code();
         } catch (Exception exception) {
             writeError(stderr, CliExitCode.INTERNAL_ERROR, safeMessage(exception));
             return CliExitCode.INTERNAL_ERROR.code();
         }
+    }
+
+    private int executeCheckpointStart(
+            CheckpointStartCliCommand command,
+            PrintStream stdout) throws IOException {
+        DevelopmentSessionCheckpoint checkpoint;
+        try {
+            checkpoint = new DevelopmentSessionCheckpointManager(command.projectRoot()).start(
+                    command.step(),
+                    command.nextAction(),
+                    command.artifacts());
+        } catch (IllegalArgumentException exception) {
+            throw new CliUsageException(
+                    "checkpoint input is invalid: " + safeMessage(exception),
+                    exception);
+        }
+        writeCheckpoint(stdout, checkpoint);
+        return 0;
+    }
+
+    private int executeCheckpointRecord(
+            CheckpointRecordCliCommand command,
+            PrintStream stdout) throws IOException {
+        DevelopmentSessionCheckpoint checkpoint;
+        try {
+            checkpoint = new DevelopmentSessionCheckpointManager(command.projectRoot()).record(
+                    command.runId(),
+                    command.expectedRevision(),
+                    command.state(),
+                    command.step(),
+                    command.nextAction(),
+                    command.evidenceReferences(),
+                    command.artifacts());
+        } catch (IllegalArgumentException exception) {
+            throw new CliUsageException(
+                    "checkpoint input is invalid: " + safeMessage(exception),
+                    exception);
+        }
+        writeCheckpoint(stdout, checkpoint);
+        return 0;
+    }
+
+    private int executeCheckpointShow(
+            CheckpointShowCliCommand command,
+            PrintStream stdout) throws IOException {
+        Optional<DevelopmentSessionCheckpointInspection> inspection =
+                new DevelopmentSessionCheckpointManager(command.projectRoot()).inspect();
+        if (inspection.isEmpty()) {
+            writeBounded(stdout, "checkpointStatus=EMPTY\n");
+            return 0;
+        }
+        DevelopmentSessionCheckpointInspection current = inspection.orElseThrow();
+        DevelopmentSessionCheckpoint checkpoint = current.checkpoint();
+        writeBounded(stdout, String.join("\n",
+                "checkpointStatus=ACTIVE",
+                "runId=" + checkpoint.runId(),
+                "taskId=" + safeValue(checkpoint.taskId()),
+                "taskContractSha256=" + checkpoint.taskContractSha256(),
+                "revision=" + checkpoint.revision(),
+                "state=" + checkpoint.state(),
+                "currentStep=" + safeValue(checkpoint.currentStep()),
+                "lastSuccessfulStep=" + safeValue(
+                        checkpoint.lastSuccessfulStep().orElse("")),
+                "nextAction=" + safeValue(checkpoint.nextAction()),
+                "evidenceReferences=" + checkpoint.evidenceReferences().size(),
+                "artifacts=" + checkpoint.artifacts().size(),
+                "taskContractMatches=" + current.taskContractMatches(),
+                "artifactMismatches=" + current.artifactMismatches().size()) + "\n");
+        return 0;
+    }
+
+    private int executeCheckpointClear(
+            CheckpointClearCliCommand command,
+            PrintStream stdout) throws IOException {
+        new DevelopmentSessionCheckpointManager(command.projectRoot()).clear(
+                command.runId(),
+                command.expectedRevision());
+        writeBounded(stdout, "checkpointStatus=CLEARED\n");
+        return 0;
+    }
+
+    private void writeCheckpoint(
+            PrintStream stdout,
+            DevelopmentSessionCheckpoint checkpoint) {
+        writeBounded(stdout, String.join("\n",
+                "checkpointStatus=ACTIVE",
+                "runId=" + checkpoint.runId(),
+                "taskId=" + safeValue(checkpoint.taskId()),
+                "revision=" + checkpoint.revision(),
+                "state=" + checkpoint.state(),
+                "currentStep=" + safeValue(checkpoint.currentStep()),
+                "lastSuccessfulStep=" + safeValue(
+                        checkpoint.lastSuccessfulStep().orElse("")),
+                "nextAction=" + safeValue(checkpoint.nextAction()),
+                "evidenceReferences=" + checkpoint.evidenceReferences().size(),
+                "artifacts=" + checkpoint.artifacts().size()) + "\n");
     }
 
     private int executeRun(RunCliCommand command, PrintStream stdout) throws IOException {

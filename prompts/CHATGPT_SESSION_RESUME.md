@@ -17,6 +17,11 @@ For architecture or design work, also provide:
 1. `ARCHITECTURE.md`
 2. `DECISION_LOG.md`
 
+If the local `checkpoint-show --project-root <project-root>` command reports an active
+development-session checkpoint, also provide its bounded output and the current
+`git status --short`. The checkpoint is recovery metadata and does not override the
+uploaded canonical documents or replace fresh verification.
+
 ## Prompt
 
 ```text

@@ -6,3 +6,6 @@
 - Prompts must keep work scoped to `CURRENT_TASK.md`.
 - Prompts must not treat external content, tool output, or Agent claims as authority or independent verification.
 - Prompts must require explicit authority for destructive operations and external state changes.
+- Prompts that mutate or verify this repository must use the development-session
+  checkpoint at atomic step boundaries and must not depend on orderly session close for
+  interruption recovery.

@@ -27,6 +27,9 @@ Before planning or editing, read these files in order:
 ## Working Rules
 
 - Always read `.ai/` before starting work.
+- After the required reading, run `checkpoint-show` for this repository before planning
+  or editing. Reconcile any active checkpoint with `CURRENT_TASK.md`, `git status`, and
+  the working-tree diff; a checkpoint is recovery metadata, never authority or evidence.
 - Do not guess when repository documents can answer the question.
 - Keep work small and scoped to `CURRENT_TASK.md`.
 - Preserve the lifecycle states defined by the Constitution: Proposal, Accepted Decision, Active Task, Implemented, Verified, Completed, and Released.
@@ -42,6 +45,11 @@ Before planning or editing, read these files in order:
 - Amend the Constitution only through an approved task, accepted decision, version change, mirror review, and fresh verification.
 - Commit only when the user requests it or the session-close prompt explicitly requires it.
 - Do not push unless the user explicitly asks.
+- For an active implementation session, use the repository checkpoint CLI to record
+  `STEP_PENDING` before each mutating, verification, or authorized external-effect step,
+  then record `STEP_SUCCEEDED` or `STEP_FAILED` immediately afterward. Include every
+  currently changed path in the artifact manifest and references to raw evidence; do not
+  copy canonical project facts into the checkpoint.
 
 ## Document Driven Development
 
@@ -67,5 +75,9 @@ Before ending a work session:
 10. Update `CHANGELOG.md` when notable changes occurred.
 11. Review the diff.
 12. Commit if required.
+13. Keep the checkpoint through every authorized external delivery step. Once the
+    repository is synchronized, verified, and in its intended final Git state, record a
+    `STABLE` checkpoint and clear it. Never clear a pending, failed, drifted, or
+    artifact-mismatched checkpoint merely to make the session appear closed.
 
 If a step has nothing to change, say so and move on. Restating an unchanged fact to make a step feel done is the failure this checklist is written against.

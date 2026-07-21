@@ -101,6 +101,32 @@ Replay the printed opaque reference without re-executing the Tool:
 
 Exit codes are stable: `0` completed, `2` usage/configuration, `10` verification failed, `20` policy denied, `21` Tool failed, `30` stagnated, `31` maximum iterations, and `70` internal failure. Every `run` that produces a record also reports `workspaceSnapshotId`, `workspaceObservations` (repository documents plus prior run records), a `memoryFreshness` matched/diverged/notObserved summary, and bounded Project Brain graph counts (`graphNodes`, `graphEdges`, `graphDecisions`, `impactExecutions`); replay does not reproduce the snapshot identity because the RunRecord does not store it. Output is capped at 4096 characters and never includes complete file evidence. The example `.enhancer/` runtime directory is Git-ignored and is not removed by Gradle `clean`. `--evidence-root` and `--run-record-root` are explicit caller inputs and are not confined to the project root; each store refuses a symbolic-link root and only creates new UUID-named entries, so it can add files to the directory you name but cannot overwrite what is already there. For recovery, correct the reported configuration or target, retain the evidence and RunRecord roots, and use `replay` for any printed record reference before retrying with a new run.
 
+## Development Session Checkpoints
+
+Forced termination recovery does not depend on `SESSION_HANDOFF.md` being updated at
+session close. One machine-written checkpoint lives under the Git-ignored
+`.enhancer/session-checkpoint/` directory and records only execution position, evidence
+references, and artifact identities bound to the active task contract.
+
+Use the application commands `checkpoint-start`, `checkpoint-record`,
+`checkpoint-show`, and `checkpoint-clear`. `checkpoint-start` records a pending atomic
+step and refuses to replace an active run. `checkpoint-record` requires the current
+`runId` and `expected-revision`, accepts repeatable `--artifact` and `--evidence`
+options, and records `STEP_PENDING`, `STEP_SUCCEEDED`, `STEP_FAILED`, or `STABLE`.
+`checkpoint-show` is the first recovery command in a new session. `checkpoint-clear`
+works only for a stable checkpoint whose task contract and artifact manifest still
+match.
+
+Example through the Gradle application runner:
+
+```powershell
+.\gradlew.bat run --args="checkpoint-show --project-root C:\Enhancer"
+```
+
+The checkpoint is not verification, task, maturity, or delivery authority. Resume still
+requires canonical document loading, `git status`/diff inspection, and fresh applicable
+tests.
+
 ## Development Setup
 
 Windows에서 관리자 권한이나 전역 Gradle 설치 없이 개발 환경을 구성한다.

@@ -12,6 +12,11 @@ Before every session:
 Always read the .ai folder before starting work.
 ```
 
+After the governed documents are loaded, inspect the machine-written development-session
+checkpoint with the local CLI. It lives under `.enhancer/session-checkpoint/`, references
+the active task contract, and is recovery metadata rather than repository authority or
+verification evidence. Reconcile it with Git state before planning or editing.
+
 Then:
 
 1. Read `CONSTITUTION.md` and confirm the work fits the project rules.
@@ -25,12 +30,17 @@ Then:
    - when those checks pass, proceed directly with the minimum scoped implementation without asking for redundant approval;
    - when the failure is unrelated, flaky, conflicts with repository authority or configuration, expands scope, or requires new external/destructive authority, do not implement it as part of the RED cycle; record or report it separately.
 7. Implement the smallest scoped change that turns the accepted RED case GREEN. A missing production type or other intentionally unimplemented symbol is valid RED evidence when the test contract passed the classification above; it is not by itself a reason to stop.
+   Record checkpoint intent before each mutating or verification step and its success or
+   failure immediately afterward. A forced stop must leave the pending step and the last
+   successful step distinguishable without chat history.
 8. Run fresh, claim-appropriate verification.
 9. Promote lifecycle state only when authority and evidence support it.
 10. Append the increment's verification evidence to `docs/verification-log.md`.
 11. Update each affected document, writing every fact only to the document that owns it (Constitution Section 4). The next task belongs to `CURRENT_TASK.md`, capability maturity to `PROJECT_STATE.md`, delivery history to git and `CHANGELOG.md`. Delete duplicates rather than synchronizing them.
 12. Reduce `SESSION_HANDOFF.md` to what is true now and would otherwise be lost with the session.
 13. Commit only when explicitly required; never infer permission to push.
+14. Keep the checkpoint through authorized delivery actions, then mark it Stable and
+    clear it only after canonical documents, verification, and intended Git state agree.
 
 A contract you describe must state what it connects to. Describing a contract
 correctly while leaving its connection to the next contract unstated is how the
