@@ -360,6 +360,15 @@ generates neither identity nor time and never invokes a worker, Tool, evidence s
 RunRecord store, or `scheduler-cycle`. Bounded output reports `ADMITTED` only when the
 queue revision advances and `REPLAYED` for an exact already-admitted submission.
 
+Generated submission inputs do not require a second durable invocation manifest. The
+accepted next boundary uses one caller-retained canonical submission UUID as the stable
+replay key and message identity, derives queue/correlation/logical-run identities through
+versioned domain separation, and makes the existing `DurableSubmissionManifest` the sole
+owner of the generated occurrence time and exact work envelope. First use captures and
+persists that manifest before queue creation; replay resolves it before consulting a clock
+or recapturing repository context and rejects caller-intent drift. This future boundary
+must remain separate from `scheduler-cycle`, polling, and automatic execution.
+
 ### Gate 8 Durable Goal And AgentRun Lifecycle
 
 The runtime state is one immutable schema-v2 `AgentRuntimeState` containing exactly one `RuntimeGoal`, the Goal's exact existing `WorkItem`, an ordered immutable list of at most 16 `RuntimeAgentRun` attempts, and an ordered retry-decision history. Goal, AgentRun, WorkItem, and message identities are distinct canonical UUIDs, including across attempts. `agentRun()` is only the latest-attempt projection; earlier attempts remain exact. The retained WorkItem remains the sole source of approved task revision, Workspace snapshot, logical run, required capability, and allowed-Tool provenance; lifecycle state cannot add or widen authority.

@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-07-22 - Select Single-Manifest Recovery For Generated Submission Inputs
+
+- Assessed the interruption window created by generating Scheduler identities and
+  occurrence time before durable submission intent exists.
+- Rejected a second invocation manifest because it would duplicate the exact envelope and
+  occurrence time already owned by `DurableSubmissionManifest`; selected one stable
+  caller-retained submission UUID, versioned derived identities, and resolve-before-clock
+  replay over the existing manifest.
+- Recorded the accepted architecture and next bounded implementation without changing
+  production behavior, the explicit `scheduler-submit` command, cycle execution, polling,
+  commit, push, merge, release, or deployment.
+
 ## 2026-07-22 - Prove The Explicit Two-Command Scheduler Operator Workflow
 
 - Added a named real-filesystem CLI integration that invokes `scheduler-submit` and

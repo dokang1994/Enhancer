@@ -6,65 +6,63 @@ Completed
 
 ## Task
 
-Prove and document one supported two-command Scheduler operator workflow that submits governed work through `scheduler-submit` and executes it only through a separately invoked `scheduler-cycle`, preserving each command's authority, output, and recovery boundary.
+Assess whether a separately durable Scheduler invocation manifest is required to offer
+replay-safe generated identities and occurrence time without coupling submission,
+execution, or polling, and record the smallest accepted next boundary.
 
 ## Task ID
 
-prove-explicit-scheduler-operator-workflow
+assess-durable-scheduler-invocation-manifest
 
 ## Context
 
-The durable submission and one-cycle commands are individually supported and their
-storage/recovery contracts are verified, but no named CLI integration currently connects
-the two surfaces as an operator would use them. The smallest honest workflow is an
-explicit sequence over shared queue and artifact roots, not a wrapper command, polling
-loop, or implicit second external effect.
+The supported two-command operator workflow is recovery-safe only when the operator
+retains every explicit `scheduler-submit` identity and its occurrence time. Generating
+those values inside the current command would create a pre-submission crash window: a
+restart could generate different values before the immutable submission manifest exists.
 
-This increment is an integration characterization and operator-documentation task. The
-first focused run may pass without production changes if the existing commands already
-satisfy the accepted composition. Any failure must be classified before changing
-production behavior.
+A second durable manifest could close that window, but it could also duplicate authority
+already owned by `DurableSubmissionManifest`, introduce an unresolved invocation identity,
+or blur the deliberate separation between submission and `scheduler-cycle`. The repository
+must decide the owner, exact persisted prefix, replay key, and consumer before adding a
+contract or command.
 
 ## Justified By
 
 - 2026-07-22: Expose Durable Submission As A Separate Explicit CLI Command
-- 2026-07-22: Expose One Process-Isolated Durable Scheduler Cycle Through The CLI
 - 2026-07-22: Persist Submission Intent Before Creating The Scheduler Queue
-- 2026-07-21: Select The Process-Isolated Durable Worker And Retire Spools After Checkpoint
 
 ## Acceptance Criteria
 
-- A named real-filesystem CLI integration invokes `scheduler-submit` and
-  `scheduler-cycle` through separate fresh `EnhancerCli` instances with one shared queue
-  identity and explicit roots, and proves submission leaves pending work without
-  execution before the cycle command is invoked.
-- The separately invoked cycle crosses the real child JVM, Evidence, RunRecord, runtime,
-  external-effect ledger, cycle checkpoint, and invocation-spool boundaries to one
-  `VERIFIED_COMPLETED` disposition while retaining the immutable submission manifest.
-- Exact submission replay after completion reports `REPLAYED` without changing the queue
-  revision or creating a second RunRecord, and a later separate cycle reports `IDLE`
-  without executing work again.
-- README documents the two explicit invocations, which inputs/roots must be shared, how
-  to interpret each command's independent status/exit code, and recovery actions for
-  interrupted submission, interrupted cycle, terminal failed work, and idle queues.
-- No wrapper command, automatic UUID/time generation, polling/service loop, combined
-  status, hidden cycle invocation, or new production authority is introduced unless an
-  aligned characterization failure proves a smaller correction is required.
-- Focused characterization, the full Gradle build with Java 17 strict lint, an
-  actual-repository smoke run, structural-document checks, and final diff checks pass
-  with fresh evidence.
+- The assessment identifies the exact interruption window that generated identities/time
+  would create before durable submission intent exists and distinguishes it from the
+  already-covered manifest -> queue -> admission recovery prefixes.
+- At least the following alternatives are compared against repository authority,
+  idempotency, ownership, and recovery: keep every input explicit; add a separate durable
+  invocation manifest; or widen/repurpose the existing submission manifest.
+- The selected outcome names one stable replay key, the facts it may own, its immediate
+  consumer, and the boundaries it must not cross, or explicitly defers the capability with
+  a concrete reason and re-entry condition.
+- Any material accepted direction is recorded as a matching decision file and
+  `DECISION_LOG.md` entry; architecture, roadmap, state, and next-task documents are changed
+  only where their owning facts actually change.
+- Structural document checks and the relevant fresh Gradle verification pass, and the
+  increment's evidence is appended once to `docs/verification-log.md`.
 
 ## Out Of Scope
 
-- A durable invocation manifest, generated identities/time, background worker service,
-  repeated cycles, queue watching, concurrent writers, or multi-process locking.
-- Authenticated controls, external adapter/effect execution, Gate 9, queue/runtime schema
-  migration or cleanup, or whole-Gate Operational promotion.
-- Commit, push, PR, merge, release, or deployment unless separately requested.
+- Implementing a new manifest/store/CLI before the assessment accepts its identity,
+  ownership, persistence order, and recovery contract.
+- Combining submission with `scheduler-cycle`, automatic execution, polling, queue
+  watching, background services, concurrent writers, or multi-process locking.
+- Authenticated controls, external adapter effects, Gate 9, schema migration/cleanup,
+  commit, push, PR, merge, release, or deployment.
 
 ## Approval
 
-The user explicitly asked to continue the project on 2026-07-22, and the preceding completed task named this separate two-command operator workflow assessment as the next bounded increment.
+The user explicitly asked to continue the project on 2026-07-22, and the preceding
+completed task named this durable invocation-manifest assessment as the next bounded
+increment.
 
 ## Allowed Tools
 
@@ -72,13 +70,20 @@ The user explicitly asked to continue the project on 2026-07-22, and the precedi
 
 ## Verification
 
-Acceptance is satisfied by the named separate-command real-filesystem CLI integration,
-the actual-repository operator smoke sequence, and the fresh full strict-lint build.
-Append-only command results, counts, failure classification, and artifact references are
-recorded in `docs/verification-log.md`.
+Acceptance is satisfied by a source- and decision-backed assessment, matching decision
+index/file structure when a direction is accepted, repository document-ownership checks,
+and a fresh strict-lint Gradle build. Append-only results and limitations are recorded in
+`docs/verification-log.md`.
+
+Fresh verification passed 15 focused structural/context tests (14 passed and one existing
+Windows symbolic-link setup case skipped), `git diff --check`, the stale-claim search, and
+the full strict-lint Gradle build across 89 suites/465 tests (462 passed, three existing
+Windows symbolic-link setup cases skipped, zero failures or errors).
 
 ## Next
 
-After this task, assess whether a separately durable invocation manifest is needed to
-offer replay-safe generated identities and occurrence time without coupling submission,
-execution, or polling.
+Implement the bounded generated-input submission application boundary test-first: use one
+caller-retained canonical submission UUID as the replay/message key, derive the remaining
+identities through versioned domain separation, resolve an existing submission manifest
+before consulting the clock or repository context, and feed the exact manifest into the
+existing submission service without adding a second store or invoking `scheduler-cycle`.

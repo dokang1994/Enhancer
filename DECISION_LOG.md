@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### 2026-07-22: Reuse The Immutable Submission Manifest As The Sole Generated-Input Recovery Record
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-22-reuse-the-immutable-submission-manifest-as-the-sole-generated-input-recovery-record.md)
+
 ### 2026-07-22: Expose Durable Submission As A Separate Explicit CLI Command
 
 Status: Accepted Decision

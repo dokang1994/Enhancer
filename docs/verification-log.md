@@ -1388,3 +1388,33 @@ This assessment itself changed no production or test code and did not change Gat
   errors. The stale-claim search found no statement denying the now-supported workflow,
   `git diff --check` produced no output, source inventory was 206 production and 89 test
   files, and `main` remained synchronized with `origin/main` before this append.
+
+## Generated-Input Submission Recovery Assessment
+
+- Source inspection confirmed the existing immutable submission manifest already owns
+  the exact queue identity/capacity, capability, occurrence time, governed task/snapshot,
+  authorization scope, execution input, and message provenance before queue creation and
+  admission. Generating values before that artifact exists creates an uncertain-result
+  window; the existing manifest -> queue -> admission prefixes cover every later stop.
+- The assessment compared retaining every explicit replay input, adding a second durable
+  invocation manifest, and reusing the existing submission manifest behind one stable
+  caller-retained UUID. The accepted decision selected existing-manifest reuse with
+  versioned domain-separated identities and resolve-before-clock/context replay, avoiding
+  duplicated fact ownership and preserving submission/cycle separation.
+- The first focused command used incorrect package filters for the two architecture tests
+  and therefore ran only `ProjectContextReaderTest` (8 tests, one Windows link setup skip).
+  It was insufficient evidence and was replaced by the correctly filtered fresh run.
+- The corrected focused run passed 15 tests across `DocumentOwnershipTest`,
+  `DecisionLogIndexTest`, and `ProjectContextReaderTest`: 14 passed, one existing
+  privilege-dependent Windows symbolic-link setup case skipped, zero failures, and zero
+  errors. A diff review then found the three-way alternatives comparison should be made
+  explicit; the decision was corrected and the same focused run passed again with the same
+  counts.
+- Fresh `git diff --check` produced no output, and a stale-claim search found no remaining
+  assertion that a separate durable invocation manifest is required.
+- Fresh `.\scripts\gradle.ps1 build --rerun-tasks --warning-mode all` passed all 7 build
+  tasks and 89 suites/465 tests under build-enforced Java 17 strict lint: 462 passed, 3
+  existing privilege-dependent Windows symbolic-link setup cases skipped, 0 failures, and
+  0 errors.
+- Scope held: no production code, new store/schema, generated-input CLI, cycle invocation,
+  polling, commit, push, merge, release, or deployment was added.
