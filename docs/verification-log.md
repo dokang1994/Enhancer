@@ -1418,3 +1418,31 @@ This assessment itself changed no production or test code and did not change Gat
   0 errors.
 - Scope held: no production code, new store/schema, generated-input CLI, cycle invocation,
   polling, commit, push, merge, release, or deployment was added.
+
+## Generated-Input Submission Boundary Implementation
+
+- Test-first: `GeneratedInputSubmissionServiceTest` was written first and failed to compile
+  (RED) because `GeneratedInputSubmissionService` and `GeneratedSubmissionRequest` did not
+  yet exist, while every existing production source still compiled. The boundary,
+  `GeneratedSubmissionIdentities`, `GeneratedSubmissionRequest`, `SubmissionEnvelopeFactory`,
+  and the typed `MissingSubmissionManifestException` were then added for the minimum GREEN.
+- The focused rerun of `GeneratedInputSubmissionServiceTest` passed: first-use identity
+  generation from the clock, deterministic derivation across fresh stores, exact replay that
+  reuses the stored occurrence time without consulting the clock or the envelope factory,
+  caller-intent conflict fail-closed, and first-use envelope/request inconsistency
+  fail-closed.
+- The CLI increment added `scheduler-submit-generated` (`GeneratedSubmitCliCommand`, parser,
+  dispatch, and an envelope factory that captures the governed repository snapshot only on
+  first use). `CliArgumentsTest` gained generated-input parsing and malformed-input cases,
+  and `EnhancerCliSchedulerGeneratedSubmitIntegrationTest` proved, on a real filesystem,
+  first-use `ADMITTED` output carrying the derived queue/correlation/logical-run identities,
+  fresh-CLI-instance exact `REPLAYED` with identical manifest bytes and unchanged queue
+  revision, conflict fail-closed under the same submission UUID, and first-use
+  task-mismatch refusal.
+- Fresh full `gradlew build` under build-enforced Java 17 `-Xlint:all -Werror` passed all
+  build tasks and 91 suites/474 tests: 471 passed, 3 existing privilege-dependent Windows
+  symbolic-link setup cases skipped, 0 failures, and 0 errors. `git diff --check` produced
+  no output, and the source inventory was 212 production and 91 test files.
+- Scope held: no second durable store, schema change, `scheduler-cycle` invocation,
+  execution, polling, commit, push, merge, release, or deployment was added; the explicit
+  `scheduler-submit` command and manifest schema are unchanged.

@@ -57,6 +57,17 @@ final class CliArguments {
             "occurred-at",
             "target-path",
             "expected-sha256");
+    private static final Set<String> SCHEDULER_SUBMIT_GENERATED_OPTIONS = Set.of(
+            "project-root",
+            "submission-root",
+            "queue-root",
+            "task-id",
+            "submission-id",
+            "max-work-items",
+            "required-capability",
+            "producer",
+            "target-path",
+            "expected-sha256");
     private static final Set<String> CHECKPOINT_START_OPTIONS = Set.of(
             "project-root", "step", "next-action");
     private static final Set<String> CHECKPOINT_RECORD_OPTIONS = Set.of(
@@ -74,7 +85,8 @@ final class CliArguments {
         if (arguments == null || arguments.length == 0) {
             throw new CliUsageException(
                     "command is required: run, replay, scheduler-submit, "
-                            + "scheduler-cycle, or checkpoint operation");
+                            + "scheduler-submit-generated, scheduler-cycle, or "
+                            + "checkpoint operation");
         }
         String command = arguments[0];
         return switch (command) {
@@ -84,6 +96,8 @@ final class CliArguments {
                     parseOptions(arguments, SCHEDULER_CYCLE_OPTIONS));
             case "scheduler-submit" -> parseSchedulerSubmit(
                     parseOptions(arguments, SCHEDULER_SUBMIT_OPTIONS));
+            case "scheduler-submit-generated" -> parseSchedulerSubmitGenerated(
+                    parseOptions(arguments, SCHEDULER_SUBMIT_GENERATED_OPTIONS));
             case "checkpoint-start" -> parseCheckpointStart(arguments);
             case "checkpoint-record" -> parseCheckpointRecord(arguments);
             case "checkpoint-show" -> new CheckpointShowCliCommand(
@@ -224,6 +238,33 @@ final class CliArguments {
                 nonBlank(options.get("logical-run-id"), "logical-run-id"),
                 nonBlank(options.get("producer"), "producer"),
                 instant(options.get("occurred-at"), "occurred-at"),
+                nonBlank(options.get("target-path"), "target-path"),
+                digest);
+    }
+
+    private static GeneratedSubmitCliCommand parseSchedulerSubmitGenerated(
+            Map<String, String> options) {
+        long maxWorkItems = positiveLong(
+                options.get("max-work-items"), "max-work-items");
+        if (maxWorkItems > SingleWorkerSchedulerQueue.MAX_WORK_ITEMS) {
+            throw new CliUsageException(
+                    "max-work-items must not exceed "
+                            + SingleWorkerSchedulerQueue.MAX_WORK_ITEMS);
+        }
+        String digest = options.get("expected-sha256");
+        if (!SHA_256.matcher(digest).matches()) {
+            throw new CliUsageException(
+                    "expected-sha256 must be 64 lowercase hexadecimal characters");
+        }
+        return new GeneratedSubmitCliCommand(
+                path(options.get("project-root"), "project-root"),
+                path(options.get("submission-root"), "submission-root"),
+                path(options.get("queue-root"), "queue-root"),
+                nonBlank(options.get("task-id"), "task-id"),
+                canonicalUuid(options.get("submission-id"), "submission-id"),
+                (int) maxWorkItems,
+                nonBlank(options.get("required-capability"), "required-capability"),
+                nonBlank(options.get("producer"), "producer"),
                 nonBlank(options.get("target-path"), "target-path"),
                 digest);
     }

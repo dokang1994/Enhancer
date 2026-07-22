@@ -40,6 +40,9 @@ import com.enhancer.runtime.FileSystemExternalEffectLedgerStore;
 import com.enhancer.runtime.FileSystemPendingFinalizationStore;
 import com.enhancer.runtime.FileSystemSchedulerQueueStore;
 import com.enhancer.runtime.FileSystemSubmissionManifestStore;
+import com.enhancer.runtime.GeneratedInputSubmissionService;
+import com.enhancer.runtime.GeneratedSubmissionIdentities;
+import com.enhancer.runtime.GeneratedSubmissionRequest;
 import com.enhancer.runtime.MissingSchedulerQueueStateException;
 import com.enhancer.runtime.WorkItemDisposition;
 import com.enhancer.session.DevelopmentSessionCheckpoint;
@@ -115,6 +118,9 @@ public final class EnhancerCli {
             }
             if (command instanceof SchedulerSubmitCliCommand submit) {
                 return executeSchedulerSubmit(submit, stdout);
+            }
+            if (command instanceof GeneratedSubmitCliCommand generated) {
+                return executeGeneratedSubmit(generated, stdout);
             }
             if (command instanceof CheckpointStartCliCommand start) {
                 return executeCheckpointStart(start, stdout);
@@ -537,6 +543,83 @@ public final class EnhancerCli {
                 "workAdmitted=" + result.workAdmitted(),
                 "workspaceSnapshotId=" + snapshot.snapshotId()) + "\n");
         return 0;
+    }
+
+    private int executeGeneratedSubmit(
+            GeneratedSubmitCliCommand command,
+            PrintStream stdout) throws IOException {
+        FileSystemSubmissionManifestStore manifestStore =
+                new FileSystemSubmissionManifestStore(command.submissionRoot());
+        DurableSubmissionResult result;
+        try {
+            GeneratedSubmissionRequest request = new GeneratedSubmissionRequest(
+                    command.submissionId(),
+                    command.maxWorkItems(),
+                    command.requiredCapability(),
+                    command.producer(),
+                    command.taskId(),
+                    command.targetPath(),
+                    command.expectedSha256());
+            result = new GeneratedInputSubmissionService(
+                    manifestStore,
+                    new FileSystemSchedulerQueueStore(command.queueRoot()),
+                    Clock.systemUTC())
+                    .submit(request, (identities, occurredAt) ->
+                            generatedWorkMessage(command, identities, occurredAt));
+        } catch (IllegalArgumentException exception) {
+            throw new CliUsageException(
+                    "scheduler-submit-generated input is invalid: "
+                            + safeMessage(exception),
+                    exception);
+        }
+
+        // The manifest is the sole generated-input recovery record; read the generated
+        // identities, occurrence time, and snapshot back from it for auditable output.
+        MessageEnvelope workMessage =
+                manifestStore.resolve(command.submissionId()).workMessage();
+        WorkPayload work = (WorkPayload) workMessage.payload();
+        String status = result.workAdmitted() ? "ADMITTED" : "REPLAYED";
+        writeBounded(stdout, String.join("\n",
+                "status=" + status,
+                "exitCode=0",
+                "submissionId=" + result.submissionId(),
+                "queueId=" + result.queueId(),
+                "correlationId=" + workMessage.correlationId(),
+                "logicalRunId=" + workMessage.logicalRunId(),
+                "occurredAt=" + workMessage.occurredAt(),
+                "queueRevision=" + result.queueRevision(),
+                "manifestCreated=" + result.manifestCreated(),
+                "queueCreated=" + result.queueCreated(),
+                "workAdmitted=" + result.workAdmitted(),
+                "workspaceSnapshotId=" + work.snapshotId()) + "\n");
+        return 0;
+    }
+
+    private MessageEnvelope generatedWorkMessage(
+            GeneratedSubmitCliCommand command,
+            GeneratedSubmissionIdentities identities,
+            Instant occurredAt) {
+        GovernedRunInputs inputs = governedRunInputs(
+                command.projectRoot(), command.taskId());
+        WorkspaceSnapshot snapshot = new RepositoryMemorySnapshotCollector().collect(
+                command.projectRoot(),
+                occurredAt,
+                inputs.approvedTask(),
+                inputs.repositoryMemory());
+        return new MessageEnvelope(
+                identities.submissionId(),
+                identities.correlationId(),
+                Optional.empty(),
+                identities.logicalRunId(),
+                command.producer(),
+                occurredAt,
+                new WorkPayload(
+                        snapshot.approvedTaskRevision(),
+                        snapshot.snapshotId(),
+                        inputs.approvedTask().allowedTools(),
+                        Optional.of(new WorkPayload.ExecutionInput(
+                                command.targetPath(),
+                                command.expectedSha256()))));
     }
 
     private GovernedRunInputs governedRunInputs(RunCliCommand command) {
