@@ -1147,6 +1147,20 @@ This assessment itself changed no production or test code and did not change Gat
   `DecisionLogIndexTest`, and `RuntimePackageBoundaryTest`, with 0 skips, failures, or
   errors. `git diff --check` produced no output and exited 0 before this append.
 
+## Exact Admission-History Store-Prefix Hardening
+
+- Final diff review found that queue APIs preserved exact admission history but
+  `FileSystemSchedulerQueueStore.update` did not independently reject an internally
+  coherent snapshot that rewrote an earlier admission. The focused regression failed as
+  expected because no `IOException` was raised; no unrelated failure appeared.
+- The store now requires the prior exact admission history to remain the next revision's
+  prefix, rejecting rewrite and truncation before publication. The focused exact-history
+  and real recovery suites passed after the correction.
+- Fresh `.\scripts\gradle.ps1 build --rerun-tasks --warning-mode all` passed all 7 build
+  tasks and 85 suites/457 tests: 454 passed, 3 existing privilege-dependent Windows
+  symbolic-link setup cases skipped, 0 failures, and 0 errors under build-enforced Java
+  17 `-Xlint:all -Werror`.
+
 ## Retry-Aware AgentRun Worker Recovery
 
 - Focused RED reached test compilation and failed with four aligned missing-signature
@@ -1229,3 +1243,39 @@ This assessment itself changed no production or test code and did not change Gat
   service, authenticated control application, external adapter/effect execution, Gate 9,
   whole-gate Operational promotion, commit, push, merge, release, or deployment was
   added.
+
+## Exact Durable Work-Admission History And Restart Replay
+
+- Focused RED reached test compilation and failed with five aligned missing-symbol
+  errors for `DurableSingleWorkerSchedulerQueue.admitIdempotently` and
+  `SchedulerQueueState.admittedWork`; no unrelated, flaky, configuration, privilege, or
+  scope-expanding failure appeared.
+- Focused GREEN passed the queue-state, durable-queue, filesystem-store,
+  admission-handler, and `DurableAdmissionRecoveryIntegrationTest` suites with no skip,
+  failure, or error. The store round-trips terminal exact history, schema-v1 fails
+  explicitly, exact replay leaves the revision unchanged, and changed-content identity
+  reuse fails closed.
+- The named real-filesystem integration admits through the production handler, executes
+  the existing `scheduler-cycle` child-process path to terminal verified disposition,
+  restarts the queue and in-process bus, and re-delivers the exact envelope. Terminal
+  disposition, queue revision, and RunRecord count stay unchanged with no dead letter;
+  a changed producer under the same message identity dead-letters without queue mutation.
+- Fresh `.\scripts\gradle.ps1 clean test --warning-mode all` passed 85 suites and 456
+  tests: 453 passed, 3 existing privilege-dependent Windows symbolic-link setup cases
+  skipped, 0 failures, and 0 errors. Build-enforced Java 17 `-Xlint:all -Werror` compiled
+  production and test sources without a warning.
+- Scope held: no queue creation, submission manifest/CLI, separate admission receipt,
+  durable bus journal, polling service, arbitrary dependency submission, multi-process
+  coordination, schema migration, history compaction, external adapter execution,
+  Gate 9, commit, push, merge, release, or deployment was added.
+
+## Exact Durable Work-Admission Post-Document Verification
+
+- After canonical and compact document synchronization, fresh
+  `.\scripts\gradle.ps1 build --rerun-tasks --warning-mode all` passed all 7 build tasks
+  and 85 suites/456 tests: 453 passed, 3 existing privilege-dependent Windows
+  symbolic-link setup cases skipped, 0 failures, and 0 errors. This reran build-enforced
+  Java 17 `-Xlint:all -Werror` compilation and all document inputs.
+- A separate fresh structural rerun passed 8 tests across `DocumentOwnershipTest`,
+  `DecisionLogIndexTest`, and `RuntimePackageBoundaryTest`, with 0 skips, failures, or
+  errors. `git diff --check` produced no output and exited 0 before this append.

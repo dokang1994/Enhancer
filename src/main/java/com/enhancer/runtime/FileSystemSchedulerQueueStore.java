@@ -94,6 +94,14 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
             throw new IOException(
                     "Scheduler queue logical run must not change");
         }
+        List<QueuedWork> currentHistory = current.admittedWork();
+        List<QueuedWork> nextHistory = nextState.admittedWork();
+        if (nextHistory.size() < currentHistory.size()
+                || !nextHistory.subList(0, currentHistory.size())
+                        .equals(currentHistory)) {
+            throw new IOException(
+                    "Scheduler queue admission history must retain its exact prefix");
+        }
         publish(nextState, true);
     }
 
@@ -244,6 +252,7 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
             output.writeInt(state.maxWorkItems());
             writeOptionalString(output, state.logicalRunId());
             writeStringList(output, state.admissionOrder());
+            writeQueuedWorkList(output, state.admittedWork());
             writeQueuedWorkList(output, state.pendingWork());
             writeOptionalQueuedWork(output, state.activeWork());
             writeStringSet(output, state.completedWorkItemIds());
@@ -279,6 +288,7 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
             int maxWorkItems = input.readInt();
             Optional<String> logicalRunId = readOptionalString(input);
             List<String> admissionOrder = readStringList(input);
+            List<QueuedWork> admittedWork = readQueuedWorkList(input);
             List<QueuedWork> pendingWork = readQueuedWorkList(input);
             Optional<QueuedWork> activeWork =
                     readOptionalQueuedWork(input);
@@ -296,6 +306,7 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
                     maxWorkItems,
                     logicalRunId,
                     admissionOrder,
+                    admittedWork,
                     pendingWork,
                     activeWork,
                     completedWorkItemIds,

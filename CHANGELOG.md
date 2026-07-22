@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-07-22 - Retain Exact Durable Work Admission History
+
+- Advanced Scheduler queue persistence to schema v2 with every exact `QueuedWork`
+  retained in immutable admission order through verified or failed terminal disposition;
+  filesystem updates reject history rewrite or truncation.
+- Added persist-first idempotent durable admission: exact replay is a no-revision success,
+  while changed capability, envelope, authorization, provenance, execution input, or
+  dependencies under the same WorkItem identity fail closed; strict Scheduler `enqueue`
+  remains unchanged.
+- Connected the production work-message handler to that boundary and proved a real
+  filesystem/process-isolated cycle can restart both queue and bus, replay the exact
+  envelope, and preserve terminal disposition, queue revision, and RunRecord count.
+- Explicitly rejected schema-v1 queue artifacts without adding migration, submission,
+  queue creation, polling, compaction, external-effect execution, or Gate 8 promotion.
+
 ## 2026-07-22 - Expose One Recoverable Durable Scheduler Cycle
 
 - Added the recovery-only `scheduler-cycle` CLI over one explicitly identified existing

@@ -115,12 +115,12 @@ class FileSystemSchedulerQueueStoreIntegrationTest {
 
         Files.delete(artifact);
         store.create(SchedulerQueueState.initial(QUEUE_ID, 8));
-        byte[] unsupported = Files.readAllBytes(artifact);
-        ByteBuffer.wrap(unsupported).putInt(
+        byte[] priorSchema = Files.readAllBytes(artifact);
+        ByteBuffer.wrap(priorSchema).putInt(
                 PAYLOAD_OFFSET,
-                SchedulerQueueState.CURRENT_SCHEMA_VERSION + 1);
-        replaceDigest(unsupported);
-        Files.write(artifact, unsupported);
+                1);
+        replaceDigest(priorSchema);
+        Files.write(artifact, priorSchema);
         CorruptedSchedulerQueueStateException exception = assertThrows(
                 CorruptedSchedulerQueueStateException.class,
                 () -> store.resolve(QUEUE_ID));
@@ -173,6 +173,39 @@ class FileSystemSchedulerQueueStoreIntegrationTest {
                 new FileSystemSchedulerQueueStore(storageRoot).resolve(QUEUE_ID);
         assertEquals(Set.of(firstId), resolved.failedWorkItemIds());
         assertEquals(Set.of(), resolved.completedWorkItemIds());
+        assertEquals(
+                List.of(new QueuedWork(workItem(firstId, "reader"), List.of())),
+                resolved.admittedWork());
+    }
+
+    @Test
+    void rejectsRewrittenExactAdmissionHistoryAcrossUpdates() throws Exception {
+        String firstId =
+                "00000000-0000-0000-0000-000000000322";
+        FileSystemSchedulerQueueStore store =
+                new FileSystemSchedulerQueueStore(storageRoot);
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.create(QUEUE_ID, 8, store);
+        queue.enqueue(new QueuedWork(workItem(firstId, "reader"), List.of()));
+        SchedulerQueueState current = store.resolve(QUEUE_ID);
+        QueuedWork changed = new QueuedWork(
+                workItem(firstId, "changed-reader"),
+                List.of());
+        SchedulerQueueState rewritten = new SchedulerQueueState(
+                SchedulerQueueState.CURRENT_SCHEMA_VERSION,
+                QUEUE_ID,
+                current.revision() + 1,
+                current.maxWorkItems(),
+                current.logicalRunId(),
+                current.admissionOrder(),
+                List.of(changed),
+                List.of(changed),
+                Optional.empty(),
+                Set.of(),
+                Set.of());
+
+        assertThrows(IOException.class, () -> store.update(rewritten));
+        assertEquals(current.admittedWork(), store.resolve(QUEUE_ID).admittedWork());
     }
 
     @Test

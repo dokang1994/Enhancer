@@ -15,7 +15,7 @@ import java.util.UUID;
  * Immutable schema-versioned state needed to reconstruct one run-scoped Scheduler queue.
  */
 public final class SchedulerQueueState {
-    public static final int CURRENT_SCHEMA_VERSION = 1;
+    public static final int CURRENT_SCHEMA_VERSION = 2;
 
     private final int schemaVersion;
     private final String queueId;
@@ -23,6 +23,7 @@ public final class SchedulerQueueState {
     private final int maxWorkItems;
     private final Optional<String> logicalRunId;
     private final List<String> admissionOrder;
+    private final List<QueuedWork> admittedWork;
     private final List<QueuedWork> pendingWork;
     private final Optional<QueuedWork> activeWork;
     private final Set<String> completedWorkItemIds;
@@ -35,6 +36,7 @@ public final class SchedulerQueueState {
             int maxWorkItems,
             Optional<String> logicalRunId,
             List<String> admissionOrder,
+            List<QueuedWork> admittedWork,
             List<QueuedWork> pendingWork,
             Optional<QueuedWork> activeWork,
             Set<String> completedWorkItemIds,
@@ -69,6 +71,10 @@ public final class SchedulerQueueState {
                 admissionOrder,
                 "admissionOrder",
                 maxWorkItems);
+        this.admittedWork = immutableWorkList(
+                admittedWork,
+                "admittedWork",
+                maxWorkItems);
         this.pendingWork = immutableWorkList(
                 pendingWork,
                 "pendingWork",
@@ -95,6 +101,7 @@ public final class SchedulerQueueState {
                 0,
                 maxWorkItems,
                 Optional.empty(),
+                List.of(),
                 List.of(),
                 List.of(),
                 Optional.empty(),
@@ -124,6 +131,10 @@ public final class SchedulerQueueState {
 
     public List<String> admissionOrder() {
         return admissionOrder;
+    }
+
+    public List<QueuedWork> admittedWork() {
+        return admittedWork;
     }
 
     public List<QueuedWork> pendingWork() {
@@ -162,6 +173,21 @@ public final class SchedulerQueueState {
         for (int index = 0; index < admissionOrder.size(); index++) {
             positions.put(admissionOrder.get(index), index);
         }
+        if (admittedWork.size() != admissionOrder.size()) {
+            throw new IllegalArgumentException(
+                    "admittedWork must match admissionOrder");
+        }
+        Map<String, QueuedWork> exactAdmissions = new HashMap<>();
+        for (int index = 0; index < admittedWork.size(); index++) {
+            QueuedWork admitted = admittedWork.get(index);
+            String workItemId = admitted.workItem().workItemId();
+            if (!admissionOrder.get(index).equals(workItemId)) {
+                throw new IllegalArgumentException(
+                        "admittedWork must preserve admissionOrder");
+            }
+            validateAdmission(admitted, positions);
+            exactAdmissions.put(workItemId, admitted);
+        }
 
         Set<String> statusIds = new LinkedHashSet<>();
         for (String completed : completedWorkItemIds) {
@@ -177,7 +203,7 @@ public final class SchedulerQueueState {
         }
         int previousPendingPosition = -1;
         for (QueuedWork pending : pendingWork) {
-            validateWork(pending, positions, statusIds);
+            validateWork(pending, positions, exactAdmissions, statusIds);
             int pendingPosition =
                     positions.get(pending.workItem().workItemId());
             if (pendingPosition <= previousPendingPosition) {
@@ -187,7 +213,7 @@ public final class SchedulerQueueState {
             previousPendingPosition = pendingPosition;
         }
         activeWork.ifPresent(active -> {
-            validateWork(active, positions, statusIds);
+            validateWork(active, positions, exactAdmissions, statusIds);
             if (!completedWorkItemIds.containsAll(
                     active.dependencyWorkItemIds())) {
                 throw new IllegalArgumentException(
@@ -207,13 +233,24 @@ public final class SchedulerQueueState {
     private void validateWork(
             QueuedWork queuedWork,
             Map<String, Integer> positions,
+            Map<String, QueuedWork> exactAdmissions,
             Set<String> statusIds) {
         String workItemId = queuedWork.workItem().workItemId();
         requireAdmitted(positions, workItemId);
+        if (!queuedWork.equals(exactAdmissions.get(workItemId))) {
+            throw new IllegalArgumentException(
+                    "queue status work must match exact admission history");
+        }
         if (!statusIds.add(workItemId)) {
             throw new IllegalArgumentException(
                     "work item has more than one queue status");
         }
+    }
+
+    private void validateAdmission(
+            QueuedWork queuedWork,
+            Map<String, Integer> positions) {
+        String workItemId = queuedWork.workItem().workItemId();
         String expectedRun = logicalRunId.orElseThrow(() ->
                 new IllegalArgumentException(
                         "admitted work requires logicalRunId"));

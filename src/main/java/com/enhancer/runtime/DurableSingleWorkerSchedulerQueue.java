@@ -69,6 +69,24 @@ public final class DurableSingleWorkerSchedulerQueue {
         adoptAfterPersistence(candidate);
     }
 
+    public boolean admitIdempotently(QueuedWork queuedWork)
+            throws IOException {
+        Objects.requireNonNull(queuedWork, "queuedWork must not be null");
+        Optional<QueuedWork> existing = queue.admittedWork(
+                queuedWork.workItem().workItemId());
+        if (existing.isPresent()) {
+            if (existing.orElseThrow().equals(queuedWork)) {
+                return false;
+            }
+            throw new IllegalArgumentException(
+                    "work item identity was admitted with different content");
+        }
+        SingleWorkerSchedulerQueue candidate = copyQueue();
+        candidate.enqueue(queuedWork);
+        adoptAfterPersistence(candidate);
+        return true;
+    }
+
     public Optional<WorkItem> claimNext() throws IOException {
         SingleWorkerSchedulerQueue candidate = copyQueue();
         Optional<WorkItem> claimed = candidate.claimNext();

@@ -1,6 +1,7 @@
 package com.enhancer.runtime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -139,6 +140,30 @@ class DurableSingleWorkerSchedulerQueueTest {
 
         assertEquals(Optional.of(first), queue.activeWork());
         assertTrue(queue.failedWorkItemIds().isEmpty());
+    }
+
+    @Test
+    void exactAdmissionReplayIsANoOpAfterTerminalRecovery() throws Exception {
+        MemoryQueueStore store = new MemoryQueueStore();
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.create(QUEUE_ID, 8, store);
+        QueuedWork admitted = new QueuedWork(
+                workItem(FIRST_ID, "read-file-worker"), List.of());
+
+        assertTrue(queue.admitIdempotently(admitted));
+        queue.claimNext().orElseThrow();
+        queue.completeActiveVerified(FIRST_ID);
+        DurableSingleWorkerSchedulerQueue recovered =
+                DurableSingleWorkerSchedulerQueue.recover(QUEUE_ID, store);
+        long terminalRevision = recovered.revision();
+
+        assertFalse(recovered.admitIdempotently(admitted));
+        assertEquals(terminalRevision, recovered.revision());
+        assertEquals(Set.of(FIRST_ID), recovered.completedWorkItemIds());
+        assertThrows(IllegalArgumentException.class, () ->
+                recovered.admitIdempotently(new QueuedWork(
+                        workItem(FIRST_ID, "changed-worker"), List.of())));
+        assertEquals(terminalRevision, recovered.revision());
     }
 
     private static WorkItem workItem(String workItemId, String capability) {

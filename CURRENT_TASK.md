@@ -6,85 +6,90 @@ Completed
 
 ## Task
 
-Expose one recoverable process-isolated `DurableAgentRunWorker` cycle through a supported
-local `scheduler-cycle` CLI command over an already-existing durable Scheduler queue.
+Persist exact ordered durable work-admission history inside Scheduler queue state and
+make restart replay of an identical work message idempotent without accepting
+message-identity reuse with changed content.
 
 ## Task ID
 
-expose-durable-scheduler-cycle-cli
+persist-exact-durable-work-admission-history
 
 ## Context
 
-The real work-message path now reaches `DurableSingleWorkerSchedulerQueue`, and the
-downstream Worker composes durable runtime, external-effect ledger, checkpoint,
-process-isolated execution, RunRecord finalization, retry, and terminal disposition.
-No supported caller constructs that composition; every execution integration still
-invokes Java test fixtures directly.
+The production `DurableWorkItemAdmissionHandler` derives a stable WorkItem identity and
+persists the first delivery into `DurableSingleWorkerSchedulerQueue`. The queue retains
+the complete `QueuedWork` only while it is pending or active; after terminal disposition
+it retains only the WorkItem identity. A fresh Message Bus therefore cannot prove that a
+re-delivered message is exactly the original admission and currently dead-letters every
+restart replay.
 
-Combining submission and execution in one first command would require a new durable
-invocation manifest and exact cross-bus admission replay contract so a restarted command
-could distinguish new submission, interrupted admission, active execution, and an
-already-terminal queue. The smallest honest entry point therefore recovers one
-caller-prepared queue and runs exactly one Worker cycle without creating or admitting
-work.
+An end-user submission manifest cannot safely solve that gap first. A process may stop
+after queue persistence but before a separate manifest or admission receipt is written,
+leaving the restarted submitter unable to distinguish an interrupted identical
+submission from changed-content identity reuse. Exact history owned by the queue is the
+smallest durable prerequisite because queue persistence is already the admission
+authority.
 
 ## Justified By
 
-- 2026-07-21: Select The Process-Isolated Durable Worker And Retire Spools After Checkpoint
 - 2026-07-22: Connect Work Admission To The Durable Scheduler Queue Through A Persist-First Handler
-- 2026-07-17: Record In-Process Scheduler Worker Driving One Recoverable Claim-To-Disposition Cycle Through A Durable Cycle-Intent Checkpoint
+- 2026-07-16: Persist Gate 8 Queue Transitions Before Exposing State
+- 2026-07-16: Separate IPC Transport Acceptance From Message-Bus Delivery
 
 ## Acceptance Criteria
 
-- `scheduler-cycle` requires explicit project, queue, runtime, external-effect,
-  cycle-checkpoint, evidence, RunRecord, and invocation roots; canonical queue identity;
-  bounded owner identity, attempt count, lease duration, and process timeout. It infers
-  no repository or user-profile storage path.
-- The command recovers an existing `DurableSingleWorkerSchedulerQueue` and constructs
-  `DurableAgentRunWorker.processIsolated` with one shared queue instance, real filesystem
-  stores, system UTC clock, explicit retry policy, and bounded durations. It never
-  creates a queue or admits a WorkItem.
-- One invocation runs exactly one recoverable Worker cycle. Empty work reports `IDLE`
-  with exit 0; Verified completion reports `VERIFIED_COMPLETED` with exit 0; terminal
-  failed disposition reports `FAILED` through one new stable Scheduler-specific non-zero
-  exit code. Output is bounded and reports no evidence content or secret material.
-- Missing queue/configuration and malformed numeric/duration input return bounded
-  usage/configuration failure. Corruption, execution, or unexpected storage failure is
-  not misreported as success.
-- A named CLI integration prepares work through the production durable admission path,
-  runs the real child-process Worker through the command, resolves the persisted
-  RunRecord, observes the terminal queue disposition and cleared cycle checkpoint, and
-  proves restart-safe recovery from an already persisted Worker prefix.
-- Focused argument/CLI/integration tests, the full Gradle build, strict Java lint,
-  structural-document checks, and diff checks pass with fresh evidence.
+- Scheduler queue state advances to one explicit new schema that retains every admitted
+  `QueuedWork` in immutable admission order, including completed and failed work, while
+  preserving the existing pending/active/verified/failed partition and one-logical-run
+  invariants.
+- Durable admission persists a new exact `QueuedWork` before success. Re-admitting the
+  exact same value after recovery succeeds without a queue revision or second WorkItem;
+  reusing its WorkItem/message identity with any changed capability, envelope,
+  authorization, provenance, execution input, or dependency content fails closed.
+- `DurableWorkItemAdmissionHandler` uses the exact idempotent durable-admission boundary.
+  Same-bus replay remains a bus duplicate; fresh-bus exact replay succeeds without a
+  dead letter both before and after terminal queue disposition.
+- Filesystem serialization round-trips the exact ordered history with strict bounds and
+  integrity checks. Prior queue schema artifacts fail explicitly; no in-place migration
+  or silent reinterpretation is claimed.
+- A named real-filesystem integration admits through the production handler, runs the
+  existing process-isolated Scheduler cycle to terminal state, restarts the queue and
+  Message Bus, re-delivers the exact envelope, and observes unchanged terminal
+  disposition, queue revision, and RunRecord count.
+- Focused RED/GREEN tests, the full Gradle build, strict Java lint, structural-document
+  checks, and diff checks pass with fresh evidence.
 
 ## Out Of Scope
 
-- Queue creation, work submission, durable Message Bus journal, exact cross-bus
-  admission history, worker polling/service loops, concurrent commands, background
-  execution, authenticated control application, or arbitrary dependency submission.
-- External adapter invocation/evidence, compensation, cross-attempt effect identity,
-  queue/runtime schema migration, priority/fairness, distributed coordination, Gate 9,
-  or whole-Gate Operational promotion.
+- Queue creation, an end-user submission manifest or submission CLI, admission receipts
+  outside queue state, durable Message Bus journaling, worker polling/service loops,
+  arbitrary dependency submission, concurrent writers, or multi-process locking.
+- Queue schema migration from the prior version, history compaction/cleanup, priority,
+  fairness, broader budgets, authenticated control application, external adapter/effect
+  execution, Gate 9, or whole-Gate Operational promotion.
 - Commit, push, PR, merge, release, or deployment unless separately requested.
 
 ## Approval
 
-The user explicitly asked to continue the project on 2026-07-22. The completed durable
-admission task named the minimal supported Scheduler entry-point assessment as next; the
-assessment selected this recovery-only one-cycle command.
+The user explicitly asked to continue the project on 2026-07-22. The previous completed
+task required assessment of exact cross-bus admission recovery and an end-user submission
+manifest; the assessment selected exact queue-owned admission history as the prerequisite
+that makes a later submission manifest restart-safe.
 
 ## Verification
 
-Focused GREEN passed the argument and CLI integration suites, including a real child
-JVM. After document synchronization, a fresh full `build --rerun-tasks` passed all 7
-build tasks and 84 suites/451 tests: 448 passed, 3 existing privilege-dependent Windows
-skips, 0 failures, and 0 errors under build-enforced Java 17 strict lint. A separate
-fresh structural/self-hosting rerun passed 20 tests across 5 suites: 19 passed, 1 existing
-Windows privilege skip, 0 failures, and 0 errors. `git diff --check` produced no output.
+- Focused RED failed only on the absent `admitIdempotently` and `admittedWork`
+  contracts.
+- Focused GREEN passed the queue-state, durable-queue, filesystem-store, admission-handler,
+  and named process-isolated recovery integration suites.
+- Fresh full verification passed 85 suites and 457 tests: 454 passed, 3 existing
+  privilege-dependent Windows symbolic-link setup cases skipped, 0 failures, and 0
+  errors under build-enforced Java 17 `-Xlint:all -Werror`.
+- Post-document structural checks and final diff checks are recorded in
+  `docs/verification-log.md`.
 
 ## Next
 
-After this task, assess the remaining Gate 8 Operational blockers, including exact
-cross-bus admission recovery and an end-user submission manifest, without starting
+After this task, design the smallest durable end-user submission manifest and queue
+creation boundary over the exact idempotent admission contract, without adding polling,
 authenticated controls, external-effect adapters, or Gate 9.

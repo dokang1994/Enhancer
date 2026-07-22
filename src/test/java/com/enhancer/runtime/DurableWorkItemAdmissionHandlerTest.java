@@ -85,7 +85,7 @@ class DurableWorkItemAdmissionHandlerTest {
     }
 
     @Test
-    void freshBusReplayFailsClosedWithoutASecondDurableAdmission()
+    void freshBusExactReplaySucceedsWithoutASecondDurableAdmission()
             throws Exception {
         RecordingStore store = new RecordingStore();
         DurableSingleWorkerSchedulerQueue queue =
@@ -108,20 +108,52 @@ class DurableWorkItemAdmissionHandlerTest {
                 new DurableWorkItemAdmissionHandler("read-file-worker", recovered));
 
         assertEquals(
-                DeliveryStatus.FAILED,
+                DeliveryStatus.DELIVERED,
                 restartedBus.publish(DESTINATION, workMessage()).get(0).status());
+        assertEquals(0, restartedBus.deadLetters().size());
+        assertEquals(1, recovered.revision());
+        assertEquals(1, recovered.pendingCount());
+    }
+
+    @Test
+    void freshBusReplayRejectsChangedContentUnderTheSameMessageIdentity()
+            throws Exception {
+        RecordingStore store = new RecordingStore();
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.create(QUEUE_ID, 8, store);
+        new DurableWorkItemAdmissionHandler("read-file-worker", queue)
+                .handle(workMessage());
+        DurableSingleWorkerSchedulerQueue recovered =
+                DurableSingleWorkerSchedulerQueue.recover(QUEUE_ID, store);
+        InProcessMessageBus restartedBus = new InProcessMessageBus();
+        restartedBus.subscribe(
+                DESTINATION,
+                "durable-gate-8-admission",
+                new DurableWorkItemAdmissionHandler("read-file-worker", recovered));
+
+        assertEquals(
+                DeliveryStatus.FAILED,
+                restartedBus.publish(
+                        DESTINATION,
+                        workMessage("changed-producer"))
+                        .get(0)
+                        .status());
         assertEquals(1, restartedBus.deadLetters().size());
         assertEquals(1, recovered.revision());
         assertEquals(1, recovered.pendingCount());
     }
 
     private static MessageEnvelope workMessage() {
+        return workMessage("durable-admission-test");
+    }
+
+    private static MessageEnvelope workMessage(String producer) {
         return new MessageEnvelope(
                 MESSAGE_ID,
                 "correlation-durable-admission",
                 Optional.empty(),
                 "logical-run-durable-admission",
-                "durable-admission-test",
+                producer,
                 Instant.parse("2026-07-22T10:00:00Z"),
                 new WorkPayload(
                         new ApprovedTaskRevision(

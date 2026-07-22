@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### 2026-07-22: Retain Exact Work Admission History In The Durable Queue
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-22-retain-exact-work-admission-history-in-the-durable-queue.md)
+
 ### 2026-07-22: Expose One Process-Isolated Durable Scheduler Cycle Through The CLI
 
 Status: Accepted Decision

@@ -18,7 +18,7 @@ public final class SingleWorkerSchedulerQueue {
 
     private final int maxWorkItems;
     private final Map<String, QueuedWork> pending = new LinkedHashMap<>();
-    private final Set<String> admittedWorkItemIds = new LinkedHashSet<>();
+    private final Map<String, QueuedWork> admittedWork = new LinkedHashMap<>();
     private final Set<String> completedWorkItemIds = new LinkedHashSet<>();
     private final Set<String> failedWorkItemIds = new LinkedHashSet<>();
     private String logicalRunId;
@@ -40,7 +40,11 @@ public final class SingleWorkerSchedulerQueue {
         Objects.requireNonNull(state, "state must not be null");
         this.maxWorkItems = state.maxWorkItems();
         this.logicalRunId = state.logicalRunId().orElse(null);
-        this.admittedWorkItemIds.addAll(state.admissionOrder());
+        for (QueuedWork queuedWork : state.admittedWork()) {
+            admittedWork.put(
+                    queuedWork.workItem().workItemId(),
+                    queuedWork);
+        }
         for (QueuedWork queuedWork : state.pendingWork()) {
             pending.put(
                     queuedWork.workItem().workItemId(),
@@ -56,17 +60,17 @@ public final class SingleWorkerSchedulerQueue {
     public void enqueue(QueuedWork queuedWork) {
         Objects.requireNonNull(queuedWork, "queuedWork must not be null");
         String workItemId = queuedWork.workItem().workItemId();
-        if (admittedWorkItemIds.contains(workItemId)) {
+        if (admittedWork.containsKey(workItemId)) {
             throw new IllegalArgumentException(
                     "work item identity has already been admitted");
         }
         for (String dependency : queuedWork.dependencyWorkItemIds()) {
-            if (!admittedWorkItemIds.contains(dependency)) {
+            if (!admittedWork.containsKey(dependency)) {
                 throw new IllegalArgumentException(
                         "dependency must already be admitted: " + dependency);
             }
         }
-        if (admittedWorkItemIds.size() >= maxWorkItems) {
+        if (admittedWork.size() >= maxWorkItems) {
             throw new IllegalStateException(
                     "Scheduler queue work-item capacity is exhausted");
         }
@@ -79,7 +83,7 @@ public final class SingleWorkerSchedulerQueue {
         if (logicalRunId == null) {
             logicalRunId = workLogicalRunId;
         }
-        admittedWorkItemIds.add(workItemId);
+        admittedWork.put(workItemId, queuedWork);
         pending.put(workItemId, queuedWork);
     }
 
@@ -167,7 +171,8 @@ public final class SingleWorkerSchedulerQueue {
                 revision,
                 maxWorkItems,
                 logicalRunId(),
-                List.copyOf(admittedWorkItemIds),
+                List.copyOf(admittedWork.keySet()),
+                List.copyOf(admittedWork.values()),
                 List.copyOf(pending.values()),
                 Optional.ofNullable(active),
                 completedWorkItemIds,
@@ -181,7 +186,7 @@ public final class SingleWorkerSchedulerQueue {
         Map<String, QueuedWork> recoverable = new LinkedHashMap<>(pending);
         recoverable.put(active.workItem().workItemId(), active);
         pending.clear();
-        for (String workItemId : admittedWorkItemIds) {
+        for (String workItemId : admittedWork.keySet()) {
             QueuedWork queuedWork = recoverable.get(workItemId);
             if (queuedWork != null) {
                 pending.put(workItemId, queuedWork);
@@ -189,5 +194,10 @@ public final class SingleWorkerSchedulerQueue {
         }
         active = null;
         return true;
+    }
+
+    Optional<QueuedWork> admittedWork(String workItemId) {
+        Objects.requireNonNull(workItemId, "workItemId must not be null");
+        return Optional.ofNullable(admittedWork.get(workItemId));
     }
 }

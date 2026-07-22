@@ -55,6 +55,23 @@ public final class QueuedWork {
         return dependencyWorkItemIds;
     }
 
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof QueuedWork that)) {
+            return false;
+        }
+        return workItem.equals(that.workItem)
+                && dependencyWorkItemIds.equals(that.dependencyWorkItemIds);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(workItem, dependencyWorkItemIds);
+    }
+
     private static String canonicalUuid(String value) {
         Objects.requireNonNull(
                 value, "dependencyWorkItemIds must not contain null");

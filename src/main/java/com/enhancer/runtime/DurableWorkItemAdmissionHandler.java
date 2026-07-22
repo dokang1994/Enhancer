@@ -34,7 +34,7 @@ public final class DurableWorkItemAdmissionHandler implements MessageHandler {
                 requiredCapability,
                 envelope);
         try {
-            queue.enqueue(new QueuedWork(workItem, Set.of()));
+            queue.admitIdempotently(new QueuedWork(workItem, Set.of()));
         } catch (IOException exception) {
             throw new UncheckedIOException(
                     "work item could not be persisted in the Scheduler queue",
