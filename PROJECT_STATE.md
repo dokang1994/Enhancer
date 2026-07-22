@@ -198,6 +198,12 @@ system, not open tasks; each is retired only by a bounded increment of its own.
 - Development-session checkpoints support one active local session per repository and
   have no background timer, token-budget introspection, platform shutdown hook,
   multi-session merge, remote replication, or automatic Git commit/stash behavior.
+- The current Contract Verified `AgentRunRetryDecider` still consumes terminal
+  `WorkItemDisposition` and treats `APPLIED`/`DEDUPLICATED` effects as resolved. The
+  accepted corrected design instead uses the exact failed AgentRun, keeps the WorkItem
+  active until the Goal is terminal, and admits automatic retry only for empty or
+  all-`COMPENSATED` effect history; that correction, schema-v2 history, finalizer split,
+  controller, and worker wiring are not implemented.
 
 ## Verification Evidence
 

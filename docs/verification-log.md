@@ -1019,3 +1019,26 @@ This assessment itself changed no production or test code and did not change Gat
 - Scope held: the decider creates, persists, and runs no AgentRun, mutates no
   queue/runtime/lease/fence/ledger state, resolves no ledger from a Goal, adds no
   durable store, schema, CLI, or production wiring, and grants no authority.
+
+## Gate 8 Retry Specification Boundary Correction Verification
+
+- Rewrote the attempt-level retry-decision specification and the durable
+  multi-attempt lifecycle specification without changing production Java.
+- The corrected contract separates failed AgentRun attempts from terminal Scheduler
+  WorkItem disposition, keeps the queue item active through admitted retries, permits
+  automatic retry only for empty or all-`COMPENSATED` effect history, and specifies
+  schema-v2 immutable AgentRun and retry-decision prefixes plus recoverable finalizer,
+  controller, and worker ordering.
+- Fresh `.\gradlew.bat test --tests
+  com.enhancer.architecture.DocumentOwnershipTest --tests
+  com.enhancer.architecture.DecisionLogIndexTest` completed successfully: 7 tests
+  across 2 suites, 0 skipped, 0 failures, and 0 errors. Raw XML is retained under
+  `build/test-results/test/TEST-com.enhancer.architecture.DocumentOwnershipTest.xml`
+  and `build/test-results/test/TEST-com.enhancer.architecture.DecisionLogIndexTest.xml`.
+- `git diff --check` produced no output and exited 0.
+- A stale-contract scan found no remaining specification declaration of the impossible
+  instance `admitted()` accessor, terminal WorkItem disposition as retry input,
+  all-APPLIED automatic safety, schema-v1 in-place lifecycle revision, or an unchanged
+  finalizer assumption.
+- Scope held: no production behavior, test behavior, capability maturity, runtime
+  artifact, commit, push, merge, release, or deployment changed.

@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### 2026-07-22: Separate Retryable AgentRun Failure From Terminal WorkItem Disposition
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-22-separate-retryable-agentrun-failure-from-terminal-workitem-disposition.md)
+
 ### 2026-07-22: Decide Bounded AgentRun Retry On Attempt Budget And External Effect Resolution
 
 Status: Accepted Decision

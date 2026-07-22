@@ -379,6 +379,34 @@ trailing, unsupported, symbolic-link-root, or non-monotonic state. An unresolved
 connection consumes this ledger; an owning Tool or adapter must still supply evidence
 for the reported remote outcome.
 
+### Gate 8 Corrected Multi-Attempt Retry Boundary
+
+AgentRun attempt failure and Scheduler WorkItem failure are separate lifecycle facts.
+The retry decision consumes the exact latest failed `RuntimeAgentRun`; it never consumes
+or fabricates terminal `WorkItemDisposition.FAILED`. The queue keeps the WorkItem active
+while its Goal is `ACTIVE` or `RETRY_PENDING`, and a queue disposition is written only
+after the whole Goal becomes `COMPLETED` or terminal `FAILED`.
+
+RunRecord-backed result recording and queue finalization are separate recoverable steps.
+A non-Verified attempt result terminates that AgentRun as `FAILED` and moves the Goal to
+durable non-terminal `RETRY_PENDING`. The bound ledger and immutable attempt count then
+produce one typed retry decision that persists before either a checkpointed replacement
+AgentRun is appended or the Goal is abandoned. Recovery from `RETRY_PENDING` must not
+derive queue failure from the terminal attempt alone.
+
+Automatic retry is fail-closed against external effects: only an empty Goal ledger or
+one whose every effect is `COMPENSATED` admits another attempt. `PREPARED`,
+`REQUIRES_USER_RECOVERY`, `APPLIED`, and `DEDUPLICATED` refuse automatic retry until a
+separate cross-attempt adapter/idempotency contract exists. A known outcome is not by
+itself proof that re-execution is safe.
+
+The target runtime payload is schema v2 with an ordered immutable AgentRun list, a latest
+projection, Goal-wide monotonic fences, and an ordered typed retry-decision ledger.
+Persistence enforces exact history and decision prefixes and rejects truncation,
+rewrite, reordering, invalid append, stale revision, and unsupported schema. Schema-v1
+migration is a separate task; the incompatible payload is not revised in place under the
+same version number.
+
 Which connections exist today is stated in `PROJECT_STATE.md`; the cross-boundary connection sequence remains dependency ordered:
 
 | Order | Connection | Owning boundary | Required durable ordering |
@@ -388,7 +416,7 @@ Which connections exist today is stated in `PROJECT_STATE.md`; the cross-boundar
 | 3 | process-isolated worker and local IPC | Gate 7 transport + Gate 8 worker runtime + Gate 11 Tool controls | worker cycle-intent persists before the claim; the RunRecord reference persists before spool cleanup and acknowledgement; exact work/result route and record binding fail closed; transport acceptance never means bus delivery or work completion |
 | 4 | durable cancel/pause/resume | Gate 7 control delivery + Gate 8 request state + Gate 12 authenticated application | persist the bound request before handler success; later application must persist accepted control state before exposure and cannot create scope or authority |
 | 5 | external-effect commit and adapter evidence | Gate 8 Scheduler, with the owning Tool/adapter gate | persist prepared intent under the current fence -> invoke through an authorized adapter -> persist the evidenced applied, deduplicated, compensated, or user-recovery outcome |
-| 6 | retry and replacement AgentRuns | Gate 8 Scheduler | preserve terminal history and create a new immutable AgentRun under bounded policy rather than rewriting a failed run |
+| 6 | retry and replacement AgentRuns | Gate 8 Scheduler | persist attempt result without queue failure -> bind exact Goal ledger and attempt count -> persist typed decision -> append a checkpointed immutable AgentRun or terminally abandon Goal -> write one final queue disposition |
 | 7 | typed handoff and multi-agent execution | Gate 13 over Gates 7 and 8 | require an Operational single-agent baseline, isolated ownership, deterministic synthesis, and one Kernel terminal-state coordinator |
 
 Each cross-store step persists its earlier authoritative artifact before the later derived artifact. Recovery re-enters idempotently from the durable prefix; it does not claim an atomic transaction. Authenticated control application, external-adapter effect execution/evidence, retry policy, and handoff coordination remain unimplemented until their own bounded tasks and fresh integration evidence exist.

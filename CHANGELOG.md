@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-07-22 - Correct Gate 8 Multi-Attempt Retry Specifications
+
+- Separated retryable AgentRun attempt failure from terminal Scheduler WorkItem
+  disposition so an admitted retry keeps the queue item active.
+- Rewrote the retry decision and durable multi-attempt specifications around an exact
+  failed-attempt input, empty/all-compensated external-effect safety, schema-v2 immutable
+  attempt and decision prefixes, split result/final-disposition operations, and an
+  interruption-recoverable controller/worker order.
+- Recorded the correction as an accepted design without changing production Java or
+  promoting current capability maturity.
+
 ## 2026-07-21 - Persist Fence-Checked External Effect Outcomes
 
 - Added one bounded schema-v1 external-effect ledger per Goal, with stable idempotency
