@@ -27,6 +27,15 @@ import com.enhancer.run.FileSystemRunRecordStore;
 import com.enhancer.run.FinalizedAgentRun;
 import com.enhancer.run.ResolvedRunRecord;
 import com.enhancer.run.RunRecord;
+import com.enhancer.runtime.AgentRunRetryPolicy;
+import com.enhancer.runtime.DurableAgentRunWorker;
+import com.enhancer.runtime.DurableSingleWorkerSchedulerQueue;
+import com.enhancer.runtime.FileSystemAgentRuntimeStateStore;
+import com.enhancer.runtime.FileSystemExternalEffectLedgerStore;
+import com.enhancer.runtime.FileSystemPendingFinalizationStore;
+import com.enhancer.runtime.FileSystemSchedulerQueueStore;
+import com.enhancer.runtime.MissingSchedulerQueueStateException;
+import com.enhancer.runtime.WorkItemDisposition;
 import com.enhancer.session.DevelopmentSessionCheckpoint;
 import com.enhancer.session.DevelopmentSessionCheckpointConflictException;
 import com.enhancer.session.DevelopmentSessionCheckpointInspection;
@@ -52,6 +61,7 @@ import com.enhancer.workspace.WorkspaceSourceObservation;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.time.Duration;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -92,6 +102,9 @@ public final class EnhancerCli {
             }
             if (command instanceof ReplayCliCommand replay) {
                 return executeReplay(replay, stdout);
+            }
+            if (command instanceof SchedulerCycleCliCommand cycle) {
+                return executeSchedulerCycle(cycle, stdout);
             }
             if (command instanceof CheckpointStartCliCommand start) {
                 return executeCheckpointStart(start, stdout);
@@ -403,6 +416,60 @@ public final class EnhancerCli {
                 "verificationStatus=" + record.verification().status(),
                 "verificationCode=" + record.verification().code(),
                 "iterations=" + record.iterations()) + "\n");
+        return exitCode.code();
+    }
+
+    private int executeSchedulerCycle(
+            SchedulerCycleCliCommand command,
+            PrintStream stdout) throws IOException {
+        DurableSingleWorkerSchedulerQueue queue;
+        DurableAgentRunWorker worker;
+        FileSystemRunRecordStore runRecordStore =
+                new FileSystemRunRecordStore(command.runRecordRoot());
+        try {
+            queue = DurableSingleWorkerSchedulerQueue.recover(
+                    command.queueId(),
+                    new FileSystemSchedulerQueueStore(command.queueRoot()));
+            worker = DurableAgentRunWorker.processIsolated(
+                    queue,
+                    new FileSystemAgentRuntimeStateStore(command.runtimeRoot()),
+                    new FileSystemExternalEffectLedgerStore(command.externalEffectRoot()),
+                    new FileSystemPendingFinalizationStore(command.cycleCheckpointRoot()),
+                    command.projectRoot(),
+                    command.evidenceRoot(),
+                    command.runRecordRoot(),
+                    command.invocationRoot(),
+                    runRecordStore,
+                    command.ownerId(),
+                    Clock.systemUTC(),
+                    command.processTimeout(),
+                    AgentRunRetryPolicy.of(command.maxAttempts()));
+        } catch (MissingSchedulerQueueStateException exception) {
+            throw new CliUsageException(
+                    "queue configuration is invalid: " + safeMessage(exception),
+                    exception);
+        } catch (IllegalArgumentException exception) {
+            throw new CliUsageException(
+                    "scheduler-cycle input is invalid: " + safeMessage(exception),
+                    exception);
+        }
+
+        Optional<WorkItemDisposition> disposition =
+                worker.runOneCycle(command.leaseDuration());
+        String status = disposition.map(Enum::name).orElse("IDLE");
+        CliExitCode exitCode = disposition
+                .filter(value -> value == WorkItemDisposition.FAILED)
+                .map(ignored -> CliExitCode.SCHEDULER_WORK_FAILED)
+                .orElse(CliExitCode.COMPLETED);
+        writeBounded(stdout, String.join("\n",
+                "status=" + status,
+                "exitCode=" + exitCode.code(),
+                "queueId=" + queue.queueId(),
+                "queueRevision=" + queue.revision(),
+                "pendingWorkItems=" + queue.pendingCount(),
+                "completedWorkItems=" + queue.completedWorkItemIds().size(),
+                "failedWorkItems=" + queue.failedWorkItemIds().size(),
+                "runRecords=" + runRecordStore.references().size()) + "\n");
         return exitCode.code();
     }
 

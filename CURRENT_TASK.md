@@ -6,92 +6,85 @@ Completed
 
 ## Task
 
-Wire `DurableAgentRunRetryController` into `DurableAgentRunWorker` so one active WorkItem
-can recoverably execute a checkpointed replacement AgentRun after an admitted decision,
-or reach one terminal failed queue disposition after a refused decision.
+Expose one recoverable process-isolated `DurableAgentRunWorker` cycle through a supported
+local `scheduler-cycle` CLI command over an already-existing durable Scheduler queue.
 
 ## Task ID
 
-wire-retry-aware-worker-recovery
+expose-durable-scheduler-cycle-cli
 
 ## Context
 
-The runtime, finalizer, retry decider, and durable retry controller now preserve the
-correct attempt-level boundary, but the Worker still parks forever when a Goal reaches
-`RETRY_PENDING`. Its cycle-intent checkpoint records only the current AgentRun and
-RunRecord reference, so no durable prefix can distinguish an admitted decision before a
-replacement identity is appended.
+The real work-message path now reaches `DurableSingleWorkerSchedulerQueue`, and the
+downstream Worker composes durable runtime, external-effect ledger, checkpoint,
+process-isolated execution, RunRecord finalization, retry, and terminal disposition.
+No supported caller constructs that composition; every execution integration still
+invokes Java test fixtures directly.
 
-The Worker must also establish one exact empty Goal ledger before the first execution.
-That creation is a normal Goal-start artifact, not a decision-time fallback: retry
-decision recording must continue to fail closed if the expected ledger is missing.
+Combining submission and execution in one first command would require a new durable
+invocation manifest and exact cross-bus admission replay contract so a restarted command
+could distinguish new submission, interrupted admission, active execution, and an
+already-terminal queue. The smallest honest entry point therefore recovers one
+caller-prepared queue and runs exactly one Worker cycle without creating or admitting
+work.
 
 ## Justified By
 
-- 2026-07-22: Separate Retryable AgentRun Failure From Terminal WorkItem Disposition
-- 2026-07-22: Decide Bounded AgentRun Retry On Attempt Budget And External Effect Resolution
+- 2026-07-21: Select The Process-Isolated Durable Worker And Retire Spools After Checkpoint
+- 2026-07-22: Connect Work Admission To The Durable Scheduler Queue Through A Persist-First Handler
 - 2026-07-17: Record In-Process Scheduler Worker Driving One Recoverable Claim-To-Disposition Cycle Through A Durable Cycle-Intent Checkpoint
 
 ## Acceptance Criteria
 
-- `PendingFinalization` durably distinguishes the current AgentRun/optional RunRecord
-  reference from an optional checkpointed replacement AgentRun identity. Identity and
-  phase invariants reject collisions or a replacement without a completed current
-  attempt reference.
-- `FileSystemPendingFinalizationStore` persists the extended checkpoint in an explicit
-  schema version, round-trips every phase, and continues to fail closed on unsupported,
-  corrupt, truncated, oversized, trailing, or invalid state. No schema-v1 migration is
-  inferred.
-- The Worker and `processIsolated` composition require an explicit bounded
-  `AgentRunRetryPolicy` and external-effect store. The first dispatched Goal creates one
-  exact empty ledger before execution; recovery reuses an existing ledger and never
-  overwrites or invents one during retry decision recording.
-- After a failed attempt reaches `RETRY_PENDING`, the Worker records or replays the exact
-  controller decision. A refused decision abandons the Goal, records one queue `FAILED`
-  disposition, clears the checkpoint, and never executes a replacement.
-- For an admitted decision, the Worker checkpoints one canonical replacement AgentRun
-  identity before asking the controller to append it. It then rewrites the cycle intent
-  to that replacement with no stale RunRecord reference and drives the existing active
-  WorkItem through the normal fenced execution/finalization path.
-- Recovery is idempotent when interrupted before decision persistence, after admitted
-  decision persistence, after replacement-ID checkpointing, after replacement append,
-  after cycle-intent rollover, and after the replacement RunRecord reference is
-  checkpointed. No completed attempt is executed twice and no extra replacement is
-  appended.
-- A failed first attempt followed by a Verified second attempt produces one
-  `VERIFIED_COMPLETED` disposition and releases dependents. Two failed attempts under a
-  two-attempt policy produce one terminal `FAILED` disposition and leave dependents
-  blocked. Goal-wide fences and immutable attempt/decision histories remain intact.
-- Focused state/store/worker tests and a named real-filesystem queue/runtime/ledger/
-  checkpoint/RunRecord integration prove the forward and recovery paths. The full Gradle
-  build, strict Java lint, structural-document checks, and diff checks pass with fresh
-  evidence.
+- `scheduler-cycle` requires explicit project, queue, runtime, external-effect,
+  cycle-checkpoint, evidence, RunRecord, and invocation roots; canonical queue identity;
+  bounded owner identity, attempt count, lease duration, and process timeout. It infers
+  no repository or user-profile storage path.
+- The command recovers an existing `DurableSingleWorkerSchedulerQueue` and constructs
+  `DurableAgentRunWorker.processIsolated` with one shared queue instance, real filesystem
+  stores, system UTC clock, explicit retry policy, and bounded durations. It never
+  creates a queue or admits a WorkItem.
+- One invocation runs exactly one recoverable Worker cycle. Empty work reports `IDLE`
+  with exit 0; Verified completion reports `VERIFIED_COMPLETED` with exit 0; terminal
+  failed disposition reports `FAILED` through one new stable Scheduler-specific non-zero
+  exit code. Output is bounded and reports no evidence content or secret material.
+- Missing queue/configuration and malformed numeric/duration input return bounded
+  usage/configuration failure. Corruption, execution, or unexpected storage failure is
+  not misreported as success.
+- A named CLI integration prepares work through the production durable admission path,
+  runs the real child-process Worker through the command, resolves the persisted
+  RunRecord, observes the terminal queue disposition and cleared cycle checkpoint, and
+  proves restart-safe recovery from an already persisted Worker prefix.
+- Focused argument/CLI/integration tests, the full Gradle build, strict Java lint,
+  structural-document checks, and diff checks pass with fresh evidence.
 
 ## Out Of Scope
 
-- External adapter invocation, automatic compensation, cross-attempt idempotency-key
-  reuse, user override, delay/backoff, token/time budgets, priority/fairness, authenticated
-  control application, or concurrent/multi-process workers.
-- Runtime schema-v1 migration, queue or runtime schema changes, new RunRecord semantics,
-  orphaned RunRecord cleanup, supported CLI wiring, multi-agent execution, release, or
-  deployment.
-- Commit, push, PR, or merge unless separately requested.
+- Queue creation, work submission, durable Message Bus journal, exact cross-bus
+  admission history, worker polling/service loops, concurrent commands, background
+  execution, authenticated control application, or arbitrary dependency submission.
+- External adapter invocation/evidence, compensation, cross-attempt effect identity,
+  queue/runtime schema migration, priority/fairness, distributed coordination, Gate 9,
+  or whole-Gate Operational promotion.
+- Commit, push, PR, merge, release, or deployment unless separately requested.
 
 ## Approval
 
-The user explicitly asked to continue the project on 2026-07-22, activating the next task
-recorded by the completed durable retry-controller increment.
+The user explicitly asked to continue the project on 2026-07-22. The completed durable
+admission task named the minimal supported Scheduler entry-point assessment as next; the
+assessment selected this recovery-only one-cycle command.
 
 ## Verification
 
-Focused RED reached test compilation and failed with the expected four missing-signature
-errors. Expanded focused verification passed 46 tests across five controller, checkpoint,
-Worker, and filesystem integration suites. Fresh `clean test` passed 81 suites and 440
-tests with 3 existing Windows privilege skips, 0 failures, and 0 errors under the
-build-enforced Java 17 `-Xlint:all -Werror`. Final structural-document and diff evidence
-is recorded in `docs/verification-log.md`.
+Focused GREEN passed the argument and CLI integration suites, including a real child
+JVM. After document synchronization, a fresh full `build --rerun-tasks` passed all 7
+build tasks and 84 suites/451 tests: 448 passed, 3 existing privilege-dependent Windows
+skips, 0 failures, and 0 errors under build-enforced Java 17 strict lint. A separate
+fresh structural/self-hosting rerun passed 20 tests across 5 suites: 19 passed, 1 existing
+Windows privilege skip, 0 failures, and 0 errors. `git diff --check` produced no output.
 
 ## Next
 
-Assess the remaining Gate 8 single-agent runtime connection gaps after retry-aware Worker
-integration, without starting authenticated controls, external-effect adapters, or Gate 9.
+After this task, assess the remaining Gate 8 Operational blockers, including exact
+cross-bus admission recovery and an end-user submission manifest, without starting
+authenticated controls, external-effect adapters, or Gate 9.

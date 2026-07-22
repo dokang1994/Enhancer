@@ -99,7 +99,22 @@ Replay the printed opaque reference without re-executing the Tool:
 .\scripts\gradle.ps1 run --args="replay --run-record-root C:\Enhancer\.enhancer\run-records --reference run-record/<uuid>"
 ```
 
-Exit codes are stable: `0` completed, `2` usage/configuration, `10` verification failed, `20` policy denied, `21` Tool failed, `30` stagnated, `31` maximum iterations, and `70` internal failure. Every `run` that produces a record also reports `workspaceSnapshotId`, `workspaceObservations` (repository documents plus prior run records), a `memoryFreshness` matched/diverged/notObserved summary, and bounded Project Brain graph counts (`graphNodes`, `graphEdges`, `graphDecisions`, `impactExecutions`); replay does not reproduce the snapshot identity because the RunRecord does not store it. Output is capped at 4096 characters and never includes complete file evidence. The example `.enhancer/` runtime directory is Git-ignored and is not removed by Gradle `clean`. `--evidence-root` and `--run-record-root` are explicit caller inputs and are not confined to the project root; each store refuses a symbolic-link root and only creates new UUID-named entries, so it can add files to the directory you name but cannot overwrite what is already there. For recovery, correct the reported configuration or target, retain the evidence and RunRecord roots, and use `replay` for any printed record reference before retrying with a new run.
+Exit codes are stable: `0` completed, `2` usage/configuration, `10` verification failed, `20` policy denied, `21` Tool failed, `30` stagnated, `31` maximum iterations, `40` terminal Scheduler work failure, and `70` internal failure. Every `run` that produces a record also reports `workspaceSnapshotId`, `workspaceObservations` (repository documents plus prior run records), a `memoryFreshness` matched/diverged/notObserved summary, and bounded Project Brain graph counts (`graphNodes`, `graphEdges`, `graphDecisions`, `impactExecutions`); replay does not reproduce the snapshot identity because the RunRecord does not store it. Output is capped at 4096 characters and never includes complete file evidence. The example `.enhancer/` runtime directory is Git-ignored and is not removed by Gradle `clean`. `--evidence-root` and `--run-record-root` are explicit caller inputs and are not confined to the project root; each store refuses a symbolic-link root and only creates new UUID-named entries, so it can add files to the directory you name but cannot overwrite what is already there. For recovery, correct the reported configuration or target, retain the evidence and RunRecord roots, and use `replay` for any printed record reference before retrying with a new run.
+
+## Recover One Durable Scheduler Cycle
+
+`scheduler-cycle` recovers an already-existing durable Scheduler queue and runs exactly
+one process-isolated Worker cycle. It does not create a queue, submit work, or poll. All
+storage roots, identities, retry bounds, and durations are explicit caller inputs:
+
+```powershell
+.\scripts\gradle.ps1 run --args="scheduler-cycle --project-root C:\Enhancer --queue-root C:\Enhancer\.enhancer\queue --queue-id <canonical-queue-uuid> --runtime-root C:\Enhancer\.enhancer\runtime --external-effect-root C:\Enhancer\.enhancer\effects --cycle-checkpoint-root C:\Enhancer\.enhancer\scheduler-checkpoint --evidence-root C:\Enhancer\.enhancer\evidence --run-record-root C:\Enhancer\.enhancer\run-records --invocation-root C:\Enhancer\.enhancer\invocations --owner-id local-scheduler --max-attempts 2 --lease-millis 300000 --process-timeout-millis 30000"
+```
+
+The bounded result status is `IDLE`, `VERIFIED_COMPLETED`, or `FAILED`. Idle and
+verified completion exit `0`; terminal failed work exits `40`. Missing queue state or
+malformed input exits `2`, while corrupt state and unexpected execution/storage errors
+exit `70`. Preserve every named root to resume a checkpointed cycle after interruption.
 
 ## Development Session Checkpoints
 

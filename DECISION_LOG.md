@@ -11,6 +11,18 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### 2026-07-22: Expose One Process-Isolated Durable Scheduler Cycle Through The CLI
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-22-expose-one-process-isolated-durable-scheduler-cycle-through-the-cli.md)
+
+### 2026-07-22: Connect Work Admission To The Durable Scheduler Queue Through A Persist-First Handler
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-22-connect-work-admission-to-the-durable-scheduler-queue.md)
+
 ### 2026-07-22: Separate Retryable AgentRun Failure From Terminal WorkItem Disposition
 
 Status: Accepted Decision

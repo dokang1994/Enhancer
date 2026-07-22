@@ -276,6 +276,17 @@ Per-cycle work/result spools remain until `DurableAgentRunWorker` has persisted 
 
 `WorkItemAdmissionHandler` is the matching Gate 7-to-Gate 8 adapter. It retains the delivered envelope unchanged inside one `WorkItem` using injected identity generation, required capability, and downstream sink. It creates no approval, storage, ordering, execution, or Scheduler semantics. A named integration test connects the real Context Reader and Workspace collector through the real bus, journal, and replay path to this admission boundary and proves unchanged authorization/provenance projections plus duplicate-free replay.
 
+`DurableWorkItemAdmissionHandler` is the separate persist-first consumer that connects
+this path to `DurableSingleWorkerSchedulerQueue`. It maps the canonical message UUID
+through a fixed one-to-one domain transform, producing one stable canonical WorkItem
+identity distinct from its source message, retains the exact envelope, adds no
+dependencies or authority, and calls durable enqueue before handler success. Checked
+storage failure becomes handler failure under the bus retry/dead-letter policy; the
+queue's persist-before-exposure behavior prevents a failed write from appearing in
+memory. Same-bus replay remains duplicate-free. A fresh bus re-delivering an already
+persisted identity fails closed rather than adding a second item; idempotent success
+across bus restarts requires exact durable admission history and is not claimed.
+
 The work-admission path exercises `WorkPayload`, message/correlation/run/producer identity, queue delivery, journaling, replay, and duplicate suppression. Process-isolated execution separately supplies one named `MessageTransport` work/result path with non-empty result causation. Control and handoff payloads; topic delivery; and failure/retry/dead-letter, cancellation, re-entrant ordering, and backpressure branches still have no named real upstream-to-downstream production connection. Those missing connections remain required before Gate 7 can be promoted as a whole.
 
 ## Agent Runtime Model
@@ -361,7 +372,18 @@ Cleanup failure retains the checkpoint and retries without re-execution; pre-ref
 execution can still orphan a RunRecord under the accepted at-least-once contract. The
 dispatcher and finalizer must share one queue instance. `processIsolated` selects the real
 child launcher and per-cycle spools with the same explicit retry policy and ledger store;
-it adds no supported Scheduler entry point or external-adapter behavior.
+it adds no external-adapter behavior.
+
+`scheduler-cycle` is the first supported Scheduler entry point. It is a recovery-only
+one-cycle boundary over an already-existing durable queue: the caller supplies every
+project/store root, queue and owner identity, retry bound, lease duration, and child
+timeout. The command recovers one queue, composes `processIsolated` with the real
+filesystem stores and system UTC clock, and invokes exactly one cycle. It never creates
+a queue or admits work. Bounded output distinguishes `IDLE`, `VERIFIED_COMPLETED`, and
+terminal `FAILED`; the failed disposition has its own non-zero exit code, while missing
+queue/configuration is usage failure and corruption/execution failure remains internal.
+This is not a submission manifest, polling service, durable bus, or Gate 8 Operational
+promotion.
 
 `AgentLoopAgentRunExecution` is the first production implementation of that port: it drives the Integrated Gate 1-4 pipeline (governed `read-file` `ToolExecutor`, `EvidenceRecorder`-persisted evidence, the bounded `AgentRunController`/`AgentLoop`, `DeterministicReadFileVerifier`, and the application `AgentRunFinalizer`) against the approved task's own source document — the `read-file` target is `taskRevision().sourceDocument()` and the expected content SHA-256 is `taskRevision().sourceSha256()` — and returns the persisted `run-record/<uuid>` reference. The `ApprovedTask` is constructed directly from the WorkItem's fields (no `ApprovedTaskReader`, no `In Progress` coupling), so the runtime finalizer's taskId-plus-sourceDocument binding holds by construction; the port must persist through the same `RunRecordStore` the worker's finalizer resolves from. A digest mismatch or Tool failure is carried in a persisted non-`VERIFIED` RunRecord, never thrown, and is real drift detection; the runtime result boundary records it as a failed attempt at `RETRY_PENDING` without a terminal queue disposition. The derivation of `(targetPath, expectedContentSha256)` from the WorkItem sits behind one private seam.
 

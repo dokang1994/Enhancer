@@ -1,8 +1,12 @@
 package com.enhancer.cli;
 
+import com.enhancer.runtime.AgentRunLease;
+import com.enhancer.runtime.AgentRunRetryPolicy;
+import com.enhancer.runtime.IsolatedWorkerLauncher;
 import com.enhancer.session.DevelopmentSessionCheckpointState;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.LinkedHashMap;
@@ -20,6 +24,20 @@ final class CliArguments {
             "evidence-root",
             "run-record-root");
     private static final Set<String> REPLAY_OPTIONS = Set.of("run-record-root", "reference");
+    private static final Set<String> SCHEDULER_CYCLE_OPTIONS = Set.of(
+            "project-root",
+            "queue-root",
+            "queue-id",
+            "runtime-root",
+            "external-effect-root",
+            "cycle-checkpoint-root",
+            "evidence-root",
+            "run-record-root",
+            "invocation-root",
+            "owner-id",
+            "max-attempts",
+            "lease-millis",
+            "process-timeout-millis");
     private static final Set<String> CHECKPOINT_START_OPTIONS = Set.of(
             "project-root", "step", "next-action");
     private static final Set<String> CHECKPOINT_RECORD_OPTIONS = Set.of(
@@ -42,6 +60,8 @@ final class CliArguments {
         return switch (command) {
             case "run" -> parseRun(parseOptions(arguments, RUN_OPTIONS));
             case "replay" -> parseReplay(parseOptions(arguments, REPLAY_OPTIONS));
+            case "scheduler-cycle" -> parseSchedulerCycle(
+                    parseOptions(arguments, SCHEDULER_CYCLE_OPTIONS));
             case "checkpoint-start" -> parseCheckpointStart(arguments);
             case "checkpoint-record" -> parseCheckpointRecord(arguments);
             case "checkpoint-show" -> new CheckpointShowCliCommand(
@@ -115,6 +135,44 @@ final class CliArguments {
         return new ReplayCliCommand(
                 path(options.get("run-record-root"), "run-record-root"),
                 nonBlank(options.get("reference"), "reference"));
+    }
+
+    private static SchedulerCycleCliCommand parseSchedulerCycle(
+            Map<String, String> options) {
+        long maxAttempts = positiveLong(options.get("max-attempts"), "max-attempts");
+        if (maxAttempts > AgentRunRetryPolicy.MAX_ATTEMPTS) {
+            throw new CliUsageException(
+                    "max-attempts must not exceed " + AgentRunRetryPolicy.MAX_ATTEMPTS);
+        }
+        Duration leaseDuration = boundedDuration(
+                options.get("lease-millis"),
+                "lease-millis",
+                AgentRunLease.MAX_DURATION);
+        Duration processTimeout = boundedDuration(
+                options.get("process-timeout-millis"),
+                "process-timeout-millis",
+                IsolatedWorkerLauncher.MAX_TIMEOUT);
+        String ownerId = nonBlank(options.get("owner-id"), "owner-id");
+        if (ownerId.length() > AgentRunLease.MAX_OWNER_CHARACTERS) {
+            throw new CliUsageException(
+                    "owner-id must not exceed "
+                            + AgentRunLease.MAX_OWNER_CHARACTERS
+                            + " characters");
+        }
+        return new SchedulerCycleCliCommand(
+                path(options.get("project-root"), "project-root"),
+                path(options.get("queue-root"), "queue-root"),
+                nonBlank(options.get("queue-id"), "queue-id"),
+                path(options.get("runtime-root"), "runtime-root"),
+                path(options.get("external-effect-root"), "external-effect-root"),
+                path(options.get("cycle-checkpoint-root"), "cycle-checkpoint-root"),
+                path(options.get("evidence-root"), "evidence-root"),
+                path(options.get("run-record-root"), "run-record-root"),
+                path(options.get("invocation-root"), "invocation-root"),
+                ownerId,
+                (int) maxAttempts,
+                leaseDuration,
+                processTimeout);
     }
 
     private static Map<String, String> parseOptions(
@@ -194,6 +252,18 @@ final class CliArguments {
         } catch (NumberFormatException exception) {
             throw new CliUsageException(name + " must be a positive integer", exception);
         }
+    }
+
+    private static Duration boundedDuration(
+            String value,
+            String name,
+            Duration maximum) {
+        long millis = positiveLong(value, name);
+        Duration duration = Duration.ofMillis(millis);
+        if (duration.compareTo(maximum) > 0) {
+            throw new CliUsageException(name + " must not exceed " + maximum.toMillis());
+        }
+        return duration;
     }
 
     private static String nonBlank(String value, String name) {

@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-07-22 - Expose One Recoverable Durable Scheduler Cycle
+
+- Added the recovery-only `scheduler-cycle` CLI over one explicitly identified existing
+  durable queue, with explicit filesystem roots, owner identity, retry bound, lease, and
+  child-process timeout rather than inferred storage or implicit queue creation.
+- Composed the real process-isolated durable Worker and reported bounded `IDLE`,
+  `VERIFIED_COMPLETED`, or terminal `FAILED` status, including a stable Scheduler failure
+  exit code distinct from usage/configuration and internal errors.
+- Added a named integration that admits work through the production durable handler,
+  resumes a persisted Worker prefix, runs the real child JVM, resolves the RunRecord,
+  observes queue disposition, and verifies checkpoint cleanup; no submission manifest,
+  polling service, external adapter, or Gate 8 Operational promotion was added.
+
+## 2026-07-22 - Connect Work Messages To The Durable Scheduler Queue
+
+- Added a separate persist-first durable work-admission handler that maps each canonical
+  message UUID to one stable distinct WorkItem identity and enqueues dependency-free work
+  without adding task, Tool, or dependency authority.
+- Connected real repository-approved work and a Workspace snapshot through publication,
+  the in-process queue, and filesystem-backed Scheduler persistence, then recovered and
+  claimed the exact WorkItem from a fresh queue instance.
+- Preserved bus retry/dead-letter visibility for storage failure, same-bus duplicate
+  suppression, and fail-closed fresh-bus re-delivery without claiming cross-restart
+  idempotent success.
+
 ## 2026-07-22 - Integrate Retry-Aware AgentRun Worker Recovery
 
 - Extended the cycle-intent checkpoint with a schema-v2 replacement AgentRun phase and

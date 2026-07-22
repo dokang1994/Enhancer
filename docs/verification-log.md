@@ -1174,3 +1174,58 @@ This assessment itself changed no production or test code and did not change Gat
   build-enforced Java 17 `-Xlint:all -Werror` compilation and all structural guards.
 - `git diff --check` produced no output and exited 0 after the final full build and before
   this append.
+
+## Durable Work-Message Admission To The Scheduler Queue
+
+- Focused RED reached test compilation and failed with seven aligned missing-symbol
+  errors for the not-yet-implemented `DurableWorkItemAdmissionHandler`. No unrelated,
+  flaky, configuration, privilege, or scope-expanding failure appeared.
+- The first focused GREEN passed 4 tests across the new handler and real-filesystem
+  integration suites. Expanded focused verification passed 27 tests across 7 handler,
+  existing/new messaging integration, queue-state, durable-queue, and filesystem-store
+  suites with 0 skips, failures, or errors.
+- The named `DurableMessagingRuntimeIntegrationTest` path loads a real repository-derived
+  approved task and Workspace snapshot, publishes through the real in-process queue,
+  persists through `FileSystemSchedulerQueueStore`, and recovers and claims the exact
+  unchanged WorkItem from a fresh durable queue instance. Same-bus replay is duplicate;
+  fresh-bus re-delivery is explicitly tested as a fail-closed dead letter with one queue
+  revision and one pending item rather than a second admission.
+- Fresh `.\gradlew.bat build --rerun-tasks` passed all 7 build tasks and 83 suites/445
+  tests: 442 passed, 3 existing privilege-dependent Windows symbolic-link setup cases
+  skipped, 0 failures, and 0 errors under build-enforced Java 17 `-Xlint:all -Werror`.
+- After document synchronization, a fresh structural/self-hosting rerun passed 20 tests
+  across `DocumentOwnershipTest`, `DecisionLogIndexTest`,
+  `RuntimePackageBoundaryTest`, `ProjectContextReaderTest`, and
+  `RepositoryTaskPlannerTest`: 19 passed, 1 existing Windows symbolic-link setup case
+  skipped, 0 failures, and 0 errors. `git diff --check` produced no output and exited 0
+  before this append.
+- Scope held: no supported Scheduler command, worker polling loop, authenticated control
+  application, external adapter/effect execution, exact cross-bus admission history,
+  arbitrary dependencies, queue schema migration, Gate 9, commit, push, merge, release,
+  or deployment was added.
+
+## Recoverable Process-Isolated Scheduler Cycle CLI
+
+- Focused RED reached test compilation and failed with the aligned missing-symbol error
+  for the not-yet-implemented `SchedulerCycleCliCommand`. No unrelated, flaky,
+  configuration, privilege, or scope-expanding failure appeared.
+- Focused GREEN passed the argument and CLI integration suites. The named
+  `EnhancerCliSchedulerCycleIntegrationTest` admits work through the production durable
+  handler, resumes an already persisted cycle-intent prefix, invokes the real child JVM,
+  resolves one RunRecord, observes verified or failed terminal queue disposition, and
+  verifies checkpoint cleanup; empty and missing-queue branches are also covered.
+- The first fresh full regression passed 84 suites and 451 tests: 448 passed, 3 existing
+  privilege-dependent Windows symbolic-link setup cases skipped, 0 failures, and 0
+  errors under build-enforced Java 17 strict lint.
+- After document synchronization, fresh `.\scripts\gradle.ps1 build --rerun-tasks`
+  passed all 7 build tasks and the same 84 suites/451 tests with 3 existing skips, 0
+  failures, and 0 errors. A separate fresh structural/self-hosting rerun passed 20 tests
+  across `DocumentOwnershipTest`, `DecisionLogIndexTest`,
+  `RuntimePackageBoundaryTest`, `ProjectContextReaderTest`, and
+  `RepositoryTaskPlannerTest`: 19 passed, 1 existing Windows privilege skip, 0 failures,
+  and 0 errors. `git diff --check` produced no output and exited 0 before this append.
+- Scope held: the command recovers only an existing queue and runs one cycle. No queue
+  creation, work submission, durable bus journal, exact cross-bus replay, polling
+  service, authenticated control application, external adapter/effect execution, Gate 9,
+  whole-gate Operational promotion, commit, push, merge, release, or deployment was
+  added.

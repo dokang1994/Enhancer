@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.file.Path;
+import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -71,5 +72,70 @@ class CliArgumentsTest {
                 "--evidence-root", temporaryRoot.resolve("evidence").toString(),
                 "--run-record-root", temporaryRoot.resolve("records").toString()
         }));
+    }
+
+    @Test
+    void parsesEveryExplicitSchedulerCycleInput() {
+        SchedulerCycleCliCommand cycle = (SchedulerCycleCliCommand) CliArguments.parse(
+                schedulerCycleArguments("2", "300000", "20000"));
+
+        assertEquals(temporaryRoot.resolve("project").toAbsolutePath().normalize(),
+                cycle.projectRoot());
+        assertEquals(temporaryRoot.resolve("queue").toAbsolutePath().normalize(),
+                cycle.queueRoot());
+        assertEquals("00000000-0000-0000-0000-000000000801", cycle.queueId());
+        assertEquals(temporaryRoot.resolve("runtime").toAbsolutePath().normalize(),
+                cycle.runtimeRoot());
+        assertEquals(temporaryRoot.resolve("effects").toAbsolutePath().normalize(),
+                cycle.externalEffectRoot());
+        assertEquals(temporaryRoot.resolve("checkpoint").toAbsolutePath().normalize(),
+                cycle.cycleCheckpointRoot());
+        assertEquals(temporaryRoot.resolve("evidence").toAbsolutePath().normalize(),
+                cycle.evidenceRoot());
+        assertEquals(temporaryRoot.resolve("records").toAbsolutePath().normalize(),
+                cycle.runRecordRoot());
+        assertEquals(temporaryRoot.resolve("invocations").toAbsolutePath().normalize(),
+                cycle.invocationRoot());
+        assertEquals("scheduler-owner", cycle.ownerId());
+        assertEquals(2, cycle.maxAttempts());
+        assertEquals(Duration.ofMinutes(5), cycle.leaseDuration());
+        assertEquals(Duration.ofSeconds(20), cycle.processTimeout());
+    }
+
+    @Test
+    void rejectsMissingAndOutOfRangeSchedulerCycleInputs() {
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(new String[] {
+                "scheduler-cycle", "--project-root", temporaryRoot.toString()
+        }));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(
+                schedulerCycleArguments("0", "300000", "20000")));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(
+                schedulerCycleArguments("17", "300000", "20000")));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(
+                schedulerCycleArguments("2", "0", "20000")));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(
+                schedulerCycleArguments("2", "300000", "not-a-number")));
+    }
+
+    private String[] schedulerCycleArguments(
+            String maxAttempts,
+            String leaseMillis,
+            String processTimeoutMillis) {
+        return new String[] {
+                "scheduler-cycle",
+                "--project-root", temporaryRoot.resolve("project").toString(),
+                "--queue-root", temporaryRoot.resolve("queue").toString(),
+                "--queue-id", "00000000-0000-0000-0000-000000000801",
+                "--runtime-root", temporaryRoot.resolve("runtime").toString(),
+                "--external-effect-root", temporaryRoot.resolve("effects").toString(),
+                "--cycle-checkpoint-root", temporaryRoot.resolve("checkpoint").toString(),
+                "--evidence-root", temporaryRoot.resolve("evidence").toString(),
+                "--run-record-root", temporaryRoot.resolve("records").toString(),
+                "--invocation-root", temporaryRoot.resolve("invocations").toString(),
+                "--owner-id", "scheduler-owner",
+                "--max-attempts", maxAttempts,
+                "--lease-millis", leaseMillis,
+                "--process-timeout-millis", processTimeoutMillis
+        };
     }
 }

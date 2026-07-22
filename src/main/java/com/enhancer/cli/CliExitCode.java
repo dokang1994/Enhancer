@@ -14,6 +14,7 @@ public enum CliExitCode {
     TOOL_FAILED(21),
     STAGNATED(30),
     MAX_ITERATIONS(31),
+    SCHEDULER_WORK_FAILED(40),
     INTERNAL_ERROR(70);
 
     private final int code;
