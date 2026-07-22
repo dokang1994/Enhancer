@@ -1,228 +1,345 @@
-# Gate 8 Durable Multi-Attempt AgentRun Lifecycle — Design
+# Gate 8 Durable Multi-Attempt AgentRun Retry — Corrected Design
 
 - Date: 2026-07-22
 - Gate: Delivery Gate 8 (Agent Runtime and Scheduler)
-- Connection: ROADMAP Gate 8 ordered connection #6 (retry through additional
-  AgentRuns), **second slice, first sub-increment**: the durable runtime lifecycle
-  foundation that a later retry controller/worker consumes.
-- Maturity target: Contract Verified (a multi-attempt state machine, its persistence,
-  and its restart recovery invariants exist; no decider wiring, no worker, no
-  re-execution).
+- Connection: ROADMAP Gate 8 ordered connection #6, retry through additional
+  AgentRuns.
+- Status: accepted design correction; not implemented.
+- Maturity target: Contract Verified for the state and controller contracts, then
+  Integrated only after a named queue-to-runtime-to-ledger-to-worker recovery path.
 
 ## Problem
 
-The bounded fence-checked external-effect ledger and the pure `AgentRunRetryDecider`
-now exist, but the runtime cannot hold a second AgentRun. `AgentRuntimeState` is
-schema-v1 with exactly one `RuntimeAgentRun` (`beginAgentRun` throws "schema v1
-permits exactly one AgentRun"), and a non-verified result drives the Goal to terminal
-`FAILED`. There is no way to begin another AgentRun for the same WorkItem, and no
-durable record of how many attempts have been made.
+The current runtime retains one AgentRun, the current finalizer converts a failed
+AgentRun directly into terminal queue failure, and the current worker clears its cycle
+checkpoint after that disposition. A retry design cannot add a second AgentRun merely
+by inserting `RETRY_PENDING` into the Goal enum: if finalization still invokes
+`failActive`, the WorkItem has already left the active slot and entered the durable
+failed partition.
 
-Retry through additional AgentRuns therefore needs a durable lifecycle foundation
-first: one Goal must retain a bounded ordered history of its terminal attempts, be
-able to begin a fresh AgentRun after a failed attempt, expose a completed-attempt
-count the decider can consume, and still be able to reach an explicit terminal
-failure when retries stop.
+The corrected design must preserve four distinct facts:
 
-This increment adds only that lifecycle and its persistence/recovery. It wires in no
-decider, drives no worker, re-executes nothing, and reconciles nothing with the
-Scheduler queue.
+1. execution acknowledgement moves one AgentRun to `AWAITING_VERIFICATION`;
+2. RunRecord-backed result recording terminates one AgentRun attempt;
+3. a durable retry decision either appends another immutable attempt or terminally
+   stops the Goal;
+4. Scheduler `WorkItemDisposition` is written only when the whole Goal is terminal.
 
-## Approach decision: retry-pending Goal status (Approach 2)
+An AgentRun attempt failure is therefore not a Scheduler WorkItem failure.
 
-Two models were considered (2026-07-22 review):
+## Core invariants
 
-- **Approach 1 — retry from terminal FAILED:** leave `recordResult`/finalizer
-  unchanged and let a new `beginRetryAgentRun` move the Goal `FAILED -> ACTIVE`.
-  Smallest blast radius, but it reactivates a terminal state, bending the stated
-  forward-only invariant, and leaves `FAILED` ambiguous between "done" and
-  "awaiting retry".
-- **Approach 2 — retry-pending Goal status (chosen):** a non-verified result puts the
-  Goal in a new **non-terminal** `RETRY_PENDING` status. The AgentRun still reaches
-  per-attempt terminal `FAILED` (with its result), so the finalizer — which derives
-  the queue disposition from the *AgentRun* status, not the Goal status — is
-  unchanged. `beginRetryAgentRun` moves `RETRY_PENDING -> ACTIVE`; a new `abandonGoal`
-  moves `RETRY_PENDING -> FAILED` (terminal). This preserves forward-only and makes
-  "retryable" versus "abandoned" explicit.
+- One Goal retains one exact WorkItem and an ordered immutable AgentRun list.
+- `agentRun()` remains a latest-attempt projection; it never hides or rewrites earlier
+  attempts.
+- Every earlier attempt is terminal `FAILED` with its exact result message.
+- The WorkItem stays active while the Goal is `ACTIVE` or `RETRY_PENDING`, including
+  across failed attempts admitted for retry.
+- Only terminal Goal `COMPLETED` maps to `VERIFIED_COMPLETED`; only terminal Goal
+  `FAILED` maps to queue `FAILED`.
+- The retry decision consumes the latest failed attempt, not a terminal
+  `WorkItemDisposition`.
+- A retry decision and the action it authorizes are persist-before-exposure and
+  idempotently recoverable.
+- External effects admit automatic retry only when the bound ledger is empty or every
+  effect is `COMPENSATED`.
+- Queue state, runtime state, effect ledger, RunRecord, and worker checkpoint remain
+  separate durable boundaries; no cross-store transaction is claimed.
 
-Approach 2 is chosen for lifecycle correctness. The key enabling fact is that
-`DurableAgentRunFinalizer.applyQueueDisposition` reads
-`runtime.agentRun().orElseThrow().status()` and `recoverFinalization` reads
-`run.status().isTerminal()` — both key off the AgentRun status. Keeping the AgentRun
-terminal `FAILED` while changing only the Goal status means the queue mapping is
-untouched.
+## Runtime schema v2
 
-A third option — a separate per-Goal attempt-history store distinct from
-`AgentRuntimeState` — was rejected: the runtime state already owns the AgentRun
-lifecycle, so its attempt history belongs in the same durable boundary.
+This is an incompatible runtime-state change and increments
+`AgentRuntimeState.CURRENT_SCHEMA_VERSION` from 1 to 2. A schema-v1 artifact is rejected
+as unsupported until a separately accepted migration exists. The format is not revised
+in place under the same version number.
 
-## State model
+### Goal status
 
-### `RuntimeGoalStatus`
+`RuntimeGoalStatus` becomes:
 
-Add `RETRY_PENDING`: `ACCEPTED, ACTIVE, RETRY_PENDING, COMPLETED, FAILED`.
+```text
+ACCEPTED, ACTIVE, RETRY_PENDING, COMPLETED, FAILED
+```
 
-Forward-only Goal transitions:
+Transitions:
 
 | From | To | Trigger |
 |---|---|---|
-| ACCEPTED | ACTIVE | `beginAgentRun` (first attempt) |
-| ACTIVE | COMPLETED | `recordResult` with a Verified result |
-| ACTIVE | RETRY_PENDING | `recordResult` with a non-Verified result (**was ACTIVE -> FAILED**) |
-| RETRY_PENDING | ACTIVE | `beginRetryAgentRun` |
-| RETRY_PENDING | FAILED | `abandonGoal` |
+| ACCEPTED | ACTIVE | begin the first AgentRun |
+| ACTIVE | COMPLETED | record a Verified result for the latest attempt |
+| ACTIVE | RETRY_PENDING | record a non-Verified result for the latest attempt |
+| RETRY_PENDING | ACTIVE | persist an admitted decision and append a replacement attempt |
+| RETRY_PENDING | FAILED | persist a refused decision and abandon automatic retry |
 
-`COMPLETED` and `FAILED` remain terminal. `RETRY_PENDING` and terminal `FAILED` both
-have a current AgentRun in terminal `FAILED` with a result; they are distinguished
-**only** by the Goal status.
+`COMPLETED` and `FAILED` are terminal. `RETRY_PENDING` is durable and non-terminal; it
+exists so interruption between result recording and retry selection cannot be mistaken
+for queue failure.
 
-### `AgentRuntimeState` attempt history
+### Ordered AgentRun history
 
-Add `List<RuntimeAgentRun> attemptHistory` — the superseded terminal attempts, in
-admission order. `agentRun` remains the single current/latest attempt.
+`AgentRuntimeState` stores one immutable `List<RuntimeAgentRun> agentRuns` with at most
+`MAX_ATTEMPTS_PER_GOAL = 16` entries. `agentRun()` returns the last entry as an
+`Optional`; `agentRuns()` returns the complete immutable list.
 
-- Structural cap: total attempts (`attemptHistory.size()` + the one current
-  `agentRun`) at most `MAX_ATTEMPTS_PER_GOAL = 16`, so `attemptHistory.size() <= 15`
-  while a current run exists. This keeps `completedAttempts()` inside the decider's
-  `1..16` input bound. The cap is a structural ceiling, not the retry policy (the
-  policy still lives in `AgentRunRetryPolicy`, and a controller will normally stop
-  earlier via the decider).
-- Every history entry is a terminal `FAILED` `RuntimeAgentRun` carrying its result
-  message, belonging to the same Goal and WorkItem, with an `agentRunId` unique across
-  the whole history plus the current run.
+- `ACCEPTED` has an empty list.
+- Every entry except the latest is terminal `FAILED` and carries its exact result.
+- `ACTIVE` has a latest non-terminal attempt.
+- `RETRY_PENDING` has a latest terminal `FAILED` attempt.
+- `COMPLETED` has a latest terminal `COMPLETED` attempt with a Verified result.
+- `FAILED` has a latest terminal `FAILED` attempt and a persisted refused decision for
+  that attempt.
+- Goal, WorkItem, work-message, AgentRun, result-message, and control-message identities
+  remain distinct across the complete retained state.
+- `completedAttempts()` counts terminal attempts in the list. It is 1 through 16 at
+  `RETRY_PENDING`, equals the number of earlier failed entries during a new active
+  attempt, and includes the latest attempt at either terminal Goal.
+- `lastIssuedFenceToken` is Goal-wide and never resets; every replacement attempt
+  receives a strictly greater fence than every earlier attempt.
 
-`completedAttempts()` = `attemptHistory.size()` + (`agentRun` present and terminal
-? 1 : 0). At `RETRY_PENDING` (current `FAILED`) this is `attemptHistory.size() + 1`;
-during a fresh in-flight attempt it is `attemptHistory.size()`; at `COMPLETED` it is
-`attemptHistory.size() + 1`.
+### Durable retry-decision records
 
-## Transitions (all fail-closed, persist-before-exposure)
+`AgentRuntimeState` also retains an immutable ordered
+`List<AgentRunRetryDecisionRecord> retryDecisions`, bounded to one decision per failed
+attempt and at most 16 entries. Each record contains:
 
-### `recordResult` (changed)
+- the failed `agentRunId`;
+- `completedAttempts` and `policy.maxAttempts()`;
+- the bound external-effect ledger revision and record count;
+- a lowercase SHA-256 semantic digest over the canonical ledger records observed by
+  the decision;
+- the exact `AgentRunRetryDecision`, including its typed refusal reason when refused.
 
-A non-Verified result now sets the Goal to `RETRY_PENDING` instead of `FAILED`; the
-AgentRun still terminates `FAILED` with its result message. A Verified result is
-unchanged (AgentRun `COMPLETED`, Goal `COMPLETED`). The attempt history is not
-touched here — the just-failed run remains the current `agentRun`.
+The record contains no credentials or effect payload. It makes an admitted or refused
+choice replayable and explains whether automatic retry stopped for unresolved,
+user-recovery, non-compensated, or exhausted-budget reasons. Exact re-entry returns the
+existing decision without a revision; a different decision for the same attempt fails
+closed.
 
-### `beginRetryAgentRun(newAgentRunId)` (new)
+## Runtime transitions
 
-- Preconditions: Goal status `RETRY_PENDING`; current `agentRun` present with status
-  `FAILED`; total attempts `< MAX_ATTEMPTS_PER_GOAL`.
-- `newAgentRunId`: canonical UUID; distinct from `goalId`, `workItemId`, the work
-  message id, and **every** prior attempt id (history and current). Any collision
-  fails closed.
-- Effect: append the current `FAILED` run to `attemptHistory`; create a new
-  `RuntimeAgentRun` in `PLANNING` (new id, same goal/workItem, no lease, no result) as
-  the current `agentRun`; Goal `RETRY_PENDING -> ACTIVE`.
-- `lastIssuedFenceToken` is **not** reset; fence tokens stay monotonic across
-  attempts.
+All transitions stage a candidate, persist it, and adopt it only after storage success.
 
-### `abandonGoal()` (new)
+### `recordAttemptResult`
 
-- Precondition: Goal status `RETRY_PENDING`.
-- Effect: Goal `RETRY_PENDING -> FAILED` (terminal). The current `FAILED` run and the
-  history are unchanged. This is the explicit "retries stopped" terminal a controller
-  calls when the decider refuses further retry. No reason is stored (the queue stores
-  disposition only, and the audit lives in the retained attempt results).
+The RunRecord-backed result path records the latest `AWAITING_VERIFICATION` attempt:
 
-## Invariant changes (`AgentRuntimeState.validateStructure`)
+- Verified → AgentRun `COMPLETED`, Goal `COMPLETED`;
+- any other supported verification status → AgentRun `FAILED`, Goal
+  `RETRY_PENDING`.
 
-- Validate `attemptHistory`: each entry terminal `FAILED` with a result message,
-  belonging to the Goal's WorkItem; all `agentRunId` values unique across history plus
-  current; size within the cap.
-- Goal status ↔ current run:
-  - `ACCEPTED` ⇔ no current run, empty history, revision 0, fence 0 (unchanged).
-  - `ACTIVE` ⇔ current run non-terminal.
-  - `RETRY_PENDING` ⇔ current run terminal `FAILED` with a result.
-  - `FAILED` (terminal) ⇔ current run terminal `FAILED` with a result.
-  - `COMPLETED` ⇔ current run `COMPLETED` with a Verified result.
-- Fence invariant relaxed: "a `PLANNING` run cannot follow an issued fence" applies
-  **only when the history is empty** (the first attempt). A retry `PLANNING` run
-  (non-empty history) may follow an issued fence (`lastIssuedFenceToken > 0`).
-- "post-execution / terminal state requires an issued fence" is retained.
+It does not write a Scheduler queue disposition and does not clear the worker
+checkpoint. Exact result re-entry is idempotent; a different reference or result for a
+terminal attempt fails closed.
 
-## Persistence (`FileSystemAgentRuntimeStateStore`)
+### `recordRetryDecision`
 
-- Serialize `attemptHistory` as a length-prefixed list using the existing
-  `RuntimeAgentRun` encoding, and add the `RETRY_PENDING` Goal-status value.
-- Schema v1 is revised in place. A snapshot written without the history section fails
-  closed on load (matching the control-request-ledger precedent:
-  "schema v1 revised in place so older snapshots without the ledger fail closed").
-  Runtime state is per-logical-run and transient, so no cross-version persisted state
-  exists in practice.
-- A fresh store instance recovers the exact ordered history, the current run, the Goal
-  status (including `RETRY_PENDING`), the monotonic `lastIssuedFenceToken`, and the
-  revision.
+Preconditions:
 
-## `DurableAgentRuntime`
+- Goal is `RETRY_PENDING`;
+- the supplied attempt is the latest AgentRun and is terminal `FAILED`;
+- the controller resolved the exact Goal ledger;
+- completed-attempt count, policy, ledger revision/count/digest, and decision match the
+  supplied immutable inputs.
 
-Add persist-before-exposure operations `beginRetryAgentRun(String newAgentRunId)` and
-`abandonGoal()`, plus accessors `completedAttempts()` and `attemptHistory()`. Existing
-operations are unchanged except that `recordResult`'s non-Verified path now yields a
-`RETRY_PENDING` Goal (through the changed `AgentRuntimeState.recordResult`).
+The typed decision record persists before any replacement identity is appended or the
+Goal becomes terminal.
+
+### `beginRetryAgentRun`
+
+Preconditions:
+
+- Goal is `RETRY_PENDING`;
+- the latest attempt has an exact persisted admitted decision;
+- total attempts remain below both the structural maximum and policy maximum;
+- the replacement identity is canonical and distinct from every retained runtime and
+  message identity.
+
+The transition appends one `PLANNING` AgentRun to the exact existing list and changes
+Goal `RETRY_PENDING -> ACTIVE`. The prior list and retry-decision list remain exact
+prefixes. The fence counter is retained.
+
+### `abandonGoal`
+
+Preconditions:
+
+- Goal is `RETRY_PENDING`;
+- the latest failed attempt has an exact persisted refused decision.
+
+The transition changes Goal `RETRY_PENDING -> FAILED` and retains all attempts,
+results, decisions, effect references, and fence state unchanged. It does not itself
+write the queue disposition.
+
+## Finalizer boundary
+
+`DurableAgentRunFinalizer` must no longer combine attempt result recording and terminal
+queue disposition in one unconditional method.
+
+It exposes two recoverable operations:
+
+```text
+recordAgentRunResult(goalId, agentRunId, runRecordReference)
+finalizeTerminalDisposition(goalId)
+```
+
+`recordAgentRunResult` resolves and binds the RunRecord, persists the attempt result,
+and returns the new runtime projection. For a failed attempt it stops at
+`RETRY_PENDING`.
+
+`finalizeTerminalDisposition` is legal only when the Goal is terminal:
+
+- Goal `COMPLETED` + latest run `COMPLETED` → `completeActiveVerified`;
+- Goal `FAILED` + latest run `FAILED` + persisted refused decision → `failActive`;
+- Goal `ACTIVE` or `RETRY_PENDING` → no disposition and no queue mutation.
+
+`recoverFinalization` follows the same Goal-level rule. A terminal AgentRun inside a
+`RETRY_PENDING` Goal is not sufficient authority to fail the WorkItem.
+
+## Durable retry controller
+
+`DurableAgentRunRetryController` is the sole application boundary that connects the
+runtime, exact Goal ledger, corrected decider, policy, and replacement identity.
+
+For a `RETRY_PENDING` Goal it:
+
+1. resolves the exact latest failed attempt and immutable completed-attempt count;
+2. resolves the external-effect ledger by the same Goal identity;
+3. verifies every effect belongs to the Goal and WorkItem and captures the ledger
+   revision/count/digest;
+4. calls the corrected attempt-level decider;
+5. persists the exact retry-decision record;
+6. when admitted, requires a previously checkpointed replacement AgentRun identity and
+   appends it;
+7. when refused, terminally abandons the Goal without fabricating remote evidence.
+
+It invokes no external adapter, compensates nothing, and cannot broaden Tool authority.
+
+## Worker ordering
+
+The retry-aware worker preserves this order for every attempt:
+
+```text
+cycle intent with Goal/current AgentRun identities
+→ claim WorkItem if not already active
+→ acquire current attempt lease
+→ execute and persist RunRecord
+→ checkpoint RunRecord reference
+→ cleanup attempt-owned execution artifacts
+→ acknowledge execution
+→ record attempt result only
+→ if Goal COMPLETED: finalize VERIFIED_COMPLETED disposition and clear checkpoint
+→ if Goal RETRY_PENDING:
+     resolve ledger and decide
+     → persist retry-decision record
+     → if admitted:
+          checkpoint deterministic replacement AgentRun identity
+          append replacement attempt
+          update cycle intent to replacement identity
+          continue while WorkItem remains active
+     → if refused:
+          abandon Goal
+          finalize FAILED disposition
+          clear checkpoint
+```
+
+The worker never returns terminal `FAILED` for an admitted retry. Attempt budget
+exhaustion or any unsafe effect produces a refused decision before terminal queue
+failure.
+
+## Recovery matrix
+
+| Durable prefix after interruption | Recovery action |
+|---|---|
+| RunRecord reference checkpointed; attempt still EXECUTING | retry cleanup/acknowledgement without re-execution |
+| attempt AWAITING_VERIFICATION | re-record the same result reference |
+| Goal RETRY_PENDING; no decision | resolve the same ledger revision inputs and decide |
+| decision persisted and admitted; replacement id checkpointed but not appended | append that exact replacement id |
+| replacement appended | resume that exact latest attempt; do not append another |
+| decision persisted and refused; Goal not terminal | call `abandonGoal` |
+| Goal COMPLETED or FAILED; queue still active/requeued | apply the matching terminal disposition |
+| terminal queue disposition recorded; checkpoint remains | verify matching disposition and clear checkpoint |
+
+Every recovery action is idempotent over the preceding durable prefix. No recovery path
+uses a terminal AgentRun alone as queue-failure authority.
+
+## Persistence rules
+
+`FileSystemAgentRuntimeStateStore` encodes schema v2 with the complete AgentRun and
+retry-decision lists. Its update boundary must enforce, independently of runtime helper
+methods:
+
+- exactly one revision advance;
+- unchanged Goal identity and exact WorkItem;
+- exact AgentRun-history prefix, permitting only one valid append or one valid latest
+  attempt transition per revision;
+- no history truncation, rewrite, reordering, result replacement, or identity reuse;
+- exact retry-decision prefix, permitting at most one valid append for the latest failed
+  attempt;
+- unchanged prior result messages and retry decisions;
+- control-request prefix monotonicity;
+- a fence that stays current or advances exactly one and never decreases;
+- bounded strict UTF-8, integrity envelope, atomic publication, and rejection of
+  trailing, corrupt, oversized, or unsupported state.
+
+A fresh store recovers supplementary Unicode metadata, every result, decision,
+identity, fence, and revision exactly. Schema-v1 migration is not inferred.
+
+## External-effect rule across attempts
+
+Automatic retry is allowed only when the bound ledger is empty or every existing effect
+is terminal `COMPENSATED`. `PREPARED`, `REQUIRES_USER_RECOVERY`, `APPLIED`, and
+`DEDUPLICATED` each stop automatic retry.
+
+A compensated prior effect may be represented by a new effect identity in a later
+attempt because the prior remote effect was explicitly undone. Reusing one logical
+idempotency identity across different AgentRun bindings requires a separately accepted
+adapter/ledger contract and is not inferred here.
 
 ## Verification plan
 
-Test-first, focused, mirroring the runtime suite style.
+Implementation proceeds test-first in dependency order.
 
-- `AgentRuntimeStateTest` / `DurableAgentRuntimeTest` (extend):
-  - a non-Verified result yields AgentRun `FAILED` and Goal `RETRY_PENDING` (updated
-    from the previous `FAILED` expectation);
-  - `beginRetryAgentRun` from `RETRY_PENDING` archives the failed run into history,
-    starts a `PLANNING` run with a fresh id, sets the Goal `ACTIVE`, keeps
-    `lastIssuedFenceToken` monotonic, and advances the revision;
-  - a retry `PLANNING` run may carry `lastIssuedFenceToken > 0`;
-  - `beginRetryAgentRun` is rejected from `COMPLETED`, from `ACTIVE`, when the current
-    run is not `FAILED`, when the new id collides with any prior attempt/identity, and
-    when the attempt cap is reached;
-  - `abandonGoal` from `RETRY_PENDING` reaches terminal `FAILED`; it is rejected from
-    any other Goal status;
-  - `completedAttempts()` returns the expected count across a fresh attempt,
-    `RETRY_PENDING`, a second attempt, and `COMPLETED`;
-  - the full lifecycle still runs (`beginAgentRun -> markReady -> acquireLease ->
-    completeExecution -> recordResult`) for both a first attempt and a retry attempt.
-- `FileSystemAgentRuntimeStateStoreIntegrationTest` (extend): persist a multi-attempt
-  state (non-empty history + `RETRY_PENDING`, and separately a retry `ACTIVE` state),
-  recover it through a fresh store instance, and assert exact history order, current
-  run, Goal status, fence token, and revision; a snapshot missing the history section
-  fails closed.
-- Existing tests that assert Goal `FAILED` after a non-Verified result are updated to
-  `RETRY_PENDING` (enumerated during planning via a repository search). The finalizer,
-  worker, queue, and decider are expected to need **no** change because they key off
-  the AgentRun status and the queue disposition; the plan verifies this by search and
-  by the unchanged full regression.
-- Full `gradlew build` (strict Java 17 `-Xlint:all -Werror`) and the document
-  structural checks pass with fresh output; evidence appended to
-  `docs/verification-log.md`.
+1. **Corrected pure decision:** attempt-level input, exact binding, every ledger status,
+   null and bound checks, precedence, and `isAdmitted()` API.
+2. **Schema-v2 runtime state:** ordered list, latest projection, completed-attempt count,
+   `RETRY_PENDING`, Goal-wide fence monotonicity, identity uniqueness, decision records,
+   admitted append, refused abandonment, and the 16-attempt ceiling.
+3. **Filesystem state:** restart recovery plus explicit rewrite, truncation, reordering,
+   invalid append, stale revision, unsupported-v1, corrupt, oversized, and Unicode cases.
+4. **Finalizer split:** failed result stops at `RETRY_PENDING`; recovery cannot fail the
+   queue until Goal `FAILED`; Verified completion remains unchanged.
+5. **Controller:** exact Goal/ledger binding, empty/all-compensated admission, every
+   refusal reason, exact replay, changed-input rejection, deterministic replacement id,
+   and persisted decision before action.
+6. **Worker integration:** failure followed by successful second attempt, budget
+   exhaustion, unsafe effect refusal, interruption at every recovery-matrix boundary,
+   stale fence rejection, no duplicate execution after reference checkpointing, active
+   queue retention across retries, and one final queue disposition.
+7. **Regression:** full Gradle build, strict Java 17 lint, document ownership and
+   decision-index checks, plus named filesystem integration evidence.
 
-## Consumer and continuation
+No Contract Verified, Integrated, or Completed claim is made until its corresponding
+fresh evidence exists.
 
-The named consumer (ROADMAP Contract Continuation Rule) is the retry controller/worker
-of the next sub-increment, recorded in `CURRENT_TASK.md` Next: resolve the Goal's
-external-effect ledger, read `completedAttempts()`, call `AgentRunRetryDecider`, and on
-an admitted decision call `beginRetryAgentRun` and drive the new attempt (or call
-`abandonGoal` on refusal), with named integration evidence and queue reconciliation.
+## Implementation increments
 
-## Risks
+The design may be delivered in bounded tasks, but each task must leave current behavior
+coherent:
 
-- Changing `recordResult`'s Goal status (`FAILED -> RETRY_PENDING`) could affect any
-  existing recovery path or test that reads the Goal terminal status as "done". The
-  plan enumerates every reader via repository search (`DurableAgentRunWorker`,
-  finalizer, integration tests) and confirms each keys off AgentRun status or queue
-  disposition, updating only the tests that assert the old Goal status.
-- Schema fail-closed makes a pre-change runtime snapshot unloadable. This is accepted
-  and consistent with the control-request-ledger precedent; runtime state is transient
-  per logical run.
+1. correct the pure decider and its accepted decision;
+2. add schema-v2 history and decision records together with prefix-enforcing storage;
+3. split finalization and add the durable retry controller;
+4. wire the retry-aware worker and recovery integration.
+
+An increment that changes failed results to `RETRY_PENDING` without also preventing
+immediate queue `failActive` is not coherent and must not be merged.
 
 ## Out of scope
 
-- Wiring `AgentRunRetryDecider`, building a retry controller, driving a retry through
-  the worker, reconciling a failed-then-retried WorkItem with the Scheduler queue, or
-  consulting the external-effect ledger.
-- Re-execution, backoff or delay, budgets beyond the structural attempt cap,
-  stagnation, priority/fairness, orphan reclamation, and authenticated
-  cancel/pause/resume.
-- Any change to `DurableAgentRunFinalizer`, `DurableAgentRunWorker`, the Scheduler
-  queue, or `AgentRunRetryDecider`.
-- Commit, push, PR, merge, release, or deployment without a new explicit request.
+- Automatic compensation or adapter execution, and treating ledger state as proof of
+  remote outcome.
+- Cross-attempt reuse of an external-effect idempotency key.
+- User-authorized override, authenticated pause/resume/cancel application, delay or
+  backoff, token/time budgets, priority/fairness, multi-process locking, distributed
+  clock-skew protocol, multi-agent execution, release, or deployment.
+- Runtime schema-v1 migration; schema v1 fails explicitly until a migration is accepted
+  and implemented.

@@ -1,195 +1,187 @@
-# Gate 8 Bounded AgentRun Retry Decision — Design
+# Gate 8 Attempt-Level AgentRun Retry Decision — Corrected Design
 
 - Date: 2026-07-22
 - Gate: Delivery Gate 8 (Agent Runtime and Scheduler)
-- Connection: ROADMAP Gate 8 ordered connection #6 (retry through additional
-  AgentRuns), first slice only.
-- Maturity target: Contract Verified (a pure decision type and its focused
-  invariants exist; no production wiring, no second AgentRun, no persistence).
+- Connection: ROADMAP Gate 8 ordered connection #6, retry through additional
+  AgentRuns.
+- Status: accepted contract correction; production implementation remains a later
+  test-first increment.
+- Maturity target: no promotion in this documentation increment. Contract Verified
+  requires corrected focused tests and implementation.
 
 ## Problem
 
-Gate 8 now drives one at-least-once `WorkItem` through a fenced AgentRun to a
-recoverable, RunRecord-backed terminal disposition (`VERIFIED_COMPLETED` or
-`FAILED`), and the bounded fence-checked external-effect ledger records whether
-each non-read-only effect was `PREPARED`, `APPLIED`, `DEDUPLICATED`,
-`COMPENSATED`, or left `REQUIRES_USER_RECOVERY`. Nothing yet decides whether a
-**failed** AgentRun may be retried through a further AgentRun.
+The first retry-decision slice used terminal `WorkItemDisposition.FAILED` as the
+signal that the latest AgentRun failed. That type is owned by the Scheduler queue:
+recording it moves a WorkItem into the terminal failed partition, releases the active
+slot, and permanently prevents that WorkItem from satisfying dependencies. It is not
+an attempt-level result and therefore cannot be the input to a decision that must run
+while the same WorkItem is still active.
 
-Connecting retry naively is unsafe: a second AgentRun launched while an external
-effect is still `PREPARED` (its real-world outcome unknown) could hide a replayed
-effect, and a retry launched while an effect is `REQUIRES_USER_RECOVERY` would
-proceed past a state that explicitly needs a human. Retry must therefore be gated
-by a deterministic, fail-closed decision before any mechanism that creates or runs
-a second AgentRun exists.
+The first slice also treated `APPLIED` and `DEDUPLICATED` effects as sufficient for
+automatic retry. Those outcomes make the prior remote outcome explicit, but they do
+not prove that re-running the WorkItem will skip or safely deduplicate that effect.
+`ExternalEffectRequest` is bound to one exact AgentRun, and the current ledger rejects
+reuse of an idempotency key with a request bound to a different AgentRun. Until a
+separate cross-attempt effect-execution contract exists, only an empty ledger or a
+ledger whose every effect is `COMPENSATED` is safe for automatic retry.
 
-This increment adds only that decision as a pure value contract. It creates no
-AgentRun, runs no worker, mutates no queue, runtime, lease, fence, or ledger
-state, reads no store, and grants no authority.
+This corrected contract keeps retry eligibility pure and deterministic while making
+its input attempt-scoped and its external-effect rule fail closed. It creates,
+persists, and runs no AgentRun, mutates no store, and grants no authority.
 
-## Scope decision: caller-supplied inputs, no new store
+## Boundary: attempt outcome, not WorkItem disposition
 
-The decision is a pure function of four caller-supplied inputs and mirrors the
-existing bounded value-contract style (`BackpressurePolicy`,
-`com.enhancer.bus.RetryPolicy`):
+The decider consumes the exact failed `RuntimeAgentRun`, not a Scheduler
+`WorkItemDisposition`:
 
-- the last AgentRun's terminal `WorkItemDisposition`;
-- a caller-supplied count of already-completed terminal attempts for the WorkItem;
-- an immutable attempt bound;
-- the current `ExternalEffectLedgerState` for the Goal.
+```java
+public AgentRunRetryDecision decide(
+        RuntimeAgentRun lastAttempt,
+        int completedAttempts,
+        AgentRunRetryPolicy policy,
+        ExternalEffectLedgerState ledgerState)
+```
 
-Attempt counting is a caller input rather than a derived value: no durable
-per-WorkItem attempt history exists yet, and building one belongs to the later
-wiring increment. Deriving attempts from prior AgentRun terminal history was
-considered and rejected for this slice because that history structure does not
-exist and adding it widens scope past a pure decision.
+The later durable retry controller must resolve all four inputs from one Goal and one
+persisted revision before calling the decider. The pure decider validates the bindings
+that are visible in its values:
 
-The decider consumes the ledger **state value** (already per-Goal and
-self-validating) and inspects effect statuses directly. It does not re-check that
-the ledger's Goal matches the failed run's Goal: supplying the correct Goal's
-ledger is the caller's responsibility, exactly as other pure contracts trust their
-inputs. That identity binding belongs to the wiring increment that resolves the
-ledger from a Goal.
+- `lastAttempt`, `policy`, and `ledgerState` are non-null;
+- `lastAttempt.status()` must be terminal `FAILED`; any other status is refused as
+  `NOT_FAILED`;
+- `ledgerState.goalId()` must equal `lastAttempt.goalId()`;
+- every ledger record must name the same Goal and WorkItem as `lastAttempt`;
+- `completedAttempts` is in `1 .. AgentRunRetryPolicy.MAX_ATTEMPTS` and includes
+  `lastAttempt`.
 
-## New types (all in `com.enhancer.runtime`)
+The controller additionally proves that `lastAttempt` is the latest AgentRun retained
+by the durable runtime and that the ledger was resolved through that same Goal. A
+caller-supplied unrelated empty ledger must never be accepted by production wiring.
 
-Placement in `runtime` introduces no cycle: `RuntimePackageBoundaryTest`
-constrains only `loop`, `run`, and `kernel` import directions, and these types
-depend only on `runtime` peers (`WorkItemDisposition`, `ExternalEffectLedgerState`,
-`ExternalEffectStatus`).
+## Value contracts
 
-### `AgentRunRetryPolicy` (record)
-
-Immutable attempt bound.
+### `AgentRunRetryPolicy`
 
 ```java
 public record AgentRunRetryPolicy(int maxAttempts) {
     public static final int MAX_ATTEMPTS = 16;
-    // constructor validates 1 <= maxAttempts <= MAX_ATTEMPTS
-    public static AgentRunRetryPolicy of(int maxAttempts) { ... }
+    public static AgentRunRetryPolicy of(int maxAttempts);
 }
 ```
 
-`maxAttempts` is the maximum number of terminal AgentRun attempts permitted for
-one WorkItem, counting the first attempt. `maxAttempts == 1` therefore permits no
-retry (the first attempt is the only one). No `standard()` default is provided:
-choosing a production retry budget belongs to the wiring increment, and offering a
-default here would imply a wired policy that does not exist.
+`maxAttempts` counts the first attempt and is bounded to 1 through 16 inclusive.
+`maxAttempts == 1` permits no retry. There is no production default; selecting a
+budget belongs to the supported composition that wires the controller.
 
-### `AgentRunRetryRefusalReason` (enum)
+### `AgentRunRetryRefusalReason`
 
 ```java
 public enum AgentRunRetryRefusalReason {
     NOT_FAILED,
     UNRESOLVED_EXTERNAL_EFFECT,
     EFFECT_REQUIRES_USER_RECOVERY,
+    NON_COMPENSATED_EXTERNAL_EFFECT,
     ATTEMPTS_EXHAUSTED
 }
 ```
 
-- `NOT_FAILED` — the last disposition was not `FAILED` (e.g. `VERIFIED_COMPLETED`);
-  a non-failed run is not a retry candidate.
-- `UNRESOLVED_EXTERNAL_EFFECT` — at least one ledger effect is `PREPARED` (its
-  real-world outcome is unknown); retrying could hide a replayed effect.
-- `EFFECT_REQUIRES_USER_RECOVERY` — at least one ledger effect is
-  `REQUIRES_USER_RECOVERY`; automatic retry must not proceed past a state that
-  explicitly needs a human.
-- `ATTEMPTS_EXHAUSTED` — `completedAttempts >= maxAttempts`.
+- `NOT_FAILED`: the supplied attempt is not terminal `FAILED`.
+- `UNRESOLVED_EXTERNAL_EFFECT`: at least one effect is `PREPARED`, so its remote
+  outcome is unknown.
+- `EFFECT_REQUIRES_USER_RECOVERY`: at least one effect explicitly requires a person.
+- `NON_COMPENSATED_EXTERNAL_EFFECT`: at least one effect is `APPLIED` or
+  `DEDUPLICATED`; the outcome is known but no current contract proves another attempt
+  will avoid repeating it.
+- `ATTEMPTS_EXHAUSTED`: `completedAttempts >= maxAttempts`.
 
-### `AgentRunRetryDecision` (value)
+### `AgentRunRetryDecision`
 
 ```java
 public final class AgentRunRetryDecision {
     public static AgentRunRetryDecision admitted();
     public static AgentRunRetryDecision refused(AgentRunRetryRefusalReason reason);
-    public boolean admitted();
+    public boolean isAdmitted();
     public Optional<AgentRunRetryRefusalReason> refusalReason();
 }
 ```
 
-`refusalReason()` is present iff `admitted()` is false. `refused(null)` is rejected.
+`refusalReason()` is present exactly when `isAdmitted()` is false.
+`refused(null)` is rejected. The `isAdmitted()` name is intentional: Java cannot
+declare a static zero-argument `admitted()` factory and an instance zero-argument
+`admitted()` accessor with the same signature.
 
-### `AgentRunRetryDecider` (final class)
+## Deterministic decision order
 
-Stateless, public no-arg constructor so it can later be injected as a port.
+Input validation and identity binding run first. The following first-match order is
+then fixed:
 
-```java
-public AgentRunRetryDecision decide(
-        WorkItemDisposition lastDisposition,
-        int completedAttempts,
-        AgentRunRetryPolicy policy,
-        ExternalEffectLedgerState ledgerState)
-```
-
-Input validation (fail closed, before any decision):
-
-- `lastDisposition`, `policy`, `ledgerState` non-null (`NullPointerException`);
-- `completedAttempts` in `1 .. AgentRunRetryPolicy.MAX_ATTEMPTS`
-  (`IllegalArgumentException` otherwise). A retry decision is only meaningful after
-  at least one completed attempt, and the count is bounded like every other
-  runtime quantity.
-
-Deterministic decision order (first match wins; safety-critical reasons precede
-the budget check so an unresolved or recovery-pending effect always blocks
-regardless of remaining budget):
-
-1. `lastDisposition != FAILED` → `refused(NOT_FAILED)`
-2. any record `status() == PREPARED` → `refused(UNRESOLVED_EXTERNAL_EFFECT)`
-3. any record `status() == REQUIRES_USER_RECOVERY` →
+1. `lastAttempt.status() != FAILED` → `refused(NOT_FAILED)`
+2. any `PREPARED` effect → `refused(UNRESOLVED_EXTERNAL_EFFECT)`
+3. any `REQUIRES_USER_RECOVERY` effect →
    `refused(EFFECT_REQUIRES_USER_RECOVERY)`
-4. `completedAttempts >= policy.maxAttempts()` → `refused(ATTEMPTS_EXHAUSTED)`
-5. otherwise → `admitted()`
+4. any `APPLIED` or `DEDUPLICATED` effect →
+   `refused(NON_COMPENSATED_EXTERNAL_EFFECT)`
+5. `completedAttempts >= policy.maxAttempts()` →
+   `refused(ATTEMPTS_EXHAUSTED)`
+6. otherwise, the ledger is empty or every effect is `COMPENSATED` → `admitted()`
 
-A ledger whose effects are all `APPLIED`, `DEDUPLICATED`, or `COMPENSATED` (or an
-empty ledger) is treated as resolved and does not block retry.
+Safety reasons precede budget exhaustion so recovery and external-effect risk remain
+visible rather than being hidden behind a cheaper terminal explanation.
 
-## Behaviour summary
+## Behaviour table
 
-| lastDisposition | ledger effects | completedAttempts vs max | decision |
+| Last attempt | Ledger | Budget | Decision |
 |---|---|---|---|
-| VERIFIED_COMPLETED | any | any | REFUSED(NOT_FAILED) |
-| FAILED | any PREPARED | any | REFUSED(UNRESOLVED_EXTERNAL_EFFECT) |
-| FAILED | no PREPARED, any REQUIRES_USER_RECOVERY | any | REFUSED(EFFECT_REQUIRES_USER_RECOVERY) |
-| FAILED | all resolved / empty | completed >= max | REFUSED(ATTEMPTS_EXHAUSTED) |
-| FAILED | all resolved / empty | completed < max | ADMITTED |
+| not FAILED | any valid bound ledger | any valid count | `NOT_FAILED` |
+| FAILED | any `PREPARED` | any | `UNRESOLVED_EXTERNAL_EFFECT` |
+| FAILED | no PREPARED; any `REQUIRES_USER_RECOVERY` | any | `EFFECT_REQUIRES_USER_RECOVERY` |
+| FAILED | no earlier safety reason; any `APPLIED` or `DEDUPLICATED` | any | `NON_COMPENSATED_EXTERNAL_EFFECT` |
+| FAILED | empty or all COMPENSATED | exhausted | `ATTEMPTS_EXHAUSTED` |
+| FAILED | empty or all COMPENSATED | remaining | admitted |
+
+## Durable consumer contract
+
+An admitted decision is not authority to execute by itself. The later controller must:
+
+1. recover the exact Goal and latest failed attempt;
+2. resolve the Goal's ledger and validate the runtime/ledger binding;
+3. compute the completed-attempt count from the immutable runtime history;
+4. call this decider;
+5. persist a typed retry-decision record before either appending a replacement
+   AgentRun or terminally abandoning the Goal;
+6. leave the Scheduler WorkItem active when a replacement attempt is admitted;
+7. record terminal `WorkItemDisposition.FAILED` only after retry is refused and the
+   Goal is durably terminal.
+
+No code may synthesize `WorkItemDisposition.FAILED` merely to call the decider.
 
 ## Verification plan
 
-Test-first, focused, mirroring the runtime suite style. New
-`AgentRunRetryDeciderTest` (and small direct checks for the value types):
+Focused RED/GREEN evidence must cover:
 
-- `AgentRunRetryPolicy`: rejects `0` and `MAX_ATTEMPTS + 1`, accepts `1` and
-  `MAX_ATTEMPTS`.
-- `AgentRunRetryDecision`: `admitted()` has empty reason; `refused(reason)` carries
-  it; `refused(null)` rejected.
-- ADMITTED: FAILED, resolved/empty ledger, `completedAttempts < maxAttempts`.
-- UNRESOLVED_EXTERNAL_EFFECT: FAILED, a `PREPARED` effect present, budget
-  remaining.
-- EFFECT_REQUIRES_USER_RECOVERY: FAILED, a `REQUIRES_USER_RECOVERY` effect and no
-  `PREPARED`, budget remaining.
-- ATTEMPTS_EXHAUSTED: FAILED, resolved ledger, `completedAttempts == maxAttempts`.
-- NOT_FAILED: `VERIFIED_COMPLETED` with budget remaining and empty ledger.
-- Precedence: a `PREPARED` effect **and** `completedAttempts == maxAttempts` →
-  `UNRESOLVED_EXTERNAL_EFFECT` (safety over budget); a `PREPARED` **and** a
-  `REQUIRES_USER_RECOVERY` effect → `UNRESOLVED_EXTERNAL_EFFECT`.
-- Resolved-only ledger (`APPLIED`/`DEDUPLICATED`/`COMPENSATED`) → does not block.
-- `completedAttempts` bound: `0` and `MAX_ATTEMPTS + 1` rejected.
+- policy acceptance at 1 and 16 and rejection at 0 and 17;
+- `isAdmitted()`, refusal reason presence, equality, and null refusal rejection;
+- null `lastAttempt`, policy, and ledger inputs;
+- completed-attempt counts 0, 1, 16, and 17;
+- an attempt in every non-FAILED status returning `NOT_FAILED`;
+- mismatched Goal and WorkItem bindings failing closed;
+- empty and all-`COMPENSATED` ledgers admitting with budget remaining;
+- each of `PREPARED`, `REQUIRES_USER_RECOVERY`, `APPLIED`, and `DEDUPLICATED`
+  refusing with its typed reason;
+- the complete precedence matrix when multiple statuses coexist and the budget is
+  exhausted;
+- proof that the decision reads no store and mutates none of its inputs.
 
-The ledger states in these tests are built through the existing prepare/record
-paths so no test fabricates an invalid `ExternalEffectLedgerState`.
-
-Then: full Gradle build, Java 17 strict lint (`-Xlint:all -Werror`), and document
-structural checks pass with fresh output; evidence appended to
-`docs/verification-log.md`.
+Full build, strict Java 17 lint, document ownership checks, decision-index checks,
+and a named integration test for the later durable consumer are separate required
+evidence. The documentation correction alone does not satisfy Contract Verified.
 
 ## Out of scope
 
-- Creating, persisting, or executing a second AgentRun; driving the worker; any
-  queue, runtime, lease, fence, or ledger mutation.
-- Deriving attempt counts from durable history; any new durable store, schema, or
-  CLI command; resolving a ledger from a Goal identity.
-- Backoff or delay, stagnation, budgets beyond attempt count, priority/fairness,
-  orphan detection/reclamation.
-- Authenticated cancel/pause/resume, external-adapter effect execution, and broader
-  production wiring.
-- Commit, push, PR, merge, release, or deployment without a new explicit request.
+- Implementing the corrected signature or status rules in this documentation task.
+- Creating, persisting, leasing, or executing a replacement AgentRun.
+- Automatically compensating an effect or treating local ledger state as remote proof.
+- A cross-attempt effect adapter that can safely reuse one logical idempotency identity.
+- User override, delay/backoff, token/time budgets, priority, multi-agent execution,
+  release, or deployment.
