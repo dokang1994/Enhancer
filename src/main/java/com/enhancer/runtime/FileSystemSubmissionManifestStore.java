@@ -449,8 +449,8 @@ public final class FileSystemSubmissionManifestStore
         }
     }
 
-    private IOException missing(String submissionId) {
-        return new IOException("submission manifest is missing: " + submissionId);
+    private MissingSubmissionManifestException missing(String submissionId) {
+        return new MissingSubmissionManifestException(submissionId);
     }
 
     private CorruptedManifestException corrupted(

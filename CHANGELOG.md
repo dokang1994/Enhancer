@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-07-22 - Implement Replay-Safe Generated-Input Scheduler Submission
+
+- Added `GeneratedInputSubmissionService`, a replay-safe application boundary that takes one
+  caller-retained canonical submission UUID and derives the queue, correlation, and
+  logical-run identities through fixed versioned domain-separated UUID transforms
+  (`GeneratedSubmissionIdentities`), so the same key always names the same generated work.
+- Resolved the existing `DurableSubmissionManifest` before consulting the clock or the
+  repository snapshot: an absent manifest captures the occurrence time on first use and
+  persists through the existing `DurableWorkSubmissionService`, while a present manifest
+  reuses its exact occurrence time and envelope and fails closed on any caller-owned
+  intent conflict (task, capacity, capability, producer, target, digest). Introduced a
+  typed `MissingSubmissionManifestException` so absence is distinguished from corruption.
+- Exposed the boundary as the separate `scheduler-submit-generated` CLI command, which
+  generates identities and occurrence time and prints the derived queue/correlation/
+  logical-run identities and snapshot for auditing; the explicit `scheduler-submit`
+  command is unchanged. Submission remains separate from `scheduler-cycle`, execution,
+  and polling, and no second durable store was added.
+- Verified test-first with focused boundary tests, CLI argument tests, and a named
+  real-filesystem CLI integration proving first-use generation, fresh-instance exact
+  replay without manifest or queue-revision change, conflict fail-closed, and first-use
+  task-mismatch refusal, plus the full strict-lint Gradle build.
+
 ## 2026-07-22 - Select Single-Manifest Recovery For Generated Submission Inputs
 
 - Assessed the interruption window created by generating Scheduler identities and

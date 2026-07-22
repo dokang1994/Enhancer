@@ -167,6 +167,64 @@ class CliArgumentsTest {
         assertThrows(CliUsageException.class, () -> CliArguments.parse(duplicate));
     }
 
+    @Test
+    void parsesGeneratedInputSchedulerSubmitInput() {
+        GeneratedSubmitCliCommand generated =
+                (GeneratedSubmitCliCommand) CliArguments.parse(
+                        generatedSubmitArguments("8"));
+
+        assertEquals(temporaryRoot.resolve("project").toAbsolutePath().normalize(),
+                generated.projectRoot());
+        assertEquals(temporaryRoot.resolve("submissions").toAbsolutePath().normalize(),
+                generated.submissionRoot());
+        assertEquals(temporaryRoot.resolve("queue").toAbsolutePath().normalize(),
+                generated.queueRoot());
+        assertEquals("generated-submit-test", generated.taskId());
+        assertEquals("00000000-0000-0000-0000-000000000e01", generated.submissionId());
+        assertEquals(8, generated.maxWorkItems());
+        assertEquals("read-file-worker", generated.requiredCapability());
+        assertEquals("generated-submit-cli-test", generated.producer());
+        assertEquals("target.txt", generated.targetPath());
+        assertEquals("a".repeat(64), generated.expectedSha256());
+    }
+
+    @Test
+    void rejectsMalformedGeneratedInputSchedulerSubmitInputs() {
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(new String[] {
+                "scheduler-submit-generated", "--project-root", temporaryRoot.toString()
+        }));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(
+                generatedSubmitArguments("0")));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(
+                generatedSubmitArguments("4097")));
+        String[] badSubmissionId = generatedSubmitArguments("8");
+        badSubmissionId[10] = "not-a-uuid";
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(badSubmissionId));
+        String[] badDigest = generatedSubmitArguments("8");
+        badDigest[badDigest.length - 1] = "NOT-A-DIGEST";
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(badDigest));
+        // Explicit message/correlation/logical-run/queue/time options are not accepted here.
+        String[] explicitOption = generatedSubmitArguments("8");
+        explicitOption[9] = "--queue-id";
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(explicitOption));
+    }
+
+    private String[] generatedSubmitArguments(String maxWorkItems) {
+        return new String[] {
+                "scheduler-submit-generated",
+                "--project-root", temporaryRoot.resolve("project").toString(),
+                "--submission-root", temporaryRoot.resolve("submissions").toString(),
+                "--queue-root", temporaryRoot.resolve("queue").toString(),
+                "--task-id", "generated-submit-test",
+                "--submission-id", "00000000-0000-0000-0000-000000000e01",
+                "--max-work-items", maxWorkItems,
+                "--required-capability", "read-file-worker",
+                "--producer", "generated-submit-cli-test",
+                "--target-path", "target.txt",
+                "--expected-sha256", "a".repeat(64)
+        };
+    }
+
     private String[] schedulerCycleArguments(
             String maxAttempts,
             String leaseMillis,
