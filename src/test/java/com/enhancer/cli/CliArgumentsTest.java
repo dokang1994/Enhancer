@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.file.Path;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -117,6 +119,54 @@ class CliArgumentsTest {
                 schedulerCycleArguments("2", "300000", "not-a-number")));
     }
 
+    @Test
+    void parsesEveryExplicitSchedulerSubmitInput() {
+        SchedulerSubmitCliCommand submit = (SchedulerSubmitCliCommand) CliArguments.parse(
+                schedulerSubmitArguments("8", "2026-07-22T16:00:00Z"));
+
+        assertEquals(temporaryRoot.resolve("project").toAbsolutePath().normalize(),
+                submit.projectRoot());
+        assertEquals(temporaryRoot.resolve("submissions").toAbsolutePath().normalize(),
+                submit.submissionRoot());
+        assertEquals(temporaryRoot.resolve("queue").toAbsolutePath().normalize(),
+                submit.queueRoot());
+        assertEquals("scheduler-submit-test", submit.taskId());
+        assertEquals("00000000-0000-0000-0000-000000000c01", submit.queueId());
+        assertEquals(8, submit.maxWorkItems());
+        assertEquals("read-file-worker", submit.requiredCapability());
+        assertEquals("00000000-0000-0000-0000-000000000c02", submit.messageId());
+        assertEquals("scheduler-submit-correlation", submit.correlationId());
+        assertEquals("scheduler-submit-logical-run", submit.logicalRunId());
+        assertEquals("scheduler-submit-cli-test", submit.producer());
+        assertEquals(Instant.parse("2026-07-22T16:00:00Z"), submit.occurredAt());
+        assertEquals("target.txt", submit.targetPath());
+        assertEquals("a".repeat(64), submit.expectedSha256());
+    }
+
+    @Test
+    void rejectsMalformedSchedulerSubmitInputs() {
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(new String[] {
+                "scheduler-submit", "--project-root", temporaryRoot.toString()
+        }));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(
+                schedulerSubmitArguments("0", "2026-07-22T16:00:00Z")));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(
+                schedulerSubmitArguments("4097", "2026-07-22T16:00:00Z")));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(
+                schedulerSubmitArguments("8", "not-an-instant")));
+        String[] badUuid = schedulerSubmitArguments("8", "2026-07-22T16:00:00Z");
+        badUuid[10] = "not-a-uuid";
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(badUuid));
+        String[] badDigest = schedulerSubmitArguments("8", "2026-07-22T16:00:00Z");
+        badDigest[28] = "NOT-A-DIGEST";
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(badDigest));
+        String[] duplicate = Arrays.copyOf(
+                schedulerSubmitArguments("8", "2026-07-22T16:00:00Z"), 31);
+        duplicate[29] = "--producer";
+        duplicate[30] = "duplicate-producer";
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(duplicate));
+    }
+
     private String[] schedulerCycleArguments(
             String maxAttempts,
             String leaseMillis,
@@ -136,6 +186,26 @@ class CliArgumentsTest {
                 "--max-attempts", maxAttempts,
                 "--lease-millis", leaseMillis,
                 "--process-timeout-millis", processTimeoutMillis
+        };
+    }
+
+    private String[] schedulerSubmitArguments(String maxWorkItems, String occurredAt) {
+        return new String[] {
+                "scheduler-submit",
+                "--project-root", temporaryRoot.resolve("project").toString(),
+                "--submission-root", temporaryRoot.resolve("submissions").toString(),
+                "--queue-root", temporaryRoot.resolve("queue").toString(),
+                "--task-id", "scheduler-submit-test",
+                "--queue-id", "00000000-0000-0000-0000-000000000c01",
+                "--max-work-items", maxWorkItems,
+                "--required-capability", "read-file-worker",
+                "--message-id", "00000000-0000-0000-0000-000000000c02",
+                "--correlation-id", "scheduler-submit-correlation",
+                "--logical-run-id", "scheduler-submit-logical-run",
+                "--producer", "scheduler-submit-cli-test",
+                "--occurred-at", occurredAt,
+                "--target-path", "target.txt",
+                "--expected-sha256", "a".repeat(64)
         };
     }
 }

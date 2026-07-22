@@ -1,5 +1,48 @@
 # Changelog
 
+## 2026-07-22 - Prove The Explicit Two-Command Scheduler Operator Workflow
+
+- Added a named real-filesystem CLI integration that invokes `scheduler-submit` and
+  `scheduler-cycle` through separate fresh CLI instances over one shared queue, proving
+  pending-before-cycle behavior, real child-process verified completion, retained
+  manifest/runtime/effect/RunRecord evidence, exact replay, idle re-entry, and no
+  duplicate execution.
+- Documented the supported two-command sequence, shared versus command-specific roots,
+  independent statuses and exit codes, and recovery actions for submission interruption,
+  cycle interruption, verified completion, terminal failure, and idle state.
+- Confirmed the sequence against the actual Enhancer repository as
+  `ADMITTED -> VERIFIED_COMPLETED -> REPLAYED -> IDLE` with one RunRecord. No production
+  code, wrapper command, generated identity/time, polling, commit, push, merge, release,
+  or deployment was added.
+
+## 2026-07-22 - Expose Durable Submission As An Explicit CLI Command
+
+- Added `scheduler-submit` with explicit project/submission/queue roots, task and message
+  identities, occurrence time, queue bound, capability, target, and digest inputs; it
+  derives the approved task revision, allowed Tools, and repository-memory snapshot from
+  the governed project without generating identity or time.
+- Connected the command to the persist-first durable submission service and reported
+  bounded `ADMITTED` or exact-replay `REPLAYED` status with stable manifest/queue prefix
+  outcomes.
+- Proved real-filesystem first admission, fresh-instance replay without manifest bytes or
+  queue revision changes, changed-content and task-mismatch refusal without queue
+  mutation, and pending work without execution. Submission remains separate from
+  `scheduler-cycle`; no worker, Tool, polling, external adapter, commit, push, merge,
+  release, or deployment was added.
+
+## 2026-07-22 - Persist Durable Submission Intent Before Queue Admission
+
+- Added an immutable submission manifest binding one message identity to the target queue
+  identity/capacity, required capability, and exact work envelope, with bounded
+  integrity-checked atomic filesystem persistence and no-rewrite exact replay.
+- Added a restart-safe application boundary that persists intent first, creates only an
+  absent queue or verifies existing capacity before recovery, and admits through the
+  existing exact durable work handler without a mutable receipt.
+- Proved real-filesystem recovery after manifest persistence and empty queue creation,
+  exact full replay without a queue revision, changed-content refusal, and capacity-drift
+  refusal before recovery mutation. No submission CLI, execution, polling, external
+  adapter, Gate 9, commit, push, merge, release, or deployment was added.
+
 ## 2026-07-22 - Retain Exact Durable Work Admission History
 
 - Advanced Scheduler queue persistence to schema v2 with every exact `QueuedWork`

@@ -6,90 +6,79 @@ Completed
 
 ## Task
 
-Persist exact ordered durable work-admission history inside Scheduler queue state and
-make restart replay of an identical work message idempotent without accepting
-message-identity reuse with changed content.
+Prove and document one supported two-command Scheduler operator workflow that submits governed work through `scheduler-submit` and executes it only through a separately invoked `scheduler-cycle`, preserving each command's authority, output, and recovery boundary.
 
 ## Task ID
 
-persist-exact-durable-work-admission-history
+prove-explicit-scheduler-operator-workflow
 
 ## Context
 
-The production `DurableWorkItemAdmissionHandler` derives a stable WorkItem identity and
-persists the first delivery into `DurableSingleWorkerSchedulerQueue`. The queue retains
-the complete `QueuedWork` only while it is pending or active; after terminal disposition
-it retains only the WorkItem identity. A fresh Message Bus therefore cannot prove that a
-re-delivered message is exactly the original admission and currently dead-letters every
-restart replay.
+The durable submission and one-cycle commands are individually supported and their
+storage/recovery contracts are verified, but no named CLI integration currently connects
+the two surfaces as an operator would use them. The smallest honest workflow is an
+explicit sequence over shared queue and artifact roots, not a wrapper command, polling
+loop, or implicit second external effect.
 
-An end-user submission manifest cannot safely solve that gap first. A process may stop
-after queue persistence but before a separate manifest or admission receipt is written,
-leaving the restarted submitter unable to distinguish an interrupted identical
-submission from changed-content identity reuse. Exact history owned by the queue is the
-smallest durable prerequisite because queue persistence is already the admission
-authority.
+This increment is an integration characterization and operator-documentation task. The
+first focused run may pass without production changes if the existing commands already
+satisfy the accepted composition. Any failure must be classified before changing
+production behavior.
 
 ## Justified By
 
-- 2026-07-22: Connect Work Admission To The Durable Scheduler Queue Through A Persist-First Handler
-- 2026-07-16: Persist Gate 8 Queue Transitions Before Exposing State
-- 2026-07-16: Separate IPC Transport Acceptance From Message-Bus Delivery
+- 2026-07-22: Expose Durable Submission As A Separate Explicit CLI Command
+- 2026-07-22: Expose One Process-Isolated Durable Scheduler Cycle Through The CLI
+- 2026-07-22: Persist Submission Intent Before Creating The Scheduler Queue
+- 2026-07-21: Select The Process-Isolated Durable Worker And Retire Spools After Checkpoint
 
 ## Acceptance Criteria
 
-- Scheduler queue state advances to one explicit new schema that retains every admitted
-  `QueuedWork` in immutable admission order, including completed and failed work, while
-  preserving the existing pending/active/verified/failed partition and one-logical-run
-  invariants.
-- Durable admission persists a new exact `QueuedWork` before success. Re-admitting the
-  exact same value after recovery succeeds without a queue revision or second WorkItem;
-  reusing its WorkItem/message identity with any changed capability, envelope,
-  authorization, provenance, execution input, or dependency content fails closed.
-- `DurableWorkItemAdmissionHandler` uses the exact idempotent durable-admission boundary.
-  Same-bus replay remains a bus duplicate; fresh-bus exact replay succeeds without a
-  dead letter both before and after terminal queue disposition.
-- Filesystem serialization round-trips the exact ordered history with strict bounds and
-  integrity checks. Prior queue schema artifacts fail explicitly; no in-place migration
-  or silent reinterpretation is claimed.
-- A named real-filesystem integration admits through the production handler, runs the
-  existing process-isolated Scheduler cycle to terminal state, restarts the queue and
-  Message Bus, re-delivers the exact envelope, and observes unchanged terminal
-  disposition, queue revision, and RunRecord count.
-- Focused RED/GREEN tests, the full Gradle build, strict Java lint, structural-document
-  checks, and diff checks pass with fresh evidence.
+- A named real-filesystem CLI integration invokes `scheduler-submit` and
+  `scheduler-cycle` through separate fresh `EnhancerCli` instances with one shared queue
+  identity and explicit roots, and proves submission leaves pending work without
+  execution before the cycle command is invoked.
+- The separately invoked cycle crosses the real child JVM, Evidence, RunRecord, runtime,
+  external-effect ledger, cycle checkpoint, and invocation-spool boundaries to one
+  `VERIFIED_COMPLETED` disposition while retaining the immutable submission manifest.
+- Exact submission replay after completion reports `REPLAYED` without changing the queue
+  revision or creating a second RunRecord, and a later separate cycle reports `IDLE`
+  without executing work again.
+- README documents the two explicit invocations, which inputs/roots must be shared, how
+  to interpret each command's independent status/exit code, and recovery actions for
+  interrupted submission, interrupted cycle, terminal failed work, and idle queues.
+- No wrapper command, automatic UUID/time generation, polling/service loop, combined
+  status, hidden cycle invocation, or new production authority is introduced unless an
+  aligned characterization failure proves a smaller correction is required.
+- Focused characterization, the full Gradle build with Java 17 strict lint, an
+  actual-repository smoke run, structural-document checks, and final diff checks pass
+  with fresh evidence.
 
 ## Out Of Scope
 
-- Queue creation, an end-user submission manifest or submission CLI, admission receipts
-  outside queue state, durable Message Bus journaling, worker polling/service loops,
-  arbitrary dependency submission, concurrent writers, or multi-process locking.
-- Queue schema migration from the prior version, history compaction/cleanup, priority,
-  fairness, broader budgets, authenticated control application, external adapter/effect
-  execution, Gate 9, or whole-Gate Operational promotion.
+- A durable invocation manifest, generated identities/time, background worker service,
+  repeated cycles, queue watching, concurrent writers, or multi-process locking.
+- Authenticated controls, external adapter/effect execution, Gate 9, queue/runtime schema
+  migration or cleanup, or whole-Gate Operational promotion.
 - Commit, push, PR, merge, release, or deployment unless separately requested.
 
 ## Approval
 
-The user explicitly asked to continue the project on 2026-07-22. The previous completed
-task required assessment of exact cross-bus admission recovery and an end-user submission
-manifest; the assessment selected exact queue-owned admission history as the prerequisite
-that makes a later submission manifest restart-safe.
+The user explicitly asked to continue the project on 2026-07-22, and the preceding completed task named this separate two-command operator workflow assessment as the next bounded increment.
+
+## Allowed Tools
+
+- read-file
 
 ## Verification
 
-- Focused RED failed only on the absent `admitIdempotently` and `admittedWork`
-  contracts.
-- Focused GREEN passed the queue-state, durable-queue, filesystem-store, admission-handler,
-  and named process-isolated recovery integration suites.
-- Fresh full verification passed 85 suites and 457 tests: 454 passed, 3 existing
-  privilege-dependent Windows symbolic-link setup cases skipped, 0 failures, and 0
-  errors under build-enforced Java 17 `-Xlint:all -Werror`.
-- Post-document structural checks and final diff checks are recorded in
-  `docs/verification-log.md`.
+Acceptance is satisfied by the named separate-command real-filesystem CLI integration,
+the actual-repository operator smoke sequence, and the fresh full strict-lint build.
+Append-only command results, counts, failure classification, and artifact references are
+recorded in `docs/verification-log.md`.
 
 ## Next
 
-After this task, design the smallest durable end-user submission manifest and queue
-creation boundary over the exact idempotent admission contract, without adding polling,
-authenticated controls, external-effect adapters, or Gate 9.
+After this task, assess whether a separately durable invocation manifest is needed to
+offer replay-safe generated identities and occurrence time without coupling submission,
+execution, or polling.

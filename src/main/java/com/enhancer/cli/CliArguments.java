@@ -3,15 +3,19 @@ package com.enhancer.cli;
 import com.enhancer.runtime.AgentRunLease;
 import com.enhancer.runtime.AgentRunRetryPolicy;
 import com.enhancer.runtime.IsolatedWorkerLauncher;
+import com.enhancer.runtime.SingleWorkerSchedulerQueue;
 import com.enhancer.session.DevelopmentSessionCheckpointState;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 final class CliArguments {
@@ -38,6 +42,21 @@ final class CliArguments {
             "max-attempts",
             "lease-millis",
             "process-timeout-millis");
+    private static final Set<String> SCHEDULER_SUBMIT_OPTIONS = Set.of(
+            "project-root",
+            "submission-root",
+            "queue-root",
+            "task-id",
+            "queue-id",
+            "max-work-items",
+            "required-capability",
+            "message-id",
+            "correlation-id",
+            "logical-run-id",
+            "producer",
+            "occurred-at",
+            "target-path",
+            "expected-sha256");
     private static final Set<String> CHECKPOINT_START_OPTIONS = Set.of(
             "project-root", "step", "next-action");
     private static final Set<String> CHECKPOINT_RECORD_OPTIONS = Set.of(
@@ -54,7 +73,8 @@ final class CliArguments {
     static CliCommand parse(String[] arguments) {
         if (arguments == null || arguments.length == 0) {
             throw new CliUsageException(
-                    "command is required: run, replay, or checkpoint operation");
+                    "command is required: run, replay, scheduler-submit, "
+                            + "scheduler-cycle, or checkpoint operation");
         }
         String command = arguments[0];
         return switch (command) {
@@ -62,6 +82,8 @@ final class CliArguments {
             case "replay" -> parseReplay(parseOptions(arguments, REPLAY_OPTIONS));
             case "scheduler-cycle" -> parseSchedulerCycle(
                     parseOptions(arguments, SCHEDULER_CYCLE_OPTIONS));
+            case "scheduler-submit" -> parseSchedulerSubmit(
+                    parseOptions(arguments, SCHEDULER_SUBMIT_OPTIONS));
             case "checkpoint-start" -> parseCheckpointStart(arguments);
             case "checkpoint-record" -> parseCheckpointRecord(arguments);
             case "checkpoint-show" -> new CheckpointShowCliCommand(
@@ -175,6 +197,37 @@ final class CliArguments {
                 processTimeout);
     }
 
+    private static SchedulerSubmitCliCommand parseSchedulerSubmit(
+            Map<String, String> options) {
+        long maxWorkItems = positiveLong(
+                options.get("max-work-items"), "max-work-items");
+        if (maxWorkItems > SingleWorkerSchedulerQueue.MAX_WORK_ITEMS) {
+            throw new CliUsageException(
+                    "max-work-items must not exceed "
+                            + SingleWorkerSchedulerQueue.MAX_WORK_ITEMS);
+        }
+        String digest = options.get("expected-sha256");
+        if (!SHA_256.matcher(digest).matches()) {
+            throw new CliUsageException(
+                    "expected-sha256 must be 64 lowercase hexadecimal characters");
+        }
+        return new SchedulerSubmitCliCommand(
+                path(options.get("project-root"), "project-root"),
+                path(options.get("submission-root"), "submission-root"),
+                path(options.get("queue-root"), "queue-root"),
+                nonBlank(options.get("task-id"), "task-id"),
+                canonicalUuid(options.get("queue-id"), "queue-id"),
+                (int) maxWorkItems,
+                nonBlank(options.get("required-capability"), "required-capability"),
+                canonicalUuid(options.get("message-id"), "message-id"),
+                nonBlank(options.get("correlation-id"), "correlation-id"),
+                nonBlank(options.get("logical-run-id"), "logical-run-id"),
+                nonBlank(options.get("producer"), "producer"),
+                instant(options.get("occurred-at"), "occurred-at"),
+                nonBlank(options.get("target-path"), "target-path"),
+                digest);
+    }
+
     private static Map<String, String> parseOptions(
             String[] arguments,
             Set<String> expectedOptions) {
@@ -271,6 +324,26 @@ final class CliArguments {
             throw new CliUsageException(name + " must not be blank");
         }
         return value;
+    }
+
+    private static String canonicalUuid(String value, String name) {
+        String candidate = nonBlank(value, name);
+        try {
+            if (!UUID.fromString(candidate).toString().equals(candidate)) {
+                throw new IllegalArgumentException("not canonical");
+            }
+            return candidate;
+        } catch (IllegalArgumentException exception) {
+            throw new CliUsageException(name + " must be a canonical UUID", exception);
+        }
+    }
+
+    private static Instant instant(String value, String name) {
+        try {
+            return Instant.parse(nonBlank(value, name));
+        } catch (DateTimeParseException exception) {
+            throw new CliUsageException(name + " must be an ISO-8601 instant", exception);
+        }
     }
 
     private static Path path(String value, String name) {

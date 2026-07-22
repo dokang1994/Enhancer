@@ -101,6 +101,23 @@ Replay the printed opaque reference without re-executing the Tool:
 
 Exit codes are stable: `0` completed, `2` usage/configuration, `10` verification failed, `20` policy denied, `21` Tool failed, `30` stagnated, `31` maximum iterations, `40` terminal Scheduler work failure, and `70` internal failure. Every `run` that produces a record also reports `workspaceSnapshotId`, `workspaceObservations` (repository documents plus prior run records), a `memoryFreshness` matched/diverged/notObserved summary, and bounded Project Brain graph counts (`graphNodes`, `graphEdges`, `graphDecisions`, `impactExecutions`); replay does not reproduce the snapshot identity because the RunRecord does not store it. Output is capped at 4096 characters and never includes complete file evidence. The example `.enhancer/` runtime directory is Git-ignored and is not removed by Gradle `clean`. `--evidence-root` and `--run-record-root` are explicit caller inputs and are not confined to the project root; each store refuses a symbolic-link root and only creates new UUID-named entries, so it can add files to the directory you name but cannot overwrite what is already there. For recovery, correct the reported configuration or target, retain the evidence and RunRecord roots, and use `replay` for any printed record reference before retrying with a new run.
 
+## Submit Durable Scheduler Work
+
+`scheduler-submit` persists one immutable submission intent and admits its exact
+dependency-free work to a durable queue. It derives the approved task revision, allowed
+Tools, and Workspace snapshot from the governed project, but every identity, occurrence
+time, queue bound, capability, target, and expected digest remains an explicit input:
+
+```powershell
+.\scripts\gradle.ps1 run --args="scheduler-submit --project-root C:\Enhancer --submission-root C:\Enhancer\.enhancer\submissions --queue-root C:\Enhancer\.enhancer\queue --task-id <active-task-id> --queue-id <canonical-queue-uuid> --max-work-items 256 --required-capability read-file --message-id <canonical-message-uuid> --correlation-id <correlation-id> --logical-run-id <logical-run-id> --producer local-operator --occurred-at 2026-07-22T00:00:00Z --target-path README.md --expected-sha256 <lowercase-sha256>"
+```
+
+The bounded status is `ADMITTED` when the queue revision advances and `REPLAYED` when
+the exact submission is already present. Preserve and reuse every argument to recover an
+interrupted submission. Reusing a message identity with changed content or naming a task
+that does not match the active repository task exits `2` without admitting changed work.
+The command does not execute the work; invoke `scheduler-cycle` separately.
+
 ## Recover One Durable Scheduler Cycle
 
 `scheduler-cycle` recovers an already-existing durable Scheduler queue and runs exactly
@@ -115,6 +132,37 @@ The bounded result status is `IDLE`, `VERIFIED_COMPLETED`, or `FAILED`. Idle and
 verified completion exit `0`; terminal failed work exits `40`. Missing queue state or
 malformed input exits `2`, while corrupt state and unexpected execution/storage errors
 exit `70`. Preserve every named root to resume a checkpointed cycle after interruption.
+
+## Run The Explicit Two-Command Scheduler Workflow
+
+The supported operator workflow is the two commands above, invoked separately. There is
+no wrapper and no polling loop:
+
+1. Choose and retain every `scheduler-submit` argument before the first invocation.
+2. Invoke `scheduler-submit` and stop if it exits nonzero. `ADMITTED` and `REPLAYED` both
+   mean the exact work is durably present; neither status executes it.
+3. After separately deciding to execute, invoke `scheduler-cycle` with the same
+   `--project-root`, `--queue-root`, and `--queue-id`. Preserve every cycle-specific root
+   for recovery.
+4. Interpret the cycle result independently. One invocation runs at most one cycle;
+   invoke another cycle only through another explicit operator action.
+
+The queue root and identity are the handoff between the commands. Submission roots and
+all submission identities/time must be retained for exact replay. Runtime, effect,
+checkpoint, evidence, RunRecord, and invocation roots belong to cycle recovery and must
+not be replaced after an interrupted cycle. Exact submission replay also requires the
+governed repository documents used to derive the task revision and Workspace snapshot to
+remain unchanged; changed authority or snapshot content under the same message identity
+fails closed.
+
+| Observed state | Operator action |
+|---|---|
+| Submission interrupted or produced no trusted result | Reinvoke `scheduler-submit` with every original argument against the unchanged governed project. Accept `ADMITTED` or `REPLAYED`; do not invoke the cycle while submission remains an error. |
+| `ADMITTED` or `REPLAYED` | The work is durable but not necessarily executed. Invoke `scheduler-cycle` separately only when execution is intended. |
+| Cycle interrupted or exits `70` | Preserve the queue and every cycle root, correct only the reported environmental problem, and reinvoke the same cycle command so the worker checkpoint can recover. Do not resubmit work to repair a cycle. |
+| Cycle reports `VERIFIED_COMPLETED` | The WorkItem is terminally verified. Exact submission replay remains a no-op, and a later cycle for an otherwise empty queue reports `IDLE`. |
+| Cycle reports `FAILED` and exits `40` | The WorkItem is terminally failed. Inspect the retained runtime and RunRecord evidence; resubmitting the same identity is not a retry. New work requires separately approved inputs and a new message identity. |
+| Cycle reports `IDLE` | No ready work was executed. Do not loop automatically; if work was expected, verify the queue root/identity and the preceding submission result. |
 
 ## Development Session Checkpoints
 

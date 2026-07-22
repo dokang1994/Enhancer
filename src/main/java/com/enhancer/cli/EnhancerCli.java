@@ -14,6 +14,8 @@ import com.enhancer.brain.TaskImpactQuery;
 import com.enhancer.brain.TaskJustificationProjector;
 import com.enhancer.context.ProjectContext;
 import com.enhancer.context.ProjectContextReader;
+import com.enhancer.bus.MessageEnvelope;
+import com.enhancer.bus.WorkPayload;
 import com.enhancer.loop.AgentLoop;
 import com.enhancer.loop.AgentLoopStopReason;
 import com.enhancer.loop.AgentRunController;
@@ -30,10 +32,14 @@ import com.enhancer.run.RunRecord;
 import com.enhancer.runtime.AgentRunRetryPolicy;
 import com.enhancer.runtime.DurableAgentRunWorker;
 import com.enhancer.runtime.DurableSingleWorkerSchedulerQueue;
+import com.enhancer.runtime.DurableSubmissionManifest;
+import com.enhancer.runtime.DurableSubmissionResult;
+import com.enhancer.runtime.DurableWorkSubmissionService;
 import com.enhancer.runtime.FileSystemAgentRuntimeStateStore;
 import com.enhancer.runtime.FileSystemExternalEffectLedgerStore;
 import com.enhancer.runtime.FileSystemPendingFinalizationStore;
 import com.enhancer.runtime.FileSystemSchedulerQueueStore;
+import com.enhancer.runtime.FileSystemSubmissionManifestStore;
 import com.enhancer.runtime.MissingSchedulerQueueStateException;
 import com.enhancer.runtime.WorkItemDisposition;
 import com.enhancer.session.DevelopmentSessionCheckpoint;
@@ -60,6 +66,7 @@ import com.enhancer.workspace.WorkspaceSnapshot;
 import com.enhancer.workspace.WorkspaceSourceObservation;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Clock;
 import java.time.Instant;
@@ -105,6 +112,9 @@ public final class EnhancerCli {
             }
             if (command instanceof SchedulerCycleCliCommand cycle) {
                 return executeSchedulerCycle(cycle, stdout);
+            }
+            if (command instanceof SchedulerSubmitCliCommand submit) {
+                return executeSchedulerSubmit(submit, stdout);
             }
             if (command instanceof CheckpointStartCliCommand start) {
                 return executeCheckpointStart(start, stdout);
@@ -473,11 +483,71 @@ public final class EnhancerCli {
         return exitCode.code();
     }
 
-    private GovernedRunInputs governedRunInputs(RunCliCommand command) {
+    private int executeSchedulerSubmit(
+            SchedulerSubmitCliCommand command,
+            PrintStream stdout) throws IOException {
+        GovernedRunInputs inputs = governedRunInputs(
+                command.projectRoot(), command.taskId());
+        WorkspaceSnapshot snapshot;
+        DurableSubmissionResult result;
         try {
-            ProjectContext context = new ProjectContextReader().read(command.projectRoot());
+            snapshot = new RepositoryMemorySnapshotCollector().collect(
+                    command.projectRoot(),
+                    command.occurredAt(),
+                    inputs.approvedTask(),
+                    inputs.repositoryMemory());
+            MessageEnvelope workMessage = new MessageEnvelope(
+                    command.messageId(),
+                    command.correlationId(),
+                    Optional.empty(),
+                    command.logicalRunId(),
+                    command.producer(),
+                    command.occurredAt(),
+                    new WorkPayload(
+                            snapshot.approvedTaskRevision(),
+                            snapshot.snapshotId(),
+                            inputs.approvedTask().allowedTools(),
+                            Optional.of(new WorkPayload.ExecutionInput(
+                                    command.targetPath(),
+                                    command.expectedSha256()))));
+            DurableSubmissionManifest manifest = new DurableSubmissionManifest(
+                    command.queueId(),
+                    command.maxWorkItems(),
+                    command.requiredCapability(),
+                    workMessage);
+            result = new DurableWorkSubmissionService(
+                    new FileSystemSubmissionManifestStore(command.submissionRoot()),
+                    new FileSystemSchedulerQueueStore(command.queueRoot()))
+                    .submit(manifest);
+        } catch (IllegalArgumentException exception) {
+            throw new CliUsageException(
+                    "scheduler-submit input is invalid: " + safeMessage(exception),
+                    exception);
+        }
+
+        String status = result.workAdmitted() ? "ADMITTED" : "REPLAYED";
+        writeBounded(stdout, String.join("\n",
+                "status=" + status,
+                "exitCode=0",
+                "submissionId=" + result.submissionId(),
+                "queueId=" + result.queueId(),
+                "queueRevision=" + result.queueRevision(),
+                "manifestCreated=" + result.manifestCreated(),
+                "queueCreated=" + result.queueCreated(),
+                "workAdmitted=" + result.workAdmitted(),
+                "workspaceSnapshotId=" + snapshot.snapshotId()) + "\n");
+        return 0;
+    }
+
+    private GovernedRunInputs governedRunInputs(RunCliCommand command) {
+        return governedRunInputs(command.projectRoot(), command.taskId());
+    }
+
+    private GovernedRunInputs governedRunInputs(Path projectRoot, String taskId) {
+        try {
+            ProjectContext context = new ProjectContextReader().read(projectRoot);
             ApprovedTask approvedTask = new ApprovedTaskReader().read(context);
-            if (!approvedTask.taskId().equals(command.taskId())) {
+            if (!approvedTask.taskId().equals(taskId)) {
                 throw new CliUsageException(
                         "task-id does not match the active repository task");
             }

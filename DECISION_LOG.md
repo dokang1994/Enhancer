@@ -11,6 +11,18 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### 2026-07-22: Expose Durable Submission As A Separate Explicit CLI Command
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-22-expose-durable-submission-as-a-separate-explicit-cli-command.md)
+
+### 2026-07-22: Persist Submission Intent Before Creating The Scheduler Queue
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-22-persist-submission-intent-before-creating-the-scheduler-queue.md)
+
 ### 2026-07-22: Retain Exact Work Admission History In The Durable Queue
 
 Status: Accepted Decision

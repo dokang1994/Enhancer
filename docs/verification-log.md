@@ -1279,3 +1279,112 @@ This assessment itself changed no production or test code and did not change Gat
 - A separate fresh structural rerun passed 8 tests across `DocumentOwnershipTest`,
   `DecisionLogIndexTest`, and `RuntimePackageBoundaryTest`, with 0 skips, failures, or
   errors. `git diff --check` produced no output and exited 0 before this append.
+
+## Durable Submission Intent And Queue-Creation Recovery
+
+- Focused RED reached test compilation and failed with 34 aligned missing-symbol errors
+  for the not-yet-implemented manifest/store/service/result contracts and durable queue
+  capacity projection. No unrelated, flaky, configuration, privilege, or scope-expanding
+  failure appeared.
+- Focused GREEN passed 4 tests across
+  `FileSystemSubmissionManifestStoreTest` and the named
+  `DurableSubmissionRecoveryIntegrationTest`, with 0 skips, failures, or errors. The
+  filesystem store round-trips causation and explicit execution input, exact replay does
+  not rewrite, changed-content identity reuse fails, and integrity corruption fails
+  explicitly.
+- The named real-filesystem integration interrupts before queue creation after the
+  immutable manifest is durable and before admission after an empty queue is durable.
+  Fresh store/service instances resume both prefixes to one exact pending WorkItem; full
+  replay changes no queue revision, changed envelope content fails before mutation, and
+  an existing capacity mismatch is rejected before recovery can requeue active work.
+- Fresh pre-document and post-document
+  `.\scripts\gradle.ps1 build --rerun-tasks --warning-mode all` runs each passed all 7
+  build tasks and 87 suites/461 tests: 458 passed, 3 existing privilege-dependent Windows
+  symbolic-link setup cases skipped, 0 failures, and 0 errors. Both reran build-enforced
+  Java 17 `-Xlint:all -Werror` compilation and all document inputs.
+- `git diff --check` produced no output and exited 0 after canonical document
+  synchronization and before this append. Scope held: no public submission CLI,
+  automatic identity/time generation, Scheduler execution or polling, mutable admission
+  receipt, concurrent-writer lock, external adapter/effect execution, Gate 9, commit,
+  push, merge, release, or deployment was added.
+
+## Explicit Durable Submission CLI
+
+- Focused RED reached `compileTestJava` and failed with two aligned missing-symbol errors
+  for the not-yet-implemented `SchedulerSubmitCliCommand`; no unrelated, flaky,
+  configuration, privilege, or scope-expanding failure appeared.
+- Focused GREEN passed 7 tests across `CliArgumentsTest` and the named
+  `EnhancerCliSchedulerSubmitIntegrationTest`, with 0 skips, failures, or errors. Parser
+  coverage includes every explicit input plus missing, capacity-bound, malformed instant,
+  non-canonical UUID, malformed digest, and duplicate-option refusal.
+- The real-filesystem CLI integration resolves the repository-approved task and
+  repository-memory snapshot, admits one exact work item, and proves fresh-instance
+  exact replay changes neither manifest bytes nor queue revision. Changed producer under
+  the same message identity and task mismatch both exit as usage failures without queue
+  mutation; the resulting pending queue proves the command performs no execution.
+- Fresh pre-document and post-document
+  `.\scripts\gradle.ps1 build --rerun-tasks --warning-mode all` runs each passed all 7
+  build tasks and 88 suites/464 tests: 461 passed, 3 existing privilege-dependent Windows
+  symbolic-link setup cases skipped, 0 failures, and 0 errors. Both reran build-enforced
+  Java 17 `-Xlint:all -Werror` compilation and all document inputs.
+- Scope held: submission and execution remain separate explicit commands. No automatic
+  identity/time generation, worker or Tool invocation, RunRecord/evidence persistence,
+  polling, mutable admission receipt, external adapter/effect execution, whole-Gate
+  Operational promotion, commit, push, merge, release, or deployment was added.
+
+## Explicit Durable Submission CLI Final Structural Verification
+
+- A separate fresh structural rerun passed 8 tests across `DocumentOwnershipTest`,
+  `DecisionLogIndexTest`, and `RuntimePackageBoundaryTest`, with 0 skips, failures, or
+  errors. `git diff --check` produced no output and exited 0 before this append.
+- Final diff review found and removed one stale Roadmap sentence that still denied the
+  now-supported submission CLI. After that correction, the same 3 suites/8 structural
+  tests passed again with 0 skips, failures, or errors, and the stale-claim search plus
+  `git diff --check` produced no output.
+
+## Explicit Two-Command Scheduler Operator Workflow
+
+- The first focused characterization completed the submit/cycle/replay/idle behavior but
+  failed one over-strict assertion that expected a separate Evidence file for a short
+  target. Architecture requires short content to remain inline in the RunRecord, so the
+  failure was classified as a misaligned test contract and corrected without production
+  changes. The aligned focused rerun passed the named
+  `EnhancerCliSchedulerOperatorWorkflowIntegrationTest` with 0 skips, failures, or
+  errors.
+- The named real-filesystem CLI integration uses separate fresh `EnhancerCli` instances
+  for submission and cycling. It proves pending work and no runtime artifacts before the
+  cycle, crosses the real child JVM to `VERIFIED_COMPLETED`, retains one immutable
+  submission manifest and one RunRecord, replays the exact submission without queue
+  revision or RunRecord changes, and reports `IDLE` on a later explicit cycle.
+- An actual Enhancer-repository smoke run under the ignored
+  `build/operator-workflow-smoke-20260722` root reported
+  `ADMITTED -> VERIFIED_COMPLETED -> REPLAYED -> IDLE` for queue
+  `00000000-0000-0000-0000-00000000f101` and message
+  `00000000-0000-0000-0000-00000000f102`. The terminal queue stayed at revision 3 with
+  one RunRecord (`run-record/51c78e35-6f63-449e-8b7f-507c4a37dd28`), the successful
+  invocation spool and cycle checkpoint were cleaned, and exact replay admitted no
+  second execution.
+- The first full regression exposed only an incorrect date in one active-task decision
+  reference; `DecisionLogIndexTest` rejected the unresolved heading as designed. The
+  reference was corrected from 2026-07-22 to the exact accepted-decision heading dated
+  2026-07-21. Fresh `.\scripts\gradle.ps1 build --rerun-tasks --warning-mode all`
+  then passed all 7 build tasks and 89 suites/465 tests: 462 passed, 3 existing
+  privilege-dependent Windows symbolic-link setup cases skipped, 0 failures, and 0
+  errors under build-enforced Java 17 strict lint. `git diff --check` produced no output
+  and exited 0 before this append.
+- Scope held: no production behavior, wrapper command, generated identity/time, polling
+  loop or service, hidden cycle invocation, whole-Gate Operational promotion, commit,
+  push, merge, release, or deployment was added.
+
+## Explicit Two-Command Scheduler Workflow Final Verification
+
+- After task and operator-document synchronization, fresh
+  `.\scripts\gradle.ps1 build --rerun-tasks --warning-mode all` passed all 7 build tasks
+  and 89 suites/465 tests: 462 passed, 3 existing privilege-dependent Windows
+  symbolic-link setup cases skipped, 0 failures, and 0 errors. This reran build-enforced
+  Java 17 `-Xlint:all -Werror` compilation and every document-backed test input.
+- A separate fresh structural rerun passed 8 tests across `DocumentOwnershipTest`,
+  `DecisionLogIndexTest`, and `RuntimePackageBoundaryTest`, with 0 skips, failures, or
+  errors. The stale-claim search found no statement denying the now-supported workflow,
+  `git diff --check` produced no output, source inventory was 206 production and 89 test
+  files, and `main` remained synchronized with `origin/main` before this append.

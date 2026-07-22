@@ -325,6 +325,41 @@ Durability sits behind the `SchedulerQueueStore` port — `create`, `update`, an
 
 Because this queue boundary has no lease or worker ownership, restart recovery moves a previously active item back into pending order and persists that recovery transition before returning the queue. The item may therefore be offered again under at-least-once execution semantics. Exact admission replay prevents a second queue item but does not deduplicate external effects. Schema-v1 queue artifacts fail explicitly; migration, history compaction/cleanup, leases/fencing, worker execution, effect records, failure/retry/cancellation policy, multi-process coordination, and snapshot history remain deferred.
 
+### Gate 8 Durable Submission Intent And Queue Creation
+
+`DurableSubmissionManifest` is the immutable pre-queue intent for one dependency-free
+work submission. Its identity is the canonical message UUID, and its exact value binds
+the target queue UUID, fixed queue capacity, bounded required capability, and unchanged
+`MessageEnvelope` carrying `WorkPayload`. The manifest grants no execution authority and
+does not duplicate a mutable admission status.
+
+`SubmissionManifestStore` persists that intent before any queue creation.
+`FileSystemSubmissionManifestStore` publishes one bounded schema-v1 binary artifact by
+atomic move with an integrity envelope, strict UTF-8 decoding, canonical artifact naming,
+and explicit missing, corrupt, oversized, trailing, and identity-mismatch failures. Exact
+replay returns without rewriting; changed content under the same submission identity
+fails closed.
+
+`DurableWorkSubmissionService` composes the three monotonic recovery prefixes: persist
+the exact manifest, create the declared queue only when absent or resolve and verify its
+fixed capacity before recovery, then pass the exact envelope through
+`DurableWorkItemAdmissionHandler`. The queue remains the admission authority and its exact
+history derives completion, so there is no queue-to-receipt update. A failure after either
+earlier prefix is resumed by the same submission, and a fully admitted exact replay changes
+neither artifact nor queue revision. This boundary is single-process and adds no
+automatic identity or time generation, Scheduler execution, polling, concurrent writer
+lock, external-effect adapter, or Gate 9 behavior.
+
+`scheduler-submit` is the supported command for this boundary. The caller supplies the
+project, submission, and queue roots plus every task, queue, message, correlation,
+logical-run, producer, capability, capacity, occurrence-time, target, and digest input.
+The command resolves the matching repository-approved active task, captures one
+repository-memory Workspace snapshot at the supplied occurrence time, constructs the
+exact dependency-free work envelope, and calls `DurableWorkSubmissionService`. It
+generates neither identity nor time and never invokes a worker, Tool, evidence store,
+RunRecord store, or `scheduler-cycle`. Bounded output reports `ADMITTED` only when the
+queue revision advances and `REPLAYED` for an exact already-admitted submission.
+
 ### Gate 8 Durable Goal And AgentRun Lifecycle
 
 The runtime state is one immutable schema-v2 `AgentRuntimeState` containing exactly one `RuntimeGoal`, the Goal's exact existing `WorkItem`, an ordered immutable list of at most 16 `RuntimeAgentRun` attempts, and an ordered retry-decision history. Goal, AgentRun, WorkItem, and message identities are distinct canonical UUIDs, including across attempts. `agentRun()` is only the latest-attempt projection; earlier attempts remain exact. The retained WorkItem remains the sole source of approved task revision, Workspace snapshot, logical run, required capability, and allowed-Tool provenance; lifecycle state cannot add or widen authority.
@@ -383,8 +418,9 @@ filesystem stores and system UTC clock, and invokes exactly one cycle. It never 
 a queue or admits work. Bounded output distinguishes `IDLE`, `VERIFIED_COMPLETED`, and
 terminal `FAILED`; the failed disposition has its own non-zero exit code, while missing
 queue/configuration is usage failure and corruption/execution failure remains internal.
-This is not a submission manifest, polling service, durable bus, or Gate 8 Operational
-promotion.
+Submission remains a separately invoked `scheduler-submit` command; `scheduler-cycle`
+never creates a manifest or admits work. Neither command adds a polling service, durable
+bus, or whole-Gate Operational promotion.
 
 `AgentLoopAgentRunExecution` is the first production implementation of that port: it drives the Integrated Gate 1-4 pipeline (governed `read-file` `ToolExecutor`, `EvidenceRecorder`-persisted evidence, the bounded `AgentRunController`/`AgentLoop`, `DeterministicReadFileVerifier`, and the application `AgentRunFinalizer`) against the approved task's own source document — the `read-file` target is `taskRevision().sourceDocument()` and the expected content SHA-256 is `taskRevision().sourceSha256()` — and returns the persisted `run-record/<uuid>` reference. The `ApprovedTask` is constructed directly from the WorkItem's fields (no `ApprovedTaskReader`, no `In Progress` coupling), so the runtime finalizer's taskId-plus-sourceDocument binding holds by construction; the port must persist through the same `RunRecordStore` the worker's finalizer resolves from. A digest mismatch or Tool failure is carried in a persisted non-`VERIFIED` RunRecord, never thrown, and is real drift detection; the runtime result boundary records it as a failed attempt at `RETRY_PENDING` without a terminal queue disposition. The derivation of `(targetPath, expectedContentSha256)` from the WorkItem sits behind one private seam.
 

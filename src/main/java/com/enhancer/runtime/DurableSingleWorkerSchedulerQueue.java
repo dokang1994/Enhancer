@@ -117,6 +117,10 @@ public final class DurableSingleWorkerSchedulerQueue {
         return revision;
     }
 
+    public int maxWorkItems() {
+        return queue.snapshot(queueId, revision).maxWorkItems();
+    }
+
     public Optional<WorkItem> activeWork() {
         return queue.activeWork();
     }
