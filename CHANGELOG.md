@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-07-22 - Promote Generated-Input Scheduler Submission To An Operational Sub-Path
+
+- Ran an actual Enhancer-repository smoke run of `scheduler-submit-generated` followed by a
+  separate `scheduler-cycle` over one shared queue root and the derived queue identity,
+  observing `ADMITTED` (queue revision 1), `VERIFIED_COMPLETED` (one RunRecord, one completed
+  WorkItem), `REPLAYED` (identical occurrence time and Workspace snapshot, unchanged queue
+  revision), and `IDLE`, with exactly one retained submission manifest and one RunRecord and
+  no duplicate execution.
+- Documented the `scheduler-submit-generated` command and its generated-input recovery
+  actions (submission interruption before and after manifest persistence, exact replay,
+  conflict fail-closed, verified completion, and idle re-entry) in the README alongside the
+  existing explicit two-command workflow.
+- Recorded the Operational sub-path promotion in the roadmap and state documents. No polling
+  loop, wrapper command, automatic execution, production behavior, schema change, commit-time
+  runtime artifact, release, or deployment was added, and the explicit `scheduler-submit`
+  command is unchanged.
+
 ## 2026-07-22 - Implement Replay-Safe Generated-Input Scheduler Submission
 
 - Added `GeneratedInputSubmissionService`, a replay-safe application boundary that takes one
