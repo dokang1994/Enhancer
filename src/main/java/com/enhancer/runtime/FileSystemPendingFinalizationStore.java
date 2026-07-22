@@ -40,7 +40,7 @@ public final class FileSystemPendingFinalizationStore
             Integer.BYTES + Long.BYTES + Integer.BYTES + DIGEST_BYTES;
     static final int MAX_STATE_BYTES = 16 * 1024;
     private static final int MAX_STRING_BYTES = 4 * 1024;
-    static final int CURRENT_SCHEMA_VERSION = 1;
+    static final int CURRENT_SCHEMA_VERSION = 2;
     private static final String PAYLOAD_KIND = "pending-finalization";
     private static final String FILE_NAME = "pending.finalization";
 
@@ -181,6 +181,12 @@ public final class FileSystemPendingFinalizationStore
                         output,
                         pending.runRecordReference().orElseThrow());
             }
+            output.writeBoolean(pending.replacementAgentRunId().isPresent());
+            if (pending.replacementAgentRunId().isPresent()) {
+                writeString(
+                        output,
+                        pending.replacementAgentRunId().orElseThrow());
+            }
         }
         return bytes.toByteArray();
     }
@@ -201,10 +207,17 @@ public final class FileSystemPendingFinalizationStore
             Optional<String> reference = readPresence(input)
                     ? Optional.of(readString(input))
                     : Optional.empty();
+            Optional<String> replacementAgentRunId = readPresence(input)
+                    ? Optional.of(readString(input))
+                    : Optional.empty();
             if (input.available() != 0) {
                 throw corrupted("state contains trailing bytes");
             }
-            return new PendingFinalization(goalId, agentRunId, reference);
+            return new PendingFinalization(
+                    goalId,
+                    agentRunId,
+                    reference,
+                    replacementAgentRunId);
         } catch (CorruptedPendingFinalizationException exception) {
             throw exception;
         } catch (EOFException exception) {

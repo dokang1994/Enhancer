@@ -20,6 +20,8 @@ class FileSystemPendingFinalizationStoreIntegrationTest {
             "00000000-0000-0000-0000-000000000802";
     private static final String REFERENCE =
             "run-record/00000000-0000-0000-0000-000000000803";
+    private static final String REPLACEMENT_AGENT_RUN_ID =
+            "00000000-0000-0000-0000-000000000804";
 
     @TempDir
     Path tempDir;
@@ -48,6 +50,33 @@ class FileSystemPendingFinalizationStoreIntegrationTest {
         store.record(updated);
 
         assertEquals(Optional.of(updated), store().findPending());
+    }
+
+    @Test
+    void roundTripsTheCheckpointedReplacementIdentity() throws Exception {
+        PendingFinalization retry = new PendingFinalization(
+                GOAL_ID,
+                AGENT_RUN_ID,
+                Optional.of(REFERENCE),
+                Optional.of(REPLACEMENT_AGENT_RUN_ID));
+
+        store().record(retry);
+
+        assertEquals(Optional.of(retry), store().findPending());
+    }
+
+    @Test
+    void replacementIdentityRequiresACompletedCurrentAttemptAndDistinctIdentity() {
+        assertThrows(IllegalArgumentException.class, () -> new PendingFinalization(
+                GOAL_ID,
+                AGENT_RUN_ID,
+                Optional.empty(),
+                Optional.of(REPLACEMENT_AGENT_RUN_ID)));
+        assertThrows(IllegalArgumentException.class, () -> new PendingFinalization(
+                GOAL_ID,
+                AGENT_RUN_ID,
+                Optional.of(REFERENCE),
+                Optional.of(AGENT_RUN_ID)));
     }
 
     @Test

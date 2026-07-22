@@ -44,6 +44,8 @@ class DurableAgentRunWorkerTest {
     private static final String QUEUE_ID = "00000000-0000-0000-0000-000000000901";
     private static final String GOAL_ID = "00000000-0000-0000-0000-000000000902";
     private static final String AGENT_RUN_ID = "00000000-0000-0000-0000-000000000903";
+    private static final String SECOND_AGENT_RUN_ID =
+            "00000000-0000-0000-0000-000000000904";
     private static final String WORK_ID = "00000000-0000-0000-0000-000000000911";
     private static final String DEP_ID = "00000000-0000-0000-0000-000000000912";
     private static final String OWNER_ID = "00000000-0000-0000-0000-000000000921";
@@ -81,32 +83,137 @@ class DurableAgentRunWorkerTest {
     }
 
     @Test
-    void failedCycleParksAtRetryPendingAndRetainsIntent() throws Exception {
+    void failedAttemptExecutesAReplacementThatCompletesTheGoal() throws Exception {
         Stores s = stores();
         DurableSingleWorkerSchedulerQueue queue =
                 DurableSingleWorkerSchedulerQueue.create(QUEUE_ID, 8, s.queueStore());
         queue.enqueue(new QueuedWork(workItem(WORK_ID), List.of()));
         queue.enqueue(new QueuedWork(workItem(DEP_ID), List.of(WORK_ID)));
+        AtomicInteger executions = new AtomicInteger();
 
         Optional<WorkItemDisposition> disposition =
-                worker(s, executionPersisting(s, false)).runOneCycle(LEASE);
+                worker(s, dispatch -> s.runRecordStore()
+                        .persist(runRecord(executions.incrementAndGet() == 2))
+                        .reference())
+                        .runOneCycle(LEASE);
 
-        assertTrue(disposition.isEmpty());
+        assertEquals(Optional.of(WorkItemDisposition.VERIFIED_COMPLETED), disposition);
+        assertEquals(2, executions.get());
         List<String> goalIds = goalIds(s);
         assertEquals(1, goalIds.size());
         DurableAgentRuntime runtime =
                 DurableAgentRuntime.recover(goalIds.get(0), s.runtimeStore(), CLOCK);
-        assertEquals(RuntimeGoalStatus.RETRY_PENDING, runtime.goal().status());
-        assertEquals(RuntimeAgentRunStatus.FAILED,
-                runtime.agentRun().orElseThrow().status());
+        assertEquals(RuntimeGoalStatus.COMPLETED, runtime.goal().status());
+        assertEquals(
+                List.of(RuntimeAgentRunStatus.FAILED, RuntimeAgentRunStatus.COMPLETED),
+                runtime.agentRuns().stream().map(RuntimeAgentRun::status).toList());
+        assertEquals(1, runtime.retryDecisions().size());
+        assertTrue(runtime.retryDecisions().get(0).decision().isAdmitted());
+        assertTrue(runtime.agentRuns().get(1).lease().isEmpty());
+        assertTrue(runtime.lastIssuedFenceToken() > 1);
         DurableSingleWorkerSchedulerQueue recovered =
                 DurableSingleWorkerSchedulerQueue.recover(QUEUE_ID, s.queueStore());
         assertTrue(recovered.failedWorkItemIds().isEmpty());
+        assertEquals(Set.of(WORK_ID), recovered.completedWorkItemIds());
+        assertEquals(DEP_ID, recovered.claimNext().orElseThrow().workItemId());
+        assertTrue(s.checkpointStore().findPending().isEmpty());
+        assertTrue(s.effectStore().resolve(goalIds.get(0)).records().isEmpty());
+    }
+
+    @Test
+    void exhaustedReplacementFailsTheGoalOnceAndKeepsDependentBlocked()
+            throws Exception {
+        Stores s = stores();
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.create(QUEUE_ID, 8, s.queueStore());
+        queue.enqueue(new QueuedWork(workItem(WORK_ID), List.of()));
+        queue.enqueue(new QueuedWork(workItem(DEP_ID), List.of(WORK_ID)));
+        AtomicInteger executions = new AtomicInteger();
+
+        Optional<WorkItemDisposition> disposition = worker(s, dispatch -> {
+            executions.incrementAndGet();
+            return s.runRecordStore().persist(runRecord(false)).reference();
+        }).runOneCycle(LEASE);
+
+        assertEquals(Optional.of(WorkItemDisposition.FAILED), disposition);
+        assertEquals(2, executions.get());
+        String goalId = goalIds(s).get(0);
+        DurableAgentRuntime runtime =
+                DurableAgentRuntime.recover(goalId, s.runtimeStore(), CLOCK);
+        assertEquals(RuntimeGoalStatus.FAILED, runtime.goal().status());
+        assertEquals(2, runtime.agentRuns().size());
+        assertEquals(2, runtime.retryDecisions().size());
+        assertTrue(runtime.retryDecisions().get(0).decision().isAdmitted());
+        assertEquals(
+                Optional.of(AgentRunRetryRefusalReason.ATTEMPTS_EXHAUSTED),
+                runtime.retryDecisions().get(1).decision().refusalReason());
+        DurableSingleWorkerSchedulerQueue recovered =
+                DurableSingleWorkerSchedulerQueue.recover(QUEUE_ID, s.queueStore());
+        assertEquals(Set.of(WORK_ID), recovered.failedWorkItemIds());
         assertTrue(recovered.completedWorkItemIds().isEmpty());
-        assertEquals(WORK_ID, recovered.claimNext().orElseThrow().workItemId());
-        PendingFinalization pending = s.checkpointStore().findPending().orElseThrow();
-        assertEquals(goalIds.get(0), pending.goalId());
-        assertTrue(pending.runRecordReference().isPresent());
+        assertTrue(recovered.claimNext().isEmpty());
+        assertTrue(s.checkpointStore().findPending().isEmpty());
+    }
+
+    @Test
+    void recoversRetryPendingBeforeDecisionPersistence() throws Exception {
+        assertRecoversRetryBoundary(RetryBoundary.RETRY_PENDING);
+    }
+
+    @Test
+    void recoversAfterAdmittedDecisionPersistence() throws Exception {
+        assertRecoversRetryBoundary(RetryBoundary.DECISION_RECORDED);
+    }
+
+    @Test
+    void recoversAfterReplacementIdentityCheckpoint() throws Exception {
+        assertRecoversRetryBoundary(RetryBoundary.REPLACEMENT_CHECKPOINTED);
+    }
+
+    @Test
+    void recoversAfterReplacementAppendBeforeCheckpointRollover() throws Exception {
+        assertRecoversRetryBoundary(RetryBoundary.REPLACEMENT_APPENDED);
+    }
+
+    @Test
+    void recoversAfterCheckpointRolloverToReplacement() throws Exception {
+        assertRecoversRetryBoundary(RetryBoundary.CHECKPOINT_ROLLED_OVER);
+    }
+
+    @Test
+    void unresolvedEffectRefusesRetryWithoutExecutingAReplacement() throws Exception {
+        Stores s = stores();
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.create(QUEUE_ID, 8, s.queueStore());
+        queue.enqueue(new QueuedWork(workItem(WORK_ID), List.of()));
+        AtomicInteger executions = new AtomicInteger();
+
+        Optional<WorkItemDisposition> disposition = worker(s, dispatch -> {
+            executions.incrementAndGet();
+            DurableExternalEffectLedger ledger = DurableExternalEffectLedger.recover(
+                    dispatch.goalId(), s.runtimeStore(), s.effectStore(), CLOCK);
+            ledger.prepare(
+                    new ExternalEffectRequest(
+                            "publish-before-failure",
+                            dispatch.goalId(),
+                            dispatch.agentRunId(),
+                            dispatch.workItem().workItemId(),
+                            "publish-artifact",
+                            "c".repeat(64)),
+                    OWNER_ID,
+                    dispatch.lease().fenceToken());
+            return s.runRecordStore().persist(runRecord(false)).reference();
+        }).runOneCycle(LEASE);
+
+        assertEquals(Optional.of(WorkItemDisposition.FAILED), disposition);
+        assertEquals(1, executions.get());
+        DurableAgentRuntime runtime = DurableAgentRuntime.recover(
+                goalIds(s).get(0), s.runtimeStore(), CLOCK);
+        assertEquals(1, runtime.agentRuns().size());
+        assertEquals(
+                Optional.of(AgentRunRetryRefusalReason.UNRESOLVED_EXTERNAL_EFFECT),
+                runtime.retryDecisions().get(0).decision().refusalReason());
+        assertTrue(s.checkpointStore().findPending().isEmpty());
     }
 
     @Test
@@ -331,6 +438,80 @@ class DurableAgentRunWorkerTest {
 
     // ---- shared helpers ----
 
+    private void assertRecoversRetryBoundary(RetryBoundary boundary)
+            throws Exception {
+        Stores s = stores();
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.create(QUEUE_ID, 8, s.queueStore());
+        queue.enqueue(new QueuedWork(workItem(WORK_ID), List.of()));
+        s.checkpointStore().record(
+                new PendingFinalization(GOAL_ID, AGENT_RUN_ID, Optional.empty()));
+        AgentRunDispatch dispatch = new DurableAgentRunDispatcher(
+                queue, s.runtimeStore(), CLOCK)
+                .claimAndLease(GOAL_ID, AGENT_RUN_ID, OWNER_ID, LEASE)
+                .orElseThrow();
+        DurableExternalEffectLedger.create(
+                GOAL_ID, s.runtimeStore(), s.effectStore(), CLOCK);
+        String reference = s.runRecordStore().persist(runRecord(false)).reference();
+        PendingFinalization failedAttempt = new PendingFinalization(
+                GOAL_ID, AGENT_RUN_ID, Optional.of(reference));
+        s.checkpointStore().record(failedAttempt);
+        DurableAgentRuntime.recover(GOAL_ID, s.runtimeStore(), CLOCK)
+                .completeExecution(
+                        AGENT_RUN_ID, OWNER_ID, dispatch.lease().fenceToken());
+        new DurableAgentRunFinalizer(
+                queue, s.runtimeStore(), s.runRecordStore(), CLOCK)
+                .recordAgentRunResult(GOAL_ID, AGENT_RUN_ID, reference);
+
+        DurableAgentRunRetryController controller =
+                new DurableAgentRunRetryController(
+                        s.runtimeStore(),
+                        s.effectStore(),
+                        new AgentRunRetryDecider());
+        if (boundary.ordinal() >= RetryBoundary.DECISION_RECORDED.ordinal()) {
+            controller.recordDecision(GOAL_ID, AgentRunRetryPolicy.of(2));
+        }
+        if (boundary.ordinal()
+                >= RetryBoundary.REPLACEMENT_CHECKPOINTED.ordinal()) {
+            failedAttempt = new PendingFinalization(
+                    GOAL_ID,
+                    AGENT_RUN_ID,
+                    Optional.of(reference),
+                    Optional.of(SECOND_AGENT_RUN_ID));
+            s.checkpointStore().record(failedAttempt);
+        }
+        if (boundary.ordinal() >= RetryBoundary.REPLACEMENT_APPENDED.ordinal()) {
+            controller.beginAdmittedRetry(GOAL_ID, SECOND_AGENT_RUN_ID);
+        }
+        if (boundary == RetryBoundary.CHECKPOINT_ROLLED_OVER) {
+            s.checkpointStore().record(new PendingFinalization(
+                    GOAL_ID, SECOND_AGENT_RUN_ID, Optional.empty()));
+        }
+
+        AtomicInteger replacementExecutions = new AtomicInteger();
+        Optional<WorkItemDisposition> disposition = worker(s, nextDispatch -> {
+            replacementExecutions.incrementAndGet();
+            return s.runRecordStore().persist(runRecord(true)).reference();
+        }).runOneCycle(LEASE);
+
+        assertEquals(Optional.of(WorkItemDisposition.VERIFIED_COMPLETED), disposition);
+        assertEquals(1, replacementExecutions.get());
+        DurableAgentRuntime runtime =
+                DurableAgentRuntime.recover(GOAL_ID, s.runtimeStore(), CLOCK);
+        assertEquals(RuntimeGoalStatus.COMPLETED, runtime.goal().status());
+        assertEquals(2, runtime.agentRuns().size());
+        assertEquals(1, runtime.retryDecisions().size());
+        assertTrue(s.checkpointStore().findPending().isEmpty());
+    }
+
+    private enum RetryBoundary {
+        RETRY_PENDING,
+        DECISION_RECORDED,
+        REPLACEMENT_CHECKPOINTED,
+        REPLACEMENT_APPENDED,
+        CHECKPOINT_ROLLED_OVER
+    }
+
     private DurableAgentRunWorker worker(Stores s, AgentRunExecution execution)
             throws IOException {
         DurableSingleWorkerSchedulerQueue queue =
@@ -342,6 +523,8 @@ class DurableAgentRunWorkerTest {
                 new DurableAgentRunFinalizer(
                         queue, s.runtimeStore(), s.runRecordStore(), CLOCK),
                 s.runtimeStore(),
+                s.effectStore(),
+                AgentRunRetryPolicy.of(2),
                 OWNER_ID,
                 CLOCK);
     }
@@ -352,6 +535,7 @@ class DurableAgentRunWorkerTest {
                 new FileSystemAgentRuntimeStateStore(tempDir.resolve("runtime")),
                 new FileSystemRunRecordStore(tempDir.resolve("records")),
                 new FileSystemPendingFinalizationStore(tempDir.resolve("checkpoint")),
+                new FileSystemExternalEffectLedgerStore(tempDir.resolve("effects")),
                 tempDir.resolve("runtime"));
     }
 
@@ -443,6 +627,7 @@ class DurableAgentRunWorkerTest {
             FileSystemAgentRuntimeStateStore runtimeStore,
             FileSystemRunRecordStore runRecordStore,
             FileSystemPendingFinalizationStore checkpointStore,
+            FileSystemExternalEffectLedgerStore effectStore,
             Path runtimeRoot) {
     }
 }

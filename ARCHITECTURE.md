@@ -343,7 +343,25 @@ The queue item remains active while the latest AgentRun is `AWAITING_VERIFICATIO
 
 `DurableAgentRunFinalizer` connects those separate facts through two recoverable operations. `recordAgentRunResult` resolves the RunRecord reference, binds it to the Goal on `approvedTask.taskId()` and `sourceDocument()` (no source SHA exists), and persists either Goal `COMPLETED` or non-terminal `RETRY_PENDING`; it never persists the RunRecord and fails closed on missing, corrupt, mismatched, premature, or changed-reference input. `finalizeTerminalDisposition` derives queue mutation only from terminal Goal state: `COMPLETED -> completeActiveVerified`, terminal `FAILED -> failActive`, and `ACTIVE`/`RETRY_PENDING` -> no disposition. A terminal `FAILED` Goal requires a persisted refused retry decision. Because queue recovery requeues interrupted active work, terminal finalization re-claims the matching item before disposition when necessary. The legacy `finalizeAgentRun` composes the forward terminal case, while `recoverFinalization` applies only authorized post-terminal disposition. Queue and runtime remain separate durable boundaries with no cross-store transaction.
 
-`DurableAgentRunWorker` is the first driver of that sequence: connection 3 is split into sub-increments 3a (in-process worker), 3b (process lifecycle), 3c (a concrete `MessageTransport` local IPC adapter), and 3d (process-isolated `AgentRunExecution`). One `runOneCycle(leaseDuration)` call drives cycle intent -> queue claim and lease -> persisted RunRecord reference -> execution-artifact cleanup -> execution acknowledgement -> result recording -> terminal disposition when authorized. The worker owns the single-record `PendingFinalizationStore` cycle-intent checkpoint, written before claim so restart re-entry supplies the same identities; the reference persists before cleanup and acknowledgement. Verified completion records `VERIFIED_COMPLETED` and clears the intent. A non-Verified result records a failed attempt at Goal `RETRY_PENDING`, returns empty, and retains both the active queue item and intent/reference; re-entry parks again without a second execution until a later retry controller changes the runtime prefix. Cleanup failure also retains the checkpoint and retries without re-execution. A cycle that claimed nothing leaves no durable trace, while execution before reference checkpointing can orphan the earlier RunRecord under the accepted at-least-once contract. The dispatcher and finalizer handed to the worker must wrap the same queue instance because persisted mutations advance its in-memory revision. `processIsolated` is the named production composition over the real child launcher and per-cycle work/result spools; it adds no supported Scheduler entry point or replacement-attempt execution.
+`DurableAgentRunWorker` drives connection 3 and the retry portion of connection 6. One
+`runOneCycle(leaseDuration)` call drives cycle intent -> queue claim and lease -> exact
+Goal-ledger creation/recovery -> persisted RunRecord reference -> execution-artifact
+cleanup -> execution acknowledgement -> result recording. Verified completion records
+`VERIFIED_COMPLETED` and clears the intent. A non-Verified result stops at
+`RETRY_PENDING`, where the Worker invokes `DurableAgentRunRetryController` with its
+explicit policy. Refusal abandons the Goal and records queue `FAILED`; admission writes a
+replacement AgentRun identity into the schema-v2 `PendingFinalization` checkpoint before
+append, rolls the checkpoint to that attempt without the prior reference, and continues
+through the same fenced path while the WorkItem remains active. Recovery re-enters
+idempotently before decision, after decision, after replacement checkpoint, after append,
+after rollover, or after RunRecord checkpointing. The Goal ledger is created only at
+Goal-start execution, never invented while deciding retry. Queue, runtime, ledger,
+RunRecord, and checkpoint remain separate stores without a cross-store transaction.
+Cleanup failure retains the checkpoint and retries without re-execution; pre-reference
+execution can still orphan a RunRecord under the accepted at-least-once contract. The
+dispatcher and finalizer must share one queue instance. `processIsolated` selects the real
+child launcher and per-cycle spools with the same explicit retry policy and ledger store;
+it adds no supported Scheduler entry point or external-adapter behavior.
 
 `AgentLoopAgentRunExecution` is the first production implementation of that port: it drives the Integrated Gate 1-4 pipeline (governed `read-file` `ToolExecutor`, `EvidenceRecorder`-persisted evidence, the bounded `AgentRunController`/`AgentLoop`, `DeterministicReadFileVerifier`, and the application `AgentRunFinalizer`) against the approved task's own source document — the `read-file` target is `taskRevision().sourceDocument()` and the expected content SHA-256 is `taskRevision().sourceSha256()` — and returns the persisted `run-record/<uuid>` reference. The `ApprovedTask` is constructed directly from the WorkItem's fields (no `ApprovedTaskReader`, no `In Progress` coupling), so the runtime finalizer's taskId-plus-sourceDocument binding holds by construction; the port must persist through the same `RunRecordStore` the worker's finalizer resolves from. A digest mismatch or Tool failure is carried in a persisted non-`VERIFIED` RunRecord, never thrown, and is real drift detection; the runtime result boundary records it as a failed attempt at `RETRY_PENDING` without a terminal queue disposition. The derivation of `(targetPath, expectedContentSha256)` from the WorkItem sits behind one private seam.
 
@@ -400,6 +418,15 @@ one whose every effect is `COMPENSATED` admits another attempt. `PREPARED`,
 separate cross-attempt adapter/idempotency contract exists. A known outcome is not by
 itself proof that re-execution is safe.
 
+`DurableAgentRunRetryController` is the sole application boundary for this decision and
+its immediate runtime transition. It resolves the existing runtime and Goal ledger,
+derives the latest failed attempt and immutable completed-attempt count, and records the
+typed decision with the ledger revision, record count, and a versioned length-framed
+semantic SHA-256 before any action. Exact decision replay is revision-free. A separately
+checkpointed canonical replacement identity may then append only the admitted AgentRun,
+or a refused decision may abandon the Goal; both action re-entries are idempotent. The
+controller has no queue, worker, Tool, adapter, lease, or execution authority.
+
 The runtime payload is schema v2 with an ordered immutable AgentRun list, a latest
 projection, Goal-wide monotonic fences, and an ordered typed retry-decision ledger.
 Persistence enforces exact history and decision prefixes and rejects truncation,
@@ -419,7 +446,7 @@ Which connections exist today is stated in `PROJECT_STATE.md`; the cross-boundar
 | 6 | retry and replacement AgentRuns | Gate 8 Scheduler | persist attempt result without queue failure -> bind exact Goal ledger and attempt count -> persist typed decision -> append a checkpointed immutable AgentRun or terminally abandon Goal -> write one final queue disposition |
 | 7 | typed handoff and multi-agent execution | Gate 13 over Gates 7 and 8 | require an Operational single-agent baseline, isolated ownership, deterministic synthesis, and one Kernel terminal-state coordinator |
 
-Each cross-store step persists its earlier authoritative artifact before the later derived artifact. Recovery re-enters idempotently from the durable prefix; it does not claim an atomic transaction. Authenticated control application, external-adapter effect execution/evidence, retry policy, and handoff coordination remain unimplemented until their own bounded tasks and fresh integration evidence exist.
+Each cross-store step persists its earlier authoritative artifact before the later derived artifact. Recovery re-enters idempotently from the durable prefix; it does not claim an atomic transaction. Authenticated control application, external-adapter effect execution/evidence, replacement-attempt worker wiring, and handoff coordination remain unimplemented until their own bounded tasks and fresh integration evidence exist.
 
 ### Gate 8 Scheduler Delivery Semantics
 

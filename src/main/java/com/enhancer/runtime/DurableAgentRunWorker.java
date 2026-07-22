@@ -23,6 +23,9 @@ public final class DurableAgentRunWorker {
     private final PendingFinalizationStore checkpoint;
     private final DurableAgentRunFinalizer finalizer;
     private final AgentRuntimeStateStore runtimeStore;
+    private final ExternalEffectLedgerStore effectStore;
+    private final DurableAgentRunRetryController retryController;
+    private final AgentRunRetryPolicy retryPolicy;
     private final String ownerId;
     private final Clock clock;
 
@@ -32,6 +35,8 @@ public final class DurableAgentRunWorker {
             PendingFinalizationStore checkpoint,
             DurableAgentRunFinalizer finalizer,
             AgentRuntimeStateStore runtimeStore,
+            ExternalEffectLedgerStore effectStore,
+            AgentRunRetryPolicy retryPolicy,
             String ownerId,
             Clock clock) {
         this.dispatcher = Objects.requireNonNull(
@@ -44,6 +49,14 @@ public final class DurableAgentRunWorker {
                 finalizer, "finalizer must not be null");
         this.runtimeStore = Objects.requireNonNull(
                 runtimeStore, "runtimeStore must not be null");
+        this.effectStore = Objects.requireNonNull(
+                effectStore, "effectStore must not be null");
+        this.retryPolicy = Objects.requireNonNull(
+                retryPolicy, "retryPolicy must not be null");
+        this.retryController = new DurableAgentRunRetryController(
+                runtimeStore,
+                effectStore,
+                new AgentRunRetryDecider());
         this.ownerId = Objects.requireNonNull(
                 ownerId, "ownerId must not be null");
         this.clock = Objects.requireNonNull(clock, "clock must not be null");
@@ -59,6 +72,7 @@ public final class DurableAgentRunWorker {
     public static DurableAgentRunWorker processIsolated(
             DurableSingleWorkerSchedulerQueue queue,
             AgentRuntimeStateStore runtimeStore,
+            ExternalEffectLedgerStore effectStore,
             PendingFinalizationStore checkpoint,
             Path projectRoot,
             Path evidenceRoot,
@@ -67,9 +81,11 @@ public final class DurableAgentRunWorker {
             RunRecordStore runRecordStore,
             String ownerId,
             Clock clock,
-            Duration processTimeout) {
+            Duration processTimeout,
+            AgentRunRetryPolicy retryPolicy) {
         Objects.requireNonNull(queue, "queue must not be null");
         Objects.requireNonNull(runtimeStore, "runtimeStore must not be null");
+        Objects.requireNonNull(effectStore, "effectStore must not be null");
         Objects.requireNonNull(checkpoint, "checkpoint must not be null");
         Objects.requireNonNull(runRecordStore, "runRecordStore must not be null");
         Objects.requireNonNull(clock, "clock must not be null");
@@ -88,6 +104,8 @@ public final class DurableAgentRunWorker {
                 new DurableAgentRunFinalizer(
                         queue, runtimeStore, runRecordStore, clock),
                 runtimeStore,
+                effectStore,
+                retryPolicy,
                 ownerId,
                 clock);
     }
@@ -129,7 +147,11 @@ public final class DurableAgentRunWorker {
         }
         Optional<RuntimeAgentRun> run = runtime.agentRun();
         if (runtime.goal().status() == RuntimeGoalStatus.RETRY_PENDING) {
-            return Optional.empty();
+            return resolveRetry(pending, leaseDuration);
+        }
+        if (runtime.goal().status() == RuntimeGoalStatus.ACTIVE
+                && pending.replacementAgentRunId().isPresent()) {
+            return resumeAdmittedReplacement(pending, leaseDuration);
         }
         if (runtime.goal().status() == RuntimeGoalStatus.COMPLETED
                 || runtime.goal().status() == RuntimeGoalStatus.FAILED) {
@@ -149,13 +171,7 @@ public final class DurableAgentRunWorker {
                             new IllegalStateException(
                                     "AWAITING_VERIFICATION requires a recorded "
                                             + "RunRecord reference")));
-            Optional<WorkItemDisposition> disposition =
-                    finalizer.finalizeTerminalDisposition(pending.goalId());
-            if (disposition.isEmpty()) {
-                return Optional.empty();
-            }
-            checkpoint.clear();
-            return disposition;
+            return finishAttempt(pending, leaseDuration);
         }
         // EXECUTING / READY / PLANNING / no AgentRun yet: re-drive with the same
         // identities; a present reference skips re-execution inside drive.
@@ -179,6 +195,7 @@ public final class DurableAgentRunWorker {
             return Optional.empty();
         }
         AgentRunDispatch dispatch = dispatched.orElseThrow();
+        ensureExternalEffectLedger(goalId);
         String reference;
         if (recordedReference.isPresent()) {
             reference = recordedReference.orElseThrow();
@@ -198,12 +215,107 @@ public final class DurableAgentRunWorker {
         runtime.completeExecution(
                 agentRunId, ownerId, dispatch.lease().fenceToken());
         finalizer.recordAgentRunResult(goalId, agentRunId, reference);
+        return finishAttempt(
+                new PendingFinalization(
+                        goalId,
+                        agentRunId,
+                        Optional.of(reference)),
+                leaseDuration);
+    }
+
+    private Optional<WorkItemDisposition> finishAttempt(
+            PendingFinalization pending,
+            Duration leaseDuration) throws IOException {
         Optional<WorkItemDisposition> disposition =
-                finalizer.finalizeTerminalDisposition(goalId);
-        if (disposition.isEmpty()) {
-            return Optional.empty();
+                finalizer.finalizeTerminalDisposition(pending.goalId());
+        if (disposition.isPresent()) {
+            checkpoint.clear();
+            return disposition;
         }
-        checkpoint.clear();
-        return disposition;
+        return resolveRetry(pending, leaseDuration);
+    }
+
+    private Optional<WorkItemDisposition> resolveRetry(
+            PendingFinalization pending,
+            Duration leaseDuration) throws IOException {
+        DurableAgentRuntime runtime = DurableAgentRuntime.recover(
+                pending.goalId(), runtimeStore, clock);
+        RuntimeAgentRun latest = runtime.agentRun().orElseThrow(() ->
+                new IllegalStateException("retry-pending Goal has no AgentRun"));
+        if (runtime.goal().status() != RuntimeGoalStatus.RETRY_PENDING
+                || !latest.agentRunId().equals(pending.agentRunId())) {
+            throw new IllegalStateException(
+                    "retry checkpoint does not match the latest failed AgentRun");
+        }
+        AgentRunRetryDecisionRecord decision = retryController.recordDecision(
+                pending.goalId(), retryPolicy);
+        if (!decision.decision().isAdmitted()) {
+            if (pending.replacementAgentRunId().isPresent()) {
+                throw new IllegalStateException(
+                        "refused retry decision has a replacement checkpoint");
+            }
+            retryController.abandonRefusedRetry(pending.goalId());
+            WorkItemDisposition disposition = finalizer
+                    .finalizeTerminalDisposition(pending.goalId())
+                    .orElseThrow(() -> new IllegalStateException(
+                            "refused retry did not yield a terminal disposition"));
+            checkpoint.clear();
+            return Optional.of(disposition);
+        }
+
+        PendingFinalization checkpointed = pending;
+        if (pending.replacementAgentRunId().isEmpty()) {
+            String replacementId = newReplacementAgentRunId(runtime);
+            checkpointed = new PendingFinalization(
+                    pending.goalId(),
+                    pending.agentRunId(),
+                    pending.runRecordReference(),
+                    Optional.of(replacementId));
+            checkpoint.record(checkpointed);
+        }
+        return resumeAdmittedReplacement(checkpointed, leaseDuration);
+    }
+
+    private Optional<WorkItemDisposition> resumeAdmittedReplacement(
+            PendingFinalization pending,
+            Duration leaseDuration) throws IOException {
+        String replacementId = pending.replacementAgentRunId().orElseThrow(() ->
+                new IllegalStateException(
+                        "admitted retry requires a checkpointed replacement identity"));
+        retryController.beginAdmittedRetry(pending.goalId(), replacementId);
+        PendingFinalization replacement = new PendingFinalization(
+                pending.goalId(), replacementId, Optional.empty());
+        checkpoint.record(replacement);
+        return drive(
+                replacement.goalId(),
+                replacement.agentRunId(),
+                replacement.runRecordReference(),
+                leaseDuration);
+    }
+
+    private String newReplacementAgentRunId(DurableAgentRuntime runtime) {
+        String candidate;
+        boolean alreadyUsed;
+        do {
+            candidate = UUID.randomUUID().toString();
+            alreadyUsed = candidate.equals(runtime.goal().goalId());
+            for (RuntimeAgentRun run : runtime.agentRuns()) {
+                if (run.agentRunId().equals(candidate)) {
+                    alreadyUsed = true;
+                    break;
+                }
+            }
+        } while (alreadyUsed);
+        return candidate;
+    }
+
+    private void ensureExternalEffectLedger(String goalId) throws IOException {
+        try {
+            DurableExternalEffectLedger.recover(
+                    goalId, runtimeStore, effectStore, clock);
+        } catch (MissingExternalEffectLedgerException exception) {
+            DurableExternalEffectLedger.create(
+                    goalId, runtimeStore, effectStore, clock);
+        }
     }
 }

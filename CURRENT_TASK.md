@@ -6,90 +6,92 @@ Completed
 
 ## Task
 
-Introduce the coherent Gate 8 schema-v2 multi-attempt runtime boundary: retain immutable
-AgentRun and retry-decision history, enforce exact prefixes in filesystem persistence,
-separate attempt-result recording from terminal queue disposition, and park the current
-worker safely at `RETRY_PENDING` without performing a replacement attempt.
+Wire `DurableAgentRunRetryController` into `DurableAgentRunWorker` so one active WorkItem
+can recoverably execute a checkpointed replacement AgentRun after an admitted decision,
+or reach one terminal failed queue disposition after a refused decision.
 
 ## Task ID
 
-add-schema-v2-history-and-park-retry-pending
+wire-retry-aware-worker-recovery
 
 ## Context
 
-Before this increment, the corrected pure decider was complete but the runtime stored one
-schema-v1 AgentRun and the finalizer converted every failed attempt directly into terminal
-Scheduler failure. Adding schema-v2 history alone would have made a failed attempt
-`RETRY_PENDING` while the old finalizer still calls `failActive`, leaving runtime and queue
-state contradictory.
+The runtime, finalizer, retry decider, and durable retry controller now preserve the
+correct attempt-level boundary, but the Worker still parks forever when a Goal reaches
+`RETRY_PENDING`. Its cycle-intent checkpoint records only the current AgentRun and
+RunRecord reference, so no durable prefix can distinguish an admitted decision before a
+replacement identity is appended.
 
-The user approved resolving that sequencing conflict by combining schema-v2 state and
-storage, the minimum finalizer split, and worker parking in one bounded increment. The
-retry controller and replacement-attempt execution remain later work.
+The Worker must also establish one exact empty Goal ledger before the first execution.
+That creation is a normal Goal-start artifact, not a decision-time fallback: retry
+decision recording must continue to fail closed if the expected ledger is missing.
 
 ## Justified By
 
 - 2026-07-22: Separate Retryable AgentRun Failure From Terminal WorkItem Disposition
 - 2026-07-22: Decide Bounded AgentRun Retry On Attempt Budget And External Effect Resolution
-- 2026-07-17: Record RunRecord-Backed Result-Path Finalization Connecting Verified Outcome To Runtime Terminal State And Queue Disposition
 - 2026-07-17: Record In-Process Scheduler Worker Driving One Recoverable Claim-To-Disposition Cycle Through A Durable Cycle-Intent Checkpoint
 
 ## Acceptance Criteria
 
-- `AgentRuntimeState.CURRENT_SCHEMA_VERSION` is 2 and schema-v1 runtime artifacts fail
-  explicitly as unsupported; no migration or in-place schema-v1 reinterpretation is added.
-- `RuntimeGoalStatus` includes durable non-terminal `RETRY_PENDING` and runtime state
-  retains immutable ordered `agentRuns()` and `retryDecisions()` lists bounded to 16,
-  while `agentRun()` remains the latest-attempt projection and `completedAttempts()` is
-  derived from terminal history.
-- State validation preserves exact Goal/WorkItem binding, globally unique runtime and
-  message identities, terminal failed prefixes, exact results, Goal-wide monotonic fences,
-  control-request validity, and status/history/decision consistency.
-- `AgentRunRetryDecisionRecord` immutably records the failed attempt, completed-attempt and
-  policy bounds, external-effect ledger revision/count/semantic SHA-256, and exact typed
-  decision. Exact decision replay is revision-free and changed input for the same attempt
-  fails closed.
-- Failed attempt result recording produces AgentRun `FAILED` plus Goal `RETRY_PENDING`
-  without queue mutation; admitted decision plus a distinct replacement identity appends
-  one `PLANNING` attempt, while a refused decision permits terminal Goal abandonment.
-- `FileSystemAgentRuntimeStateStore` encodes schema v2 and independently rejects history
-  or decision truncation, rewrite, reordering, invalid append, prior-result replacement,
-  stale revision, fence regression/jump, control-prefix rewrite, corruption, trailing data,
-  oversize, unsupported schema, and symbolic-link storage boundaries.
-- Finalization exposes result recording separately from terminal disposition. It never
-  fails or completes the Scheduler WorkItem for an `ACTIVE` or `RETRY_PENDING` Goal and
-  applies exactly one matching disposition only for terminal Goal `COMPLETED` or `FAILED`.
-- The current worker stops safely at `RETRY_PENDING`, retains its durable cycle intent and
-  RunRecord reference, reports no terminal `FAILED` disposition, and performs no second
-  AgentRun. Existing Verified completion behavior remains unchanged.
-- Focused RED is classified before implementation; focused state/store/finalizer/worker
-  tests, restart recovery, the full Gradle build with strict Java lint, document structural
-  checks, and diff checks pass with fresh evidence.
+- `PendingFinalization` durably distinguishes the current AgentRun/optional RunRecord
+  reference from an optional checkpointed replacement AgentRun identity. Identity and
+  phase invariants reject collisions or a replacement without a completed current
+  attempt reference.
+- `FileSystemPendingFinalizationStore` persists the extended checkpoint in an explicit
+  schema version, round-trips every phase, and continues to fail closed on unsupported,
+  corrupt, truncated, oversized, trailing, or invalid state. No schema-v1 migration is
+  inferred.
+- The Worker and `processIsolated` composition require an explicit bounded
+  `AgentRunRetryPolicy` and external-effect store. The first dispatched Goal creates one
+  exact empty ledger before execution; recovery reuses an existing ledger and never
+  overwrites or invents one during retry decision recording.
+- After a failed attempt reaches `RETRY_PENDING`, the Worker records or replays the exact
+  controller decision. A refused decision abandons the Goal, records one queue `FAILED`
+  disposition, clears the checkpoint, and never executes a replacement.
+- For an admitted decision, the Worker checkpoints one canonical replacement AgentRun
+  identity before asking the controller to append it. It then rewrites the cycle intent
+  to that replacement with no stale RunRecord reference and drives the existing active
+  WorkItem through the normal fenced execution/finalization path.
+- Recovery is idempotent when interrupted before decision persistence, after admitted
+  decision persistence, after replacement-ID checkpointing, after replacement append,
+  after cycle-intent rollover, and after the replacement RunRecord reference is
+  checkpointed. No completed attempt is executed twice and no extra replacement is
+  appended.
+- A failed first attempt followed by a Verified second attempt produces one
+  `VERIFIED_COMPLETED` disposition and releases dependents. Two failed attempts under a
+  two-attempt policy produce one terminal `FAILED` disposition and leave dependents
+  blocked. Goal-wide fences and immutable attempt/decision histories remain intact.
+- Focused state/store/worker tests and a named real-filesystem queue/runtime/ledger/
+  checkpoint/RunRecord integration prove the forward and recovery paths. The full Gradle
+  build, strict Java lint, structural-document checks, and diff checks pass with fresh
+  evidence.
 
 ## Out Of Scope
 
-- `DurableAgentRunRetryController`, external-effect ledger resolution or digest selection,
-  replacement identity generation/checkpointing, actual replacement execution, retry-loop
-  recovery, automatic compensation, or cross-attempt effect idempotency.
-- Schema-v1 migration, user override, delay/backoff, token/time budgets, priority/fairness,
-  authenticated control application, multi-process locking, distributed clock handling,
-  multi-agent execution, release, or deployment.
+- External adapter invocation, automatic compensation, cross-attempt idempotency-key
+  reuse, user override, delay/backoff, token/time budgets, priority/fairness, authenticated
+  control application, or concurrent/multi-process workers.
+- Runtime schema-v1 migration, queue or runtime schema changes, new RunRecord semantics,
+  orphaned RunRecord cleanup, supported CLI wiring, multi-agent execution, release, or
+  deployment.
 - Commit, push, PR, or merge unless separately requested.
 
 ## Approval
 
-The user explicitly approved the combined schema-v2, finalizer-split, and worker-parking
-direction on 2026-07-22 after the sequencing conflict was reported and explained.
+The user explicitly asked to continue the project on 2026-07-22, activating the next task
+recorded by the completed durable retry-controller increment.
 
 ## Verification
 
-Fresh evidence is recorded under `Schema-V2 AgentRun History And Retry-Pending Parking
-Verification` in `docs/verification-log.md`. Focused state/store/finalizer/worker coverage
-passed 36 tests; the final strict-lint build passed 80 suites and 418 tests with 3
-existing Windows privilege skips; final document/package structure passed 8 tests
-across 3 suites; and `git diff --check` exited 0 with no output.
+Focused RED reached test compilation and failed with the expected four missing-signature
+errors. Expanded focused verification passed 46 tests across five controller, checkpoint,
+Worker, and filesystem integration suites. Fresh `clean test` passed 81 suites and 440
+tests with 3 existing Windows privilege skips, 0 failures, and 0 errors under the
+build-enforced Java 17 `-Xlint:all -Werror`. Final structural-document and diff evidence
+is recorded in `docs/verification-log.md`.
 
 ## Next
 
-Implement `DurableAgentRunRetryController` over the exact Goal ledger and persisted decision
-record, without yet wiring replacement-attempt execution into the worker loop.
+Assess the remaining Gate 8 single-agent runtime connection gaps after retry-aware Worker
+integration, without starting authenticated controls, external-effect adapters, or Gate 9.

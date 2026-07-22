@@ -106,7 +106,7 @@ class FileSystemAgentLoopWorkerIntegrationTest {
     }
 
     @Test
-    void digestMismatchParksTheFailedAttemptBeforeQueueDisposition() throws Exception {
+    void digestMismatchExhaustsTheRetryBudgetBeforeQueueFailure() throws Exception {
         Stores s = stores();
         DurableSingleWorkerSchedulerQueue queue =
                 DurableSingleWorkerSchedulerQueue.create(QUEUE_ID, 8, s.queueStore());
@@ -115,14 +115,16 @@ class FileSystemAgentLoopWorkerIntegrationTest {
         queue.enqueue(new QueuedWork(
                 workItem(DEP_ID, approvedDigest), List.of(WORK_ID)));
 
-        assertTrue(worker(s).runOneCycle(LEASE).isEmpty());
-        assertTrue(worker(s).runOneCycle(LEASE).isEmpty());
+        assertEquals(Optional.of(WorkItemDisposition.FAILED),
+                worker(s).runOneCycle(LEASE));
 
         DurableSingleWorkerSchedulerQueue recovered =
                 DurableSingleWorkerSchedulerQueue.recover(QUEUE_ID, s.queueStore());
-        assertTrue(recovered.failedWorkItemIds().isEmpty());
+        assertEquals(Set.of(WORK_ID), recovered.failedWorkItemIds());
         assertTrue(recovered.completedWorkItemIds().isEmpty());
-        assertTrue(s.checkpointStore().findPending().isPresent());
+        assertTrue(recovered.claimNext().isEmpty());
+        assertEquals(2, s.runRecordStore().references().size());
+        assertTrue(s.checkpointStore().findPending().isEmpty());
     }
 
     @Test
@@ -137,6 +139,7 @@ class FileSystemAgentLoopWorkerIntegrationTest {
         DurableAgentRunWorker worker = DurableAgentRunWorker.processIsolated(
                 queue,
                 s.runtimeStore(),
+                s.effectStore(),
                 s.checkpointStore(),
                 projectRoot,
                 tempDir.resolve("evidence"),
@@ -145,7 +148,8 @@ class FileSystemAgentLoopWorkerIntegrationTest {
                 s.runRecordStore(),
                 OWNER_ID,
                 CLOCK,
-                Duration.ofSeconds(20));
+                Duration.ofSeconds(20),
+                AgentRunRetryPolicy.of(2));
 
         assertEquals(Optional.of(WorkItemDisposition.VERIFIED_COMPLETED),
                 worker.runOneCycle(LEASE));
@@ -174,6 +178,8 @@ class FileSystemAgentLoopWorkerIntegrationTest {
                 new DurableAgentRunFinalizer(
                         queue, s.runtimeStore(), s.runRecordStore(), CLOCK),
                 s.runtimeStore(),
+                s.effectStore(),
+                AgentRunRetryPolicy.of(2),
                 OWNER_ID,
                 CLOCK);
     }
@@ -184,6 +190,7 @@ class FileSystemAgentLoopWorkerIntegrationTest {
                 new FileSystemAgentRuntimeStateStore(tempDir.resolve("runtime")),
                 new FileSystemRunRecordStore(tempDir.resolve("records")),
                 new FileSystemPendingFinalizationStore(tempDir.resolve("checkpoint")),
+                new FileSystemExternalEffectLedgerStore(tempDir.resolve("effects")),
                 new FileSystemEvidenceStore(
                         tempDir.resolve("evidence"),
                         new EvidenceStoragePolicy(
@@ -236,6 +243,7 @@ class FileSystemAgentLoopWorkerIntegrationTest {
             FileSystemAgentRuntimeStateStore runtimeStore,
             FileSystemRunRecordStore runRecordStore,
             FileSystemPendingFinalizationStore checkpointStore,
+            FileSystemExternalEffectLedgerStore effectStore,
             FileSystemEvidenceStore evidenceStore) {
     }
 }

@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-07-22 - Integrate Retry-Aware AgentRun Worker Recovery
+
+- Extended the cycle-intent checkpoint with a schema-v2 replacement AgentRun phase and
+  persisted that identity before append, with strict phase/identity validation and
+  fail-closed filesystem recovery.
+- Wired the Worker and process-isolated composition to an explicit retry policy and exact
+  Goal ledger, continuing admitted attempts through the fenced execution path or applying
+  one terminal failed queue disposition after refusal.
+- Added recovery coverage at five retry prefixes plus unresolved-effect refusal, and a
+  real-filesystem first-failure/second-success integration; the initial full regression
+  passed 81 suites and 440 tests with 3 existing Windows privilege skips.
+
+## 2026-07-22 - Add Durable AgentRun Retry Controller
+
+- Added the persist-first `DurableAgentRunRetryController` over one retry-pending runtime
+  and its exact existing Goal ledger, recording typed decisions with immutable attempt,
+  policy, ledger revision/count, and versioned semantic digest evidence before action.
+- Added idempotent admitted-retry append using only a caller-checkpointed replacement
+  identity and idempotent refused-Goal abandonment, without queue mutation, replacement
+  execution, lease acquisition, Tool/adapter authority, or invented empty ledgers.
+- Fresh focused verification passed 13 tests, and the initial full strict-lint regression
+  passed 81 suites and 431 tests with 3 existing Windows privilege skips.
+
 ## 2026-07-22 - Add Schema-V2 AgentRun History And Safe Retry-Pending Parking
 
 - Replaced the single-attempt runtime artifact with schema-v2 immutable AgentRun and

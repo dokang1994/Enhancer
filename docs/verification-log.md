@@ -1120,3 +1120,57 @@ This assessment itself changed no production or test code and did not change Gat
 - `git diff --check` produced no output and exited 0. No decision, handoff, source code,
   test behavior, schema, commit, push, merge, release, or deployment was changed by this
   reconciliation step.
+
+## Durable AgentRun Retry Controller
+
+- The focused RED command
+  `.\gradlew.bat test --tests com.enhancer.runtime.DurableAgentRunRetryControllerTest`
+  reached test compilation and failed with seven aligned missing-symbol errors for the
+  not-yet-implemented controller. No unrelated, flaky, configuration, privilege, or
+  scope-expanding failure appeared.
+- Focused GREEN passed 13 tests covering exact runtime/ledger binding, all five external
+  effect statuses, exhausted budget, non-retry-pending rejection, semantic-digest
+  determinism and order sensitivity, immutable policy replay, missing/mismatched ledger
+  failure, admitted/refused action replay, and action persistence-failure recovery.
+- The first fresh `.\gradlew.bat clean test` passed 81 suites and 431 tests: 428 passed,
+  3 privilege-dependent Windows symbolic-link setup cases skipped, 0 failures, and 0
+  errors under build-enforced Java 17 `-Xlint:all -Werror`.
+- Scope held: no worker wiring, replacement identity generation/checkpoint, replacement
+  execution, lease acquisition, RunRecord production, queue disposition, external
+  adapter execution, control application, schema migration, commit, push, merge,
+  release, or deployment was added.
+- After document synchronization, fresh `.\gradlew.bat build --rerun-tasks` passed all
+  7 build tasks and 81 suites/431 tests: 428 passed, 3 existing privilege-dependent
+  Windows symbolic-link setup cases skipped, 0 failures, and 0 errors. This reran the
+  build-enforced Java 17 `-Xlint:all -Werror` compilation and all structural guards.
+- A separate fresh structural rerun passed 8 tests across `DocumentOwnershipTest`,
+  `DecisionLogIndexTest`, and `RuntimePackageBoundaryTest`, with 0 skips, failures, or
+  errors. `git diff --check` produced no output and exited 0 before this append.
+
+## Retry-Aware AgentRun Worker Recovery
+
+- Focused RED reached test compilation and failed with four aligned missing-signature
+  errors: the checkpoint had no replacement identity and the Worker had no explicit
+  ledger/policy wiring. No unrelated, flaky, configuration, privilege, or scope-expanding
+  failure appeared.
+- The first focused GREEN passed 27 tests across four Worker/checkpoint/filesystem suites.
+  Expanded focused verification passed 46 tests across five suites after adding recovery
+  cases for `RETRY_PENDING`, persisted decision, checkpointed replacement identity,
+  appended replacement, checkpoint rollover, and unresolved `PREPARED` effect refusal.
+- The named `FileSystemAgentRunWorkerIntegrationTest` path uses real queue, runtime,
+  external-effect ledger, RunRecord, and schema-v2 checkpoint stores: the first attempt
+  fails, the admitted replacement verifies, one final `VERIFIED_COMPLETED` disposition
+  releases the dependent, and the checkpoint clears.
+- Fresh `.\gradlew.bat clean test` passed 81 suites and 440 tests: 437 passed, 3 existing
+  privilege-dependent Windows symbolic-link setup cases skipped, 0 failures, and 0 errors
+  under build-enforced Java 17 `-Xlint:all -Werror`.
+- Scope held: no external adapter invocation, automatic compensation, cross-attempt
+  effect-key reuse, authenticated control application, backoff, broader budget, runtime
+  or queue schema change, supported CLI, multi-process worker, commit, push, merge,
+  release, or deployment was added.
+- After document synchronization, fresh `.\gradlew.bat build --rerun-tasks` passed all
+  7 build tasks and 81 suites/440 tests: 437 passed, 3 existing privilege-dependent
+  Windows symbolic-link setup cases skipped, 0 failures, and 0 errors. This reran the
+  build-enforced Java 17 `-Xlint:all -Werror` compilation and all structural guards.
+- `git diff --check` produced no output and exited 0 after the final full build and before
+  this append.

@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -78,22 +79,29 @@ class FileSystemAgentRunWorkerIntegrationTest {
     }
 
     @Test
-    void failedAttemptParksBeforeAQueueDisposition() throws Exception {
+    void failedAttemptRetriesThroughASecondVerifiedAttemptOnRealStores()
+            throws Exception {
         Stores s = stores();
         DurableSingleWorkerSchedulerQueue queue =
                 DurableSingleWorkerSchedulerQueue.create(QUEUE_ID, 8, s.queueStore());
         queue.enqueue(new QueuedWork(workItem(WORK_ID), List.of()));
         queue.enqueue(new QueuedWork(workItem(DEP_ID), List.of(WORK_ID)));
 
-        assertTrue(worker(s, executionPersisting(s, false))
-                .runOneCycle(LEASE).isEmpty());
-        assertTrue(worker(s, forbiddenExecution()).runOneCycle(LEASE).isEmpty());
+        AtomicInteger executions = new AtomicInteger();
+
+        assertEquals(Optional.of(WorkItemDisposition.VERIFIED_COMPLETED),
+                worker(s, dispatch -> s.runRecordStore()
+                        .persist(runRecord(executions.incrementAndGet() == 2))
+                        .reference())
+                        .runOneCycle(LEASE));
 
         DurableSingleWorkerSchedulerQueue recovered =
                 DurableSingleWorkerSchedulerQueue.recover(QUEUE_ID, s.queueStore());
         assertTrue(recovered.failedWorkItemIds().isEmpty());
-        assertTrue(recovered.completedWorkItemIds().isEmpty());
-        assertTrue(s.checkpointStore().findPending().isPresent());
+        assertEquals(Set.of(WORK_ID), recovered.completedWorkItemIds());
+        assertEquals(DEP_ID, recovered.claimNext().orElseThrow().workItemId());
+        assertEquals(2, executions.get());
+        assertTrue(s.checkpointStore().findPending().isEmpty());
     }
 
     // ---- shared helpers ----
@@ -109,6 +117,8 @@ class FileSystemAgentRunWorkerIntegrationTest {
                 new DurableAgentRunFinalizer(
                         queue, s.runtimeStore(), s.runRecordStore(), CLOCK),
                 s.runtimeStore(),
+                s.effectStore(),
+                AgentRunRetryPolicy.of(2),
                 OWNER_ID,
                 CLOCK);
     }
@@ -118,7 +128,8 @@ class FileSystemAgentRunWorkerIntegrationTest {
                 new FileSystemSchedulerQueueStore(tempDir.resolve("queue")),
                 new FileSystemAgentRuntimeStateStore(tempDir.resolve("runtime")),
                 new FileSystemRunRecordStore(tempDir.resolve("records")),
-                new FileSystemPendingFinalizationStore(tempDir.resolve("checkpoint")));
+                new FileSystemPendingFinalizationStore(tempDir.resolve("checkpoint")),
+                new FileSystemExternalEffectLedgerStore(tempDir.resolve("effects")));
     }
 
     private AgentRunExecution executionPersisting(Stores s, boolean verified) {
@@ -194,6 +205,7 @@ class FileSystemAgentRunWorkerIntegrationTest {
             FileSystemSchedulerQueueStore queueStore,
             FileSystemAgentRuntimeStateStore runtimeStore,
             FileSystemRunRecordStore runRecordStore,
-            FileSystemPendingFinalizationStore checkpointStore) {
+            FileSystemPendingFinalizationStore checkpointStore,
+            FileSystemExternalEffectLedgerStore effectStore) {
     }
 }
