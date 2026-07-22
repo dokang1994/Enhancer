@@ -40,7 +40,7 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * One-current-state filesystem adapter for a Goal and its schema-v1 AgentRun. Atomic
+ * One-current-state filesystem adapter for a Goal and its schema-v2 attempt history. Atomic
  * publication prevents partial visibility; parent-directory power-loss durability is not
  * claimed.
  */
@@ -99,6 +99,12 @@ public final class FileSystemAgentRuntimeStateStore
             throw new IOException(
                     "Agent runtime WorkItem must not change");
         }
+        if (!isValidGoalStatusTransition(
+                current.goal().status(), nextState.goal().status())) {
+            throw new IOException("Agent runtime Goal status transition is invalid");
+        }
+        validateAgentRunHistoryPrefix(current, nextState);
+        validateRetryDecisionPrefix(current, nextState);
         List<MessageEnvelope> currentControls =
                 current.controlRequests();
         List<MessageEnvelope> nextControls =
@@ -184,6 +190,127 @@ public final class FileSystemAgentRuntimeStateStore
         return decode(canonicalGoalId, payload);
     }
 
+    private void validateAgentRunHistoryPrefix(
+            AgentRuntimeState current,
+            AgentRuntimeState next) throws IOException {
+        List<RuntimeAgentRun> before = current.agentRuns();
+        List<RuntimeAgentRun> after = next.agentRuns();
+        if (after.size() < before.size()
+                || after.size() > before.size() + 1) {
+            throw new IOException(
+                    "AgentRun history must retain its exact bounded prefix");
+        }
+        if (after.size() == before.size() + 1) {
+            if (before.isEmpty()) {
+                if (after.get(0).status() != RuntimeAgentRunStatus.PLANNING) {
+                    throw new IOException("first AgentRun append is invalid");
+                }
+                return;
+            }
+            if (!after.subList(0, before.size()).equals(before)
+                    || before.get(before.size() - 1).status()
+                            != RuntimeAgentRunStatus.FAILED
+                    || after.get(after.size() - 1).status()
+                            != RuntimeAgentRunStatus.PLANNING) {
+                throw new IOException(
+                        "AgentRun history append is invalid");
+            }
+            return;
+        }
+        if (before.isEmpty()) {
+            if (!after.isEmpty()) {
+                throw new IOException("first AgentRun append is invalid");
+            }
+            return;
+        }
+        if (!after.subList(0, before.size() - 1)
+                .equals(before.subList(0, before.size() - 1))) {
+            throw new IOException(
+                    "prior AgentRun history must remain unchanged");
+        }
+        RuntimeAgentRun previousLatest = before.get(before.size() - 1);
+        RuntimeAgentRun nextLatest = after.get(after.size() - 1);
+        if (!isValidAgentRunTransition(previousLatest, nextLatest)) {
+            throw new IOException("latest AgentRun transition is invalid");
+        }
+    }
+
+    private void validateRetryDecisionPrefix(
+            AgentRuntimeState current,
+            AgentRuntimeState next) throws IOException {
+        List<AgentRunRetryDecisionRecord> before = current.retryDecisions();
+        List<AgentRunRetryDecisionRecord> after = next.retryDecisions();
+        if (after.size() < before.size()
+                || after.size() > before.size() + 1
+                || !after.subList(0, before.size()).equals(before)) {
+            throw new IOException(
+                    "retry decision history must retain its exact prefix");
+        }
+        if (after.size() == before.size() + 1) {
+            RuntimeAgentRun latest = current.agentRun().orElseThrow(() ->
+                    new IOException("retry decision requires an AgentRun"));
+            AgentRunRetryDecisionRecord appended = after.get(after.size() - 1);
+            if (current.goal().status() != RuntimeGoalStatus.RETRY_PENDING
+                    || latest.status() != RuntimeAgentRunStatus.FAILED
+                    || !appended.agentRunId().equals(latest.agentRunId())) {
+                throw new IOException("retry decision append is invalid");
+            }
+        }
+    }
+
+    private boolean isValidGoalStatusTransition(
+            RuntimeGoalStatus before,
+            RuntimeGoalStatus after) {
+        if (before == after) {
+            return true;
+        }
+        return switch (before) {
+            case ACCEPTED -> after == RuntimeGoalStatus.ACTIVE;
+            case ACTIVE -> after == RuntimeGoalStatus.COMPLETED
+                    || after == RuntimeGoalStatus.RETRY_PENDING;
+            case RETRY_PENDING -> after == RuntimeGoalStatus.ACTIVE
+                    || after == RuntimeGoalStatus.FAILED;
+            case COMPLETED, FAILED -> false;
+        };
+    }
+
+    private boolean isValidAgentRunTransition(
+            RuntimeAgentRun before,
+            RuntimeAgentRun after) {
+        if (before.equals(after)) {
+            return true;
+        }
+        if (!before.agentRunId().equals(after.agentRunId())
+                || !before.goalId().equals(after.goalId())
+                || !before.workItemId().equals(after.workItemId())) {
+            return false;
+        }
+        return switch (before.status()) {
+            case PLANNING -> after.status() == RuntimeAgentRunStatus.READY;
+            case READY -> after.status() == RuntimeAgentRunStatus.EXECUTING;
+            case EXECUTING -> isValidExecutingTransition(before, after);
+            case AWAITING_VERIFICATION -> after.status().isTerminal();
+            case COMPLETED, FAILED -> false;
+        };
+    }
+
+    private boolean isValidExecutingTransition(
+            RuntimeAgentRun before,
+            RuntimeAgentRun after) {
+        if (after.status() == RuntimeAgentRunStatus.READY
+                || after.status() == RuntimeAgentRunStatus.AWAITING_VERIFICATION) {
+            return true;
+        }
+        if (after.status() != RuntimeAgentRunStatus.EXECUTING) {
+            return false;
+        }
+        AgentRunLease previousLease = before.lease().orElseThrow();
+        AgentRunLease nextLease = after.lease().orElseThrow();
+        return previousLease.ownerId().equals(nextLease.ownerId())
+                && previousLease.fenceToken() == nextLease.fenceToken()
+                && nextLease.expiresAt().isAfter(previousLease.expiresAt());
+    }
+
     private void prepareRoot() throws IOException {
         Files.createDirectories(storageRoot);
         if (!Files.isDirectory(storageRoot, LinkOption.NOFOLLOW_LINKS)) {
@@ -265,10 +392,8 @@ public final class FileSystemAgentRuntimeStateStore
             output.writeLong(state.lastIssuedFenceToken());
             writeString(output, state.goal().status().name());
             writeWorkItem(output, state.goal().workItem());
-            output.writeBoolean(state.agentRun().isPresent());
-            if (state.agentRun().isPresent()) {
-                writeAgentRun(output, state.agentRun().orElseThrow());
-            }
+            writeAgentRuns(output, state.agentRuns());
+            writeRetryDecisions(output, state.retryDecisions());
             writeMessageEnvelopes(output, state.controlRequests());
         }
         return bytes.toByteArray();
@@ -302,9 +427,9 @@ public final class FileSystemAgentRuntimeStateStore
             RuntimeGoalStatus goalStatus =
                     readEnum(input, RuntimeGoalStatus.class, "Goal status");
             WorkItem workItem = readWorkItem(input);
-            Optional<RuntimeAgentRun> agentRun = readPresence(input)
-                    ? Optional.of(readAgentRun(input))
-                    : Optional.empty();
+            List<RuntimeAgentRun> agentRuns = readAgentRuns(input);
+            List<AgentRunRetryDecisionRecord> retryDecisions =
+                    readRetryDecisions(input);
             List<MessageEnvelope> controlRequests =
                     readMessageEnvelopes(input);
             if (input.available() != 0) {
@@ -317,7 +442,8 @@ public final class FileSystemAgentRuntimeStateStore
                     revision,
                     lastIssuedFenceToken,
                     new RuntimeGoal(goalId, workItem, goalStatus),
-                    agentRun,
+                    agentRuns,
+                    retryDecisions,
                     controlRequests);
         } catch (CorruptedAgentRuntimeStateException exception) {
             throw exception;
@@ -375,6 +501,86 @@ public final class FileSystemAgentRuntimeStateStore
                 status,
                 lease,
                 resultMessage);
+    }
+
+    private void writeAgentRuns(
+            DataOutputStream output,
+            List<RuntimeAgentRun> agentRuns) throws IOException {
+        if (agentRuns.size() > AgentRuntimeState.MAX_ATTEMPTS_PER_GOAL) {
+            throw new IOException("AgentRun history exceeds supported bounds");
+        }
+        output.writeInt(agentRuns.size());
+        for (RuntimeAgentRun agentRun : agentRuns) {
+            writeAgentRun(output, agentRun);
+        }
+    }
+
+    private List<RuntimeAgentRun> readAgentRuns(DataInputStream input)
+            throws IOException {
+        int size = input.readInt();
+        if (size < 0 || size > AgentRuntimeState.MAX_ATTEMPTS_PER_GOAL) {
+            throw new IOException("AgentRun history size is invalid");
+        }
+        List<RuntimeAgentRun> agentRuns = new ArrayList<>(size);
+        for (int index = 0; index < size; index++) {
+            agentRuns.add(readAgentRun(input));
+        }
+        return List.copyOf(agentRuns);
+    }
+
+    private void writeRetryDecisions(
+            DataOutputStream output,
+            List<AgentRunRetryDecisionRecord> decisions) throws IOException {
+        if (decisions.size() > AgentRuntimeState.MAX_ATTEMPTS_PER_GOAL) {
+            throw new IOException("retry decision history exceeds supported bounds");
+        }
+        output.writeInt(decisions.size());
+        for (AgentRunRetryDecisionRecord decision : decisions) {
+            writeString(output, decision.agentRunId());
+            output.writeInt(decision.completedAttempts());
+            output.writeInt(decision.maxAttempts());
+            output.writeLong(decision.externalEffectLedgerRevision());
+            output.writeInt(decision.externalEffectRecordCount());
+            writeString(output, decision.externalEffectLedgerSemanticSha256());
+            output.writeBoolean(decision.decision().isAdmitted());
+            if (!decision.decision().isAdmitted()) {
+                writeString(
+                        output,
+                        decision.decision().refusalReason().orElseThrow().name());
+            }
+        }
+    }
+
+    private List<AgentRunRetryDecisionRecord> readRetryDecisions(
+            DataInputStream input) throws IOException {
+        int size = input.readInt();
+        if (size < 0 || size > AgentRuntimeState.MAX_ATTEMPTS_PER_GOAL) {
+            throw new IOException("retry decision history size is invalid");
+        }
+        List<AgentRunRetryDecisionRecord> decisions = new ArrayList<>(size);
+        for (int index = 0; index < size; index++) {
+            String agentRunId = readString(input);
+            int completedAttempts = input.readInt();
+            int maxAttempts = input.readInt();
+            long ledgerRevision = input.readLong();
+            int recordCount = input.readInt();
+            String digest = readString(input);
+            AgentRunRetryDecision decision = readPresence(input)
+                    ? AgentRunRetryDecision.admitted()
+                    : AgentRunRetryDecision.refused(readEnum(
+                            input,
+                            AgentRunRetryRefusalReason.class,
+                            "retry refusal reason"));
+            decisions.add(new AgentRunRetryDecisionRecord(
+                    agentRunId,
+                    completedAttempts,
+                    maxAttempts,
+                    ledgerRevision,
+                    recordCount,
+                    digest,
+                    decision));
+        }
+        return List.copyOf(decisions);
     }
 
     private void writeLease(

@@ -22,7 +22,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -83,6 +83,130 @@ class FileSystemAgentRuntimeStateStoreIntegrationTest {
                 resultMessage(VerificationStatus.VERIFIED),
                 run.resultMessage().orElseThrow());
         assertEquals(1, recovered.lastIssuedFenceToken());
+    }
+
+    @Test
+    void restoresRetryPendingAttemptAndDecisionHistoryAcrossStoreInstances()
+            throws Exception {
+        FileSystemAgentRuntimeStateStore store =
+                new FileSystemAgentRuntimeStateStore(storageRoot);
+        DurableAgentRuntime runtime = DurableAgentRuntime.create(
+                GOAL_ID,
+                workItem(),
+                store,
+                Clock.fixed(
+                        Instant.parse("2026-07-22T04:00:00Z"),
+                        ZoneOffset.UTC));
+        runtime.beginAgentRun(AGENT_RUN_ID);
+        runtime.markReady(AGENT_RUN_ID);
+        AgentRunLease lease = runtime.acquireLease(
+                AGENT_RUN_ID, "schema-v2-store-owner", Duration.ofMinutes(5));
+        runtime.completeExecution(
+                AGENT_RUN_ID, lease.ownerId(), lease.fenceToken());
+        runtime.recordResult(
+                AGENT_RUN_ID,
+                resultMessage(VerificationStatus.REJECTED));
+        AgentRunRetryDecisionRecord decision = new AgentRunRetryDecisionRecord(
+                AGENT_RUN_ID,
+                1,
+                3,
+                0,
+                0,
+                "c".repeat(64),
+                AgentRunRetryDecision.admitted());
+        assertTrue(runtime.recordRetryDecision(decision));
+
+        DurableAgentRuntime recovered = DurableAgentRuntime.recover(
+                GOAL_ID,
+                new FileSystemAgentRuntimeStateStore(storageRoot),
+                Clock.fixed(
+                        Instant.parse("2026-07-22T04:01:00Z"),
+                        ZoneOffset.UTC));
+
+        assertEquals(RuntimeGoalStatus.RETRY_PENDING, recovered.goal().status());
+        assertEquals(1, recovered.completedAttempts());
+        assertEquals(runtime.agentRuns(), recovered.agentRuns());
+        assertEquals(List.of(decision), recovered.retryDecisions());
+        assertEquals(AgentRuntimeState.CURRENT_SCHEMA_VERSION, 2);
+    }
+
+    @Test
+    void rejectsAValidRevisionThatRewritesAgentRunHistory() throws Exception {
+        FileSystemAgentRuntimeStateStore store =
+                new FileSystemAgentRuntimeStateStore(storageRoot);
+        AgentRuntimeState initial = AgentRuntimeState.initial(GOAL_ID, workItem());
+        AgentRuntimeState persisted = initial.beginAgentRun(AGENT_RUN_ID);
+        store.create(initial);
+        store.update(persisted);
+
+        AgentRuntimeState rewritten = initial
+                .beginAgentRun("00000000-0000-0000-0000-000000000507")
+                .markReady("00000000-0000-0000-0000-000000000507");
+
+        assertThrows(IOException.class, () -> store.update(rewritten));
+        assertEquals(List.of(persisted.agentRun().orElseThrow()),
+                store.resolve(GOAL_ID).agentRuns());
+    }
+
+    @Test
+    void rejectsAValidAppendWhoseDecisionPrefixWasRewritten() throws Exception {
+        FileSystemAgentRuntimeStateStore store =
+                new FileSystemAgentRuntimeStateStore(storageRoot);
+        AgentRuntimeState initial = AgentRuntimeState.initial(GOAL_ID, workItem());
+        AgentRuntimeState begun = initial.beginAgentRun(AGENT_RUN_ID);
+        AgentRuntimeState ready = begun.markReady(AGENT_RUN_ID);
+        AgentRuntimeState executing = ready.acquireLease(
+                AGENT_RUN_ID,
+                "decision-prefix-owner",
+                Instant.parse("2026-07-22T05:00:00Z"),
+                Duration.ofMinutes(5));
+        AgentRuntimeState awaiting = executing.completeExecution(
+                AGENT_RUN_ID,
+                "decision-prefix-owner",
+                1,
+                Instant.parse("2026-07-22T05:01:00Z"));
+        AgentRuntimeState pending = awaiting.recordAttemptResult(
+                AGENT_RUN_ID,
+                resultMessage(VerificationStatus.REJECTED));
+        AgentRunRetryDecisionRecord persistedDecision =
+                new AgentRunRetryDecisionRecord(
+                        AGENT_RUN_ID,
+                        1,
+                        3,
+                        0,
+                        0,
+                        "c".repeat(64),
+                        AgentRunRetryDecision.admitted());
+        AgentRuntimeState decided = pending
+                .recordRetryDecision(persistedDecision)
+                .orElseThrow();
+        for (AgentRuntimeState state :
+                List.of(initial, begun, ready, executing, awaiting, pending, decided)) {
+            if (state.revision() == 0) {
+                store.create(state);
+            } else {
+                store.update(state);
+            }
+        }
+
+        AgentRunRetryDecisionRecord rewrittenDecision =
+                new AgentRunRetryDecisionRecord(
+                        AGENT_RUN_ID,
+                        1,
+                        4,
+                        0,
+                        0,
+                        "d".repeat(64),
+                        AgentRunRetryDecision.admitted());
+        AgentRuntimeState rewrittenAppend = pending
+                .recordRetryDecision(rewrittenDecision)
+                .orElseThrow()
+                .beginRetryAgentRun(
+                        "00000000-0000-0000-0000-000000000507");
+
+        assertThrows(IOException.class, () -> store.update(rewrittenAppend));
+        assertEquals(List.of(persistedDecision),
+                store.resolve(GOAL_ID).retryDecisions());
     }
 
     @Test
@@ -236,21 +360,14 @@ class FileSystemAgentRuntimeStateStoreIntegrationTest {
     }
 
     @Test
-    void rejectsIntegrityValidSchemaV1StateWithoutControlLedger()
+    void rejectsIntegrityValidSchemaV1State()
             throws Exception {
         FileSystemAgentRuntimeStateStore store =
                 new FileSystemAgentRuntimeStateStore(storageRoot);
         store.create(AgentRuntimeState.initial(GOAL_ID, workItem()));
         Path artifact = artifact(GOAL_ID);
-        byte[] current = Files.readAllBytes(artifact);
-        byte[] previousSchemaV1 = Arrays.copyOf(
-                current, current.length - Integer.BYTES);
-        ByteBuffer header = ByteBuffer.wrap(previousSchemaV1);
-        int payloadLength = header.getInt(
-                Integer.BYTES + Long.BYTES);
-        header.putInt(
-                Integer.BYTES + Long.BYTES,
-                payloadLength - Integer.BYTES);
+        byte[] previousSchemaV1 = Files.readAllBytes(artifact);
+        ByteBuffer.wrap(previousSchemaV1).putInt(PAYLOAD_OFFSET, 1);
         replaceDigest(previousSchemaV1);
         Files.write(artifact, previousSchemaV1);
 

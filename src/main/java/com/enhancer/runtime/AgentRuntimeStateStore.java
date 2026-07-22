@@ -3,7 +3,7 @@ package com.enhancer.runtime;
 import java.io.IOException;
 
 /**
- * Durable boundary for the current state of one Goal and its schema-v1 AgentRun.
+ * Durable boundary for one Goal's schema-v2 AgentRun and retry-decision history.
  */
 public interface AgentRuntimeStateStore {
     void create(AgentRuntimeState initialState) throws IOException;

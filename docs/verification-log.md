@@ -1042,3 +1042,81 @@ This assessment itself changed no production or test code and did not change Gat
   finalizer assumption.
 - Scope held: no production behavior, test behavior, capability maturity, runtime
   artifact, commit, push, merge, release, or deployment changed.
+
+## Corrected Attempt-Level AgentRun Retry Decision Verification
+
+- Aligned RED: fresh focused compilation failed with 16 errors confined to the corrected
+  contract—`RuntimeAgentRun` could not be supplied to the old `WorkItemDisposition`
+  signature and `NON_COMPENSATED_EXTERNAL_EFFECT` did not exist. No unrelated source,
+  configuration, or test failure was present.
+- Minimum GREEN changed only the pure decider, refusal enum, and focused test: the
+  decision now consumes the exact attempt, validates Goal/WorkItem ledger binding,
+  refuses `APPLIED`/`DEDUPLICATED`, and admits only empty/all-`COMPENSATED` history.
+- Fresh focused `.\gradlew.bat test --rerun-tasks --tests
+  com.enhancer.runtime.AgentRunRetryDeciderTest` passed 22 tests, 0 skipped, 0 failures,
+  and 0 errors. Raw XML is
+  `build/test-results/test/TEST-com.enhancer.runtime.AgentRunRetryDeciderTest.xml`.
+- Fresh `.\gradlew.bat build --rerun-tasks` passed 79 suites and 409 tests: 406 passed,
+  3 privilege-dependent Windows symbolic-link setup skips, 0 failures, and 0 errors
+  under build-enforced Java 17 `-Xlint:all -Werror`.
+- Scope held: no schema-v2 history, retry decision persistence, `RETRY_PENDING`,
+  finalizer/worker/queue change, external adapter, commit, push, merge, release, or
+  deployment was added.
+
+## Schema-V2 AgentRun History And Retry-Pending Parking Verification
+
+- The original active task sequenced schema-v2 state before finalizer splitting, but
+  failed-result semantics could not remain coherent if the old finalizer immediately
+  failed the queue. The conflict was reported, and the user explicitly approved one
+  combined bounded increment: schema-v2 state/storage, minimum finalizer split, and safe
+  worker parking. The retry controller and replacement execution remained out of scope.
+- Initial focused RED reached test compilation and failed with 21 aligned missing-symbol
+  errors for the schema-v2 AgentRun/decision-history contract. A second focused RED for
+  the finalizer boundary failed with 2 aligned missing-method errors. Neither run exposed
+  an unrelated, flaky, configuration, privilege, or scope-expanding failure.
+- The first focused GREEN run executed 34 tests with 1 failure. The failure identified an
+  over-strict new invariant that rejected a valid reclaimed first `READY` attempt with a
+  retained issued fence. Narrowing the prohibition to an initial `PLANNING` attempt kept
+  Goal-wide fence safety while preserving the established reclaim contract; all 34 then
+  passed.
+- The first full build executed 416 tests with 3 failures and 3 existing Windows
+  privilege skips. Each failure was a stale expectation that a non-Verified result
+  immediately terminally failed the Goal/queue. Updating those tests to the approved
+  `RETRY_PENDING` parking contract removed no production check and absorbed no unrelated
+  behavior.
+- Additional prefix-hardening coverage proved that integrity-valid runtime artifacts
+  cannot rewrite earlier AgentRun history or retry-decision history. Final focused
+  verification passed 36 tests across the state, filesystem store, finalizer, worker,
+  runtime, and real-filesystem worker suites with 0 skips, failures, or errors.
+- Fresh final `.\gradlew.bat build --rerun-tasks` passed 80 suites and 418 tests: 415
+  passed, 3 privilege-dependent Windows symbolic-link setup cases skipped, 0 failures,
+  and 0 errors under build-enforced Java 17 `-Xlint:all -Werror`. Raw XML is retained
+  under `build/test-results/test` for that run's checkpoint evidence.
+- After document synchronization, fresh structural verification passed 8 tests across
+  `DocumentOwnershipTest`, `DecisionLogIndexTest`, and `RuntimePackageBoundaryTest`, with
+  0 skips, failures, or errors. `git diff --check` produced no output and exited 0.
+- Scope held: no durable retry controller, external-effect resolution, replacement
+  identity generation/checkpoint, second AgentRun execution, retry-loop recovery,
+  schema-v1 migration, authenticated control application, commit, push, merge, release,
+  or deployment was added.
+- Evidence-retention clarification: the final full-build output and counts above were
+  read before the later filtered structural rerun. Gradle then replaced
+  `build/test-results/test` with the 3 structural-suite XML files, so the full-build raw
+  XML is no longer retained at that path; the observed fresh command result remains the
+  basis of the recorded 80-suite/418-test claim.
+
+## Schema-V2 Runtime Pre-Delivery Documentation Reconciliation
+
+- Pre-delivery review found four stale present-tense descriptions left from the original
+  single-attempt boundary: the Gate 8 Roadmap lifecycle bullet, the completed task's
+  problem context, the compact architecture's target wording, and the AgentLoop result
+  connection in Architecture/Project State. They now describe schema-v2 history,
+  `RETRY_PENDING`, and absence of terminal queue disposition without changing runtime
+  behavior, maturity, acceptance scope, or the next task.
+- Fresh `.\gradlew.bat build --rerun-tasks` passed 80 suites and 418 tests: 415 passed,
+  3 privilege-dependent Windows symbolic-link setup cases skipped, 0 failures, and 0
+  errors under build-enforced Java 17 `-Xlint:all -Werror`. Raw XML is retained under
+  `build/test-results/test` pending the authorized Git delivery steps.
+- `git diff --check` produced no output and exited 0. No decision, handoff, source code,
+  test behavior, schema, commit, push, merge, release, or deployment was changed by this
+  reconciliation step.

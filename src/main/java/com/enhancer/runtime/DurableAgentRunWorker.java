@@ -128,7 +128,11 @@ public final class DurableAgentRunWorker {
                     leaseDuration);
         }
         Optional<RuntimeAgentRun> run = runtime.agentRun();
-        if (run.isPresent() && run.orElseThrow().status().isTerminal()) {
+        if (runtime.goal().status() == RuntimeGoalStatus.RETRY_PENDING) {
+            return Optional.empty();
+        }
+        if (runtime.goal().status() == RuntimeGoalStatus.COMPLETED
+                || runtime.goal().status() == RuntimeGoalStatus.FAILED) {
             WorkItemDisposition disposition = finalizer
                     .recoverFinalization(pending.goalId())
                     .orElseThrow(() -> new IllegalStateException(
@@ -138,15 +142,20 @@ public final class DurableAgentRunWorker {
         }
         if (run.isPresent() && run.orElseThrow().status()
                 == RuntimeAgentRunStatus.AWAITING_VERIFICATION) {
-            WorkItemDisposition disposition = finalizer.finalizeAgentRun(
+            finalizer.recordAgentRunResult(
                     pending.goalId(),
                     pending.agentRunId(),
                     pending.runRecordReference().orElseThrow(() ->
                             new IllegalStateException(
                                     "AWAITING_VERIFICATION requires a recorded "
                                             + "RunRecord reference")));
+            Optional<WorkItemDisposition> disposition =
+                    finalizer.finalizeTerminalDisposition(pending.goalId());
+            if (disposition.isEmpty()) {
+                return Optional.empty();
+            }
             checkpoint.clear();
-            return Optional.of(disposition);
+            return disposition;
         }
         // EXECUTING / READY / PLANNING / no AgentRun yet: re-drive with the same
         // identities; a present reference skips re-execution inside drive.
@@ -188,9 +197,13 @@ public final class DurableAgentRunWorker {
                 goalId, runtimeStore, clock);
         runtime.completeExecution(
                 agentRunId, ownerId, dispatch.lease().fenceToken());
-        WorkItemDisposition disposition = finalizer.finalizeAgentRun(
-                goalId, agentRunId, reference);
+        finalizer.recordAgentRunResult(goalId, agentRunId, reference);
+        Optional<WorkItemDisposition> disposition =
+                finalizer.finalizeTerminalDisposition(goalId);
+        if (disposition.isEmpty()) {
+            return Optional.empty();
+        }
         checkpoint.clear();
-        return Optional.of(disposition);
+        return disposition;
     }
 }

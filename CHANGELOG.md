@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-07-22 - Add Schema-V2 AgentRun History And Safe Retry-Pending Parking
+
+- Replaced the single-attempt runtime artifact with schema-v2 immutable AgentRun and
+  retry-decision histories, a latest-attempt projection, Goal-wide fence monotonicity,
+  exact-prefix filesystem enforcement, and explicit schema-v1 rejection.
+- Split RunRecord-backed attempt-result recording from terminal queue disposition. A
+  failed attempt now parks the Goal at `RETRY_PENDING`; the worker retains its durable
+  intent/reference and active WorkItem without failing the queue or executing again.
+- Fresh focused verification passed 36 tests, and the final strict-lint Gradle build
+  passed 80 suites and 418 tests with 3 existing Windows privilege skips.
+
+## 2026-07-22 - Correct Attempt-Level AgentRun Retry Decision
+
+- Replaced terminal Scheduler `WorkItemDisposition` input with the exact latest
+  `RuntimeAgentRun` and bound the supplied effect ledger to its Goal and WorkItem.
+- Added fail-closed `NON_COMPENSATED_EXTERNAL_EFFECT` refusal for `APPLIED` and
+  `DEDUPLICATED`; automatic retry now admits only empty or all-`COMPENSATED` history
+  with remaining attempt budget.
+- Expanded focused coverage to 22 tests across every attempt/effect status, mixed
+  precedence, identity binding, null inputs, and attempt bounds; the fresh full build
+  passed 79 suites and 409 tests with 3 existing Windows privilege skips.
+
 ## 2026-07-22 - Correct Gate 8 Multi-Attempt Retry Specifications
 
 - Separated retryable AgentRun attempt failure from terminal Scheduler WorkItem

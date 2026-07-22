@@ -79,7 +79,7 @@ class DurableAgentRuntimeTest {
     }
 
     @Test
-    void recordsEveryNonVerifiedResultAsExplicitFailure()
+    void recordsEveryNonVerifiedResultAsRetryPendingAttemptFailure()
             throws Exception {
         for (VerificationStatus status : Set.of(
                 VerificationStatus.REJECTED,
@@ -102,7 +102,9 @@ class DurableAgentRuntimeTest {
 
             runtime.recordResult(AGENT_RUN_ID, resultMessage(status));
 
-            assertEquals(RuntimeGoalStatus.FAILED, runtime.goal().status());
+            assertEquals(
+                    RuntimeGoalStatus.RETRY_PENDING,
+                    runtime.goal().status());
             assertEquals(
                     RuntimeAgentRunStatus.FAILED,
                     runtime.agentRun().orElseThrow().status());

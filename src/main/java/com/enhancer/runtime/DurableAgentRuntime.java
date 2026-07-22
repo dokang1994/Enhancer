@@ -9,7 +9,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Persist-before-exposure lifecycle wrapper for one Goal and one AgentRun.
+ * Persist-before-exposure lifecycle wrapper for one Goal and its AgentRun history.
  */
 public final class DurableAgentRuntime {
     private final AgentRuntimeStateStore store;
@@ -172,7 +172,25 @@ public final class DurableAgentRuntime {
             String agentRunId,
             MessageEnvelope resultMessage) throws IOException {
         adoptAfterPersistence(
-                state.recordResult(agentRunId, resultMessage));
+                state.recordAttemptResult(agentRunId, resultMessage));
+    }
+
+    public boolean recordRetryDecision(
+            AgentRunRetryDecisionRecord decision) throws IOException {
+        Optional<AgentRuntimeState> next = state.recordRetryDecision(decision);
+        if (next.isEmpty()) {
+            return false;
+        }
+        adoptAfterPersistence(next.orElseThrow());
+        return true;
+    }
+
+    public void beginRetryAgentRun(String agentRunId) throws IOException {
+        adoptAfterPersistence(state.beginRetryAgentRun(agentRunId));
+    }
+
+    public void abandonGoal() throws IOException {
+        adoptAfterPersistence(state.abandonGoal());
     }
 
     public boolean recordControlRequest(
@@ -200,6 +218,18 @@ public final class DurableAgentRuntime {
 
     public Optional<RuntimeAgentRun> agentRun() {
         return state.agentRun();
+    }
+
+    public List<RuntimeAgentRun> agentRuns() {
+        return state.agentRuns();
+    }
+
+    public List<AgentRunRetryDecisionRecord> retryDecisions() {
+        return state.retryDecisions();
+    }
+
+    public int completedAttempts() {
+        return state.completedAttempts();
     }
 
     public List<MessageEnvelope> controlRequests() {

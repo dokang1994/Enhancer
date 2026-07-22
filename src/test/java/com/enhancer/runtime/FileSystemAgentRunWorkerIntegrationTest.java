@@ -78,22 +78,22 @@ class FileSystemAgentRunWorkerIntegrationTest {
     }
 
     @Test
-    void failedOutcomeBlocksTheDependentWorkItem() throws Exception {
+    void failedAttemptParksBeforeAQueueDisposition() throws Exception {
         Stores s = stores();
         DurableSingleWorkerSchedulerQueue queue =
                 DurableSingleWorkerSchedulerQueue.create(QUEUE_ID, 8, s.queueStore());
         queue.enqueue(new QueuedWork(workItem(WORK_ID), List.of()));
         queue.enqueue(new QueuedWork(workItem(DEP_ID), List.of(WORK_ID)));
 
-        assertEquals(Optional.of(WorkItemDisposition.FAILED),
-                worker(s, executionPersisting(s, false)).runOneCycle(LEASE));
+        assertTrue(worker(s, executionPersisting(s, false))
+                .runOneCycle(LEASE).isEmpty());
         assertTrue(worker(s, forbiddenExecution()).runOneCycle(LEASE).isEmpty());
 
         DurableSingleWorkerSchedulerQueue recovered =
                 DurableSingleWorkerSchedulerQueue.recover(QUEUE_ID, s.queueStore());
-        assertEquals(Set.of(WORK_ID), recovered.failedWorkItemIds());
+        assertTrue(recovered.failedWorkItemIds().isEmpty());
         assertTrue(recovered.completedWorkItemIds().isEmpty());
-        assertTrue(s.checkpointStore().findPending().isEmpty());
+        assertTrue(s.checkpointStore().findPending().isPresent());
     }
 
     // ---- shared helpers ----

@@ -106,7 +106,7 @@ class FileSystemAgentLoopWorkerIntegrationTest {
     }
 
     @Test
-    void digestMismatchFailsTheClaimAndBlocksTheDependent() throws Exception {
+    void digestMismatchParksTheFailedAttemptBeforeQueueDisposition() throws Exception {
         Stores s = stores();
         DurableSingleWorkerSchedulerQueue queue =
                 DurableSingleWorkerSchedulerQueue.create(QUEUE_ID, 8, s.queueStore());
@@ -115,15 +115,14 @@ class FileSystemAgentLoopWorkerIntegrationTest {
         queue.enqueue(new QueuedWork(
                 workItem(DEP_ID, approvedDigest), List.of(WORK_ID)));
 
-        assertEquals(Optional.of(WorkItemDisposition.FAILED),
-                worker(s).runOneCycle(LEASE));
+        assertTrue(worker(s).runOneCycle(LEASE).isEmpty());
         assertTrue(worker(s).runOneCycle(LEASE).isEmpty());
 
         DurableSingleWorkerSchedulerQueue recovered =
                 DurableSingleWorkerSchedulerQueue.recover(QUEUE_ID, s.queueStore());
-        assertEquals(Set.of(WORK_ID), recovered.failedWorkItemIds());
+        assertTrue(recovered.failedWorkItemIds().isEmpty());
         assertTrue(recovered.completedWorkItemIds().isEmpty());
-        assertTrue(s.checkpointStore().findPending().isEmpty());
+        assertTrue(s.checkpointStore().findPending().isPresent());
     }
 
     @Test

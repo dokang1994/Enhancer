@@ -7,7 +7,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Immutable lifecycle state for the single AgentRun supported by runtime schema v1.
+ * Immutable lifecycle state for one attempt retained in runtime schema-v2 history.
  */
 public record RuntimeAgentRun(
         String agentRunId,

@@ -4,10 +4,10 @@
 - Gate: Delivery Gate 8 (Agent Runtime and Scheduler)
 - Connection: ROADMAP Gate 8 ordered connection #6, retry through additional
   AgentRuns.
-- Status: accepted contract correction; production implementation remains a later
-  test-first increment.
-- Maturity target: no promotion in this documentation increment. Contract Verified
-  requires corrected focused tests and implementation.
+- Status: corrected contract implemented; capability maturity is owned by
+  `PROJECT_STATE.md`.
+- Maturity target: focused contract evidence exists; durable consumer integration
+  remains a later increment.
 
 ## Problem
 
@@ -179,7 +179,6 @@ evidence. The documentation correction alone does not satisfy Contract Verified.
 
 ## Out of scope
 
-- Implementing the corrected signature or status rules in this documentation task.
 - Creating, persisting, leasing, or executing a replacement AgentRun.
 - Automatically compensating an effect or treating local ledger state as remote proof.
 - A cross-attempt effect adapter that can safely reuse one logical idempotency identity.

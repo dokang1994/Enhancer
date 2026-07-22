@@ -69,23 +69,57 @@ class DurableAgentRunFinalizerTest {
     }
 
     @Test
-    void failedOutcomeFailsRuntimeAndBlocksDependent() throws Exception {
+    void failedAttemptStopsAtRetryPendingWithoutQueueDisposition() throws Exception {
         Setup s = awaitingVerification(true);
         String reference = persistRunRecord(s, false);
 
         DurableAgentRunFinalizer finalizer = finalizer(s);
-        WorkItemDisposition disposition =
-                finalizer.finalizeAgentRun(GOAL_ID, AGENT_RUN_ID, reference);
+        RuntimeGoalStatus status =
+                finalizer.recordAgentRunResult(GOAL_ID, AGENT_RUN_ID, reference);
 
-        assertEquals(WorkItemDisposition.FAILED, disposition);
+        assertEquals(RuntimeGoalStatus.RETRY_PENDING, status);
+        assertTrue(finalizer.finalizeTerminalDisposition(GOAL_ID).isEmpty());
         DurableAgentRuntime runtime =
                 DurableAgentRuntime.recover(GOAL_ID, s.runtimeStore, CLOCK);
+        assertEquals(RuntimeGoalStatus.RETRY_PENDING, runtime.goal().status());
         assertEquals(RuntimeAgentRunStatus.FAILED,
                 runtime.agentRun().orElseThrow().status());
         DurableSingleWorkerSchedulerQueue queue =
                 DurableSingleWorkerSchedulerQueue.recover(QUEUE_ID, s.queueStore);
+        assertTrue(queue.failedWorkItemIds().isEmpty());
+        assertTrue(queue.completedWorkItemIds().isEmpty());
+        assertEquals(WORK_ID, queue.claimNext().orElseThrow().workItemId());
+    }
+
+    @Test
+    void refusedRetryDecisionPermitsOneTerminalFailedDisposition() throws Exception {
+        Setup s = awaitingVerification(false);
+        String reference = persistRunRecord(s, false);
+        DurableAgentRunFinalizer finalizer = finalizer(s);
+        assertEquals(
+                RuntimeGoalStatus.RETRY_PENDING,
+                finalizer.recordAgentRunResult(
+                        GOAL_ID, AGENT_RUN_ID, reference));
+
+        DurableAgentRuntime runtime =
+                DurableAgentRuntime.recover(GOAL_ID, s.runtimeStore, CLOCK);
+        runtime.recordRetryDecision(new AgentRunRetryDecisionRecord(
+                AGENT_RUN_ID,
+                1,
+                1,
+                0,
+                0,
+                "c".repeat(64),
+                AgentRunRetryDecision.refused(
+                        AgentRunRetryRefusalReason.ATTEMPTS_EXHAUSTED)));
+        runtime.abandonGoal();
+
+        assertEquals(
+                Optional.of(WorkItemDisposition.FAILED),
+                finalizer.finalizeTerminalDisposition(GOAL_ID));
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.recover(QUEUE_ID, s.queueStore);
         assertEquals(Set.of(WORK_ID), queue.failedWorkItemIds());
-        assertTrue(queue.claimNext().isEmpty());
     }
 
     @Test

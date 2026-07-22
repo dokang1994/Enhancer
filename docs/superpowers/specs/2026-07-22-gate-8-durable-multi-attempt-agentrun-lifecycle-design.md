@@ -4,18 +4,18 @@
 - Gate: Delivery Gate 8 (Agent Runtime and Scheduler)
 - Connection: ROADMAP Gate 8 ordered connection #6, retry through additional
   AgentRuns.
-- Status: accepted design correction; not implemented.
+- Status: schema-v2 state/storage plus finalizer split and safe worker parking implemented;
+  durable retry controller and replacement execution remain later increments.
 - Maturity target: Contract Verified for the state and controller contracts, then
   Integrated only after a named queue-to-runtime-to-ledger-to-worker recovery path.
 
 ## Problem
 
-The current runtime retains one AgentRun, the current finalizer converts a failed
-AgentRun directly into terminal queue failure, and the current worker clears its cycle
-checkpoint after that disposition. A retry design cannot add a second AgentRun merely
-by inserting `RETRY_PENDING` into the Goal enum: if finalization still invokes
-`failActive`, the WorkItem has already left the active slot and entered the durable
-failed partition.
+The original runtime retained one AgentRun, the original finalizer converted a failed
+AgentRun directly into terminal queue failure, and the original worker cleared its cycle
+checkpoint after that disposition. The implemented schema-v2 boundary now records the
+failed attempt at `RETRY_PENDING`, keeps the WorkItem active, and retains the worker
+checkpoint; the controller that decides and appends a replacement remains separate.
 
 The corrected design must preserve four distinct facts:
 
@@ -317,8 +317,9 @@ Implementation proceeds test-first in dependency order.
 7. **Regression:** full Gradle build, strict Java 17 lint, document ownership and
    decision-index checks, plus named filesystem integration evidence.
 
-No Contract Verified, Integrated, or Completed claim is made until its corresponding
-fresh evidence exists.
+Current capability maturity and its fresh evidence are owned by `PROJECT_STATE.md` and
+`docs/verification-log.md`; this design does not promote the controller or worker retry
+integration before their own evidence exists.
 
 ## Implementation increments
 
@@ -326,9 +327,10 @@ The design may be delivered in bounded tasks, but each task must leave current b
 coherent:
 
 1. correct the pure decider and its accepted decision;
-2. add schema-v2 history and decision records together with prefix-enforcing storage;
-3. split finalization and add the durable retry controller;
-4. wire the retry-aware worker and recovery integration.
+2. add schema-v2 history and decision records with prefix-enforcing storage, split
+   finalization, and park the current worker safely at `RETRY_PENDING`;
+3. add the durable retry controller over the exact ledger and persisted decision;
+4. wire replacement-attempt execution and retry-aware worker recovery integration.
 
 An increment that changes failed results to `RETRY_PENDING` without also preventing
 immediate queue `failActive` is not coherent and must not be merged.

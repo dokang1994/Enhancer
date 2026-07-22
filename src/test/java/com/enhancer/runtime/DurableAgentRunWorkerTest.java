@@ -81,7 +81,7 @@ class DurableAgentRunWorkerTest {
     }
 
     @Test
-    void failedCycleFailsRuntimeAndBlocksDependent() throws Exception {
+    void failedCycleParksAtRetryPendingAndRetainsIntent() throws Exception {
         Stores s = stores();
         DurableSingleWorkerSchedulerQueue queue =
                 DurableSingleWorkerSchedulerQueue.create(QUEUE_ID, 8, s.queueStore());
@@ -91,18 +91,22 @@ class DurableAgentRunWorkerTest {
         Optional<WorkItemDisposition> disposition =
                 worker(s, executionPersisting(s, false)).runOneCycle(LEASE);
 
-        assertEquals(Optional.of(WorkItemDisposition.FAILED), disposition);
+        assertTrue(disposition.isEmpty());
         List<String> goalIds = goalIds(s);
         assertEquals(1, goalIds.size());
         DurableAgentRuntime runtime =
                 DurableAgentRuntime.recover(goalIds.get(0), s.runtimeStore(), CLOCK);
+        assertEquals(RuntimeGoalStatus.RETRY_PENDING, runtime.goal().status());
         assertEquals(RuntimeAgentRunStatus.FAILED,
                 runtime.agentRun().orElseThrow().status());
         DurableSingleWorkerSchedulerQueue recovered =
                 DurableSingleWorkerSchedulerQueue.recover(QUEUE_ID, s.queueStore());
-        assertEquals(Set.of(WORK_ID), recovered.failedWorkItemIds());
-        assertTrue(recovered.claimNext().isEmpty());
-        assertTrue(s.checkpointStore().findPending().isEmpty());
+        assertTrue(recovered.failedWorkItemIds().isEmpty());
+        assertTrue(recovered.completedWorkItemIds().isEmpty());
+        assertEquals(WORK_ID, recovered.claimNext().orElseThrow().workItemId());
+        PendingFinalization pending = s.checkpointStore().findPending().orElseThrow();
+        assertEquals(goalIds.get(0), pending.goalId());
+        assertTrue(pending.runRecordReference().isPresent());
     }
 
     @Test

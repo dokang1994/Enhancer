@@ -15,9 +15,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Connects a resolved RunRecord to the terminal AgentRun/Goal state and the matching Scheduler
- * queue disposition, in a recoverable, idempotent order. Queue and runtime remain separate durable
- * boundaries; no cross-store transaction is claimed. Consumer: the future Scheduler worker/driver.
+ * Separates RunRecord-backed attempt result recording from Goal-terminal queue disposition.
+ * Queue and runtime remain separate durable boundaries; no cross-store transaction is claimed.
  */
 public final class DurableAgentRunFinalizer {
     private final DurableSingleWorkerSchedulerQueue queue;
@@ -39,6 +38,16 @@ public final class DurableAgentRunFinalizer {
     }
 
     public WorkItemDisposition finalizeAgentRun(
+            String goalId,
+            String agentRunId,
+            String runRecordReference) throws IOException {
+        recordAgentRunResult(goalId, agentRunId, runRecordReference);
+        return finalizeTerminalDisposition(goalId).orElseThrow(() ->
+                new IllegalStateException(
+                        "AgentRun result did not make the Goal terminal"));
+    }
+
+    public RuntimeGoalStatus recordAgentRunResult(
             String goalId,
             String agentRunId,
             String runRecordReference) throws IOException {
@@ -66,23 +75,42 @@ public final class DurableAgentRunFinalizer {
             default -> throw new IllegalStateException(
                     "AgentRun has not acknowledged execution");
         }
-        return applyQueueDisposition(
-                workItem.workItemId(),
-                runtime.agentRun().orElseThrow().status());
+        return runtime.goal().status();
+    }
+
+    public Optional<WorkItemDisposition> finalizeTerminalDisposition(
+            String goalId) throws IOException {
+        DurableAgentRuntime runtime =
+                DurableAgentRuntime.recover(goalId, runtimeStore, clock);
+        RuntimeAgentRun latest = runtime.agentRun().orElseThrow(() ->
+                new IllegalStateException("no AgentRun exists"));
+        WorkItemDisposition disposition;
+        if (runtime.goal().status() == RuntimeGoalStatus.COMPLETED) {
+            if (latest.status() != RuntimeAgentRunStatus.COMPLETED) {
+                throw new IllegalStateException(
+                        "completed Goal does not have a completed latest AgentRun");
+            }
+            disposition = WorkItemDisposition.VERIFIED_COMPLETED;
+        } else if (runtime.goal().status() == RuntimeGoalStatus.FAILED) {
+            if (latest.status() != RuntimeAgentRunStatus.FAILED
+                    || runtime.retryDecisions().isEmpty()
+                    || runtime.retryDecisions()
+                            .get(runtime.retryDecisions().size() - 1)
+                            .decision().isAdmitted()) {
+                throw new IllegalStateException(
+                        "failed Goal requires a refused latest retry decision");
+            }
+            disposition = WorkItemDisposition.FAILED;
+        } else {
+            return Optional.empty();
+        }
+        return Optional.of(applyQueueDisposition(
+                runtime.goal().workItem().workItemId(), disposition));
     }
 
     public Optional<WorkItemDisposition> recoverFinalization(String goalId)
             throws IOException {
-        DurableAgentRuntime runtime =
-                DurableAgentRuntime.recover(goalId, runtimeStore, clock);
-        RuntimeAgentRun run = runtime.agentRun().orElseThrow(() ->
-                new IllegalStateException("no AgentRun exists"));
-        if (!run.status().isTerminal()) {
-            return Optional.empty();
-        }
-        return Optional.of(applyQueueDisposition(
-                runtime.goal().workItem().workItemId(),
-                run.status()));
+        return finalizeTerminalDisposition(goalId);
     }
 
     private RuntimeAgentRun requireRun(
@@ -145,11 +173,7 @@ public final class DurableAgentRunFinalizer {
 
     private WorkItemDisposition applyQueueDisposition(
             String workItemId,
-            RuntimeAgentRunStatus terminalStatus) throws IOException {
-        WorkItemDisposition disposition =
-                terminalStatus == RuntimeAgentRunStatus.COMPLETED
-                        ? WorkItemDisposition.VERIFIED_COMPLETED
-                        : WorkItemDisposition.FAILED;
+            WorkItemDisposition disposition) throws IOException {
         if (queue.completedWorkItemIds().contains(workItemId)
                 || queue.failedWorkItemIds().contains(workItemId)) {
             return disposition;  // disposition already recorded (idempotent)
