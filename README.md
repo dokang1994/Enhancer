@@ -164,6 +164,47 @@ fails closed.
 | Cycle reports `FAILED` and exits `40` | The WorkItem is terminally failed. Inspect the retained runtime and RunRecord evidence; resubmitting the same identity is not a retry. New work requires separately approved inputs and a new message identity. |
 | Cycle reports `IDLE` | No ready work was executed. Do not loop automatically; if work was expected, verify the queue root/identity and the preceding submission result. |
 
+## Submit Generated-Input Scheduler Work
+
+`scheduler-submit-generated` is a replay-safe variant of `scheduler-submit` for operators
+who prefer to retain one identity instead of the whole replay tuple. It takes a single
+caller-retained canonical submission UUID and derives the queue, correlation, and
+logical-run identities from it through fixed versioned domain-separated transforms, and it
+generates the occurrence time from the clock on first use. No explicit queue, message,
+correlation, logical-run identity, or occurrence time is supplied, and the explicit
+`scheduler-submit` command is unchanged:
+
+```powershell
+.\scripts\gradle.ps1 run --args="scheduler-submit-generated --project-root C:\Enhancer --submission-root C:\Enhancer\.enhancer\submissions --queue-root C:\Enhancer\.enhancer\queue --task-id <active-task-id> --submission-id <canonical-submission-uuid> --max-work-items 256 --required-capability read-file --producer local-operator --target-path README.md --expected-sha256 <lowercase-sha256>"
+```
+
+The bounded status is `ADMITTED` when the queue revision advances and `REPLAYED` when the
+exact submission is already present. The output prints the generated `queueId`,
+`correlationId`, `logicalRunId`, `occurredAt`, and `workspaceSnapshotId` for auditing; pass
+the printed `queueId` to `scheduler-cycle`. On the first invocation the occurrence time and
+governed repository snapshot are captured, the immutable submission manifest is persisted,
+and the queue is created and the work admitted. On any later invocation the manifest is
+resolved before the clock or repository context is consulted, so the exact occurrence time
+and envelope are reused; changing any caller-owned intent (task, capacity, capability,
+producer, target, or digest) under the same submission UUID exits `2` without admitting
+changed work.
+
+A real-repository smoke run reads `README.md` and observes
+`ADMITTED -> VERIFIED_COMPLETED -> REPLAYED -> IDLE` with one retained manifest, one
+RunRecord, and no duplicate execution. Generated-input recovery follows the same handoff as
+the explicit workflow, differing only in what the operator preserves:
+
+| Observed state | Operator action |
+|---|---|
+| Submission interrupted before a trusted result | Reinvoke `scheduler-submit-generated` with the same submission UUID and caller-owned intent against the unchanged governed project. If the interruption preceded manifest persistence, a fresh occurrence time is generated safely because no durable work was created; if it followed persistence, the stored time and envelope are reused. Accept `ADMITTED` or `REPLAYED`. |
+| `ADMITTED` or `REPLAYED` | The work is durable but not necessarily executed. Take the printed `queueId` and invoke `scheduler-cycle` separately only when execution is intended. |
+| Conflicting intent exits `2` | The submission UUID already names durable work with different caller-owned intent. Do not reuse it for changed work; choose a new submission UUID. |
+| Cycle `VERIFIED_COMPLETED` then a later cycle `IDLE` | The generated work is terminally verified; exact submission replay stays a no-op and the empty queue reports `IDLE`. |
+
+Retain only the submission UUID, the caller-owned intent, and the submission/queue roots for
+exact replay; the cycle-specific roots follow the same recovery rules as the explicit
+workflow. Submission remains separate from execution, and there is no wrapper or polling.
+
 ## Development Session Checkpoints
 
 Forced termination recovery does not depend on `SESSION_HANDOFF.md` being updated at

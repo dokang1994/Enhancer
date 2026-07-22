@@ -1446,3 +1446,32 @@ This assessment itself changed no production or test code and did not change Gat
 - Scope held: no second durable store, schema change, `scheduler-cycle` invocation,
   execution, polling, commit, push, merge, release, or deployment was added; the explicit
   `scheduler-submit` command and manifest schema are unchanged.
+
+## Generated-Input Submission Operational Promotion
+
+- An actual Enhancer-repository smoke run used explicit scratch roots outside the working
+  tree and `--project-root C:\enhancer`. `scheduler-submit-generated` (submission UUID
+  `11111111-1111-4111-8111-111111111111`, `--task-id
+  promote-generated-input-submission-operational`, `--target-path README.md`, real digest)
+  reported `ADMITTED` at queue revision 1, deriving `queueId
+  8f2668a8-6e5b-3d04-8111-111111111111`, correlation, logical-run, occurrence time, and the
+  real Workspace snapshot.
+- A separate `scheduler-cycle` over the derived queue identity launched the real child JVM,
+  read and verified `README.md`, and reported `VERIFIED_COMPLETED` with one completed
+  WorkItem and one RunRecord (queue revision 3).
+- Reinvoking `scheduler-submit-generated` reported `REPLAYED` with the identical occurrence
+  time and Workspace snapshot and an unchanged queue revision, proving the manifest was
+  resolved and reused before the clock or repository context was consulted. A later
+  `scheduler-cycle` reported `IDLE`. Exactly one submission manifest artifact and one
+  RunRecord remained.
+- During the smoke run `CURRENT_TASK.md` was set to the In-Progress governed active task so
+  the governed submission inputs resolved; it was restored to the completed increment record
+  before verification and commit.
+- Fresh full `gradlew build` under build-enforced Java 17 `-Xlint:all -Werror` passed all
+  build tasks and 91 suites/474 tests: 471 passed, 3 existing privilege-dependent Windows
+  symbolic-link setup cases skipped, 0 failures, and 0 errors. The structural rerun of
+  `DocumentOwnershipTest`, `DecisionLogIndexTest`, and `RuntimePackageBoundaryTest` passed,
+  and `git diff --check` produced no output.
+- Scope held: no production behavior, schema change, second store, polling, wrapper command,
+  automatic execution, committed runtime artifact, release, or deployment was added, and the
+  explicit `scheduler-submit` command is unchanged.
