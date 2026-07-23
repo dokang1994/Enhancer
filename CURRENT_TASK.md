@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -64,8 +64,22 @@ pushed, and merged into `origin/main`.
 
 ## Verification
 
-Pending fresh pre-delivery reconciliation, strict build, staged review, non-force
-delivery, and post-delivery remote verification.
+- A fresh pre-delivery `git fetch origin main` showed local `main`, its merge base, and
+  `origin/main` at `c11a709cd7890fedf963efbfd1ccc2a1d4719954` with ahead/behind
+  `0/0`. The remote had not advanced, so direct fast-forward delivery required no
+  separate merge commit.
+- Fresh `.\scripts\gradle.ps1 clean build --no-build-cache --warning-mode all --quiet`
+  completed with exit code 0. Its 100 suites/519 tests produced 516 passes, 3 existing
+  privilege-dependent Windows symbolic-link setup skips, 0 failures, and 0 errors.
+- The staged review contained exactly the intended 20 paths, no unstaged difference,
+  and no `git diff --cached --check` error.
+- Commit `bd43eb146c1c138b6736f74a35797020045d230b` records the implementation and
+  documentation as `feat: add read-only scheduler recovery status`.
+- The non-force `git push origin main:main` advanced `origin/main` from `c11a709` to
+  `bd43eb1` by fast-forward. A fresh post-push fetch and reference comparison showed
+  local `main` and `origin/main` equal with ahead/behind `0/0` and a clean working tree.
+- This delivery closeout remains subject to committing these two owned documentation
+  updates, a final non-force push, and one final remote reference comparison.
 
 ## Next
 

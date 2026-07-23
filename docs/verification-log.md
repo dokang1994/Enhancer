@@ -1801,3 +1801,21 @@ This assessment itself changed no production or test code and did not change Gat
 - Scope held: the implementation performs no recovery, mutation, scanning, liveness
   claim, retry, wait, polling, schema change, commit, push, merge, release, or
   deployment.
+
+## Read-Only Scheduler Recovery Status Origin Main Delivery Verification
+
+- A fresh pre-delivery `git fetch origin main` showed local `main`, its merge base, and
+  `origin/main` at `c11a709cd7890fedf963efbfd1ccc2a1d4719954` with ahead/behind
+  `0/0`. The remote had not advanced, so normal direct fast-forward delivery required
+  no merge commit, rebase, history rewrite, or force operation.
+- Fresh `.\scripts\gradle.ps1 clean build --no-build-cache --warning-mode all --quiet`
+  completed with exit code 0 under build-enforced Java 17 `-Xlint:all -Werror`. Its
+  100 suites/519 tests produced 516 passes, 3 existing privilege-dependent Windows
+  symbolic-link setup skips, 0 failures, and 0 errors.
+- The staged review contained exactly the intended 20 paths, no unstaged difference,
+  and no `git diff --cached --check` error. Commit
+  `bd43eb146c1c138b6736f74a35797020045d230b` records those paths.
+- The non-force `git push origin main:main` advanced the remote from `c11a709` to
+  `bd43eb1` by fast-forward. A fresh post-push `git fetch origin main` and reference
+  comparison showed local `main` and `origin/main` equal with ahead/behind `0/0` and a
+  clean working tree before delivery-closeout documentation.
