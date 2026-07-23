@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -68,8 +68,21 @@ pushed, and merged into `origin/main`.
 
 ## Verification
 
-Pending fresh build, staged-diff review, push result, remote-reference comparison, and
-final clean-tree check.
+- A fresh pre-delivery `git fetch origin main` showed local `main` and `origin/main`
+  at the same base with ahead/behind `0/0`, so no merge conflict or separate merge commit
+  was required.
+- Fresh `.\scripts\gradle.ps1 clean build --no-build-cache --warning-mode all` passed all
+  8 tasks and 97 suites/502 tests under build-enforced Java 17 `-Xlint:all -Werror`:
+  499 passed, 3 existing privilege-dependent Windows symbolic-link setup cases skipped,
+  0 failures, and 0 errors.
+- The staged review contained exactly the intended 34 paths, no unstaged difference,
+  and no `git diff --cached --check` error.
+- A non-force `git push origin main:main` advanced `origin/main` by fast-forward.
+  A fresh post-push fetch and reference comparison showed local `main` and
+  `origin/main` equal with a clean working tree.
+- The delivery closeout remains subject to a final non-force push and fresh remote
+  reference comparison after this append-only evidence and task-state synchronization
+  are committed.
 
 ## Next
 

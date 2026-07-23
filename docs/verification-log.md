@@ -1748,3 +1748,20 @@ This assessment itself changed no production or test code and did not change Gat
 - The run passed 35 tests across 7 suites: 34 passed, one existing privilege-dependent
   Windows symbolic-link setup case skipped, 0 failures, and 0 errors. Fresh
   `git diff --check` produced no output.
+
+## Origin Main Delivery Verification
+
+- A fresh pre-delivery `git fetch origin main` showed local `main`, its merge base, and
+  `origin/main` at the same revision with ahead/behind `0/0`. The remote had not advanced,
+  so normal direct fast-forward delivery required no merge commit, rebase, history
+  rewrite, or force operation.
+- Fresh `.\scripts\gradle.ps1 clean build --no-build-cache --warning-mode all` passed all
+  8 tasks and 97 suites/502 tests under build-enforced Java 17 `-Xlint:all -Werror`:
+  499 passed, 3 existing privilege-dependent Windows symbolic-link setup cases skipped,
+  0 failures, and 0 errors.
+- The pre-commit review staged exactly the intended 34 paths, left no unstaged
+  difference, and produced no `git diff --cached --check` error.
+- The non-force `git push origin main:main` advanced the remote by fast-forward. A fresh
+  post-push `git fetch origin main` and reference comparison showed local `main` and
+  `origin/main` equal, with the working tree clean before delivery-closeout
+  documentation.
