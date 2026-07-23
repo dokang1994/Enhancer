@@ -3,7 +3,7 @@ package com.enhancer.cli;
 import java.nio.file.Path;
 import java.time.Duration;
 
-record SchedulerCycleCliCommand(
+record SchedulerDrainCliCommand(
         Path projectRoot,
         Path queueRoot,
         String queueId,
@@ -16,5 +16,6 @@ record SchedulerCycleCliCommand(
         String ownerId,
         int maxAttempts,
         Duration leaseDuration,
-        Duration processTimeout) implements SchedulerExecutionCliCommand {
+        Duration processTimeout,
+        int maxCycles) implements SchedulerExecutionCliCommand {
 }

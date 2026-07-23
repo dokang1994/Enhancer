@@ -1,5 +1,80 @@
 # Changelog
 
+## 2026-07-23 - Add Read-Only Scheduler Queue Status
+
+- Added runtime-owned `SchedulerQueueStatus`, preserving admission order and classifying
+  every persisted work item as ready, blocked, active, verified, or failed from the
+  existing queue dependency and disposition contracts.
+- Added `scheduler-status` with explicit queue root, canonical queue identity, and 1-48
+  output limit. It reports complete state counts plus a bounded admission-ordered prefix.
+- Kept inspection strictly read-only by resolving the queue snapshot directly instead of
+  invoking recovery. Real-filesystem tests prove unchanged artifact bytes, timestamp,
+  revision, and active slot, plus empty, missing, corrupt, and maximum-output behavior.
+- Added no queue/runtime schema change, recovery, worker-liveness claim, cross-store
+  interpretation, execution, submission, waiting, polling, commit, push, release, or
+  deployment.
+
+## 2026-07-23 - Add Bounded Recent RunRecord Discovery
+
+- Added the separate read-only `run-record-list` command with explicit RunRecord root and
+  1-48 reference limit. It reports available/empty status and the exact newest-first
+  opaque references supplied by the existing store.
+- Kept discovery separate from inspection: listing resolves no record and creates no
+  missing root, while the existing `replay` command remains responsible for integrity and
+  lifecycle validation.
+- Added test-first argument coverage and a real-filesystem CLI integration proving a
+  bounded recent prefix over real persisted records, replay of a discovered reference,
+  empty-root non-creation, and maximum-size bounded output without artifact resolution.
+- Added no RunRecord schema or persistence change, record contents in listing output,
+  queue/runtime/checkpoint policy, write authority, cleanup, commit, push, release, or
+  deployment.
+
+## 2026-07-23 - Implement Bounded Foreground Scheduler Drain
+
+- Added `ForegroundSchedulerDrain` with typed idle, failed, and limit stop reasons plus
+  exact invoked/verified/failed cycle counts. The 1-4096 bound is checked before work,
+  verified completion is the only continuation condition, and no extra cycle runs after
+  a stop or limit.
+- Added the separate `scheduler-drain` CLI command by sharing the existing
+  process-isolated `scheduler-cycle` composition inputs and adding `--max-cycles`.
+  Bounded output distinguishes `IDLE`, `FAILED`, and `LIMIT_REACHED`; terminal work
+  failure retains exit `40`, while idle and limit stops exit `0`.
+- Added focused drain contracts and real-filesystem child-process integrations for
+  multiple ready and dependency-linked items, per-cycle checkpoint recovery, an exact
+  limit with pending work retained, terminal failure, and missing-queue refusal. Updated
+  operator recovery documentation and corrected the README's stale local-IPC description.
+- Added no submission/execution wrapper, queue creation or admission, sleep, waiting,
+  polling/service lifecycle, control application, progress store, production external
+  adapter, commit, push, release, or deployment.
+
+## 2026-07-23 - Serialize Filesystem Scheduler Queue Updates
+
+- Added one stable queue-scoped lock artifact and a non-blocking operating-system file lock
+  around each `FileSystemSchedulerQueueStore.update` read-validate-publish transaction.
+- Added typed `ConcurrentSchedulerQueueUpdateException` refusal so a competing local JVM or
+  overlapping store instance cannot wait indefinitely or overwrite a committed revision.
+- Added a real child-JVM contention fixture proving refusal leaves queue revision/content
+  unchanged, plus stale-store regression coverage proving a committed update remains
+  authoritative.
+- Preserved queue schema, snapshot contents, atomic publication, creation, resolution,
+  exact replay, and persist-before-exposure semantics. Added no distributed lock,
+  cross-store transaction, waiting, polling, drain command, commit, push, or deployment.
+
+## 2026-07-23 - Select A Bounded Foreground Scheduler Drain
+
+- Reassessed Gate 8 after the evidence-bound external-effect executor and kept production
+  adapters, authenticated control application, and multi-agent handoff assigned to their
+  owning later gates.
+- Compared a bounded foreground drain with background polling/service operation, schema
+  migration, and exact-history compaction. Selected a finite drain over the existing
+  recoverable one-cycle Worker because it has an immediate multi-item queue consumer and
+  requires no waiting, service lifecycle, migration consumer, or retention policy.
+- Recorded a separate `scheduler-drain` boundary that will process only already-ready work,
+  continue only after verified completion, and stop on idle, failure, or an explicit
+  at-most-4096 cycle limit while keeping submission and `scheduler-cycle` unchanged.
+- Added no production or test behavior, CLI command, persistence schema, polling, external
+  invocation, maturity promotion, commit, push, release, or deployment.
+
 ## 2026-07-23 - Implement Evidence-Bound External-Effect Execution
 
 - Added the bounded `ExternalEffectAdapter` port and `DurableExternalEffectExecutor`, which

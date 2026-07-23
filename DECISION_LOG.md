@@ -11,6 +11,30 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### 2026-07-23: Project Persisted Scheduler Queue State Through A Read-Only Status Command
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-23-project-persisted-scheduler-queue-state-through-a-read-only-status-command.md)
+
+### 2026-07-23: Discover Recent RunRecords Through A Bounded Read-Only CLI Command
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-23-discover-recent-runrecords-through-a-bounded-read-only-cli-command.md)
+
+### 2026-07-23: Serialize Filesystem Scheduler Queue Updates With A Non-Blocking Cross-Process Lock
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-23-serialize-filesystem-scheduler-queue-updates-with-a-non-blocking-cross-process-lock.md)
+
+### 2026-07-23: Drain Ready Scheduler Work Through A Bounded Foreground Command
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-23-drain-ready-scheduler-work-through-a-bounded-foreground-command.md)
+
 ### 2026-07-23: Execute External Effects Through A Persist-First Evidence-Bound Adapter Boundary
 
 Status: Accepted Decision

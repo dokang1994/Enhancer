@@ -77,6 +77,126 @@ class CliArgumentsTest {
     }
 
     @Test
+    void parsesBoundedRecentRunRecordListingAndRejectsInvalidLimits() {
+        RunRecordListCliCommand list =
+                (RunRecordListCliCommand) CliArguments.parse(new String[] {
+                        "run-record-list",
+                        "--run-record-root", temporaryRoot.resolve("records").toString(),
+                        "--limit", "12"
+                });
+
+        assertEquals(
+                temporaryRoot.resolve("records").toAbsolutePath().normalize(),
+                list.runRecordRoot());
+        assertEquals(12, list.limit());
+
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(new String[] {
+                "run-record-list",
+                "--run-record-root", temporaryRoot.resolve("records").toString()
+        }));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(new String[] {
+                "run-record-list",
+                "--run-record-root", temporaryRoot.resolve("records").toString(),
+                "--limit", "0"
+        }));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(new String[] {
+                "run-record-list",
+                "--run-record-root", temporaryRoot.resolve("records").toString(),
+                "--limit", "-1"
+        }));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(new String[] {
+                "run-record-list",
+                "--run-record-root", temporaryRoot.resolve("records").toString(),
+                "--limit", "49"
+        }));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(new String[] {
+                "run-record-list",
+                "--run-record-root", temporaryRoot.resolve("records").toString(),
+                "--limit", "not-a-number"
+        }));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(new String[] {
+                "run-record-list",
+                "--run-record-root", temporaryRoot.resolve("records").toString(),
+                "--run-record-root", temporaryRoot.resolve("other").toString(),
+                "--limit", "2"
+        }));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(new String[] {
+                "run-record-list",
+                "--run-record-root", temporaryRoot.resolve("records").toString(),
+                "--limit", "2",
+                "--unknown", "value"
+        }));
+    }
+
+    @Test
+    void parsesReadOnlySchedulerStatusAndRejectsInvalidInputs() {
+        SchedulerStatusCliCommand status =
+                (SchedulerStatusCliCommand) CliArguments.parse(new String[] {
+                        "scheduler-status",
+                        "--queue-root", temporaryRoot.resolve("queue").toString(),
+                        "--queue-id", "00000000-0000-0000-0000-000000000901",
+                        "--limit", "12"
+                });
+
+        assertEquals(
+                temporaryRoot.resolve("queue").toAbsolutePath().normalize(),
+                status.queueRoot());
+        assertEquals("00000000-0000-0000-0000-000000000901",
+                status.queueId());
+        assertEquals(12, status.limit());
+
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(new String[] {
+                "scheduler-status",
+                "--queue-root", temporaryRoot.resolve("queue").toString(),
+                "--queue-id", "00000000-0000-0000-0000-000000000901"
+        }));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(new String[] {
+                "scheduler-status",
+                "--queue-root", temporaryRoot.resolve("queue").toString(),
+                "--queue-id", "not-a-uuid",
+                "--limit", "1"
+        }));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(new String[] {
+                "scheduler-status",
+                "--queue-root", temporaryRoot.resolve("queue").toString(),
+                "--queue-id", "00000000-0000-0000-0000-000000000901",
+                "--limit", "0"
+        }));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(new String[] {
+                "scheduler-status",
+                "--queue-root", temporaryRoot.resolve("queue").toString(),
+                "--queue-id", "00000000-0000-0000-0000-000000000901",
+                "--limit", "-1"
+        }));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(new String[] {
+                "scheduler-status",
+                "--queue-root", temporaryRoot.resolve("queue").toString(),
+                "--queue-id", "00000000-0000-0000-0000-000000000901",
+                "--limit", "49"
+        }));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(new String[] {
+                "scheduler-status",
+                "--queue-root", temporaryRoot.resolve("queue").toString(),
+                "--queue-id", "00000000-0000-0000-0000-000000000901",
+                "--limit", "not-a-number"
+        }));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(new String[] {
+                "scheduler-status",
+                "--queue-root", temporaryRoot.resolve("queue").toString(),
+                "--queue-root", temporaryRoot.resolve("other").toString(),
+                "--queue-id", "00000000-0000-0000-0000-000000000901",
+                "--limit", "1"
+        }));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(new String[] {
+                "scheduler-status",
+                "--queue-root", temporaryRoot.resolve("queue").toString(),
+                "--queue-id", "00000000-0000-0000-0000-000000000901",
+                "--limit", "1",
+                "--unknown", "value"
+        }));
+    }
+
+    @Test
     void parsesEveryExplicitSchedulerCycleInput() {
         SchedulerCycleCliCommand cycle = (SchedulerCycleCliCommand) CliArguments.parse(
                 schedulerCycleArguments("2", "300000", "20000"));
@@ -117,6 +237,30 @@ class CliArgumentsTest {
                 schedulerCycleArguments("2", "0", "20000")));
         assertThrows(CliUsageException.class, () -> CliArguments.parse(
                 schedulerCycleArguments("2", "300000", "not-a-number")));
+    }
+
+    @Test
+    void parsesSchedulerDrainAsOneBoundedExtensionOfCycleInputs() {
+        SchedulerDrainCliCommand drain =
+                (SchedulerDrainCliCommand) CliArguments.parse(
+                        schedulerDrainArguments("8"));
+
+        assertEquals(8, drain.maxCycles());
+        assertEquals("00000000-0000-0000-0000-000000000801", drain.queueId());
+        assertEquals(2, drain.maxAttempts());
+        assertEquals(Duration.ofMinutes(5), drain.leaseDuration());
+        assertEquals(Duration.ofSeconds(20), drain.processTimeout());
+    }
+
+    @Test
+    void rejectsMissingAndOutOfRangeSchedulerDrainLimit() {
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(new String[] {
+                "scheduler-drain", "--project-root", temporaryRoot.toString()
+        }));
+        assertThrows(CliUsageException.class, () ->
+                CliArguments.parse(schedulerDrainArguments("0")));
+        assertThrows(CliUsageException.class, () ->
+                CliArguments.parse(schedulerDrainArguments("4097")));
     }
 
     @Test
@@ -245,6 +389,15 @@ class CliArgumentsTest {
                 "--lease-millis", leaseMillis,
                 "--process-timeout-millis", processTimeoutMillis
         };
+    }
+
+    private String[] schedulerDrainArguments(String maxCycles) {
+        String[] cycle = schedulerCycleArguments("2", "300000", "20000");
+        cycle[0] = "scheduler-drain";
+        String[] drain = Arrays.copyOf(cycle, cycle.length + 2);
+        drain[cycle.length] = "--max-cycles";
+        drain[cycle.length + 1] = maxCycles;
+        return drain;
     }
 
     private String[] schedulerSubmitArguments(String maxWorkItems, String occurredAt) {

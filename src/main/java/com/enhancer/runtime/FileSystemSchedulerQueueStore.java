@@ -17,6 +17,8 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -49,6 +51,7 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
     private static final int MAX_COLLECTION_ITEMS =
             SingleWorkerSchedulerQueue.MAX_WORK_ITEMS;
     private static final String FILE_SUFFIX = ".scheduler-queue";
+    private static final String LOCK_FILE_SUFFIX = ".scheduler-queue.lock";
     private static final String PAYLOAD_KIND = "scheduler-queue-state";
 
     private final Path storageRoot;
@@ -80,6 +83,35 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
     @Override
     public void update(SchedulerQueueState nextState) throws IOException {
         Objects.requireNonNull(nextState, "nextState must not be null");
+        String queueId =
+                SchedulerQueueState.requireCanonicalQueueId(nextState.queueId());
+        prepareRoot();
+        try (FileChannel lockChannel = FileChannel.open(
+                lockPath(queueId),
+                StandardOpenOption.CREATE,
+                StandardOpenOption.WRITE,
+                LinkOption.NOFOLLOW_LINKS)) {
+            FileLock acquired;
+            try {
+                acquired = lockChannel.tryLock();
+            } catch (OverlappingFileLockException exception) {
+                throw new ConcurrentSchedulerQueueUpdateException(
+                        queueId, exception);
+            }
+            if (acquired == null) {
+                throw new ConcurrentSchedulerQueueUpdateException(queueId);
+            }
+            try (FileLock lock = acquired) {
+                if (!lock.isValid()) {
+                    throw new ConcurrentSchedulerQueueUpdateException(queueId);
+                }
+                updateWhileLocked(nextState);
+            }
+        }
+    }
+
+    private void updateWhileLocked(SchedulerQueueState nextState)
+            throws IOException {
         SchedulerQueueState current = resolve(nextState.queueId());
         if (nextState.revision() != current.revision() + 1) {
             throw new IOException(
@@ -624,6 +656,17 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
                     "Scheduler queue identity resolves outside storage");
         }
         return artifact;
+    }
+
+    private Path lockPath(String queueId) {
+        Path lock = storageRoot
+                .resolve(queueId + LOCK_FILE_SUFFIX)
+                .normalize();
+        if (!lock.startsWith(storageRoot)) {
+            throw new IllegalArgumentException(
+                    "Scheduler queue identity resolves outside storage");
+        }
+        return lock;
     }
 
     private byte[] envelopeDigest(

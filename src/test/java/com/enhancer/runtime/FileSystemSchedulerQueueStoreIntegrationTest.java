@@ -7,8 +7,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.enhancer.bus.MessageEnvelope;
 import com.enhancer.bus.WorkPayload;
 import com.enhancer.workspace.ApprovedTaskRevision;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,6 +21,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -50,6 +54,77 @@ class FileSystemSchedulerQueueStoreIntegrationTest {
                 store.resolve(QUEUE_ID).schemaVersion());
         assertThrows(IOException.class, () -> store.create(initial));
         assertThrows(IOException.class, () -> store.update(initial));
+    }
+
+    @Test
+    void refusesUpdateWhileAnotherJvmOwnsTheQueueWriterLock()
+            throws Exception {
+        FileSystemSchedulerQueueStore store =
+                new FileSystemSchedulerQueueStore(storageRoot);
+        SchedulerQueueState initial = SchedulerQueueState.initial(QUEUE_ID, 8);
+        store.create(initial);
+        SingleWorkerSchedulerQueue candidate =
+                new SingleWorkerSchedulerQueue(initial);
+        candidate.enqueue(new QueuedWork(
+                workItem(
+                        "00000000-0000-0000-0000-000000000302",
+                        "reader"),
+                List.of()));
+        SchedulerQueueState next = candidate.snapshot(QUEUE_ID, 1);
+
+        Process lockHolder = startLockHolder();
+        try {
+            BufferedReader output = new BufferedReader(new InputStreamReader(
+                    lockHolder.getInputStream(), StandardCharsets.UTF_8));
+            assertEquals("LOCKED", output.readLine());
+
+            ConcurrentSchedulerQueueUpdateException conflict = assertThrows(
+                    ConcurrentSchedulerQueueUpdateException.class,
+                    () -> store.update(next));
+
+            assertTrue(conflict.getMessage().contains(QUEUE_ID));
+            SchedulerQueueState unchanged = store.resolve(QUEUE_ID);
+            assertEquals(initial.revision(), unchanged.revision());
+            assertEquals(initial.admittedWork(), unchanged.admittedWork());
+            assertEquals(initial.pendingWork(), unchanged.pendingWork());
+            assertEquals(initial.activeWork(), unchanged.activeWork());
+        } finally {
+            lockHolder.getOutputStream().close();
+            if (!lockHolder.waitFor(5, TimeUnit.SECONDS)) {
+                lockHolder.destroyForcibly();
+                assertTrue(lockHolder.waitFor(5, TimeUnit.SECONDS));
+            }
+        }
+        assertEquals(0, lockHolder.exitValue());
+    }
+
+    @Test
+    void staleStoreInstanceCannotOverwriteACommittedRevision() throws Exception {
+        FileSystemSchedulerQueueStore store =
+                new FileSystemSchedulerQueueStore(storageRoot);
+        DurableSingleWorkerSchedulerQueue first =
+                DurableSingleWorkerSchedulerQueue.create(QUEUE_ID, 8, store);
+        DurableSingleWorkerSchedulerQueue stale =
+                DurableSingleWorkerSchedulerQueue.recover(
+                        QUEUE_ID,
+                        new FileSystemSchedulerQueueStore(storageRoot));
+        WorkItem committed = workItem(
+                "00000000-0000-0000-0000-000000000303",
+                "reader");
+        WorkItem refused = workItem(
+                "00000000-0000-0000-0000-000000000304",
+                "reviewer");
+
+        first.enqueue(new QueuedWork(committed, List.of()));
+        assertThrows(
+                IOException.class,
+                () -> stale.enqueue(new QueuedWork(refused, List.of())));
+
+        SchedulerQueueState resolved = store.resolve(QUEUE_ID);
+        assertEquals(1, resolved.revision());
+        assertEquals(
+                List.of(new QueuedWork(committed, List.of())),
+                resolved.admittedWork());
     }
 
     @Test
@@ -283,6 +358,18 @@ class FileSystemSchedulerQueueStoreIntegrationTest {
 
     private Path artifact(String queueId) {
         return storageRoot.resolve(queueId + ".scheduler-queue");
+    }
+
+    private Process startLockHolder() throws IOException {
+        return new ProcessBuilder(
+                IsolatedWorkerLauncher.javaExecutable().toString(),
+                "-cp",
+                System.getProperty("java.class.path"),
+                SchedulerQueueLockHolderMain.class.getName(),
+                storageRoot.toString(),
+                QUEUE_ID)
+                .redirectErrorStream(true)
+                .start();
     }
 
     private static WorkItem workItem(

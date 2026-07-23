@@ -1534,3 +1534,217 @@ This assessment itself changed no production or test code and did not change Gat
 - Scope held: no production external adapter, external network/Git/cloud call, credential or
   operation-payload persistence, new Tool authority, automatic prepared recovery, second
   AgentRun, polling, universal exactly-once claim, release, or deployment was added.
+
+## Gate 8 Post-Executor Boundary Assessment
+
+- Source and supported-surface inspection reconciled `EnhancerCli.executeSchedulerCycle`,
+  `DurableAgentRunWorker.runOneCycle`, the 4096-item durable queue, retry-aware recovery,
+  control-request admission, and the evidence-bound external-effect executor against the
+  Gate 8 scope and exit criteria.
+- Production external adapters remain Gate 11 work, authenticated control application
+  remains Gate 12 work, and typed multi-agent handoff remains Gate 13 work. The assessment
+  did not absorb those cross-gate dependencies or promote whole-Gate 8 maturity.
+- Four Gate-owned alternatives were compared. Background polling/service operation was
+  deferred because it requires waiting, backoff, shutdown, controls, budgets, and
+  operator-visibility contracts; schema migration has no supported older artifact
+  consumer; exact-history compaction has no demonstrated pressure and would require
+  retention/tombstone semantics; a bounded foreground ready-work drain was selected
+  because it directly consumes the existing multi-item queue and recoverable one-cycle
+  Worker without adding a service lifecycle.
+- The accepted decision records a separate `scheduler-drain` boundary with an explicit
+  at-most-4096 cycle limit, continuation only after verified completion, stops on idle,
+  failure, or limit, and recovery derived from existing queue disposition plus the
+  per-cycle checkpoint. Submission, `scheduler-cycle`, and every persistence schema remain
+  unchanged.
+- Fresh focused structural verification ran `DocumentOwnershipTest`,
+  `DecisionLogIndexTest`, and `ProjectContextReaderTest`: 15 tests across 3 suites,
+  14 passed, one existing privilege-dependent Windows symbolic-link setup case skipped,
+  0 failures, and 0 errors.
+- Fresh `.\scripts\gradle.ps1 clean build --no-build-cache --warning-mode all` passed all
+  8 tasks and 92 suites/478 tests under build-enforced Java 17 `-Xlint:all -Werror`:
+  475 passed, 3 existing privilege-dependent Windows symbolic-link setup cases skipped,
+  0 failures, and 0 errors. The source inventory remained 219 production and 92 test
+  Java files.
+- Fresh `git diff --check` produced no output.
+- Scope held: no production or test code, CLI command, persistence schema, polling,
+  waiting, external invocation, authenticated control, maturity promotion, commit, push,
+  merge, release, or deployment was added.
+
+## Filesystem Scheduler Queue Single-Writer Update Boundary
+
+- The first focused RED command stopped at `compileTestJava` because the new child-process
+  fixture left its `FileLock` try resource unreferenced under build-enforced
+  `-Xlint:all -Werror`. This was classified as a test-harness lint defect rather than
+  evidence of the requested behavior and corrected without production code.
+- The corrected behavioral RED executed 10 filesystem queue-store integration tests and
+  failed exactly the new cross-JVM contention case: while a real child JVM held the stable
+  queue lock, `FileSystemSchedulerQueueStore.update` returned normally instead of throwing
+  `IOException`. The other 9 tests passed, directly reproducing the lost-update guard that
+  was absent.
+- The minimum implementation added `ConcurrentSchedulerQueueUpdateException` and one
+  queue-identity-derived `.scheduler-queue.lock` file. Every filesystem queue update opens
+  that path without following links, takes a non-blocking operating-system lock, and holds
+  it across current-state resolution, revision/history validation, and atomic publication.
+  The lock artifact carries no queue snapshot, lifecycle state, owner, lease, or authority.
+- The focused GREEN run passed all 10 filesystem queue-store integration tests. Its real
+  child-JVM fixture proved lock contention returns the typed exception and leaves revision,
+  admissions, pending work, and active work unchanged; a separate stale-store test proved
+  an already committed revision cannot be overwritten.
+- The wider queue, generated-submission, durable-submission-recovery, and Scheduler CLI
+  regression run passed 42 tests across 10 suites with zero skips, failures, or errors.
+  The final focused store/queue/submission/operator-workflow run passed 19 tests across
+  4 suites with zero skips, failures, or errors.
+- Fresh `.\scripts\gradle.ps1 clean build --no-build-cache --warning-mode all` passed all
+  8 tasks and 92 suites/480 tests under build-enforced Java 17 `-Xlint:all -Werror`:
+  477 passed, 3 existing privilege-dependent Windows symbolic-link setup cases skipped,
+  0 failures, and 0 errors.
+- Scope held: queue schema, snapshot content, atomic create/replace behavior, resolution,
+  exact replay, and persist-before-exposure semantics are unchanged. No runtime/effect/
+  checkpoint store lock, distributed lock, network-filesystem guarantee, cross-store
+  transaction, waiting, polling, drain command, commit, push, release, or deployment was
+  added.
+
+## Filesystem Scheduler Queue Post-Synchronization Verification
+
+- After task, state, roadmap, changelog, architecture, decision, and verification documents
+  were synchronized, the final focused run executed
+  `DocumentOwnershipTest`, `DecisionLogIndexTest`, `ProjectContextReaderTest`,
+  `RuntimePackageBoundaryTest`, and `FileSystemSchedulerQueueStoreIntegrationTest`:
+  26 tests across 5 suites, 25 passed, one existing privilege-dependent Windows
+  symbolic-link setup case skipped, 0 failures, and 0 errors.
+- Fresh `git diff --check` produced no output after that run.
+
+## Bounded Foreground Scheduler Drain Implementation
+
+- The application-contract RED run stopped at `compileTestJava` with 14 expected
+  missing-symbol errors for the absent drain, result, and stop-reason types. The failure
+  matched the active task, accepted decision, Architecture, and repository settings. The
+  minimum GREEN implementation then passed all 4 `ForegroundSchedulerDrainTest` cases,
+  proving verified-only continuation, exact idle/failed/limit counts, pre-call bound
+  validation, and no cycle after a stop or configured limit.
+- The CLI RED run stopped at `compileTestJava` with 2 expected missing
+  `SchedulerDrainCliCommand` symbols. The minimum CLI implementation added the separate
+  command, reused the one-cycle composition contract, and retained `scheduler-cycle`
+  behavior. The first combined GREEN/regression run passed 21 tests across 4 suites with
+  no skips, failures, or errors.
+- `EnhancerCliSchedulerDrainIntegrationTest` uses real filesystem stores and the real
+  process-isolated child JVM. It proved two ready/dependency-linked items drain to
+  `IDLE`, a pre-existing `PendingFinalization` prefix recovers, `LIMIT_REACHED` after one
+  cycle leaves later work pending, a terminal failed item stops before later work, and a
+  missing queue exits as usage failure without creating the queue root.
+- The wider Scheduler regression executed the drain/worker/queue/store, argument,
+  one-cycle/drain/operator, and both submission command suites: 59 tests across 10 suites,
+  all passed with zero skips, failures, or errors. `git diff --check` produced no output.
+- Fresh `.\scripts\gradle.ps1 clean build --no-build-cache --warning-mode all` passed all
+  8 tasks and 94 suites/490 tests under build-enforced Java 17 `-Xlint:all -Werror`:
+  487 passed, 3 existing privilege-dependent Windows symbolic-link setup cases skipped,
+  0 failures, and 0 errors.
+- Scope held: no queue creation or admission, submission/execution wrapper, sleep,
+  waiting, polling/service lifecycle, automatic reinvocation, control application,
+  drain-progress store, persistence-schema change, production external adapter, commit,
+  push, release, or deployment was added.
+
+## Bounded Foreground Scheduler Drain Post-Synchronization Verification
+
+- After architecture, state, roadmap, task, handoff, changelog, README, decision, and
+  verification ownership were reviewed, the final focused run executed
+  `DocumentOwnershipTest`, `DecisionLogIndexTest`, `ProjectContextReaderTest`,
+  `RuntimePackageBoundaryTest`, `ForegroundSchedulerDrainTest`,
+  `EnhancerCliSchedulerDrainIntegrationTest`, and `CliArgumentsTest`.
+- The run passed 34 tests across 7 suites: 33 passed, one existing
+  privilege-dependent Windows symbolic-link setup case skipped, 0 failures, and
+  0 errors. Fresh `git diff --check` produced no output.
+
+## Bounded Recent RunRecord Discovery Implementation
+
+- The operator-usability assessment found that `run`, `scheduler-cycle`, and
+  `scheduler-drain` persist RunRecords while the supported `replay` command requires an
+  already-known opaque reference. The accepted decision selected a separate bounded
+  read-only listing command over queue-status or checkpoint projections because the
+  existing store already owns exact recent-reference ordering without adding Scheduler
+  policy.
+- The aligned argument RED stopped at `compileTestJava` with exactly 2 expected
+  missing-symbol errors for the absent `RunRecordListCliCommand`. The minimum
+  implementation added the separate command and delegated discovery directly to
+  `FileSystemRunRecordStore.recentReferences`.
+- The hardened focused run passed 14 tests across `CliArgumentsTest` and
+  `EnhancerCliRunRecordListIntegrationTest` with no skips, failures, or errors. The
+  filesystem integration persisted three real records, fixed their modification order,
+  received the exact newest two references, and successfully replayed the first returned
+  reference. It also proved a missing root reports `EMPTY` without being created and a
+  maximum 48-reference listing remains bounded while resolving no artifact.
+- The CLI/RunRecord regression run executed `CliArgumentsTest`,
+  `EnhancerCliRunRecordListIntegrationTest`, `EnhancerCliIntegrationTest`,
+  `FileSystemRunRecordStoreIntegrationTest`, `RunRecordMetadataCollectorTest`,
+  `EnhancerCliSchedulerCycleIntegrationTest`,
+  `EnhancerCliSchedulerDrainIntegrationTest`, and
+  `EnhancerCliSchedulerOperatorWorkflowIntegrationTest`: all 38 tests across 8 suites
+  passed with zero skips, failures, or errors. `git diff --check` produced no output.
+- Fresh `.\scripts\gradle.ps1 clean build --no-build-cache --warning-mode all` passed all
+  8 tasks and 95 suites/494 tests under build-enforced Java 17 `-Xlint:all -Werror`:
+  491 passed, 3 existing privilege-dependent Windows symbolic-link setup cases skipped,
+  0 failures, and 0 errors.
+- An actual Enhancer-repository read-only smoke run found 10 retained RunRecord files and
+  returned the newest 3 opaque references with `status=AVAILABLE`, `exitCode=0`,
+  `requestedLimit=3`, and `returnedRecords=3`.
+- Scope held: `run`, `replay`, every Scheduler command, record persistence, integrity,
+  lifecycle validation, and store ordering remain unchanged. No record contents,
+  filtering, search, pagination, cleanup, retention, queue/runtime/checkpoint projection,
+  write authority, commit, push, release, or deployment was added.
+
+## Bounded Recent RunRecord Discovery Post-Synchronization Verification
+
+- After architecture, state, roadmap, task, changelog, README, decision, and verification
+  ownership were synchronized, the final focused run executed `DocumentOwnershipTest`,
+  `DecisionLogIndexTest`, `ProjectContextReaderTest`, `RuntimePackageBoundaryTest`,
+  `CliArgumentsTest`, and `EnhancerCliRunRecordListIntegrationTest`.
+- The run passed 30 tests across 6 suites: 29 passed, one existing privilege-dependent
+  Windows symbolic-link setup case skipped, 0 failures, and 0 errors. Fresh
+  `git diff --check` produced no output.
+
+## Read-Only Scheduler Queue Status Implementation
+
+- The operator-usability assessment found that every supported Scheduler inspection path
+  also executed or recovered work. `DurableSingleWorkerSchedulerQueue.recover` was
+  specifically rejected for status inspection because it requeues a persisted active
+  item and advances the durable revision. The accepted decision selected a queue-local
+  pure projection over `SchedulerQueueStore.resolve` and deferred cross-store recovery
+  interpretation.
+- The aligned RED stopped at `compileTestJava` with exactly 24 expected missing-symbol
+  errors for the absent `SchedulerQueueStatus` and `SchedulerStatusCliCommand`. The
+  failure matched the active task, accepted decision, Architecture, and repository build
+  settings.
+- The minimum implementation added runtime-owned five-state classification in exact
+  admission order and the separate bounded `scheduler-status` formatting surface. The
+  first focused GREEN passed all 18 tests across `SchedulerQueueStatusTest`,
+  `CliArgumentsTest`, and `EnhancerCliSchedulerStatusIntegrationTest`.
+- The real-filesystem CLI fixture retained verified, failed, active, ready, and blocked
+  work simultaneously. Status returned exact complete counts and admission order while
+  artifact bytes, modification time, queue revision, and the persisted active slot
+  remained unchanged. Separate cases proved empty status, missing-root non-creation,
+  corrupt-state exit `70`, and a complete 48-item prefix within the 4096-character output
+  bound.
+- The hardened Scheduler/CLI regression executed the status projection and command,
+  in-memory/durable/filesystem queue, argument, cycle, drain, operator workflow,
+  explicit/generated submission, RunRecord listing, and base CLI suites: all 65 tests
+  across 14 suites passed with zero skips, failures, or errors. `git diff --check`
+  produced no output.
+- Fresh `.\scripts\gradle.ps1 clean build --no-build-cache --warning-mode all` passed all
+  8 tasks and 97 suites/502 tests under build-enforced Java 17 `-Xlint:all -Werror`:
+  499 passed, 3 existing privilege-dependent Windows symbolic-link setup cases skipped,
+  0 failures, and 0 errors.
+- Scope held: status reads only one persisted queue snapshot. No queue/runtime schema,
+  recovery, claim, disposition, execution, submission, runtime/effect/checkpoint/
+  RunRecord correlation, worker-liveness claim, filtering, dependency-list output,
+  waiting, polling, commit, push, release, or deployment was added.
+
+## Read-Only Scheduler Queue Status Post-Synchronization Verification
+
+- After architecture, state, roadmap, task, changelog, README, decision, and verification
+  ownership were synchronized, the final focused run executed `DocumentOwnershipTest`,
+  `DecisionLogIndexTest`, `ProjectContextReaderTest`, `RuntimePackageBoundaryTest`,
+  `SchedulerQueueStatusTest`, `CliArgumentsTest`, and
+  `EnhancerCliSchedulerStatusIntegrationTest`.
+- The run passed 35 tests across 7 suites: 34 passed, one existing privilege-dependent
+  Windows symbolic-link setup case skipped, 0 failures, and 0 errors. Fresh
+  `git diff --check` produced no output.

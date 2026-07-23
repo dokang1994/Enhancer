@@ -2,95 +2,77 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Implement the bounded evidence-bound external-effect execution contract test-first: add
-the adapter port and application executor, bind stable adapter identity and durable outcome
-evidence into an explicit schema-v2 effect ledger, and prove persist-before-invoke plus
-fail-closed restart behavior without adding a production external adapter.
+Deliver the currently completed Scheduler and CLI increments to `origin/main` through
+verified, non-force Git operations.
 
 ## Task ID
 
-implement-evidence-bound-external-effect-executor
+deliver-2026-07-23-scheduler-operations-to-origin-main
 
 ## Context
 
-The prior Goal-scoped ledger persisted current-owner/fence-checked `PREPARED` and terminal
-statuses but stored neither adapter identity nor outcome evidence. This increment added the
-application executor selected by the accepted 2026-07-23 boundary: it verifies semantic
-identity, prepares first, invokes once, persists redacted complete evidence, and only then
-publishes an evidence-bound terminal record.
+The working tree contains four completed and freshly verified increments: serialized
+filesystem Scheduler queue updates, bounded foreground draining, bounded recent
+RunRecord discovery, and read-only Scheduler queue status. Their implementation,
+decisions, verification evidence, and owned project documents are synchronized locally
+but have not yet been committed or delivered.
 
-The implementation preserves the unavoidable ambiguity window. A record already at
-`PREPARED` when execution begins cannot authorize automatic adapter re-entry, and failures
-after preparation leave the record inspectably prepared even when the adapter may have
-acted or an unbound evidence artifact may exist.
+The user explicitly requested commit, push, and integration into `origin/main`. This
+delivery task keeps that external authority separate from the completed implementation
+tasks and preserves their existing acceptance evidence.
 
 ## Justified By
 
-- 2026-07-23: Execute External Effects Through A Persist-First Evidence-Bound Adapter Boundary
-- 2026-07-21: Persist Fence-Checked External Effect Outcomes Before AgentRun Retry
+- 2026-07-23: Serialize Filesystem Scheduler Queue Updates With A Non-Blocking Cross-Process Lock
+- 2026-07-23: Drain Ready Scheduler Work Through A Bounded Foreground Command
+- 2026-07-23: Discover Recent RunRecords Through A Bounded Read-Only CLI Command
+- 2026-07-23: Project Persisted Scheduler Queue State Through A Read-Only Status Command
 
 ## Acceptance Criteria
 
-- A focused RED test is written first and classified against the accepted decision,
-  architecture, and current runtime settings before implementation.
-- `ExternalEffectRequest` binds one bounded stable adapter identity, and the adapter port
-  exposes only its identity, canonical semantic operation digest, and one invocation by
-  stable idempotency key; payload and credentials remain adapter-owned and are not
-  persisted.
-- The external-effect ledger uses an explicit schema-v2 record in which `PREPARED` has no
-  outcome evidence and every terminal status has exactly one immutable evidence reference
-  and SHA-256 binding. Schema-v1 filesystem artifacts fail explicitly and successor
-  validation rejects evidence removal, replacement, or rebinding.
-- The application executor validates adapter identity and digest before preparation,
-  persists `PREPARED` before invocation, accepts only typed terminal adapter results,
-  persists complete bounded evidence before terminal publication, and reuses the ledger's
-  current owner/fence check for the terminal transition.
-- Exact terminal replay resolves and integrity-checks its bound evidence without invoking
-  the adapter or advancing the ledger revision. A pre-existing `PREPARED` record refuses
-  automatic execution.
-- Focused tests cover adapter and digest mismatch before mutation; prepared-before-invoke;
-  successful terminal binding; restart replay; adapter, evidence, terminal-store, and
-  lease-expiry failure prefixes; and schema-v1 rejection. A named real-filesystem
-  integration uses a deterministic adapter and real runtime, ledger, and Evidence Store.
-- No production network/Git/cloud adapter, new Tool permission, outbound-data path,
-  automatic prepared recovery, second AgentRun, polling, or universal exactly-once claim
-  is added.
-- Relevant focused tests and a fresh strict-lint full Gradle build pass; owning
-  architecture, roadmap, state, task, handoff, changelog, and append-only verification
-  documents are synchronized only where facts change.
+- Reconcile the local branch and complete working-tree diff with a freshly fetched
+  `origin/main` before committing.
+- Run a fresh strict-lint full build and review the staged diff before delivery.
+- Commit every intended currently changed path without absorbing unrelated changes.
+- Integrate a remotely advanced `origin/main` only through a normal non-force merge;
+  do not rebase, rewrite history, force-push, or discard work.
+- Push the resulting local `main` to `origin/main`.
+- Freshly verify that the remote-tracking `origin/main` and local `main` resolve to the
+  same commit and that the intended working tree is clean.
+- Keep the development-session checkpoint through the external delivery, then record
+  `STABLE` and clear it only after the final remote and local state agree.
+- Record delivery verification in the append-only verification log and leave current
+  task and handoff documents synchronized.
 
 ## Out Of Scope
 
-- A real external service or production mutation adapter, credentials, operation payload
-  persistence, outbound-data policy, or Gate 11 Tool authorization.
-- Automatic inspection, retry, deduplication, or compensation of a record that was already
-  `PREPARED` when execution began.
-- Cross-attempt effect reuse, authenticated controls, polling/background services,
-  multi-process locking, schema-v1 migration, commit, push, PR, merge, release, or
-  deployment.
+- New product behavior, refactoring, dependency changes, schema changes, or capability
+  promotion.
+- Rebase, squash, amend, force-push, history rewriting, tag creation, release publication,
+  deployment, pull-request creation, or deletion of local or remote branches.
+- Any remote target other than `origin/main`.
 
 ## Approval
 
-The user explicitly asked to continue the project on 2026-07-23, and the preceding
-completed assessment selected this bounded test-first implementation as the next task.
+The user explicitly requested on 2026-07-23 that the current changes be committed,
+pushed, and merged into `origin/main`.
 
 ## Allowed Tools
 
-- read-file
+- git
+- gradle
 
 ## Verification
 
-Acceptance is satisfied by the fresh RED, focused GREEN, real-filesystem integration,
-schema-v1 fail-closed, document-structure, diff, and full strict-lint build evidence recorded
-once in `docs/verification-log.md`.
+Pending fresh build, staged-diff review, push result, remote-reference comparison, and
+final clean-tree check.
 
 ## Next
 
-Assess Gate 8 after the evidence-bound executor increment: reconcile its remaining
-cross-gate dependencies and maturity evidence, then select the smallest bounded next task
-without introducing a production external adapter before Gate 11 or authenticated control
-application before Gate 12.
+Assess a read-only Scheduler recovery projection that correlates the queue, runtime,
+cycle checkpoint, and RunRecord prefix without mutating any store or inventing worker
+liveness.

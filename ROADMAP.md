@@ -363,6 +363,10 @@ Exit evidence:
 - 7 focused CLI tests passed, including temporary-project success, verification mismatch, Tool failure persistence, replay, argument validation, and exit-code mapping;
 - the full Gradle regression passed 97 tests across 24 suites with 2 Windows symbolic-link setup skips and no failures or errors;
 - a manual actual-repository `README.md` run and restart-safe replay completed with exit code 0 and a Verified decision.
+- bounded recent RunRecord discovery is exposed separately through `run-record-list`; one
+  explicit 1-48 limit returns the existing store's newest-first opaque references without
+  resolving records or creating a missing root, and a selected result composes with
+  `replay` for integrity-checked inspection.
 
 ## Delivery Gate 6: Workspace And Project Brain Foundation
 
@@ -477,7 +481,16 @@ Current increment:
 - Operational sub-path: the documented operator workflow invokes `scheduler-submit` and `scheduler-cycle` separately over one shared explicit queue root/identity. A named real-filesystem CLI integration plus an actual Enhancer-repository smoke run prove admitted work remains pending before the cycle, the real child JVM reaches verified terminal disposition, exact submission replay does not revise the terminal queue or duplicate a RunRecord, and a later explicit cycle reports idle; recovery preserves each command's distinct roots, output, and failure ownership without a wrapper or polling;
 - Contract Verified and Integrated generated-input submission: `GeneratedInputSubmissionService` takes one caller-retained canonical submission UUID, derives the queue, correlation, and logical-run identities through fixed versioned domain-separated transforms, and reuses the existing immutable submission manifest as the sole generated occurrence-time/envelope record. It resolves that manifest before consulting the clock or recapturing repository context, reuses the exact stored time and envelope on replay, and fails closed on caller-owned intent conflict; the separate `scheduler-submit-generated` CLI connects governed inputs to this boundary with a named real-filesystem integration, while submission stays separate from execution and polling and the explicit `scheduler-submit` command is unchanged;
 - Operational sub-path: the generated-input operator workflow invokes `scheduler-submit-generated` and then a separate `scheduler-cycle` over the derived queue identity. A named real-filesystem CLI integration plus an actual Enhancer-repository smoke run reading `README.md` prove `ADMITTED -> VERIFIED_COMPLETED -> REPLAYED -> IDLE` with identical replay occurrence time and Workspace snapshot, one retained manifest, one RunRecord, and no duplicate execution; recovery is documented in the README alongside the explicit workflow, without a wrapper or polling;
-- deferred: real authorized external adapters, admission-history compaction/cleanup or schema-v1 queue migration, worker polling/service operation, general forward-reference graph/cycle handling, authenticated cancellation/pause/resume application, priority/fairness, broader budgets, checkpoints beyond current snapshots, schema-v1 runtime or effect-ledger migration, power-loss directory durability, multi-process coordination, distributed clock-skew handling, and broader production wiring.
+- Contract Verified and Integrated foreground-drain prerequisite: each local filesystem queue update uses one stable non-blocking queue-scoped operating-system lock across resolve, revision/history validation, and atomic publication. Contention fails typed without waiting, lock artifacts carry no queue state or authority, and real child-JVM plus stale-writer tests prove that a committed transition cannot be overwritten;
+- Contract Verified and Integrated bounded foreground connection: `ForegroundSchedulerDrain` and the separate `scheduler-drain` command reuse the existing process-isolated one-cycle recovery boundary over one existing queue, continue only after verified completion, and stop on the first idle result, failed disposition, or explicit at-most-4096 cycle limit. Focused contract tests pin exact stop/count semantics, while real-filesystem child-process integrations cover multiple ready and dependency-linked items, an interrupted per-cycle checkpoint, the configured limit, terminal failure, and a missing queue. The connection does not create or admit work, merge submission with execution, sleep, wait, poll for future work, daemonize, apply controls, or add another progress store;
+- Contract Verified and Integrated read-only queue inspection: pure `SchedulerQueueStatus`
+  preserves admission order and classifies each persisted admission as ready, blocked,
+  active, verified, or failed; the separate `scheduler-status` command resolves the
+  snapshot without recovery and reports complete counts plus an at-most-48 item prefix.
+  Real-filesystem integration proves all five states and that inspection changes no
+  artifact bytes, timestamp, revision, or active slot, while missing and corrupt queues
+  retain configuration/internal failure separation;
+- deferred: real authorized external adapters, admission-history compaction/cleanup or schema-v1 queue migration, worker polling/service operation, general forward-reference graph/cycle handling, authenticated cancellation/pause/resume application, priority/fairness, broader budgets, checkpoints beyond current snapshots, schema-v1 runtime or effect-ledger migration, power-loss directory durability, broader multi-process and cross-store coordination, distributed locks and clock-skew handling, and broader production wiring.
 
 Ordered connection sequence:
 

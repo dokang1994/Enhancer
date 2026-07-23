@@ -10,7 +10,7 @@ Enhancer는 AI Development Operating System을 만드는 Self-hosting 프로젝�
 
 ## Current Development Maturity
 
-Enhancer today covers authority-preserving planning, bounded read-only Tool execution, durable integrity-checked evidence, Tool-result-driven Agent Loop transitions, sequential independent verification, and replayable RunRecords, exposed as a narrow vertical slice through a local CLI. Workspace and Project Brain sit above that: every governed run reports its snapshot identity, observations (documents, prior run records, the run target, and Git state), memory freshness, and bounded graph/impact counts. Diagnostics, terminal, and selection observation belong to the Gate 12 interfaces that own those sources. A reference-only message envelope and deterministic in-process delivery, including finite non-blocking pending-queue backpressure, sit alongside a transport-neutral IPC interface with no concrete adapter. The executable context reads `.ai/` before the canonical root documents, and the deterministic Planner is tested against the current Enhancer Delivery Gate Roadmap.
+Enhancer today covers authority-preserving planning, bounded read-only Tool execution, durable integrity-checked evidence, Tool-result-driven Agent Loop transitions, sequential independent verification, and replayable RunRecords, exposed as a narrow vertical slice through a local CLI. Workspace and Project Brain sit above that: every governed run reports its snapshot identity, observations (documents, prior run records, the run target, and Git state), memory freshness, and bounded graph/impact counts. Diagnostics, terminal, and selection observation belong to the Gate 12 interfaces that own those sources. A reference-only message envelope and deterministic in-process delivery, including finite non-blocking pending-queue backpressure, sit alongside a transport-neutral IPC interface and a local file-spool adapter used by the process-isolated Scheduler worker; there is no supported general-purpose message-bus entry point. The executable context reads `.ai/` before the canonical root documents, and the deterministic Planner is tested against the current Enhancer Delivery Gate Roadmap.
 
 Enhancer is not yet the broader event-driven AI Development OS: LLM, production messaging, and multi-agent capabilities remain future gates. **Current gate maturity is in `PROJECT_STATE.md`** and the evidence behind it in `docs/verification-log.md`; this README does not restate it.
 
@@ -99,6 +99,18 @@ Replay the printed opaque reference without re-executing the Tool:
 .\scripts\gradle.ps1 run --args="replay --run-record-root C:\Enhancer\.enhancer\run-records --reference run-record/<uuid>"
 ```
 
+Discover a bounded newest-first list of opaque references before choosing one to replay:
+
+```powershell
+.\scripts\gradle.ps1 run --args="run-record-list --run-record-root C:\Enhancer\.enhancer\run-records --limit 12"
+```
+
+`--limit` is required and must be from `1` through `48`. The status is `AVAILABLE` when
+at least one reference is returned and `EMPTY` otherwise; both exit `0`. A missing
+RunRecord root is empty and is not created. Listing never resolves or reinterprets a
+record, so use `replay` on a returned reference to validate integrity and inspect its
+bounded task, policy, verification, and stop metadata.
+
 Exit codes are stable: `0` completed, `2` usage/configuration, `10` verification failed, `20` policy denied, `21` Tool failed, `30` stagnated, `31` maximum iterations, `40` terminal Scheduler work failure, and `70` internal failure. Every `run` that produces a record also reports `workspaceSnapshotId`, `workspaceObservations` (repository documents plus prior run records), a `memoryFreshness` matched/diverged/notObserved summary, and bounded Project Brain graph counts (`graphNodes`, `graphEdges`, `graphDecisions`, `impactExecutions`); replay does not reproduce the snapshot identity because the RunRecord does not store it. Output is capped at 4096 characters and never includes complete file evidence. The example `.enhancer/` runtime directory is Git-ignored and is not removed by Gradle `clean`. `--evidence-root` and `--run-record-root` are explicit caller inputs and are not confined to the project root; each store refuses a symbolic-link root and only creates new UUID-named entries, so it can add files to the directory you name but cannot overwrite what is already there. For recovery, correct the reported configuration or target, retain the evidence and RunRecord roots, and use `replay` for any printed record reference before retrying with a new run.
 
 ## Submit Durable Scheduler Work
@@ -118,6 +130,24 @@ interrupted submission. Reusing a message identity with changed content or namin
 that does not match the active repository task exits `2` without admitting changed work.
 The command does not execute the work; invoke `scheduler-cycle` separately.
 
+## Inspect Durable Scheduler Queue Status
+
+`scheduler-status` reads one persisted queue snapshot without recovering or changing it:
+
+```powershell
+.\scripts\gradle.ps1 run --args="scheduler-status --queue-root C:\Enhancer\.enhancer\queue --queue-id <canonical-queue-uuid> --limit 12"
+```
+
+`--limit` must be from `1` through `48`. The command reports complete counts for
+`READY`, `BLOCKED`, `ACTIVE`, `VERIFIED`, and `FAILED` work plus an admission-ordered
+bounded identity/state prefix. It exits `0` with `AVAILABLE` or `EMPTY`; a missing queue
+is configuration exit `2`, and corrupt state is internal exit `70`.
+
+Inspection never calls queue recovery, creates no missing root, and reads no runtime,
+effect, checkpoint, RunRecord, submission, or invocation store. `ACTIVE` means only that
+the persisted queue snapshot contains an active slot; it does not prove that a worker is
+currently alive. Use the execution commands and their retained roots for recovery.
+
 ## Recover One Durable Scheduler Cycle
 
 `scheduler-cycle` recovers an already-existing durable Scheduler queue and runs exactly
@@ -133,19 +163,37 @@ verified completion exit `0`; terminal failed work exits `40`. Missing queue sta
 malformed input exits `2`, while corrupt state and unexpected execution/storage errors
 exit `70`. Preserve every named root to resume a checkpointed cycle after interruption.
 
+## Drain Ready Scheduler Work
+
+`scheduler-drain` uses the same recovery inputs as `scheduler-cycle` but invokes
+sequential cycles in the foreground until it observes idle work, a failed disposition,
+or the explicit cycle limit. It does not create a queue, submit work, wait for future
+work, or poll:
+
+```powershell
+.\scripts\gradle.ps1 run --args="scheduler-drain --project-root C:\Enhancer --queue-root C:\Enhancer\.enhancer\queue --queue-id <canonical-queue-uuid> --runtime-root C:\Enhancer\.enhancer\runtime --external-effect-root C:\Enhancer\.enhancer\effects --cycle-checkpoint-root C:\Enhancer\.enhancer\scheduler-checkpoint --evidence-root C:\Enhancer\.enhancer\evidence --run-record-root C:\Enhancer\.enhancer\run-records --invocation-root C:\Enhancer\.enhancer\invocations --owner-id local-scheduler --max-attempts 2 --lease-millis 300000 --process-timeout-millis 30000 --max-cycles 8"
+```
+
+`--max-cycles` must be from `1` through `4096`. The bounded stop status is `IDLE`,
+`FAILED`, or `LIMIT_REACHED`; `cyclesInvoked` includes the final idle or failed cycle.
+The command continues only after `VERIFIED_COMPLETED`. `FAILED` exits `40`; `IDLE` and
+`LIMIT_REACHED` exit `0`. `LIMIT_REACHED` does not prove that the queue is empty, so
+another drain requires a new explicit operator invocation. Preserve every named root
+when reinvoking after interruption so the existing per-cycle checkpoint can recover.
+
 ## Run The Explicit Two-Command Scheduler Workflow
 
-The supported operator workflow is the two commands above, invoked separately. There is
-no wrapper and no polling loop:
+The supported operator workflow keeps submission separate from either execution command.
+There is no submission-and-execution wrapper and no polling loop:
 
 1. Choose and retain every `scheduler-submit` argument before the first invocation.
 2. Invoke `scheduler-submit` and stop if it exits nonzero. `ADMITTED` and `REPLAYED` both
    mean the exact work is durably present; neither status executes it.
-3. After separately deciding to execute, invoke `scheduler-cycle` with the same
-   `--project-root`, `--queue-root`, and `--queue-id`. Preserve every cycle-specific root
-   for recovery.
-4. Interpret the cycle result independently. One invocation runs at most one cycle;
-   invoke another cycle only through another explicit operator action.
+3. After separately deciding to execute, invoke `scheduler-cycle` for exactly one cycle
+   or `scheduler-drain` for a bounded sequence, using the same `--project-root`,
+   `--queue-root`, and `--queue-id`. Preserve every execution-specific root for recovery.
+4. Interpret the execution result independently. A cycle or another bounded drain occurs
+   only through another explicit operator action.
 
 The queue root and identity are the handoff between the commands. Submission roots and
 all submission identities/time must be retained for exact replay. Runtime, effect,
@@ -158,11 +206,14 @@ fails closed.
 | Observed state | Operator action |
 |---|---|
 | Submission interrupted or produced no trusted result | Reinvoke `scheduler-submit` with every original argument against the unchanged governed project. Accept `ADMITTED` or `REPLAYED`; do not invoke the cycle while submission remains an error. |
-| `ADMITTED` or `REPLAYED` | The work is durable but not necessarily executed. Invoke `scheduler-cycle` separately only when execution is intended. |
-| Cycle interrupted or exits `70` | Preserve the queue and every cycle root, correct only the reported environmental problem, and reinvoke the same cycle command so the worker checkpoint can recover. Do not resubmit work to repair a cycle. |
+| `ADMITTED` or `REPLAYED` | The work is durable but not necessarily executed. Use `scheduler-status` when queue inspection is needed, then invoke `scheduler-cycle` or `scheduler-drain` separately only when execution is intended. |
+| Cycle or drain interrupted or exits `70` | Preserve the queue and every execution root. Use `run-record-list` against the retained RunRecord root and `replay` a selected reference when evidence exists, correct only the reported environmental problem, and reinvoke the same execution command so the worker checkpoint can recover. Do not resubmit work to repair execution. |
 | Cycle reports `VERIFIED_COMPLETED` | The WorkItem is terminally verified. Exact submission replay remains a no-op, and a later cycle for an otherwise empty queue reports `IDLE`. |
-| Cycle reports `FAILED` and exits `40` | The WorkItem is terminally failed. Inspect the retained runtime and RunRecord evidence; resubmitting the same identity is not a retry. New work requires separately approved inputs and a new message identity. |
-| Cycle reports `IDLE` | No ready work was executed. Do not loop automatically; if work was expected, verify the queue root/identity and the preceding submission result. |
+| Cycle reports `FAILED` and exits `40` | The WorkItem is terminally failed. Discover retained evidence with `run-record-list`, inspect a selected record with `replay`, and retain runtime state; resubmitting the same identity is not a retry. New work requires separately approved inputs and a new message identity. |
+| Cycle reports `IDLE` | No ready work was executed. Do not loop automatically; use `scheduler-status` to distinguish an empty queue from blocked work and verify the queue root/identity and preceding submission result. |
+| Drain reports `LIMIT_REACHED` | The requested number of cycles completed, but ready work may remain. Use `scheduler-status`, then explicitly invoke another cycle or drain only when intended. |
+| Drain reports `FAILED` and exits `40` | The first terminal work failure stopped the drain. Use `run-record-list` and `replay` to inspect retained RunRecord evidence alongside runtime state before deciding whether separately approved new work is required. |
+| Drain reports `IDLE` | The final cycle found no ready work. The command does not wait for later submissions or blocked dependencies to become ready. |
 
 ## Submit Generated-Input Scheduler Work
 
@@ -181,13 +232,13 @@ correlation, logical-run identity, or occurrence time is supplied, and the expli
 The bounded status is `ADMITTED` when the queue revision advances and `REPLAYED` when the
 exact submission is already present. The output prints the generated `queueId`,
 `correlationId`, `logicalRunId`, `occurredAt`, and `workspaceSnapshotId` for auditing; pass
-the printed `queueId` to `scheduler-cycle`. On the first invocation the occurrence time and
-governed repository snapshot are captured, the immutable submission manifest is persisted,
-and the queue is created and the work admitted. On any later invocation the manifest is
-resolved before the clock or repository context is consulted, so the exact occurrence time
-and envelope are reused; changing any caller-owned intent (task, capacity, capability,
-producer, target, or digest) under the same submission UUID exits `2` without admitting
-changed work.
+the printed `queueId` to `scheduler-cycle` or `scheduler-drain`. On the first invocation
+the occurrence time and governed repository snapshot are captured, the immutable
+submission manifest is persisted, and the queue is created and the work admitted. On any
+later invocation the manifest is resolved before the clock or repository context is
+consulted, so the exact occurrence time and envelope are reused; changing any caller-owned
+intent (task, capacity, capability, producer, target, or digest) under the same submission
+UUID exits `2` without admitting changed work.
 
 A real-repository smoke run reads `README.md` and observes
 `ADMITTED -> VERIFIED_COMPLETED -> REPLAYED -> IDLE` with one retained manifest, one
@@ -197,7 +248,7 @@ the explicit workflow, differing only in what the operator preserves:
 | Observed state | Operator action |
 |---|---|
 | Submission interrupted before a trusted result | Reinvoke `scheduler-submit-generated` with the same submission UUID and caller-owned intent against the unchanged governed project. If the interruption preceded manifest persistence, a fresh occurrence time is generated safely because no durable work was created; if it followed persistence, the stored time and envelope are reused. Accept `ADMITTED` or `REPLAYED`. |
-| `ADMITTED` or `REPLAYED` | The work is durable but not necessarily executed. Take the printed `queueId` and invoke `scheduler-cycle` separately only when execution is intended. |
+| `ADMITTED` or `REPLAYED` | The work is durable but not necessarily executed. Take the printed `queueId`, use `scheduler-status` when inspection is needed, and invoke `scheduler-cycle` or `scheduler-drain` separately only when execution is intended. |
 | Conflicting intent exits `2` | The submission UUID already names durable work with different caller-owned intent. Do not reuse it for changed work; choose a new submission UUID. |
 | Cycle `VERIFIED_COMPLETED` then a later cycle `IDLE` | The generated work is terminally verified; exact submission replay stays a no-op and the empty queue reports `IDLE`. |
 

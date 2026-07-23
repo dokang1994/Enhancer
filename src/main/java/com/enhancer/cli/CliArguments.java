@@ -28,6 +28,10 @@ final class CliArguments {
             "evidence-root",
             "run-record-root");
     private static final Set<String> REPLAY_OPTIONS = Set.of("run-record-root", "reference");
+    private static final Set<String> RUN_RECORD_LIST_OPTIONS =
+            Set.of("run-record-root", "limit");
+    private static final Set<String> SCHEDULER_STATUS_OPTIONS =
+            Set.of("queue-root", "queue-id", "limit");
     private static final Set<String> SCHEDULER_CYCLE_OPTIONS = Set.of(
             "project-root",
             "queue-root",
@@ -42,6 +46,21 @@ final class CliArguments {
             "max-attempts",
             "lease-millis",
             "process-timeout-millis");
+    private static final Set<String> SCHEDULER_DRAIN_OPTIONS = Set.of(
+            "project-root",
+            "queue-root",
+            "queue-id",
+            "runtime-root",
+            "external-effect-root",
+            "cycle-checkpoint-root",
+            "evidence-root",
+            "run-record-root",
+            "invocation-root",
+            "owner-id",
+            "max-attempts",
+            "lease-millis",
+            "process-timeout-millis",
+            "max-cycles");
     private static final Set<String> SCHEDULER_SUBMIT_OPTIONS = Set.of(
             "project-root",
             "submission-root",
@@ -84,16 +103,23 @@ final class CliArguments {
     static CliCommand parse(String[] arguments) {
         if (arguments == null || arguments.length == 0) {
             throw new CliUsageException(
-                    "command is required: run, replay, scheduler-submit, "
-                            + "scheduler-submit-generated, scheduler-cycle, or "
+                    "command is required: run, replay, run-record-list, scheduler-submit, "
+                    + "scheduler-submit-generated, scheduler-status, scheduler-cycle, "
+                            + "scheduler-drain, or "
                             + "checkpoint operation");
         }
         String command = arguments[0];
         return switch (command) {
             case "run" -> parseRun(parseOptions(arguments, RUN_OPTIONS));
             case "replay" -> parseReplay(parseOptions(arguments, REPLAY_OPTIONS));
+            case "run-record-list" -> parseRunRecordList(
+                    parseOptions(arguments, RUN_RECORD_LIST_OPTIONS));
+            case "scheduler-status" -> parseSchedulerStatus(
+                    parseOptions(arguments, SCHEDULER_STATUS_OPTIONS));
             case "scheduler-cycle" -> parseSchedulerCycle(
                     parseOptions(arguments, SCHEDULER_CYCLE_OPTIONS));
+            case "scheduler-drain" -> parseSchedulerDrain(
+                    parseOptions(arguments, SCHEDULER_DRAIN_OPTIONS));
             case "scheduler-submit" -> parseSchedulerSubmit(
                     parseOptions(arguments, SCHEDULER_SUBMIT_OPTIONS));
             case "scheduler-submit-generated" -> parseSchedulerSubmitGenerated(
@@ -173,6 +199,33 @@ final class CliArguments {
                 nonBlank(options.get("reference"), "reference"));
     }
 
+    private static RunRecordListCliCommand parseRunRecordList(
+            Map<String, String> options) {
+        long limit = positiveLong(options.get("limit"), "limit");
+        if (limit > RunRecordListCliCommand.MAX_REFERENCES) {
+            throw new CliUsageException(
+                    "limit must not exceed "
+                            + RunRecordListCliCommand.MAX_REFERENCES);
+        }
+        return new RunRecordListCliCommand(
+                path(options.get("run-record-root"), "run-record-root"),
+                (int) limit);
+    }
+
+    private static SchedulerStatusCliCommand parseSchedulerStatus(
+            Map<String, String> options) {
+        long limit = positiveLong(options.get("limit"), "limit");
+        if (limit > SchedulerStatusCliCommand.MAX_LISTED_WORK_ITEMS) {
+            throw new CliUsageException(
+                    "limit must not exceed "
+                            + SchedulerStatusCliCommand.MAX_LISTED_WORK_ITEMS);
+        }
+        return new SchedulerStatusCliCommand(
+                path(options.get("queue-root"), "queue-root"),
+                canonicalUuid(options.get("queue-id"), "queue-id"),
+                (int) limit);
+    }
+
     private static SchedulerCycleCliCommand parseSchedulerCycle(
             Map<String, String> options) {
         long maxAttempts = positiveLong(options.get("max-attempts"), "max-attempts");
@@ -209,6 +262,33 @@ final class CliArguments {
                 (int) maxAttempts,
                 leaseDuration,
                 processTimeout);
+    }
+
+    private static SchedulerDrainCliCommand parseSchedulerDrain(
+            Map<String, String> options) {
+        SchedulerCycleCliCommand cycle = parseSchedulerCycle(options);
+        long maxCycles = positiveLong(
+                options.get("max-cycles"), "max-cycles");
+        if (maxCycles > SingleWorkerSchedulerQueue.MAX_WORK_ITEMS) {
+            throw new CliUsageException(
+                    "max-cycles must not exceed "
+                            + SingleWorkerSchedulerQueue.MAX_WORK_ITEMS);
+        }
+        return new SchedulerDrainCliCommand(
+                cycle.projectRoot(),
+                cycle.queueRoot(),
+                cycle.queueId(),
+                cycle.runtimeRoot(),
+                cycle.externalEffectRoot(),
+                cycle.cycleCheckpointRoot(),
+                cycle.evidenceRoot(),
+                cycle.runRecordRoot(),
+                cycle.invocationRoot(),
+                cycle.ownerId(),
+                cycle.maxAttempts(),
+                cycle.leaseDuration(),
+                cycle.processTimeout(),
+                (int) maxCycles);
     }
 
     private static SchedulerSubmitCliCommand parseSchedulerSubmit(

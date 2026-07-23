@@ -319,11 +319,18 @@ The base queue implementation is deliberately in-memory and single-threaded: cla
 
 Each durable queue has a caller-supplied canonical identity and records one immutable schema-v2 snapshot containing its revision, capacity, logical run binding, total admission order, every exact admitted `QueuedWork` in that order, ordered pending work, optional active work, and verified/failed terminal identities. Exact history survives terminal disposition and retains the scheduler-facing WorkItem data and unchanged Gate 7 envelope, including task revision, Workspace snapshot identity, allowed-Tool scope, message provenance, execution input, capability, and dependencies. The history and status partition must name the same admissions with exact live-work content, and one queue accepts work from only one logical run.
 
-Every successful enqueue, claim, and disposition is staged on a copy and atomically persisted before the transition becomes visible in memory. Strict `enqueue` continues to reject every duplicate identity. The separate durable admission operation persists a new exact value before success, treats an equal prior admission as a no-revision success even after terminal recovery, and rejects changed capability, envelope, authorization, provenance, execution input, or dependencies under the same identity. `DurableWorkItemAdmissionHandler` alone uses that idempotent boundary, so same-bus duplicate suppression remains distinct from fresh-bus queue replay. The filesystem adapter keeps one bounded integrity-checked binary snapshot per queue, uses strict UTF-8, refuses unsupported schema versions or structural corruption, does not overwrite an existing queue during creation, and requires updates to advance exactly one revision while retaining the prior exact admission history as a prefix. Persistence failure leaves the previous durable and in-memory revision authoritative.
+Every successful enqueue, claim, and disposition is staged on a copy and atomically persisted before the transition becomes visible in memory. Strict `enqueue` continues to reject every duplicate identity. The separate durable admission operation persists a new exact value before success, treats an equal prior admission as a no-revision success even after terminal recovery, and rejects changed capability, envelope, authorization, provenance, execution input, or dependencies under the same identity. `DurableWorkItemAdmissionHandler` alone uses that idempotent boundary, so same-bus duplicate suppression remains distinct from fresh-bus queue replay. The filesystem adapter keeps one bounded integrity-checked binary snapshot per queue, uses strict UTF-8, refuses unsupported schema versions or structural corruption, does not overwrite an existing queue during creation, and requires updates to advance exactly one revision while retaining the prior exact admission history as a prefix. Each update also acquires one stable queue-scoped operating-system file lock without waiting and retains it across current-state resolution, validation, and atomic publication; contention is a typed failure and the empty lock artifact records no queue or authority state. Persistence or lock failure leaves the previous durable and in-memory revision authoritative.
 
 Durability sits behind the `SchedulerQueueStore` port — `create`, `update`, and `resolve` over one `SchedulerQueueState` snapshot — with `FileSystemSchedulerQueueStore` as its only implementation. The port grants no execution authority and must reject missing or invalid state rather than invent defaults. It is the seam a different durability substrate would replace, and it is deliberately narrower than the queue: the store persists and returns state, while readiness, the single active slot, and disposition remain in `DurableSingleWorkerSchedulerQueue` above it. A process-isolated worker or an out-of-process scheduler therefore changes which implementation is wired, not the queue contract. The same-instance rule still applies whatever the implementation: the dispatcher and finalizer handed to a worker must wrap one queue instance, because the queue's in-memory revision advances with each persisted mutation and a stale second instance fails the store's exactly-one-revision-advance check.
 
-Because this queue boundary has no lease or worker ownership, restart recovery moves a previously active item back into pending order and persists that recovery transition before returning the queue. The item may therefore be offered again under at-least-once execution semantics. Exact admission replay prevents a second queue item but does not deduplicate external effects. Schema-v1 queue artifacts fail explicitly; migration, history compaction/cleanup, leases/fencing, worker execution, effect records, failure/retry/cancellation policy, multi-process coordination, and snapshot history remain deferred.
+Because this queue boundary has no lease or worker ownership, restart recovery moves a previously active item back into pending order and persists that recovery transition before returning the queue. The item may therefore be offered again under at-least-once execution semantics. Exact admission replay prevents a second queue item but does not deduplicate external effects. The filesystem update lock prevents cooperating local processes from overwriting one another; it is not a distributed lock, runtime ownership lease, cross-store transaction, or network-filesystem guarantee. Schema-v1 queue artifacts fail explicitly; migration, history compaction/cleanup, leases/fencing, worker execution, effect records, failure/retry/cancellation policy, broader multi-process coordination, and snapshot history remain deferred.
+
+`SchedulerQueueStatus` is the pure read-only projection of one resolved persisted
+snapshot. It preserves admission order and maps the queue-owned status partition to
+`VERIFIED`, `FAILED`, and `ACTIVE`; pending work is `READY` exactly when every dependency
+is in the verified-completion set and `BLOCKED` otherwise. The projection invokes no
+store and cannot recover, claim, complete, fail, or create work. It therefore reports a
+persisted active slot as an observation without claiming that a worker process is live.
 
 ### Gate 8 Durable Submission Intent And Queue Creation
 
@@ -430,6 +437,31 @@ queue/configuration is usage failure and corruption/execution failure remains in
 Submission remains a separately invoked `scheduler-submit` command; `scheduler-cycle`
 never creates a manifest or admits work. Neither command adds a polling service, durable
 bus, or whole-Gate Operational promotion.
+
+`ForegroundSchedulerDrain` is the bounded foreground consumer of this one-cycle
+boundary. It sequentially invokes the same recoverable process-isolated cycle against one
+existing queue, with an explicit positive limit no greater than the queue's 4096-item
+bound. It continues only after verified completion and returns a typed
+`SchedulerDrainResult` on the first idle result, failed disposition, or configured limit,
+reporting cycle/completion/failure counts and the exact stop reason without claiming an
+empty queue when the limit is reached.
+
+The corresponding `scheduler-drain` surface reuses the cycle composition inputs plus the
+explicit limit, remains separate from both submission commands, and leaves
+`scheduler-cycle` unchanged. It adds no queue creation, admission, sleep, waiting, idle
+retry, daemon, control application, or drain-progress store. Durable re-entry is derived
+from the existing queue disposition and per-cycle checkpoint: a terminal item is already
+persisted before the following cycle, while an interrupted current cycle resumes through
+the existing checkpoint.
+
+The separate `scheduler-status` surface resolves one caller-identified queue snapshot
+directly through `FileSystemSchedulerQueueStore`, then formats the runtime-owned
+`SchedulerQueueStatus` projection. An explicit 1-through-48 limit bounds the
+admission-ordered identity/state prefix while counts cover the complete queue. Status
+never calls `DurableSingleWorkerSchedulerQueue.recover`, so inspecting an active snapshot
+cannot requeue work or advance the revision. It reads no runtime, effect, cycle-checkpoint,
+RunRecord, submission, or invocation store; cross-store recovery interpretation remains
+a separate contract.
 
 `AgentLoopAgentRunExecution` is the first production implementation of that port: it drives the Integrated Gate 1-4 pipeline (governed `read-file` `ToolExecutor`, `EvidenceRecorder`-persisted evidence, the bounded `AgentRunController`/`AgentLoop`, `DeterministicReadFileVerifier`, and the application `AgentRunFinalizer`) against the approved task's own source document — the `read-file` target is `taskRevision().sourceDocument()` and the expected content SHA-256 is `taskRevision().sourceSha256()` — and returns the persisted `run-record/<uuid>` reference. The `ApprovedTask` is constructed directly from the WorkItem's fields (no `ApprovedTaskReader`, no `In Progress` coupling), so the runtime finalizer's taskId-plus-sourceDocument binding holds by construction; the port must persist through the same `RunRecordStore` the worker's finalizer resolves from. A digest mismatch or Tool failure is carried in a persisted non-`VERIFIED` RunRecord, never thrown, and is real drift detection; the runtime result boundary records it as a failed attempt at `RETRY_PENDING` without a terminal queue disposition. The derivation of `(targetPath, expectedContentSha256)` from the WorkItem sits behind one private seam.
 
@@ -922,7 +954,7 @@ kernel      -> none of the above
 
 ### Delivery Gate 5 CLI Boundary
 
-Gate 5 selects `com.enhancer.cli.EnhancerCli` as the first supported local entry point and exposes only `run` and `replay`. The Gradle application entry point is a thin composition boundary over the existing Context Reader, repository-derived `ApprovedTask`, read-only Tool execution, sequential verifier, finalizer, Evidence Store, and RunRecord Store.
+Gate 5 selects `com.enhancer.cli.EnhancerCli` as the first supported local entry point and exposes `run`, `replay`, and bounded `run-record-list` inspection. The Gradle application entry point is a thin composition boundary over the existing Context Reader, repository-derived `ApprovedTask`, read-only Tool execution, sequential verifier, finalizer, Evidence Store, and RunRecord Store.
 
 The implemented command is intentionally non-interactive. Every final worker outcome that reaches finalization is persisted before its stable exit code is returned; configuration errors and internal failures remain bounded diagnostics rather than fabricated records. This is the first Operational scenario, not the future multi-interface CLI of Gate 12.
 
@@ -931,6 +963,14 @@ The implemented command is intentionally non-interactive. Every final worker out
 Process results use stable exit codes for completed, usage/configuration error, verification failure, policy denial, Tool failure, stagnation, maximum iterations, and internal failure. Diagnostics are bounded and never include complete target content. A finalized run prints its opaque RunRecord reference and storage root.
 
 `replay` requires an explicit RunRecord root and reference, resolves the integrity-checked record through `FileSystemRunRecordStore`, and prints bounded typed task, request, policy, verification, and stop metadata. It does not re-execute the Tool or reinterpret the record as repository authority.
+
+`run-record-list` requires an explicit RunRecord root and a 1-through-48 limit. It
+projects the exact newest-first prefix returned by
+`FileSystemRunRecordStore.recentReferences`, reports available/empty status and opaque
+references only, and never creates a missing root, resolves a record, validates record
+content, or changes ordering policy. Detailed integrity and lifecycle inspection remains
+the separate `replay` responsibility. The CLI-specific limit keeps the complete listing
+inside the shared 4096-character output boundary.
 
 ## Constitution Kernel Architecture
 

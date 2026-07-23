@@ -40,10 +40,14 @@ import com.enhancer.runtime.FileSystemExternalEffectLedgerStore;
 import com.enhancer.runtime.FileSystemPendingFinalizationStore;
 import com.enhancer.runtime.FileSystemSchedulerQueueStore;
 import com.enhancer.runtime.FileSystemSubmissionManifestStore;
+import com.enhancer.runtime.ForegroundSchedulerDrain;
 import com.enhancer.runtime.GeneratedInputSubmissionService;
 import com.enhancer.runtime.GeneratedSubmissionIdentities;
 import com.enhancer.runtime.GeneratedSubmissionRequest;
 import com.enhancer.runtime.MissingSchedulerQueueStateException;
+import com.enhancer.runtime.SchedulerDrainResult;
+import com.enhancer.runtime.SchedulerQueueState;
+import com.enhancer.runtime.SchedulerQueueStatus;
 import com.enhancer.runtime.WorkItemDisposition;
 import com.enhancer.session.DevelopmentSessionCheckpoint;
 import com.enhancer.session.DevelopmentSessionCheckpointConflictException;
@@ -113,8 +117,17 @@ public final class EnhancerCli {
             if (command instanceof ReplayCliCommand replay) {
                 return executeReplay(replay, stdout);
             }
+            if (command instanceof RunRecordListCliCommand list) {
+                return executeRunRecordList(list, stdout);
+            }
+            if (command instanceof SchedulerStatusCliCommand status) {
+                return executeSchedulerStatus(status, stdout);
+            }
             if (command instanceof SchedulerCycleCliCommand cycle) {
                 return executeSchedulerCycle(cycle, stdout);
+            }
+            if (command instanceof SchedulerDrainCliCommand drain) {
+                return executeSchedulerDrain(drain, stdout);
             }
             if (command instanceof SchedulerSubmitCliCommand submit) {
                 return executeSchedulerSubmit(submit, stdout);
@@ -438,6 +451,124 @@ public final class EnhancerCli {
     private int executeSchedulerCycle(
             SchedulerCycleCliCommand command,
             PrintStream stdout) throws IOException {
+        SchedulerExecution execution =
+                schedulerExecution(command, "scheduler-cycle");
+        DurableSingleWorkerSchedulerQueue queue = execution.queue();
+        Optional<WorkItemDisposition> disposition =
+                execution.worker().runOneCycle(command.leaseDuration());
+        String status = disposition.map(Enum::name).orElse("IDLE");
+        CliExitCode exitCode = disposition
+                .filter(value -> value == WorkItemDisposition.FAILED)
+                .map(ignored -> CliExitCode.SCHEDULER_WORK_FAILED)
+                .orElse(CliExitCode.COMPLETED);
+        writeBounded(stdout, String.join("\n",
+                "status=" + status,
+                "exitCode=" + exitCode.code(),
+                "queueId=" + queue.queueId(),
+                "queueRevision=" + queue.revision(),
+                "pendingWorkItems=" + queue.pendingCount(),
+                "completedWorkItems=" + queue.completedWorkItemIds().size(),
+                "failedWorkItems=" + queue.failedWorkItemIds().size(),
+                "runRecords=" + execution.runRecordStore().references().size()) + "\n");
+        return exitCode.code();
+    }
+
+    private int executeRunRecordList(
+            RunRecordListCliCommand command,
+            PrintStream stdout) throws IOException {
+        List<String> references = new FileSystemRunRecordStore(
+                command.runRecordRoot()).recentReferences(command.limit());
+        List<String> output = new ArrayList<>();
+        output.add("status=" + (references.isEmpty() ? "EMPTY" : "AVAILABLE"));
+        output.add("exitCode=0");
+        output.add("requestedLimit=" + command.limit());
+        output.add("returnedRecords=" + references.size());
+        for (int index = 0; index < references.size(); index++) {
+            output.add("runRecordReference." + (index + 1)
+                    + "=" + references.get(index));
+        }
+        writeBounded(stdout, String.join("\n", output) + "\n");
+        return 0;
+    }
+
+    private int executeSchedulerStatus(
+            SchedulerStatusCliCommand command,
+            PrintStream stdout) throws IOException {
+        SchedulerQueueState state;
+        try {
+            state = new FileSystemSchedulerQueueStore(
+                    command.queueRoot()).resolve(command.queueId());
+        } catch (MissingSchedulerQueueStateException exception) {
+            throw new CliUsageException(
+                    "queue configuration is invalid: "
+                            + safeMessage(exception),
+                    exception);
+        }
+        SchedulerQueueStatus status =
+                SchedulerQueueStatus.project(state);
+        int returned = Math.min(
+                command.limit(), status.workItems().size());
+        List<String> output = new ArrayList<>(List.of(
+                "status=" + (status.workItems().isEmpty()
+                        ? "EMPTY" : "AVAILABLE"),
+                "exitCode=0",
+                "queueId=" + status.queueId(),
+                "queueRevision=" + status.revision(),
+                "maxWorkItems=" + status.maxWorkItems(),
+                "totalWorkItems=" + status.workItems().size(),
+                "readyWorkItems=" + status.count(
+                        SchedulerQueueStatus.WorkState.READY),
+                "blockedWorkItems=" + status.count(
+                        SchedulerQueueStatus.WorkState.BLOCKED),
+                "activeWorkItems=" + status.count(
+                        SchedulerQueueStatus.WorkState.ACTIVE),
+                "verifiedWorkItems=" + status.count(
+                        SchedulerQueueStatus.WorkState.VERIFIED),
+                "failedWorkItems=" + status.count(
+                        SchedulerQueueStatus.WorkState.FAILED),
+                "requestedLimit=" + command.limit(),
+                "returnedWorkItems=" + returned));
+        for (int index = 0; index < returned; index++) {
+            SchedulerQueueStatus.WorkStatus work =
+                    status.workItems().get(index);
+            output.add("workItem." + (index + 1)
+                    + "=" + work.workItemId() + "," + work.state());
+        }
+        writeBounded(stdout, String.join("\n", output) + "\n");
+        return 0;
+    }
+
+    private int executeSchedulerDrain(
+            SchedulerDrainCliCommand command,
+            PrintStream stdout) throws IOException {
+        SchedulerExecution execution =
+                schedulerExecution(command, "scheduler-drain");
+        SchedulerDrainResult result = new ForegroundSchedulerDrain(
+                execution.worker()).drain(
+                        command.maxCycles(),
+                        command.leaseDuration());
+        CliExitCode exitCode = result.failed() == 1
+                ? CliExitCode.SCHEDULER_WORK_FAILED
+                : CliExitCode.COMPLETED;
+        DurableSingleWorkerSchedulerQueue queue = execution.queue();
+        writeBounded(stdout, String.join("\n",
+                "status=" + result.stopReason(),
+                "exitCode=" + exitCode.code(),
+                "queueId=" + queue.queueId(),
+                "queueRevision=" + queue.revision(),
+                "cyclesInvoked=" + result.cyclesInvoked(),
+                "verifiedCompletedCycles=" + result.verifiedCompleted(),
+                "failedCycles=" + result.failed(),
+                "pendingWorkItems=" + queue.pendingCount(),
+                "completedWorkItems=" + queue.completedWorkItemIds().size(),
+                "failedWorkItems=" + queue.failedWorkItemIds().size(),
+                "runRecords=" + execution.runRecordStore().references().size()) + "\n");
+        return exitCode.code();
+    }
+
+    private SchedulerExecution schedulerExecution(
+            SchedulerExecutionCliCommand command,
+            String commandName) throws IOException {
         DurableSingleWorkerSchedulerQueue queue;
         DurableAgentRunWorker worker;
         FileSystemRunRecordStore runRecordStore =
@@ -466,27 +597,10 @@ public final class EnhancerCli {
                     exception);
         } catch (IllegalArgumentException exception) {
             throw new CliUsageException(
-                    "scheduler-cycle input is invalid: " + safeMessage(exception),
+                    commandName + " input is invalid: " + safeMessage(exception),
                     exception);
         }
-
-        Optional<WorkItemDisposition> disposition =
-                worker.runOneCycle(command.leaseDuration());
-        String status = disposition.map(Enum::name).orElse("IDLE");
-        CliExitCode exitCode = disposition
-                .filter(value -> value == WorkItemDisposition.FAILED)
-                .map(ignored -> CliExitCode.SCHEDULER_WORK_FAILED)
-                .orElse(CliExitCode.COMPLETED);
-        writeBounded(stdout, String.join("\n",
-                "status=" + status,
-                "exitCode=" + exitCode.code(),
-                "queueId=" + queue.queueId(),
-                "queueRevision=" + queue.revision(),
-                "pendingWorkItems=" + queue.pendingCount(),
-                "completedWorkItems=" + queue.completedWorkItemIds().size(),
-                "failedWorkItems=" + queue.failedWorkItemIds().size(),
-                "runRecords=" + runRecordStore.references().size()) + "\n");
-        return exitCode.code();
+        return new SchedulerExecution(queue, worker, runRecordStore);
     }
 
     private int executeSchedulerSubmit(
@@ -650,6 +764,12 @@ public final class EnhancerCli {
     private record GovernedRunInputs(
             ApprovedTask approvedTask,
             ProjectContext repositoryMemory) {
+    }
+
+    private record SchedulerExecution(
+            DurableSingleWorkerSchedulerQueue queue,
+            DurableAgentRunWorker worker,
+            FileSystemRunRecordStore runRecordStore) {
     }
 
     @FunctionalInterface
