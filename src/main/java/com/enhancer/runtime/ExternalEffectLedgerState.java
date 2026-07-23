@@ -7,9 +7,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-/** Immutable schema-v1 current state for one Goal's bounded external-effect ledger. */
+/** Immutable schema-v2 current state for one Goal's bounded external-effect ledger. */
 public final class ExternalEffectLedgerState {
-    public static final int CURRENT_SCHEMA_VERSION = 1;
+    public static final int CURRENT_SCHEMA_VERSION = 2;
     public static final int MAX_EFFECTS = 256;
 
     private final int schemaVersion;
@@ -104,7 +104,9 @@ public final class ExternalEffectLedgerState {
 
     ExternalEffectLedgerState recordOutcome(
             String idempotencyKey,
-            ExternalEffectStatus outcome) {
+            ExternalEffectStatus outcome,
+            ExternalEffectOutcomeEvidence evidence) {
+        Objects.requireNonNull(evidence, "evidence must not be null");
         if (!outcome.isTerminal()) {
             throw new IllegalArgumentException(
                     "external effect outcome must be terminal");
@@ -113,7 +115,7 @@ public final class ExternalEffectLedgerState {
         for (int index = 0; index < next.size(); index++) {
             ExternalEffectRecord current = next.get(index);
             if (current.request().idempotencyKey().equals(idempotencyKey)) {
-                next.set(index, current.terminate(outcome));
+                next.set(index, current.terminate(outcome, evidence));
                 return new ExternalEffectLedgerState(
                         schemaVersion, goalId, revision + 1, next);
             }

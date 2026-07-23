@@ -442,28 +442,63 @@ This boundary records an untrusted request, not an accepted transition. The enve
 ### Gate 8 Durable External-Effect Ledger
 
 `DurableExternalEffectLedger` records external-effect intent and adapter-established
-outcomes without invoking an external system. One schema-v1 ledger belongs to one exact
+outcomes without invoking an external system. One schema-v2 ledger belongs to one exact
 Goal and retains at most 256 ordered effects. An `ExternalEffectRequest` binds a bounded
-stable idempotency key and semantic operation SHA-256 to the Goal, its current AgentRun,
-the retained WorkItem, and a bounded operation name; payload content and credentials do
-not enter the ledger.
+stable idempotency key, adapter identity, and semantic operation SHA-256 to the Goal, its
+current AgentRun, the retained WorkItem, and a bounded operation name; payload content and
+credentials do not enter the ledger.
 
 Preparation validates the exact executing AgentRun and its matching unexpired owner and
 fence against `AgentRuntimeStateStore`, then persists `PREPARED` before returning it to a
 caller that may invoke an adapter. Terminal recording repeats the same lease check and
-may transition one prepared effect exactly once to `APPLIED`, `DEDUPLICATED`,
-`COMPENSATED`, or `REQUIRES_USER_RECOVERY`. Exact request and outcome replay returns the
-existing record without a revision; key reuse with changed bound data, a stale or expired
-lease, identity mismatch, and terminal-outcome replacement fail closed.
+may transition one prepared effect exactly once to an evidence-bound `APPLIED`,
+`DEDUPLICATED`, `COMPENSATED`, or `REQUIRES_USER_RECOVERY`. `PREPARED` carries no outcome
+evidence; every terminal record carries exactly one immutable Evidence Store reference and
+SHA-256. Exact request and outcome replay returns the existing record without a revision;
+key reuse with changed bound data, a stale or expired lease, identity mismatch, and
+terminal status or evidence replacement fail closed.
 
 `ExternalEffectLedgerStore` is a separate atomic boundary from runtime state.
 `FileSystemExternalEffectLedgerStore` publishes one bounded strict-UTF-8 integrity
 envelope per Goal, enforces exactly-one revision advancement plus append-only preparation
 or one-way prepared-to-terminal history, and rejects missing, corrupt, oversized,
 trailing, unsupported, symbolic-link-root, or non-monotonic state. An unresolved
-`PREPARED` record survives restart and never authorizes automatic replay. The next retry
-connection consumes this ledger; an owning Tool or adapter must still supply evidence
-for the reported remote outcome.
+`PREPARED` record survives restart and never authorizes automatic replay. Schema-v1
+artifacts are explicitly unsupported; migration is separate work. The retry connection
+consumes this ledger, while the application executor below supplies and verifies outcome
+evidence without moving adapter authority into the ledger.
+
+### Gate 8 External-Effect Adapter Execution Boundary
+
+`DurableExternalEffectExecutor` is the application-layer boundary around the durable
+ledger, one `ExternalEffectAdapter` port, and the existing `EvidenceStore`. The ledger
+does not invoke an adapter or acquire Tool authority. The adapter owns opaque operation
+input and credentials; the executor requires a bounded
+stable adapter identity and verifies the adapter's canonical semantic digest against the
+prepared request before any ledger mutation. Operation payload and credentials do not
+enter the ledger or evidence merely because the effect is durable.
+
+The schema-v2 effect ledger records the contract explicitly. `PREPARED` retains
+the exact Goal, AgentRun, WorkItem, idempotency key, adapter, operation, and digest without
+outcome evidence. A terminal record binds exactly one typed `APPLIED`, `DEDUPLICATED`,
+`COMPENSATED`, or `REQUIRES_USER_RECOVERY` status to the same adapter plus one resolvable
+Evidence Store reference and evidence SHA-256. Terminal successor validation preserves
+that binding; schema-v1 artifacts are rejected rather than reinterpreted.
+
+Execution order is validate -> persist `PREPARED` -> invoke adapter once -> persist
+redacted complete outcome evidence -> re-check the current owner/fence -> persist the
+evidence-bound terminal record. Exact terminal replay resolves and integrity-checks the
+bound evidence and never invokes the adapter or advances a revision. A record already at
+`PREPARED` when the call begins never authorizes automatic execution. Adapter, evidence,
+terminal-write, or lease failure leaves it prepared; evidence written before a failed
+terminal publication may be orphaned but grants no state transition.
+
+The named filesystem integration connects a real executing runtime lease,
+the real ledger and Evidence Store, the application executor, and a deterministic adapter
+across every persistence prefix and restart replay without adding production external
+authority. Real network, Git, cloud, or other mutation adapters remain Gate 11 work and
+require their own Tool policy, secret/outbound-data controls, and recovery evidence. This
+boundary is at-least-once and ambiguity-preserving, not a universal exactly-once claim.
 
 ### Gate 8 Corrected Multi-Attempt Retry Boundary
 
@@ -514,7 +549,7 @@ Which connections exist today is stated in `PROJECT_STATE.md`; the cross-boundar
 | 6 | retry and replacement AgentRuns | Gate 8 Scheduler | persist attempt result without queue failure -> bind exact Goal ledger and attempt count -> persist typed decision -> append a checkpointed immutable AgentRun or terminally abandon Goal -> write one final queue disposition |
 | 7 | typed handoff and multi-agent execution | Gate 13 over Gates 7 and 8 | require an Operational single-agent baseline, isolated ownership, deterministic synthesis, and one Kernel terminal-state coordinator |
 
-Each cross-store step persists its earlier authoritative artifact before the later derived artifact. Recovery re-enters idempotently from the durable prefix; it does not claim an atomic transaction. Authenticated control application, external-adapter effect execution/evidence, replacement-attempt worker wiring, and handoff coordination remain unimplemented until their own bounded tasks and fresh integration evidence exist.
+Each cross-store step persists its earlier authoritative artifact before the later derived artifact. Recovery re-enters idempotently from the durable prefix; it does not claim an atomic transaction. Authenticated control application, production external adapters and their Gate 11 controls, and handoff coordination remain unimplemented until their own bounded tasks and fresh integration evidence exist.
 
 ### Gate 8 Scheduler Delivery Semantics
 

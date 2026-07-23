@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### 2026-07-23: Execute External Effects Through A Persist-First Evidence-Bound Adapter Boundary
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-23-execute-external-effects-through-a-persist-first-evidence-bound-adapter-boundary.md)
+
 ### 2026-07-22: Reuse The Immutable Submission Manifest As The Sole Generated-Input Recovery Record
 
 Status: Accepted Decision

@@ -217,9 +217,16 @@ public final class FileSystemExternalEffectLedgerStore
                 writeString(output, request.goalId());
                 writeString(output, request.agentRunId());
                 writeString(output, request.workItemId());
+                writeString(output, request.adapterId());
                 writeString(output, request.operationName());
                 writeString(output, request.operationSha256());
                 writeString(output, record.status().name());
+                if (record.status().isTerminal()) {
+                    ExternalEffectOutcomeEvidence evidence =
+                            record.outcomeEvidence().orElseThrow();
+                    writeString(output, evidence.reference());
+                    writeString(output, evidence.sha256());
+                }
             }
         }
         return bytes.toByteArray();
@@ -255,10 +262,21 @@ public final class FileSystemExternalEffectLedgerStore
                         readString(input),
                         readString(input),
                         readString(input),
+                        readString(input),
                         readString(input));
                 ExternalEffectStatus status = ExternalEffectStatus.valueOf(
                         readString(input));
-                records.add(new ExternalEffectRecord(request, status));
+                if (status.isTerminal()) {
+                    records.add(new ExternalEffectRecord(
+                            request,
+                            status,
+                            java.util.Optional.of(
+                                    new ExternalEffectOutcomeEvidence(
+                                            readString(input),
+                                            readString(input)))));
+                } else {
+                    records.add(new ExternalEffectRecord(request, status));
+                }
             }
             if (input.available() != 0) {
                 throw corrupted(expectedGoalId, "state contains trailing bytes");

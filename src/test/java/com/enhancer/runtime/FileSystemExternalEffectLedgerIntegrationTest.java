@@ -33,6 +33,11 @@ class FileSystemExternalEffectLedgerIntegrationTest {
     private static final int DIGEST_OFFSET =
             Integer.BYTES + Long.BYTES + Integer.BYTES;
     private static final int PAYLOAD_OFFSET = DIGEST_OFFSET + 32;
+    private static final ExternalEffectOutcomeEvidence OUTCOME_EVIDENCE =
+            new ExternalEffectOutcomeEvidence(
+                    "evidence/00000000-0000-0000-0000-000000001110/"
+                            + "00000000-0000-0000-0000-000000001111",
+                    "e".repeat(64));
 
     @TempDir
     Path temporaryRoot;
@@ -67,6 +72,7 @@ class FileSystemExternalEffectLedgerIntegrationTest {
         ledger.recordOutcome(
                 applied.idempotencyKey(),
                 ExternalEffectStatus.DEDUPLICATED,
+                OUTCOME_EVIDENCE,
                 lease.ownerId(),
                 lease.fenceToken());
         ledger.prepare(unresolved, lease.ownerId(), lease.fenceToken());
@@ -157,6 +163,17 @@ class FileSystemExternalEffectLedgerIntegrationTest {
 
         Files.delete(artifact);
         store.create(ExternalEffectLedgerState.initial(GOAL_ID));
+        byte[] legacy = Files.readAllBytes(artifact);
+        ByteBuffer.wrap(legacy).putInt(PAYLOAD_OFFSET, 1);
+        replaceDigest(legacy);
+        Files.write(artifact, legacy);
+        CorruptedExternalEffectLedgerException legacyException = assertThrows(
+                CorruptedExternalEffectLedgerException.class,
+                () -> store.resolve(GOAL_ID));
+        assertTrue(legacyException.getMessage().contains("version"));
+
+        Files.delete(artifact);
+        store.create(ExternalEffectLedgerState.initial(GOAL_ID));
         byte[] unsupported = Files.readAllBytes(artifact);
         ByteBuffer.wrap(unsupported).putInt(
                 PAYLOAD_OFFSET,
@@ -228,7 +245,9 @@ class FileSystemExternalEffectLedgerIntegrationTest {
                         GOAL_ID,
                         2,
                         java.util.List.of(new ExternalEffectRecord(
-                                request, ExternalEffectStatus.APPLIED)));
+                                request,
+                                ExternalEffectStatus.APPLIED,
+                                Optional.of(OUTCOME_EVIDENCE))));
         store.update(appliedState);
         ExternalEffectLedgerState rewrittenOutcome =
                 new ExternalEffectLedgerState(
@@ -236,7 +255,9 @@ class FileSystemExternalEffectLedgerIntegrationTest {
                         GOAL_ID,
                         3,
                         java.util.List.of(new ExternalEffectRecord(
-                                request, ExternalEffectStatus.COMPENSATED)));
+                                request,
+                                ExternalEffectStatus.COMPENSATED,
+                                Optional.of(OUTCOME_EVIDENCE))));
         assertThrows(IOException.class, () -> store.update(rewrittenOutcome));
     }
 
@@ -249,6 +270,7 @@ class FileSystemExternalEffectLedgerIntegrationTest {
                 GOAL_ID,
                 AGENT_RUN_ID,
                 WORK_ITEM_ID,
+                "filesystem-test-adapter",
                 operation,
                 digest);
     }

@@ -12,10 +12,12 @@ public record ExternalEffectRequest(
         String goalId,
         String agentRunId,
         String workItemId,
+        String adapterId,
         String operationName,
         String operationSha256) {
 
     public static final int MAX_KEY_CHARACTERS = 256;
+    public static final int MAX_ADAPTER_CHARACTERS = 256;
     public static final int MAX_OPERATION_CHARACTERS = 256;
     private static final Pattern SHA_256 = Pattern.compile("[0-9a-f]{64}");
 
@@ -31,6 +33,8 @@ public record ExternalEffectRequest(
             throw new IllegalArgumentException(
                     "goalId, agentRunId, and workItemId must be distinct");
         }
+        adapterId = boundedNonBlank(
+                adapterId, "adapterId", MAX_ADAPTER_CHARACTERS);
         operationName = boundedNonBlank(
                 operationName, "operationName", MAX_OPERATION_CHARACTERS);
         Objects.requireNonNull(

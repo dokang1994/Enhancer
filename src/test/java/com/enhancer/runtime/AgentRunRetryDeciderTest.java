@@ -279,7 +279,8 @@ class AgentRunRetryDeciderTest {
             state = state.prepare(request(key, WORK_ITEM_ID));
             ExternalEffectStatus status = ordered.get(index);
             if (status != ExternalEffectStatus.PREPARED) {
-                state = state.recordOutcome(key, status);
+                state = state.recordOutcome(
+                        key, status, outcomeEvidence(index));
             }
         }
         return state;
@@ -293,7 +294,16 @@ class AgentRunRetryDeciderTest {
                 GOAL_ID,
                 AGENT_RUN_ID,
                 workItemId,
+                "retry-test-adapter",
                 "publish",
                 "c".repeat(64));
+    }
+
+    private static ExternalEffectOutcomeEvidence outcomeEvidence(int index) {
+        String suffix = String.format("%012d", index + 1);
+        return new ExternalEffectOutcomeEvidence(
+                "evidence/00000000-0000-0000-0000-000000001210/"
+                        + "00000000-0000-0000-0000-" + suffix,
+                "e".repeat(64));
     }
 }

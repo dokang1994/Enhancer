@@ -15,7 +15,7 @@ import java.util.Objects;
  */
 public final class DurableAgentRunRetryController {
     private static final String LEDGER_DIGEST_FORMAT =
-            "enhancer.external-effect-ledger.semantic.v1";
+            "enhancer.external-effect-ledger.semantic.v2";
 
     private final AgentRuntimeStateStore runtimeStore;
     private final ExternalEffectLedgerStore effectLedgerStore;
@@ -166,9 +166,20 @@ public final class DurableAgentRunRetryController {
             updateFrame(digest, request.goalId());
             updateFrame(digest, request.agentRunId());
             updateFrame(digest, request.workItemId());
+            updateFrame(digest, request.adapterId());
             updateFrame(digest, request.operationName());
             updateFrame(digest, request.operationSha256());
             updateFrame(digest, record.status().name());
+            updateFrame(
+                    digest,
+                    record.outcomeEvidence()
+                            .map(ExternalEffectOutcomeEvidence::reference)
+                            .orElse(""));
+            updateFrame(
+                    digest,
+                    record.outcomeEvidence()
+                            .map(ExternalEffectOutcomeEvidence::sha256)
+                            .orElse(""));
         }
         return HexFormat.of().formatHex(digest.digest());
     }

@@ -1,5 +1,38 @@
 # Changelog
 
+## 2026-07-23 - Implement Evidence-Bound External-Effect Execution
+
+- Added the bounded `ExternalEffectAdapter` port and `DurableExternalEffectExecutor`, which
+  validate adapter identity and semantic digest, persist `PREPARED` before one invocation,
+  persist redacted complete Evidence Store content, and publish an evidence-bound terminal
+  outcome only through the existing current-owner/fence check.
+- Revised the external-effect ledger to schema v2: requests retain stable adapter identity,
+  prepared records carry no outcome evidence, terminal records require one immutable
+  evidence reference and SHA-256, semantic retry digests cover the new fields, and schema-v1
+  filesystem artifacts fail explicitly.
+- Added test-first contract and real-filesystem integration coverage for prepared visibility,
+  exact restart replay without reinvocation or revision, identity/digest mismatch before
+  mutation, immutable terminal evidence, schema-v1 rejection, and adapter, evidence,
+  terminal-store, and lease-expiry failure prefixes.
+- Added no production external adapter, network/Git/cloud call, credential or payload
+  persistence, Tool authority, automatic prepared recovery, second AgentRun, polling,
+  commit, push, release, or deployment.
+
+## 2026-07-23 - Select An Evidence-Bound External-Effect Adapter Execution Boundary
+
+- Assessed direct ledger invocation, an application executor with a transient adapter
+  result, and an application executor with a durable evidence-bound terminal outcome
+  against authority, idempotency, restart replay, and interruption recovery.
+- Selected a separate application executor that verifies stable adapter and semantic
+  operation identity, persists `PREPARED` before one adapter invocation, persists redacted
+  complete outcome evidence before terminal publication, and binds the terminal status to
+  its evidence reference and digest through an explicit ledger schema revision.
+- Kept unresolved prepared work fail-closed: an already prepared record never authorizes
+  automatic execution, terminal replay resolves evidence without another invocation, and
+  adapter/evidence/write/lease failure leaves the effect prepared. No implementation,
+  production external adapter, new Tool authority, external call, or exactly-once claim
+  was added.
+
 ## 2026-07-22 - Promote Generated-Input Scheduler Submission To An Operational Sub-Path
 
 - Ran an actual Enhancer-repository smoke run of `scheduler-submit-generated` followed by a

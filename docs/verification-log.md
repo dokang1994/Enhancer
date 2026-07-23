@@ -1475,3 +1475,62 @@ This assessment itself changed no production or test code and did not change Gat
 - Scope held: no production behavior, schema change, second store, polling, wrapper command,
   automatic execution, committed runtime artifact, release, or deployment was added, and the
   explicit `scheduler-submit` command is unchanged.
+
+## External-Effect Adapter Execution Boundary Assessment
+
+- Source inspection confirmed that `DurableExternalEffectLedger` already persists
+  current-owner/fence-checked `PREPARED` and terminal statuses but invokes no adapter, while
+  `ExternalEffectRecord` stores no evidence reference or digest. The existing Evidence Store
+  can persist and integrity-resolve complete bounded evidence but has no effect-terminal
+  binding by itself.
+- The assessment compared direct invocation inside the ledger, an application executor
+  retaining only a transient typed adapter result, and an application executor that binds
+  durable evidence to terminal state. The accepted decision selected the third option so
+  persistence, external authority, and evidence retain separate owners and terminal replay
+  remains inspectable after restart.
+- The accepted order is validate adapter identity and semantic digest -> persist
+  `PREPARED` -> invoke once -> persist redacted complete evidence -> re-check owner/fence ->
+  persist an evidence-bound terminal record. Exact terminal replay resolves evidence without
+  invocation; a record already prepared at entry, adapter/evidence/write failure, or stale
+  lease remains fail-closed at `PREPARED` and never silently authorizes automatic execution.
+- The focused structural run executed `DecisionLogIndexTest`, `DocumentOwnershipTest`, and
+  `ProjectContextReaderTest`: 15 tests across 3 suites, 14 passed, one existing
+  privilege-dependent Windows symbolic-link setup case skipped, zero failures, and zero
+  errors.
+- Fresh `gradlew clean build --no-build-cache` passed all 8 tasks and 91 suites/474 tests
+  under build-enforced Java 17 `-Xlint:all -Werror`: 471 passed, 3 existing
+  privilege-dependent Windows symbolic-link setup cases skipped, 0 failures, and 0 errors.
+  `git diff --check` produced no output.
+- Scope held: no production code, ledger schema implementation, adapter port, external
+  invocation, credential or payload persistence, new Tool authority, second AgentRun,
+  polling, commit, push, merge, release, or deployment was added. Capability maturity did
+  not change, so `PROJECT_STATE.md` remained unchanged.
+
+## Evidence-Bound External-Effect Executor Implementation
+
+- The focused test-first RED command targeted the new filesystem executor integration and
+  failed at `compileTestJava` with 25 expected missing-symbol/constructor errors for the
+  absent adapter, executor, result, evidence-binding, and schema-v2 request contracts.
+  Production compilation remained successful, and the failure was classified as aligned
+  with the active task, accepted decision, Architecture, and repository settings.
+- The minimum implementation added the adapter port and application executor, stable
+  request adapter identity, evidence-bound terminal record, schema-v2 filesystem codec,
+  and retry semantic-digest coverage. Focused executor, ledger, retry-decider/controller,
+  and worker regression commands then completed successfully, including explicit schema-v1
+  rejection and refusal to replay a terminal status with different evidence.
+- `FileSystemExternalEffectExecutorIntegrationTest` connected a real executing runtime
+  lease, filesystem ledger, filesystem Evidence Store, and deterministic adapter. It proved
+  prepared visibility before invocation, evidence-bound terminal persistence, fresh-instance
+  terminal replay without another adapter call or revision, pre-mutation adapter/digest
+  refusal, pre-existing-prepared refusal, and prepared retention after adapter, evidence,
+  terminal-store, and lease-expiry failures.
+- Fresh `gradlew clean build --no-build-cache` passed all 8 tasks and 92 suites/478 tests
+  under build-enforced Java 17 `-Xlint:all -Werror`: 475 passed, 3 existing
+  privilege-dependent Windows symbolic-link setup cases skipped, 0 failures, and 0 errors.
+- The final focused structural run of `DocumentOwnershipTest`, `DecisionLogIndexTest`,
+  `ProjectContextReaderTest`, and `RuntimePackageBoundaryTest` passed 16 tests across 4
+  suites: 15 passed, one existing Windows symbolic-link setup case skipped, 0 failures, and
+  0 errors. `git diff --check` produced no output.
+- Scope held: no production external adapter, external network/Git/cloud call, credential or
+  operation-payload persistence, new Tool authority, automatic prepared recovery, second
+  AgentRun, polling, universal exactly-once claim, release, or deployment was added.

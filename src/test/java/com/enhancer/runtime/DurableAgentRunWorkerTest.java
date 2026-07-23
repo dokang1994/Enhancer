@@ -198,6 +198,7 @@ class DurableAgentRunWorkerTest {
                             dispatch.goalId(),
                             dispatch.agentRunId(),
                             dispatch.workItem().workItemId(),
+                            "worker-test-adapter",
                             "publish-artifact",
                             "c".repeat(64)),
                     OWNER_ID,

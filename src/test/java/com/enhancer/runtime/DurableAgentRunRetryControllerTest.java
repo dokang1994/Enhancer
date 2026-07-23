@@ -118,7 +118,10 @@ class DurableAgentRunRetryControllerTest {
         ExternalEffectLedgerState wrongWorkItem =
                 ExternalEffectLedgerState.initial(GOAL_ID)
                         .prepare(request("effect-1", WORK_ITEM_ID))
-                        .recordOutcome("effect-1", ExternalEffectStatus.COMPENSATED)
+                        .recordOutcome(
+                                "effect-1",
+                                ExternalEffectStatus.COMPENSATED,
+                                outcomeEvidence())
                         .prepare(request("effect-2", OTHER_WORK_ITEM_ID));
         DurableAgentRunRetryController mismatchedController = controller(
                 runtimeStore,
@@ -150,14 +153,18 @@ class DurableAgentRunRetryControllerTest {
             throws Exception {
         ExternalEffectLedgerState firstOrder = ExternalEffectLedgerState.initial(GOAL_ID)
                 .prepare(request("effect-a", WORK_ITEM_ID))
-                .recordOutcome("effect-a", ExternalEffectStatus.COMPENSATED)
+                .recordOutcome(
+                        "effect-a", ExternalEffectStatus.COMPENSATED, outcomeEvidence())
                 .prepare(request("effect-b", WORK_ITEM_ID))
-                .recordOutcome("effect-b", ExternalEffectStatus.COMPENSATED);
+                .recordOutcome(
+                        "effect-b", ExternalEffectStatus.COMPENSATED, outcomeEvidence());
         ExternalEffectLedgerState secondOrder = ExternalEffectLedgerState.initial(GOAL_ID)
                 .prepare(request("effect-b", WORK_ITEM_ID))
-                .recordOutcome("effect-b", ExternalEffectStatus.COMPENSATED)
+                .recordOutcome(
+                        "effect-b", ExternalEffectStatus.COMPENSATED, outcomeEvidence())
                 .prepare(request("effect-a", WORK_ITEM_ID))
-                .recordOutcome("effect-a", ExternalEffectStatus.COMPENSATED);
+                .recordOutcome(
+                        "effect-a", ExternalEffectStatus.COMPENSATED, outcomeEvidence());
 
         String first = fixture(firstOrder).controller()
                 .recordDecision(GOAL_ID, AgentRunRetryPolicy.of(3))
@@ -274,7 +281,8 @@ class DurableAgentRunRetryControllerTest {
                 .prepare(request("effect-1", WORK_ITEM_ID));
         return status == ExternalEffectStatus.PREPARED
                 ? ledger
-                : ledger.recordOutcome("effect-1", status);
+                : ledger.recordOutcome(
+                        "effect-1", status, outcomeEvidence());
     }
 
     private static ExternalEffectRequest request(String key, String workItemId) {
@@ -283,8 +291,16 @@ class DurableAgentRunRetryControllerTest {
                 GOAL_ID,
                 FIRST_RUN_ID,
                 workItemId,
+                "retry-controller-adapter",
                 "publish-artifact",
                 "c".repeat(64));
+    }
+
+    private static ExternalEffectOutcomeEvidence outcomeEvidence() {
+        return new ExternalEffectOutcomeEvidence(
+                "evidence/00000000-0000-0000-0000-000000001220/"
+                        + "00000000-0000-0000-0000-000000001221",
+                "e".repeat(64));
     }
 
     private static WorkItem workItem() {

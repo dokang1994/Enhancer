@@ -26,6 +26,11 @@ class DurableExternalEffectLedgerTest {
     private static final String WORK_MESSAGE_ID =
             "00000000-0000-0000-0000-000000001004";
     private static final String EFFECT_KEY = "publish-artifact-1";
+    private static final ExternalEffectOutcomeEvidence OUTCOME_EVIDENCE =
+            new ExternalEffectOutcomeEvidence(
+                    "evidence/00000000-0000-0000-0000-000000001010/"
+                            + "00000000-0000-0000-0000-000000001011",
+                    "e".repeat(64));
 
     @Test
     void preparesAndTerminatesAnEffectWithExactIdempotentReplay()
@@ -45,11 +50,13 @@ class DurableExternalEffectLedgerTest {
         ExternalEffectRecord applied = fixture.ledger().recordOutcome(
                 EFFECT_KEY,
                 ExternalEffectStatus.APPLIED,
+                OUTCOME_EVIDENCE,
                 fixture.lease().ownerId(),
                 fixture.lease().fenceToken());
         ExternalEffectRecord replayedOutcome = fixture.ledger().recordOutcome(
                 EFFECT_KEY,
                 ExternalEffectStatus.APPLIED,
+                OUTCOME_EVIDENCE,
                 fixture.lease().ownerId(),
                 fixture.lease().fenceToken());
 
@@ -60,13 +67,23 @@ class DurableExternalEffectLedgerTest {
         assertThrows(IllegalStateException.class, () ->
                 fixture.ledger().recordOutcome(
                         EFFECT_KEY,
+                        ExternalEffectStatus.APPLIED,
+                        new ExternalEffectOutcomeEvidence(
+                                OUTCOME_EVIDENCE.reference(), "f".repeat(64)),
+                        fixture.lease().ownerId(),
+                        fixture.lease().fenceToken()));
+        assertThrows(IllegalStateException.class, () ->
+                fixture.ledger().recordOutcome(
+                        EFFECT_KEY,
                         ExternalEffectStatus.COMPENSATED,
+                        OUTCOME_EVIDENCE,
                         fixture.lease().ownerId(),
                         fixture.lease().fenceToken()));
         assertThrows(IllegalArgumentException.class, () ->
                 fixture.ledger().recordOutcome(
                         EFFECT_KEY,
                         ExternalEffectStatus.PREPARED,
+                        OUTCOME_EVIDENCE,
                         fixture.lease().ownerId(),
                         fixture.lease().fenceToken()));
     }
@@ -89,6 +106,7 @@ class DurableExternalEffectLedgerTest {
                     fixture.ledger().recordOutcome(
                             EFFECT_KEY,
                             outcome,
+                            OUTCOME_EVIDENCE,
                             fixture.lease().ownerId(),
                             fixture.lease().fenceToken()).status());
         }
@@ -115,6 +133,7 @@ class DurableExternalEffectLedgerTest {
                                 "00000000-0000-0000-0000-000000001099",
                                 AGENT_RUN_ID,
                                 WORK_ITEM_ID,
+                                "test-adapter",
                                 "publish",
                                 "c".repeat(64)),
                         fixture.lease().ownerId(),
@@ -126,6 +145,7 @@ class DurableExternalEffectLedgerTest {
                                 GOAL_ID,
                                 "00000000-0000-0000-0000-000000001098",
                                 WORK_ITEM_ID,
+                                "test-adapter",
                                 "publish",
                                 "c".repeat(64)),
                         fixture.lease().ownerId(),
@@ -137,6 +157,7 @@ class DurableExternalEffectLedgerTest {
                                 GOAL_ID,
                                 AGENT_RUN_ID,
                                 "00000000-0000-0000-0000-000000001097",
+                                "test-adapter",
                                 "publish",
                                 "c".repeat(64)),
                         fixture.lease().ownerId(),
@@ -170,6 +191,7 @@ class DurableExternalEffectLedgerTest {
                         GOAL_ID,
                         AGENT_RUN_ID,
                         WORK_ITEM_ID,
+                        "test-adapter",
                         "publish",
                         "not-a-digest"));
     }
@@ -189,6 +211,7 @@ class DurableExternalEffectLedgerTest {
                                 GOAL_ID,
                                 AGENT_RUN_ID,
                                 WORK_ITEM_ID,
+                                "test-adapter",
                                 "different-operation",
                                 "d".repeat(64)),
                         fixture.lease().ownerId(),
@@ -253,6 +276,7 @@ class DurableExternalEffectLedgerTest {
                 GOAL_ID,
                 AGENT_RUN_ID,
                 WORK_ITEM_ID,
+                "test-adapter",
                 operationName,
                 "c".repeat(64));
     }

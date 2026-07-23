@@ -88,9 +88,11 @@ public final class DurableExternalEffectLedger {
     public ExternalEffectRecord recordOutcome(
             String idempotencyKey,
             ExternalEffectStatus outcome,
+            ExternalEffectOutcomeEvidence evidence,
             String ownerId,
             long fenceToken) throws IOException {
         Objects.requireNonNull(outcome, "outcome must not be null");
+        Objects.requireNonNull(evidence, "evidence must not be null");
         if (!outcome.isTerminal()) {
             throw new IllegalArgumentException(
                     "external effect outcome must be terminal");
@@ -104,10 +106,14 @@ public final class DurableExternalEffectLedger {
                 throw new IllegalStateException(
                         "external effect already has a different terminal outcome");
             }
+            if (!current.outcomeEvidence().orElseThrow().equals(evidence)) {
+                throw new IllegalStateException(
+                        "external effect already has different outcome evidence");
+            }
             return current;
         }
         ExternalEffectLedgerState next =
-                state.recordOutcome(idempotencyKey, outcome);
+                state.recordOutcome(idempotencyKey, outcome, evidence);
         adoptAfterPersistence(next);
         return next.find(idempotencyKey).orElseThrow();
     }
