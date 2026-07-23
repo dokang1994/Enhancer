@@ -497,6 +497,14 @@ Current increment:
   drift after a bounded second sample. Real-filesystem integration proves representative
   prefixes, non-creation, immutable artifacts, corruption failure, bounded output, and
   explicit unknown worker liveness without recovery, scanning, or mutation;
+- Contract Verified and Integrated read-only external-effect recovery inspection:
+  `SchedulerExternalEffectRecoveryStatus` and `scheduler-external-effect-status` reuse
+  the checkpoint-correlated Scheduler Goal, classify conservative retry-safety phases,
+  validate exact WorkItem and AgentRun-history bindings, integrity-check every terminal
+  evidence reference, and reject bounded-sample Scheduler/runtime/ledger drift.
+  Real-filesystem integration proves representative prefixes, non-creation, immutable
+  artifacts, corrupt-evidence refusal, bounded output, and no adapter invocation,
+  external-system probing, or mutation;
 - deferred: real authorized external adapters, admission-history compaction/cleanup or schema-v1 queue migration, worker polling/service operation, general forward-reference graph/cycle handling, authenticated cancellation/pause/resume application, priority/fairness, broader budgets, checkpoints beyond current snapshots, schema-v1 runtime or effect-ledger migration, power-loss directory durability, broader multi-process and cross-store coordination, distributed locks and clock-skew handling, and broader production wiring.
 
 Ordered connection sequence:

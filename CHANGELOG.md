@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-07-23 - Add Read-Only Scheduler External-Effect Recovery Status
+
+- Added runtime-owned `SchedulerExternalEffectRecoveryStatus` with conservative phases
+  for no correlated Goal, pre-ledger prefixes, empty history, ambiguous preparation,
+  explicit user recovery, non-compensated effects, and all-compensated effects.
+- Added `SchedulerExternalEffectRecoveryStatusReader`, which reuses the existing
+  checkpoint-correlated Scheduler projection, resolves only that Goal's ledger,
+  validates exact WorkItem and retained AgentRun bindings, verifies every terminal
+  Evidence Store digest, and refuses observed Scheduler/runtime/ledger drift.
+- Added the separate bounded `scheduler-external-effect-status` command with explicit
+  Scheduler, effect, and Evidence roots plus a 1-through-8 ledger prefix. Complete counts
+  and identities are reported without evidence content or external-system claims.
+- Added phase-precedence, binding, drift, evidence-integrity, argument, and
+  real-filesystem CLI coverage for non-creation, immutable artifacts, corruption, and
+  bounded output.
+- Added no adapter invocation, replay, compensation, retry decision, recovery, scan,
+  persistence/schema mutation, external-system probe, commit, push, release, or
+  deployment.
+
 ## 2026-07-23 - Add Read-Only Scheduler Recovery Status
 
 - Added runtime-owned `SchedulerRecoveryStatus` with nine checkpoint-anchored durable

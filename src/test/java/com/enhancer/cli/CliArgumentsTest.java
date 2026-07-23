@@ -268,6 +268,51 @@ class CliArgumentsTest {
     }
 
     @Test
+    void parsesReadOnlySchedulerExternalEffectStatusAndRejectsInvalidInputs() {
+        SchedulerExternalEffectStatusCliCommand status =
+                (SchedulerExternalEffectStatusCliCommand) CliArguments.parse(
+                        schedulerExternalEffectStatusArguments("8"));
+
+        assertEquals(
+                temporaryRoot.resolve("queue").toAbsolutePath().normalize(),
+                status.queueRoot());
+        assertEquals("00000000-0000-0000-0000-000000000981",
+                status.queueId());
+        assertEquals(
+                temporaryRoot.resolve("runtime").toAbsolutePath().normalize(),
+                status.runtimeRoot());
+        assertEquals(
+                temporaryRoot.resolve("checkpoint").toAbsolutePath().normalize(),
+                status.cycleCheckpointRoot());
+        assertEquals(
+                temporaryRoot.resolve("records").toAbsolutePath().normalize(),
+                status.runRecordRoot());
+        assertEquals(
+                temporaryRoot.resolve("effects").toAbsolutePath().normalize(),
+                status.externalEffectRoot());
+        assertEquals(
+                temporaryRoot.resolve("evidence").toAbsolutePath().normalize(),
+                status.evidenceRoot());
+        assertEquals(8, status.limit());
+
+        String[] missing = Arrays.copyOf(
+                schedulerExternalEffectStatusArguments("8"), 15);
+        assertThrows(CliUsageException.class, () ->
+                CliArguments.parse(missing));
+        assertThrows(CliUsageException.class, () ->
+                CliArguments.parse(
+                        schedulerExternalEffectStatusArguments("0")));
+        assertThrows(CliUsageException.class, () ->
+                CliArguments.parse(
+                        schedulerExternalEffectStatusArguments("9")));
+        String[] invalidQueue =
+                schedulerExternalEffectStatusArguments("1");
+        invalidQueue[4] = "not-a-uuid";
+        assertThrows(CliUsageException.class, () ->
+                CliArguments.parse(invalidQueue));
+    }
+
+    @Test
     void parsesEveryExplicitSchedulerCycleInput() {
         SchedulerCycleCliCommand cycle = (SchedulerCycleCliCommand) CliArguments.parse(
                 schedulerCycleArguments("2", "300000", "20000"));
@@ -459,6 +504,25 @@ class CliArgumentsTest {
                 "--max-attempts", maxAttempts,
                 "--lease-millis", leaseMillis,
                 "--process-timeout-millis", processTimeoutMillis
+        };
+    }
+
+    private String[] schedulerExternalEffectStatusArguments(
+            String limit) {
+        return new String[] {
+                "scheduler-external-effect-status",
+                "--queue-root", temporaryRoot.resolve("queue").toString(),
+                "--queue-id", "00000000-0000-0000-0000-000000000981",
+                "--runtime-root", temporaryRoot.resolve("runtime").toString(),
+                "--cycle-checkpoint-root",
+                temporaryRoot.resolve("checkpoint").toString(),
+                "--run-record-root",
+                temporaryRoot.resolve("records").toString(),
+                "--external-effect-root",
+                temporaryRoot.resolve("effects").toString(),
+                "--evidence-root",
+                temporaryRoot.resolve("evidence").toString(),
+                "--limit", limit
         };
     }
 

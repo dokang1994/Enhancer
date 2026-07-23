@@ -39,6 +39,16 @@ final class CliArguments {
                     "runtime-root",
                     "cycle-checkpoint-root",
                     "run-record-root");
+    private static final Set<String> SCHEDULER_EXTERNAL_EFFECT_STATUS_OPTIONS =
+            Set.of(
+                    "queue-root",
+                    "queue-id",
+                    "runtime-root",
+                    "cycle-checkpoint-root",
+                    "run-record-root",
+                    "external-effect-root",
+                    "evidence-root",
+                    "limit");
     private static final Set<String> SCHEDULER_CYCLE_OPTIONS = Set.of(
             "project-root",
             "queue-root",
@@ -112,7 +122,8 @@ final class CliArguments {
             throw new CliUsageException(
                     "command is required: run, replay, run-record-list, scheduler-submit, "
                     + "scheduler-submit-generated, scheduler-status, "
-                            + "scheduler-recovery-status, scheduler-cycle, "
+                            + "scheduler-recovery-status, "
+                            + "scheduler-external-effect-status, scheduler-cycle, "
                             + "scheduler-drain, or "
                             + "checkpoint operation");
         }
@@ -128,6 +139,11 @@ final class CliArguments {
                     parseOptions(
                             arguments,
                             SCHEDULER_RECOVERY_STATUS_OPTIONS));
+            case "scheduler-external-effect-status" ->
+                    parseSchedulerExternalEffectStatus(
+                            parseOptions(
+                                    arguments,
+                                    SCHEDULER_EXTERNAL_EFFECT_STATUS_OPTIONS));
             case "scheduler-cycle" -> parseSchedulerCycle(
                     parseOptions(arguments, SCHEDULER_CYCLE_OPTIONS));
             case "scheduler-drain" -> parseSchedulerDrain(
@@ -248,6 +264,33 @@ final class CliArguments {
                         "cycle-checkpoint-root"),
                         "cycle-checkpoint-root"),
                 path(options.get("run-record-root"), "run-record-root"));
+    }
+
+    private static SchedulerExternalEffectStatusCliCommand
+            parseSchedulerExternalEffectStatus(
+                    Map<String, String> options) {
+        long limit = positiveLong(options.get("limit"), "limit");
+        if (limit
+                > SchedulerExternalEffectStatusCliCommand
+                        .MAX_LISTED_EFFECTS) {
+            throw new CliUsageException(
+                    "limit must not exceed "
+                            + SchedulerExternalEffectStatusCliCommand
+                                    .MAX_LISTED_EFFECTS);
+        }
+        return new SchedulerExternalEffectStatusCliCommand(
+                path(options.get("queue-root"), "queue-root"),
+                canonicalUuid(options.get("queue-id"), "queue-id"),
+                path(options.get("runtime-root"), "runtime-root"),
+                path(options.get(
+                        "cycle-checkpoint-root"),
+                        "cycle-checkpoint-root"),
+                path(options.get("run-record-root"), "run-record-root"),
+                path(options.get(
+                        "external-effect-root"),
+                        "external-effect-root"),
+                path(options.get("evidence-root"), "evidence-root"),
+                (int) limit);
     }
 
     private static SchedulerCycleCliCommand parseSchedulerCycle(

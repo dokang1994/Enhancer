@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### 2026-07-23: Project External-Effect Recovery Through The Checkpoint-Correlated Goal
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-23-project-external-effect-recovery-through-the-checkpoint-correlated-goal.md)
+
 ### 2026-07-23: Correlate Scheduler Recovery Prefixes Through A Read-Only Checkpoint-Anchored Projection
 
 Status: Accepted Decision

@@ -480,6 +480,25 @@ queue, runtime, cycle-checkpoint, and RunRecord roots, creates and mutates none 
 and reports `workerLiveness=UNKNOWN`; it does not inspect a process, evaluate lease
 expiry, apply recovery, clear a checkpoint, scan histories, or authorize execution.
 
+`SchedulerExternalEffectRecoveryStatus` extends that read-only observation without
+changing it. `SchedulerExternalEffectRecoveryStatusReader` first obtains the existing
+checkpoint-correlated Scheduler projection; without a correlated Goal it does not read
+the effect or Evidence stores. With one, it point-resolves only that Goal's ledger,
+validates every request against the runtime WorkItem and retained AgentRun history, and
+resolves every terminal outcome's exact Evidence Store reference to verify its recorded
+digest without exposing content. Missing ledger is a valid durable prefix only before
+the Scheduler projection advances beyond `RUNTIME_RECORDED`.
+
+The reader accepts output only after a bounded second Scheduler projection and ledger
+sample preserve the correlated observation, ledger presence, and ledger revision.
+Aggregate precedence follows retry safety: any `PREPARED` intent requires ambiguous
+effect recovery first, then `REQUIRES_USER_RECOVERY`, then `APPLIED` or `DEDUPLICATED`;
+only a non-empty all-`COMPENSATED` ledger is fully compensated. The separate
+`scheduler-external-effect-status` command requires the Scheduler recovery roots plus
+explicit effect and Evidence roots and a 1-through-8 ledger-prefix limit. It creates,
+recovers, scans, invokes, retries, compensates, or mutates nothing and makes no claim
+about an external system beyond integrity-checked adapter-established evidence.
+
 `AgentLoopAgentRunExecution` is the first production implementation of that port: it drives the Integrated Gate 1-4 pipeline (governed `read-file` `ToolExecutor`, `EvidenceRecorder`-persisted evidence, the bounded `AgentRunController`/`AgentLoop`, `DeterministicReadFileVerifier`, and the application `AgentRunFinalizer`) against the approved task's own source document — the `read-file` target is `taskRevision().sourceDocument()` and the expected content SHA-256 is `taskRevision().sourceSha256()` — and returns the persisted `run-record/<uuid>` reference. The `ApprovedTask` is constructed directly from the WorkItem's fields (no `ApprovedTaskReader`, no `In Progress` coupling), so the runtime finalizer's taskId-plus-sourceDocument binding holds by construction; the port must persist through the same `RunRecordStore` the worker's finalizer resolves from. A digest mismatch or Tool failure is carried in a persisted non-`VERIFIED` RunRecord, never thrown, and is real drift detection; the runtime result boundary records it as a failed attempt at `RETRY_PENDING` without a terminal queue disposition. The derivation of `(targetPath, expectedContentSha256)` from the WorkItem sits behind one private seam.
 
 `WorkPayload` now carries an optional caller-supplied `ExecutionInput(targetPath, expectedContentSha256)`: the port's seam prefers the declared input and falls back to the approved task's own source document when it is absent, so a WorkItem can execute an arbitrary governed target through the same contained read-file, evidence, verification, and RunRecord pipeline while the `ApprovedTask` binding stays the source document (exactly as the CLI separates `CURRENT_TASK.md` from `target-path`). The input is explicit caller authority data supplied through a `WorkMessagePublisher` overload — snapshot observations are evidence, not approval authority, so they never derive it. Both filesystem serializers persist the optional input after `allowedTools` with a presence flag; queue and runtime state both embed it in schema v2, with incompatible snapshots failing closed. Multiple inputs, payload-carried plans or Tool-call scripts, and write Tools remain out of scope.

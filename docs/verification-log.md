@@ -1819,3 +1819,36 @@ This assessment itself changed no production or test code and did not change Gat
   `bd43eb1` by fast-forward. A fresh post-push `git fetch origin main` and reference
   comparison showed local `main` and `origin/main` equal with ahead/behind `0/0` and a
   clean working tree before delivery-closeout documentation.
+
+## Read-Only Scheduler External-Effect Status Implementation
+
+- The operator-usability assessment found that the existing Scheduler recovery command
+  could identify the checkpoint-correlated Goal but could not distinguish missing,
+  empty, ambiguous prepared, user-recovery, non-compensated, or fully compensated
+  external-effect state. The accepted decision kept this as a separate read-only
+  command, joined stores only through that Goal, required exact terminal-evidence
+  digest verification, and retained `externalSystemState=NOT_PROBED`.
+- The aligned projection/argument RED stopped at `compileTestJava` with exactly 25
+  expected missing-symbol errors for the absent projection and CLI command. The first
+  reader RED also exposed two incorrect test accessor names; after those test defects
+  were corrected, the aligned RED contained exactly 9 expected missing-symbol errors
+  for the absent reader and concurrent-inspection exception.
+- The focused GREEN run executed `SchedulerExternalEffectRecoveryStatusTest`,
+  `SchedulerExternalEffectRecoveryStatusReaderTest`, `CliArgumentsTest`, and
+  `EnhancerCliSchedulerExternalEffectStatusIntegrationTest`: all 27 tests across 4
+  suites passed with zero skips, failures, or errors.
+- The wider Scheduler, external-effect, evidence, retry, worker, and CLI regression
+  passed all 113 tests across 26 suites with zero skips, failures, or errors.
+- Production/test source counts were 236/104. The first post-synchronization structural
+  run correctly failed one `DecisionLogIndexTest` because two `CURRENT_TASK.md`
+  decision headings used noncanonical hyphenation. After correcting those exact
+  references, the same 8-suite run executed 43 tests: 42 passed, one existing
+  privilege-dependent Windows symbolic-link setup case skipped, and no failures or
+  errors occurred.
+- Fresh `.\scripts\gradle.ps1 clean build --no-build-cache --warning-mode all --quiet`
+  completed with exit code 0 under build-enforced Java 17 `-Xlint:all -Werror`. Its
+  103 suites/533 tests produced 530 passes, 3 existing privilege-dependent Windows
+  symbolic-link setup skips, 0 failures, and 0 errors.
+- Scope held: the command scans no effect root, probes no external system, exposes no
+  evidence content, and performs no recovery, mutation, adapter invocation, retry,
+  waiting, polling, schema change, commit, push, merge, release, or deployment.

@@ -45,7 +45,10 @@ import com.enhancer.runtime.GeneratedInputSubmissionService;
 import com.enhancer.runtime.GeneratedSubmissionIdentities;
 import com.enhancer.runtime.GeneratedSubmissionRequest;
 import com.enhancer.runtime.MissingSchedulerQueueStateException;
+import com.enhancer.runtime.ExternalEffectStatus;
 import com.enhancer.runtime.SchedulerDrainResult;
+import com.enhancer.runtime.SchedulerExternalEffectRecoveryStatus;
+import com.enhancer.runtime.SchedulerExternalEffectRecoveryStatusReader;
 import com.enhancer.runtime.SchedulerQueueState;
 import com.enhancer.runtime.SchedulerQueueStatus;
 import com.enhancer.runtime.SchedulerRecoveryStatus;
@@ -129,6 +132,11 @@ public final class EnhancerCli {
                     instanceof SchedulerRecoveryStatusCliCommand recovery) {
                 return executeSchedulerRecoveryStatus(
                         recovery, stdout);
+            }
+            if (command
+                    instanceof SchedulerExternalEffectStatusCliCommand effects) {
+                return executeSchedulerExternalEffectStatus(
+                        effects, stdout);
             }
             if (command instanceof SchedulerCycleCliCommand cycle) {
                 return executeSchedulerCycle(cycle, stdout);
@@ -595,6 +603,85 @@ public final class EnhancerCli {
                 output.add("runRecordReference=" + value));
         status.runRecordVerificationStatus().ifPresent(value ->
                 output.add("runRecordVerificationStatus=" + value));
+        writeBounded(stdout, String.join("\n", output) + "\n");
+        return 0;
+    }
+
+    private int executeSchedulerExternalEffectStatus(
+            SchedulerExternalEffectStatusCliCommand command,
+            PrintStream stdout) throws IOException {
+        FileSystemAgentRuntimeStateStore runtimeStore =
+                new FileSystemAgentRuntimeStateStore(
+                        command.runtimeRoot());
+        SchedulerExternalEffectRecoveryStatus status;
+        try {
+            status = new SchedulerExternalEffectRecoveryStatusReader(
+                    new SchedulerRecoveryStatusReader(
+                            new FileSystemSchedulerQueueStore(
+                                    command.queueRoot()),
+                            runtimeStore,
+                            new FileSystemPendingFinalizationStore(
+                                    command.cycleCheckpointRoot()),
+                            new FileSystemRunRecordStore(
+                                    command.runRecordRoot())),
+                    runtimeStore,
+                    new FileSystemExternalEffectLedgerStore(
+                            command.externalEffectRoot()),
+                    new FileSystemEvidenceStore(
+                            command.evidenceRoot(),
+                            new EvidenceStoragePolicy(
+                                    EvidenceStoragePolicy
+                                            .MAX_SUPPORTED_CONTENT_BYTES)))
+                    .read(command.queueId());
+        } catch (MissingSchedulerQueueStateException exception) {
+            throw new CliUsageException(
+                    "queue configuration is invalid: "
+                            + safeMessage(exception),
+                    exception);
+        }
+        int returned = Math.min(
+                command.limit(), status.effects().size());
+        List<String> output = new ArrayList<>(List.of(
+                "status=" + status.phase(),
+                "exitCode=0",
+                "queueId=" + status.queueId(),
+                "queueRevision=" + status.queueRevision(),
+                "schedulerStatus=" + status.schedulerPhase(),
+                "checkpointPresent=" + status.goalId().isPresent(),
+                "effectLedgerPresent="
+                        + status.ledgerRevision().isPresent(),
+                "externalSystemState=NOT_PROBED",
+                "totalEffects=" + status.effects().size(),
+                "preparedEffects=" + status.count(
+                        ExternalEffectStatus.PREPARED),
+                "appliedEffects=" + status.count(
+                        ExternalEffectStatus.APPLIED),
+                "deduplicatedEffects=" + status.count(
+                        ExternalEffectStatus.DEDUPLICATED),
+                "compensatedEffects=" + status.count(
+                        ExternalEffectStatus.COMPENSATED),
+                "userRecoveryEffects=" + status.count(
+                        ExternalEffectStatus.REQUIRES_USER_RECOVERY),
+                "verifiedTerminalEvidence="
+                        + status.verifiedTerminalEvidence(),
+                "requestedLimit=" + command.limit(),
+                "returnedEffects=" + returned));
+        status.goalId().ifPresent(value ->
+                output.add("goalId=" + value));
+        status.workItemId().ifPresent(value ->
+                output.add("workItemId=" + value));
+        status.runtimeRevision().ifPresent(value ->
+                output.add("runtimeRevision=" + value));
+        status.ledgerRevision().ifPresent(value ->
+                output.add("ledgerRevision=" + value));
+        for (int index = 0; index < returned; index++) {
+            SchedulerExternalEffectRecoveryStatus.EffectStatus effect =
+                    status.effects().get(index);
+            output.add("effect." + (index + 1)
+                    + "=" + effect.idempotencyKey()
+                    + "," + effect.status()
+                    + "," + effect.agentRunId());
+        }
         writeBounded(stdout, String.join("\n", output) + "\n");
         return 0;
     }

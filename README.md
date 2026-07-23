@@ -171,6 +171,32 @@ the projection neither inspects a process nor interprets lease expiry. A missing
 is configuration exit `2`; corrupt, missing referenced, inconsistent, or concurrently
 changing recovery state is internal exit `70`.
 
+## Inspect Scheduler External-Effect Recovery Status
+
+`scheduler-external-effect-status` reuses the same checkpoint-correlated Scheduler
+observation and inspects only that Goal's external-effect ledger and terminal evidence:
+
+```powershell
+.\scripts\gradle.ps1 run --args="scheduler-external-effect-status --queue-root C:\Enhancer\.enhancer\queue --queue-id <canonical-queue-uuid> --runtime-root C:\Enhancer\.enhancer\runtime --cycle-checkpoint-root C:\Enhancer\.enhancer\scheduler-checkpoint --run-record-root C:\Enhancer\.enhancer\run-records --external-effect-root C:\Enhancer\.enhancer\effects --evidence-root C:\Enhancer\.enhancer\evidence --limit 8"
+```
+
+`--limit` must be from `1` through `8`. Complete counts cover `PREPARED`, `APPLIED`,
+`DEDUPLICATED`, `COMPENSATED`, and `REQUIRES_USER_RECOVERY`; the bounded prefix reports
+only idempotency key, durable status, and AgentRun identity. Evidence content is never
+printed.
+
+The aggregate status is `NO_CORRELATED_GOAL`, `LEDGER_NOT_RECORDED`,
+`LEDGER_CREATION_PENDING`, `EMPTY_LEDGER`, `PREPARED_EFFECT_REQUIRES_RECOVERY`,
+`USER_RECOVERY_REQUIRED`, `NON_COMPENSATED_EFFECT_RECORDED`, or
+`ALL_EFFECTS_COMPENSATED`. Safety precedence matches retry refusal: ambiguous prepared
+intent first, then explicit user recovery, then applied/deduplicated effects. Every
+terminal effect must resolve to integrity-matching Evidence Store metadata.
+
+The command never invokes an adapter, probes the external system, replays, compensates,
+recovers, scans, or mutates a store. `externalSystemState=NOT_PROBED` is intentional.
+Missing or corrupt referenced evidence, impossible bindings, and observed Scheduler,
+runtime, or ledger drift exit `70`; a missing queue remains configuration exit `2`.
+
 ## Recover One Durable Scheduler Cycle
 
 `scheduler-cycle` recovers an already-existing durable Scheduler queue and runs exactly
@@ -230,7 +256,7 @@ fails closed.
 |---|---|
 | Submission interrupted or produced no trusted result | Reinvoke `scheduler-submit` with every original argument against the unchanged governed project. Accept `ADMITTED` or `REPLAYED`; do not invoke the cycle while submission remains an error. |
 | `ADMITTED` or `REPLAYED` | The work is durable but not necessarily executed. Use `scheduler-status` when queue inspection is needed, then invoke `scheduler-cycle` or `scheduler-drain` separately only when execution is intended. |
-| Cycle or drain interrupted or exits `70` | Preserve the queue and every execution root. Run `scheduler-recovery-status` with those retained roots to identify the durable prefix without changing it; if a RunRecord reference is present, inspect it with `replay`. Correct only the reported environmental problem, then reinvoke the same execution command so the worker checkpoint can recover. Do not resubmit work to repair execution. |
+| Cycle or drain interrupted or exits `70` | Preserve the queue and every execution root. Run `scheduler-recovery-status` with those retained roots to identify the durable prefix without changing it. When it reports a Goal, run `scheduler-external-effect-status` before considering retry so prepared, user-recovery, applied/deduplicated, and compensated histories remain explicit; if a RunRecord reference is present, inspect it with `replay`. Correct only the reported environmental problem, then reinvoke the same execution command so the worker checkpoint can recover. Do not resubmit work to repair execution. |
 | Cycle reports `VERIFIED_COMPLETED` | The WorkItem is terminally verified. Exact submission replay remains a no-op, and a later cycle for an otherwise empty queue reports `IDLE`. |
 | Cycle reports `FAILED` and exits `40` | The WorkItem is terminally failed. Discover retained evidence with `run-record-list`, inspect a selected record with `replay`, and retain runtime state; resubmitting the same identity is not a retry. New work requires separately approved inputs and a new message identity. |
 | Cycle reports `IDLE` | No ready work was executed. Do not loop automatically; use `scheduler-status` to distinguish an empty queue from blocked work and verify the queue root/identity and preceding submission result. |
