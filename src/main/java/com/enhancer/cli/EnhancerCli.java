@@ -48,6 +48,8 @@ import com.enhancer.runtime.MissingSchedulerQueueStateException;
 import com.enhancer.runtime.SchedulerDrainResult;
 import com.enhancer.runtime.SchedulerQueueState;
 import com.enhancer.runtime.SchedulerQueueStatus;
+import com.enhancer.runtime.SchedulerRecoveryStatus;
+import com.enhancer.runtime.SchedulerRecoveryStatusReader;
 import com.enhancer.runtime.WorkItemDisposition;
 import com.enhancer.session.DevelopmentSessionCheckpoint;
 import com.enhancer.session.DevelopmentSessionCheckpointConflictException;
@@ -122,6 +124,11 @@ public final class EnhancerCli {
             }
             if (command instanceof SchedulerStatusCliCommand status) {
                 return executeSchedulerStatus(status, stdout);
+            }
+            if (command
+                    instanceof SchedulerRecoveryStatusCliCommand recovery) {
+                return executeSchedulerRecoveryStatus(
+                        recovery, stdout);
             }
             if (command instanceof SchedulerCycleCliCommand cycle) {
                 return executeSchedulerCycle(cycle, stdout);
@@ -534,6 +541,60 @@ public final class EnhancerCli {
             output.add("workItem." + (index + 1)
                     + "=" + work.workItemId() + "," + work.state());
         }
+        writeBounded(stdout, String.join("\n", output) + "\n");
+        return 0;
+    }
+
+    private int executeSchedulerRecoveryStatus(
+            SchedulerRecoveryStatusCliCommand command,
+            PrintStream stdout) throws IOException {
+        SchedulerRecoveryStatus status;
+        try {
+            status = new SchedulerRecoveryStatusReader(
+                    new FileSystemSchedulerQueueStore(
+                            command.queueRoot()),
+                    new FileSystemAgentRuntimeStateStore(
+                            command.runtimeRoot()),
+                    new FileSystemPendingFinalizationStore(
+                            command.cycleCheckpointRoot()),
+                    new FileSystemRunRecordStore(
+                            command.runRecordRoot()))
+                    .read(command.queueId());
+        } catch (MissingSchedulerQueueStateException exception) {
+            throw new CliUsageException(
+                    "queue configuration is invalid: "
+                            + safeMessage(exception),
+                    exception);
+        }
+        List<String> output = new ArrayList<>(List.of(
+                "status=" + status.phase(),
+                "exitCode=0",
+                "queueId=" + status.queueId(),
+                "queueRevision=" + status.queueRevision(),
+                "checkpointPresent=" + status.goalId().isPresent(),
+                "workerLiveness=UNKNOWN"));
+        status.goalId().ifPresent(value ->
+                output.add("goalId=" + value));
+        status.agentRunId().ifPresent(value ->
+                output.add("agentRunId=" + value));
+        status.replacementAgentRunId().ifPresent(value ->
+                output.add("replacementAgentRunId=" + value));
+        status.runtimeRevision().ifPresent(value ->
+                output.add("runtimeRevision=" + value));
+        status.goalStatus().ifPresent(value ->
+                output.add("goalStatus=" + value));
+        status.agentRunStatus().ifPresent(value ->
+                output.add("agentRunStatus=" + value));
+        if (status.runtimeRevision().isPresent()) {
+            output.add("agentRunAttempts="
+                    + status.agentRunAttempts());
+        }
+        status.queueWorkState().ifPresent(value ->
+                output.add("queueWorkState=" + value));
+        status.runRecordReference().ifPresent(value ->
+                output.add("runRecordReference=" + value));
+        status.runRecordVerificationStatus().ifPresent(value ->
+                output.add("runRecordVerificationStatus=" + value));
         writeBounded(stdout, String.join("\n", output) + "\n");
         return 0;
     }

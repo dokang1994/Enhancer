@@ -1765,3 +1765,39 @@ This assessment itself changed no production or test code and did not change Gat
   post-push `git fetch origin main` and reference comparison showed local `main` and
   `origin/main` equal, with the working tree clean before delivery-closeout
   documentation.
+
+## Read-Only Scheduler Recovery Status Implementation
+
+- The operator-usability assessment found that queue-local status could not distinguish
+  durable recovery prefixes across the queue, AgentRuntime, cycle checkpoint, and
+  checkpointed RunRecord. The accepted decision selected the single
+  `PendingFinalization` checkpoint as the exact cross-store anchor, required a second
+  sample to reject observed drift, and retained `workerLiveness=UNKNOWN`.
+- The aligned projection/argument RED stopped at `compileTestJava` with exactly 12
+  expected missing-symbol errors for the absent recovery projection and CLI command.
+  After those contracts were implemented, the reader/CLI RED stopped with exactly 5
+  expected missing-symbol errors for the absent read service and
+  concurrent-inspection exception.
+- The focused GREEN run executed `SchedulerRecoveryStatusTest`,
+  `SchedulerRecoveryStatusReaderTest`, `CliArgumentsTest`, and
+  `EnhancerCliSchedulerRecoveryStatusIntegrationTest`: all 29 tests across 4 suites
+  passed with zero skips, failures, or errors. It proved all nine typed recovery phases,
+  exact binding rejection, no unanchored runtime/RunRecord scan, observed queue,
+  checkpoint, and runtime-revision drift refusal, real-filesystem durable prefixes,
+  missing-root non-creation, immutable artifacts, corruption failure, and bounded
+  output.
+- The wider Scheduler/CLI regression executed 139 tests across 26 suites; all passed
+  with zero skips, failures, or errors.
+- The post-synchronization run executed `DocumentOwnershipTest`,
+  `DecisionLogIndexTest`, `ProjectContextReaderTest`, `RuntimePackageBoundaryTest`, and
+  the four focused feature suites. It passed 45 tests across 8 suites: 44 passed, one
+  existing privilege-dependent Windows symbolic-link setup case skipped, 0 failures,
+  and 0 errors. Production/test source counts were 232/101, and fresh
+  `git diff --check` produced no output.
+- Fresh `.\scripts\gradle.ps1 clean build --no-build-cache --warning-mode all --quiet`
+  completed with exit code 0 under build-enforced Java 17 `-Xlint:all -Werror`. Its
+  100 suites/519 tests produced 516 passes, 3 existing privilege-dependent Windows
+  symbolic-link setup skips, 0 failures, and 0 errors.
+- Scope held: the implementation performs no recovery, mutation, scanning, liveness
+  claim, retry, wait, polling, schema change, commit, push, merge, release, or
+  deployment.

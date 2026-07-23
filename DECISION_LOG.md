@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### 2026-07-23: Correlate Scheduler Recovery Prefixes Through A Read-Only Checkpoint-Anchored Projection
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-23-correlate-scheduler-recovery-prefixes-through-a-read-only-checkpoint-anchored-projection.md)
+
 ### 2026-07-23: Project Persisted Scheduler Queue State Through A Read-Only Status Command
 
 Status: Accepted Decision

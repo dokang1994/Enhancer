@@ -32,6 +32,13 @@ final class CliArguments {
             Set.of("run-record-root", "limit");
     private static final Set<String> SCHEDULER_STATUS_OPTIONS =
             Set.of("queue-root", "queue-id", "limit");
+    private static final Set<String> SCHEDULER_RECOVERY_STATUS_OPTIONS =
+            Set.of(
+                    "queue-root",
+                    "queue-id",
+                    "runtime-root",
+                    "cycle-checkpoint-root",
+                    "run-record-root");
     private static final Set<String> SCHEDULER_CYCLE_OPTIONS = Set.of(
             "project-root",
             "queue-root",
@@ -104,7 +111,8 @@ final class CliArguments {
         if (arguments == null || arguments.length == 0) {
             throw new CliUsageException(
                     "command is required: run, replay, run-record-list, scheduler-submit, "
-                    + "scheduler-submit-generated, scheduler-status, scheduler-cycle, "
+                    + "scheduler-submit-generated, scheduler-status, "
+                            + "scheduler-recovery-status, scheduler-cycle, "
                             + "scheduler-drain, or "
                             + "checkpoint operation");
         }
@@ -116,6 +124,10 @@ final class CliArguments {
                     parseOptions(arguments, RUN_RECORD_LIST_OPTIONS));
             case "scheduler-status" -> parseSchedulerStatus(
                     parseOptions(arguments, SCHEDULER_STATUS_OPTIONS));
+            case "scheduler-recovery-status" -> parseSchedulerRecoveryStatus(
+                    parseOptions(
+                            arguments,
+                            SCHEDULER_RECOVERY_STATUS_OPTIONS));
             case "scheduler-cycle" -> parseSchedulerCycle(
                     parseOptions(arguments, SCHEDULER_CYCLE_OPTIONS));
             case "scheduler-drain" -> parseSchedulerDrain(
@@ -224,6 +236,18 @@ final class CliArguments {
                 path(options.get("queue-root"), "queue-root"),
                 canonicalUuid(options.get("queue-id"), "queue-id"),
                 (int) limit);
+    }
+
+    private static SchedulerRecoveryStatusCliCommand
+            parseSchedulerRecoveryStatus(Map<String, String> options) {
+        return new SchedulerRecoveryStatusCliCommand(
+                path(options.get("queue-root"), "queue-root"),
+                canonicalUuid(options.get("queue-id"), "queue-id"),
+                path(options.get("runtime-root"), "runtime-root"),
+                path(options.get(
+                        "cycle-checkpoint-root"),
+                        "cycle-checkpoint-root"),
+                path(options.get("run-record-root"), "run-record-root"));
     }
 
     private static SchedulerCycleCliCommand parseSchedulerCycle(

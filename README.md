@@ -148,6 +148,29 @@ effect, checkpoint, RunRecord, submission, or invocation store. `ACTIVE` means o
 the persisted queue snapshot contains an active slot; it does not prove that a worker is
 currently alive. Use the execution commands and their retained roots for recovery.
 
+## Inspect Durable Scheduler Recovery Status
+
+`scheduler-recovery-status` correlates the queue with the single cycle checkpoint and
+only the Goal and RunRecord named by that checkpoint:
+
+```powershell
+.\scripts\gradle.ps1 run --args="scheduler-recovery-status --queue-root C:\Enhancer\.enhancer\queue --queue-id <canonical-queue-uuid> --runtime-root C:\Enhancer\.enhancer\runtime --cycle-checkpoint-root C:\Enhancer\.enhancer\scheduler-checkpoint --run-record-root C:\Enhancer\.enhancer\run-records"
+```
+
+The status is one of `NO_PENDING_CYCLE`, `INTENT_RECORDED`, `RUNTIME_RECORDED`,
+`RUN_RECORD_RECORDED`, `RESULT_RECORDING_PENDING`, `RETRY_RESOLUTION_PENDING`,
+`REPLACEMENT_RECORDED`, `QUEUE_DISPOSITION_PENDING`, or
+`CHECKPOINT_CLEAR_PENDING`. Optional lines identify the correlated Goal, AgentRun,
+replacement, queue state, runtime state, and RunRecord verification.
+
+The command directly reads each store and never invokes recovery, clears a checkpoint,
+scans runtime or RunRecord history, or creates a missing root. It takes a bounded second
+sample and exits `70` rather than mixing values when the queue revision, checkpoint, or
+runtime revision changes during inspection. `workerLiveness=UNKNOWN` is intentional:
+the projection neither inspects a process nor interprets lease expiry. A missing queue
+is configuration exit `2`; corrupt, missing referenced, inconsistent, or concurrently
+changing recovery state is internal exit `70`.
+
 ## Recover One Durable Scheduler Cycle
 
 `scheduler-cycle` recovers an already-existing durable Scheduler queue and runs exactly
@@ -207,7 +230,7 @@ fails closed.
 |---|---|
 | Submission interrupted or produced no trusted result | Reinvoke `scheduler-submit` with every original argument against the unchanged governed project. Accept `ADMITTED` or `REPLAYED`; do not invoke the cycle while submission remains an error. |
 | `ADMITTED` or `REPLAYED` | The work is durable but not necessarily executed. Use `scheduler-status` when queue inspection is needed, then invoke `scheduler-cycle` or `scheduler-drain` separately only when execution is intended. |
-| Cycle or drain interrupted or exits `70` | Preserve the queue and every execution root. Use `run-record-list` against the retained RunRecord root and `replay` a selected reference when evidence exists, correct only the reported environmental problem, and reinvoke the same execution command so the worker checkpoint can recover. Do not resubmit work to repair execution. |
+| Cycle or drain interrupted or exits `70` | Preserve the queue and every execution root. Run `scheduler-recovery-status` with those retained roots to identify the durable prefix without changing it; if a RunRecord reference is present, inspect it with `replay`. Correct only the reported environmental problem, then reinvoke the same execution command so the worker checkpoint can recover. Do not resubmit work to repair execution. |
 | Cycle reports `VERIFIED_COMPLETED` | The WorkItem is terminally verified. Exact submission replay remains a no-op, and a later cycle for an otherwise empty queue reports `IDLE`. |
 | Cycle reports `FAILED` and exits `40` | The WorkItem is terminally failed. Discover retained evidence with `run-record-list`, inspect a selected record with `replay`, and retain runtime state; resubmitting the same identity is not a retry. New work requires separately approved inputs and a new message identity. |
 | Cycle reports `IDLE` | No ready work was executed. Do not loop automatically; use `scheduler-status` to distinguish an empty queue from blocked work and verify the queue root/identity and preceding submission result. |

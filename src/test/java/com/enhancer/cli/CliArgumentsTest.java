@@ -197,6 +197,77 @@ class CliArgumentsTest {
     }
 
     @Test
+    void parsesReadOnlySchedulerRecoveryStatusAndRejectsInvalidInputs() {
+        SchedulerRecoveryStatusCliCommand status =
+                (SchedulerRecoveryStatusCliCommand) CliArguments.parse(new String[] {
+                        "scheduler-recovery-status",
+                        "--queue-root", temporaryRoot.resolve("queue").toString(),
+                        "--queue-id", "00000000-0000-0000-0000-000000000951",
+                        "--runtime-root", temporaryRoot.resolve("runtime").toString(),
+                        "--cycle-checkpoint-root",
+                        temporaryRoot.resolve("checkpoint").toString(),
+                        "--run-record-root",
+                        temporaryRoot.resolve("records").toString()
+                });
+
+        assertEquals(
+                temporaryRoot.resolve("queue").toAbsolutePath().normalize(),
+                status.queueRoot());
+        assertEquals("00000000-0000-0000-0000-000000000951",
+                status.queueId());
+        assertEquals(
+                temporaryRoot.resolve("runtime").toAbsolutePath().normalize(),
+                status.runtimeRoot());
+        assertEquals(
+                temporaryRoot.resolve("checkpoint").toAbsolutePath().normalize(),
+                status.cycleCheckpointRoot());
+        assertEquals(
+                temporaryRoot.resolve("records").toAbsolutePath().normalize(),
+                status.runRecordRoot());
+
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(new String[] {
+                "scheduler-recovery-status",
+                "--queue-root", temporaryRoot.resolve("queue").toString(),
+                "--queue-id", "00000000-0000-0000-0000-000000000951",
+                "--runtime-root", temporaryRoot.resolve("runtime").toString(),
+                "--cycle-checkpoint-root",
+                temporaryRoot.resolve("checkpoint").toString()
+        }));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(new String[] {
+                "scheduler-recovery-status",
+                "--queue-root", temporaryRoot.resolve("queue").toString(),
+                "--queue-id", "not-a-uuid",
+                "--runtime-root", temporaryRoot.resolve("runtime").toString(),
+                "--cycle-checkpoint-root",
+                temporaryRoot.resolve("checkpoint").toString(),
+                "--run-record-root",
+                temporaryRoot.resolve("records").toString()
+        }));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(new String[] {
+                "scheduler-recovery-status",
+                "--queue-root", temporaryRoot.resolve("queue").toString(),
+                "--queue-root", temporaryRoot.resolve("other").toString(),
+                "--queue-id", "00000000-0000-0000-0000-000000000951",
+                "--runtime-root", temporaryRoot.resolve("runtime").toString(),
+                "--cycle-checkpoint-root",
+                temporaryRoot.resolve("checkpoint").toString(),
+                "--run-record-root",
+                temporaryRoot.resolve("records").toString()
+        }));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(new String[] {
+                "scheduler-recovery-status",
+                "--queue-root", temporaryRoot.resolve("queue").toString(),
+                "--queue-id", "00000000-0000-0000-0000-000000000951",
+                "--runtime-root", temporaryRoot.resolve("runtime").toString(),
+                "--cycle-checkpoint-root",
+                temporaryRoot.resolve("checkpoint").toString(),
+                "--run-record-root",
+                temporaryRoot.resolve("records").toString(),
+                "--unknown", "value"
+        }));
+    }
+
+    @Test
     void parsesEveryExplicitSchedulerCycleInput() {
         SchedulerCycleCliCommand cycle = (SchedulerCycleCliCommand) CliArguments.parse(
                 schedulerCycleArguments("2", "300000", "20000"));

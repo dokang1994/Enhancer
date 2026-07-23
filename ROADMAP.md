@@ -490,6 +490,13 @@ Current increment:
   Real-filesystem integration proves all five states and that inspection changes no
   artifact bytes, timestamp, revision, or active slot, while missing and corrupt queues
   retain configuration/internal failure separation;
+- Contract Verified and Integrated read-only recovery inspection:
+  `SchedulerRecoveryStatus` and `scheduler-recovery-status` use the single cycle
+  checkpoint as the only Goal/AgentRun/RunRecord join anchor, classify nine durable
+  prefixes, validate exact cross-store bindings, and refuse queue/checkpoint/runtime
+  drift after a bounded second sample. Real-filesystem integration proves representative
+  prefixes, non-creation, immutable artifacts, corruption failure, bounded output, and
+  explicit unknown worker liveness without recovery, scanning, or mutation;
 - deferred: real authorized external adapters, admission-history compaction/cleanup or schema-v1 queue migration, worker polling/service operation, general forward-reference graph/cycle handling, authenticated cancellation/pause/resume application, priority/fairness, broader budgets, checkpoints beyond current snapshots, schema-v1 runtime or effect-ledger migration, power-loss directory durability, broader multi-process and cross-store coordination, distributed locks and clock-skew handling, and broader production wiring.
 
 Ordered connection sequence:

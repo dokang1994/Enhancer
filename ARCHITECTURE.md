@@ -463,6 +463,23 @@ cannot requeue work or advance the revision. It reads no runtime, effect, cycle-
 RunRecord, submission, or invocation store; cross-store recovery interpretation remains
 a separate contract.
 
+`SchedulerRecoveryStatus` is that separate read-only cross-store contract. The single
+`PendingFinalization` record is its only join anchor: without it, runtime and RunRecord
+stores are not scanned. With it, `SchedulerRecoveryStatusReader` directly resolves the
+named Goal and optional RunRecord, validates exact checkpoint/AgentRun/replacement,
+WorkItem/admission, terminal result/reference, and RunRecord task/source bindings, and
+projects one durable phase from no pending cycle through intent, runtime, RunRecord,
+result recording, retry resolution, replacement, queue disposition, or checkpoint
+clearing.
+
+The stores still share no transaction. The reader therefore takes one bounded second
+sample and refuses output when the queue revision, checkpoint value, or referenced
+runtime revision changed. This is a stable sequential observation, not an atomic
+multi-store snapshot. The separate `scheduler-recovery-status` command requires explicit
+queue, runtime, cycle-checkpoint, and RunRecord roots, creates and mutates none of them,
+and reports `workerLiveness=UNKNOWN`; it does not inspect a process, evaluate lease
+expiry, apply recovery, clear a checkpoint, scan histories, or authorize execution.
+
 `AgentLoopAgentRunExecution` is the first production implementation of that port: it drives the Integrated Gate 1-4 pipeline (governed `read-file` `ToolExecutor`, `EvidenceRecorder`-persisted evidence, the bounded `AgentRunController`/`AgentLoop`, `DeterministicReadFileVerifier`, and the application `AgentRunFinalizer`) against the approved task's own source document — the `read-file` target is `taskRevision().sourceDocument()` and the expected content SHA-256 is `taskRevision().sourceSha256()` — and returns the persisted `run-record/<uuid>` reference. The `ApprovedTask` is constructed directly from the WorkItem's fields (no `ApprovedTaskReader`, no `In Progress` coupling), so the runtime finalizer's taskId-plus-sourceDocument binding holds by construction; the port must persist through the same `RunRecordStore` the worker's finalizer resolves from. A digest mismatch or Tool failure is carried in a persisted non-`VERIFIED` RunRecord, never thrown, and is real drift detection; the runtime result boundary records it as a failed attempt at `RETRY_PENDING` without a terminal queue disposition. The derivation of `(targetPath, expectedContentSha256)` from the WorkItem sits behind one private seam.
 
 `WorkPayload` now carries an optional caller-supplied `ExecutionInput(targetPath, expectedContentSha256)`: the port's seam prefers the declared input and falls back to the approved task's own source document when it is absent, so a WorkItem can execute an arbitrary governed target through the same contained read-file, evidence, verification, and RunRecord pipeline while the `ApprovedTask` binding stays the source document (exactly as the CLI separates `CURRENT_TASK.md` from `target-path`). The input is explicit caller authority data supplied through a `WorkMessagePublisher` overload — snapshot observations are evidence, not approval authority, so they never derive it. Both filesystem serializers persist the optional input after `allowedTools` with a presence flag; queue and runtime state both embed it in schema v2, with incompatible snapshots failing closed. Multiple inputs, payload-carried plans or Tool-call scripts, and write Tools remain out of scope.

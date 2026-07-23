@@ -9,8 +9,8 @@
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 228 Java files.
-- Test source: 98 Java files.
+- Production source: 232 Java files.
+- Test source: 101 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -20,6 +20,14 @@ it does not restate which commit published which increment.
 
 ### Contract Verified
 
+- Read-only Scheduler recovery status under `com.enhancer.runtime`:
+  `SchedulerRecoveryStatus` projects nine durable cycle phases from one queue snapshot,
+  the optional checkpoint-anchored AgentRuntime, and its optional checkpointed
+  RunRecord. Exact checkpoint, attempt/replacement, WorkItem/admission, terminal result,
+  and task/source bindings fail closed. `SchedulerRecoveryStatusReader` performs no
+  recovery or scan and refuses observed queue/checkpoint/runtime drift after a bounded
+  second sample; the result remains a stable sequential observation rather than an
+  atomic snapshot or liveness claim.
 - Read-only Scheduler queue status under `com.enhancer.runtime`: `SchedulerQueueStatus`
   preserves exact admission order and classifies the complete persisted partition as
   `READY`, `BLOCKED`, `ACTIVE`, `VERIFIED`, or `FAILED`, with pending readiness derived
@@ -59,6 +67,13 @@ it does not restate which commit published which increment.
 
 ### Integrated
 
+- Gate 8 read-only Scheduler recovery-status CLI: `scheduler-recovery-status` uses the
+  cycle checkpoint as the sole cross-store anchor, directly reads only the explicit
+  queue/runtime/checkpoint/RunRecord roots, and reports a bounded typed durable phase
+  with `workerLiveness=UNKNOWN`. Named real-filesystem coverage proves no-checkpoint,
+  intent-only, runtime, and checkpointed-RunRecord prefixes, missing-root non-creation,
+  immutable artifacts, corrupt-state refusal, exact binding, and stable-sample drift
+  rejection without invoking any recovery or mutation.
 - Gate 8 read-only Scheduler queue status CLI: `scheduler-status` resolves one explicit
   filesystem queue snapshot without recovery, reports complete five-state counts plus a
   bounded admission-ordered identity/state prefix, and reads no runtime, effect,
@@ -214,7 +229,7 @@ it does not restate which commit published which increment.
 - Delivery Gate 5: Operational.
 - Delivery Gate 6: Integrated by the 2026-07-15 re-scope-and-promotion decision; diagnostics, terminal-session, and active/selected-file observation moved to Gate 12.
 - Delivery Gate 7: Contract Verified after a fresh Integrated maturity assessment. The work-message queue/journal/replay/idempotency path now has a named durable Scheduler-queue consumer, the durable control-request queue path is Integrated, and connection 3d gives `MessageTransport` one named local work/result-spool consumer. Result/handoff flows, authenticated control application, topic, cancellation/cascade-ordering/backpressure, and reliability branches beyond the named control retry/dead-letter path remain contract-only; no durable bus or supported messaging entry point exists.
-- Delivery Gate 8: Specified - Next; `WorkItem` admission, the dependency-ready single-worker queue, durable schema-v2 queue state/exact admission history/restart recovery with queue-scoped local cross-process update serialization, schema-v2 Goal/AgentRun and retry-decision history, fenced single-owner lease/expiry recovery, durable control-request admission, the bounded fence-checked external-effect ledger, the bounded AgentRun retry decision and durable controller, split RunRecord-backed result/terminal finalization, durable queue terminal disposition, the durable Scheduler worker (3a), the AgentLoop-backed execution port, the `WorkPayload` execution-input extension, the isolated process lifecycle (3b), the local spool adapter (3c), process-isolated execution (3d), durable submission intent/queue creation, the replay-safe generated-input submission boundary, and the bounded foreground drain are Contract Verified; the filesystem queue lock is also Integrated through a real child-JVM contention path, while restart-idempotent durable work-message admission, durable submission recovery and its explicit CLI, the generated-input submission CLI, the durable queue-to-lifecycle dispatch path, verified worker-over-real-execution path, process-isolated durable worker composition, retry-aware replacement execution/recovery, control-request queue-to-state path, the evidence-bound deterministic external-effect executor path, the recovery-only one-cycle CLI, and the bounded `scheduler-drain` CLI are Integrated. The explicit submit-then-separately-cycle operator workflow and the generated-input `scheduler-submit-generated`-then-`scheduler-cycle` workflow are Operational sub-paths with documented recovery and actual-repository smoke runs, while Gate 8 as a whole remains `Specified - Next`. The retry-aware Worker creates the Goal ledger before execution, keeps the queue active across admitted attempts, checkpoints replacement identity before append, and converges to one final disposition. The process-isolated composition uses separate per-cycle work/result spools, the real child launcher, and exact route/envelope/cardinality plus RunRecord task/source/target/digest/status binding. Replay-safe generated-input submission is an Operational sub-path: the `scheduler-submit-generated` command plus a separate `scheduler-cycle` reached `ADMITTED -> VERIFIED_COMPLETED -> REPLAYED -> IDLE` on an actual Enhancer-repository smoke run with documented recovery, while Gate 8 as a whole remains `Specified - Next`. Production external adapters, authenticated control application, polling/service operation, and broader production wiring do not yet exist.
+- Delivery Gate 8: Specified - Next; `WorkItem` admission, the dependency-ready single-worker queue, durable schema-v2 queue state/exact admission history/restart recovery with queue-scoped local cross-process update serialization, schema-v2 Goal/AgentRun and retry-decision history, fenced single-owner lease/expiry recovery, durable control-request admission, the bounded fence-checked external-effect ledger, the bounded AgentRun retry decision and durable controller, split RunRecord-backed result/terminal finalization, durable queue terminal disposition, the durable Scheduler worker (3a), the AgentLoop-backed execution port, the `WorkPayload` execution-input extension, the isolated process lifecycle (3b), the local spool adapter (3c), process-isolated execution (3d), durable submission intent/queue creation, the replay-safe generated-input submission boundary, the bounded foreground drain, and the checkpoint-anchored read-only recovery projection are Contract Verified; the filesystem queue lock is also Integrated through a real child-JVM contention path, while restart-idempotent durable work-message admission, durable submission recovery and its explicit CLI, the generated-input submission CLI, the durable queue-to-lifecycle dispatch path, verified worker-over-real-execution path, process-isolated durable worker composition, retry-aware replacement execution/recovery, control-request queue-to-state path, the evidence-bound deterministic external-effect executor path, the recovery-only one-cycle CLI, the bounded `scheduler-drain` CLI, and the read-only `scheduler-recovery-status` CLI are Integrated. The explicit submit-then-separately-cycle operator workflow and the generated-input `scheduler-submit-generated`-then-`scheduler-cycle` workflow are Operational sub-paths with documented recovery and actual-repository smoke runs, while Gate 8 as a whole remains `Specified - Next`. The retry-aware Worker creates the Goal ledger before execution, keeps the queue active across admitted attempts, checkpoints replacement identity before append, and converges to one final disposition. The process-isolated composition uses separate per-cycle work/result spools, the real child launcher, and exact route/envelope/cardinality plus RunRecord task/source/target/digest/status binding. Replay-safe generated-input submission is an Operational sub-path: the `scheduler-submit-generated` command plus a separate `scheduler-cycle` reached `ADMITTED -> VERIFIED_COMPLETED -> REPLAYED -> IDLE` on an actual Enhancer-repository smoke run with documented recovery, while Gate 8 as a whole remains `Specified - Next`. Production external adapters, authenticated control application, polling/service operation, and broader production wiring do not yet exist.
 - Gate 6 `WorkspaceSnapshot`, `ProjectBrainView`, graph projection contract, `TaskImpactQuery`, `AcceptedDecisionProjector`, and `RunRecordMetadataCollector` sub-capabilities: Integrated through the fresh promotion audit `gate-6-sub-capability-integration-promotion`, each connected to real upstream and downstream components by named integration evidence.
 - Gate 6 `TaskJustificationProjector` and the `Justified By` reference grammar: Integrated; the first real reference resolved on the actual repository through the production composition.
 - Gate 6 authority boundary: the exit criterion "Workspace observations cannot override repository authority or grant Tool permission" is pinned by `WorkspaceAuthorityBoundaryIntegrationTest`.
@@ -247,6 +262,10 @@ system, not open tasks; each is retired only by a bounded increment of its own.
 - `scheduler-status` is a queue-local persisted snapshot, not a worker-liveness or
   cross-store recovery view. In particular, `ACTIVE` reports the stored slot without
   proving that its worker process is still running.
+- `scheduler-recovery-status` correlates only the checkpoint-anchored queue/runtime/
+  RunRecord prefix and reports worker liveness as unknown. Its bounded second sample can
+  reject concurrent drift, but it is not an atomic cross-store snapshot and applies no
+  repair or recovery.
 - An unresolved external-effect `PREPARED` record is intentionally not replayed automatically; an owning adapter or user must establish deduplication, compensation, application, or explicit recovery evidence. The retry controller refuses it.
 - Development-session checkpoints support one active local session per repository and
   have no background timer, token-budget introspection, platform shutdown hook,

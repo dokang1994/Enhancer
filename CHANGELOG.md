@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-07-23 - Add Read-Only Scheduler Recovery Status
+
+- Added runtime-owned `SchedulerRecoveryStatus` with nine checkpoint-anchored durable
+  phases spanning intent, AgentRuntime, RunRecord, result, retry, replacement, queue
+  disposition, and checkpoint clearing.
+- Added `SchedulerRecoveryStatusReader`, which directly reads the queue, optional
+  checkpoint-named Goal, and optional checkpointed RunRecord, validates exact
+  cross-store bindings, and refuses observed queue/checkpoint/runtime drift after a
+  bounded second sample.
+- Added the separate `scheduler-recovery-status` command with explicit queue, runtime,
+  cycle-checkpoint, and RunRecord roots. Bounded output reports correlated identities and
+  states plus `workerLiveness=UNKNOWN`.
+- Added focused phase/drift contracts and real-filesystem CLI coverage for no-checkpoint,
+  intent, runtime, checkpointed RunRecord, immutable artifacts, missing-root
+  non-creation, corruption, and bounded output.
+- Added no recovery, store scan, state/schema mutation, process or lease-liveness claim,
+  repair, retry, waiting, polling, commit, push, release, or deployment.
+
 ## 2026-07-23 - Add Read-Only Scheduler Queue Status
 
 - Added runtime-owned `SchedulerQueueStatus`, preserving admission order and classifying
