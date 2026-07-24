@@ -2108,3 +2108,26 @@ Outcome:
   errors occurred.
 - Fresh `git diff --check` produced no output. Architecture, accepted decisions, and
   session-only handoff facts did not change.
+
+## 2026-07-24 - Gate 8 Migration Cycle Recovery Origin Main Delivery Verification
+
+- A fresh pre-delivery fetch confirmed local `main`, `origin/main`, and their merge
+  base at `a7cf138d3987865c3027172516c2f88ef65f8168`, with no ahead/behind divergence
+  or unexpected upstream commit.
+- Fresh `clean build --no-build-cache --warning-mode all --quiet` completed under the
+  strict Java 17 build with 553 tests across 111 suites: 550 passed, three existing
+  privilege-dependent Windows symbolic-link setup cases skipped, and zero failures or
+  errors occurred.
+- The pre-commit review selected exactly the intended six paths, found no secret
+  pattern or diff-check failure, and recorded implementation commit
+  `abdfcda5e975dd0b8c84f6e5f10344574a1767d7`.
+- The dedicated `feat/gate-8-migration-cycle-recovery` branch was pushed without
+  force. A fresh fetch verified its remote reference at the implementation commit.
+- Local `main` fast-forwarded from `a7cf138d` to `abdfcda` without a merge commit. A
+  fresh fetch immediately before the non-force push confirmed the old `origin/main`
+  was still its ancestor; the push advanced `origin/main`, and a second fresh fetch
+  showed local `main`, `origin/main`, and the delivery branch at the implementation
+  commit with a clean working tree.
+- No rebase, force operation, history rewrite, tag, release, deployment, pull-request
+  mutation, or branch deletion occurred. This closeout remains subject to one final
+  non-force `main` push and fresh remote-reference verification.
