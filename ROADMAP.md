@@ -455,15 +455,19 @@ Status: Specified - Next
 
 Whole-gate assessment:
 
-- retained at `Specified - Next` by the pre-migration assessment on 2026-07-24 because
-  authenticated control
-  application, supported state-version migration, priority/fairness, role-based message
-  workers, broader lost-acknowledgement recovery, and production external-effect
-  handling still lack named current connections;
-- the first supported migration connection now exists; the next Gate 8-owned dependency
-  is to assess that evidence against the migration exit-criterion slice and then select
-  the smallest remaining Gate 8 gap. Authenticated controls, production adapters, and
-  multi-agent roles remain owned by Gates 12, 11, and 13 respectively.
+- retained at `Specified - Next` after closing the pre-migration assessment's supported
+  migration gap because authenticated control application, priority/fairness,
+  role-based message workers, broader lost-acknowledgement recovery, and production
+  external-effect handling still lack named current connections;
+- the first supported migration connection now satisfies its bounded exit-criterion
+  slice: exact lossless conversion, explicit maintenance, failure preservation,
+  idempotence, and a real migration-to-cycle recovery fixture are named and Integrated.
+  The recovered post-RunRecord-reference prefix reaches one verified disposition
+  without an invocation spool, additional RunRecord, or changed effect ledger;
+- the smallest remaining Gate 8-owned dependency is a bounded assessment of the broader
+  lost-acknowledgement gap, beginning with the accepted orphaned-RunRecord window between
+  child persistence and result-spool publication. Authenticated controls, production
+  adapters, and multi-agent roles remain owned by Gates 12, 11, and 13 respectively.
 - the first migration boundary is Contract Verified and Integrated: an explicit
   stopped-Scheduler maintenance command losslessly converts only the schema-v1
   pending-finalization checkpoint to schema v2 through validated candidate-first atomic
@@ -536,6 +540,13 @@ Current increment:
   after source-byte equality. Real-filesystem store and CLI tests prove ordinary v1
   rejection, exact conversion, non-writing idempotence, candidate cleanup, source-drift
   refusal, corrupt-input preservation, and normal recovery;
+- Integrated migration-to-cycle recovery: a named real-filesystem fixture migrates a
+  schema-v1 post-RunRecord-reference checkpoint through the supported command and then
+  invokes the real process-isolated `scheduler-cycle` composition. It reaches one
+  verified queue disposition from the retained reference, creates no invocation spool
+  or additional RunRecord/effect outcome, preserves the effect artifact bytes, and
+  clears the checkpoint. This satisfies the supported-migration fixture slice without a
+  second schema migration or whole-gate promotion;
 - deferred: real authorized external adapters, admission-history compaction/cleanup or schema-v1 queue migration, worker polling/service operation, general forward-reference graph/cycle handling, authenticated cancellation/pause/resume application, priority/fairness, broader budgets, checkpoints beyond current snapshots, schema-v1 runtime or effect-ledger migration, power-loss directory durability, broader multi-process and cross-store coordination, distributed locks and clock-skew handling, and broader production wiring.
 
 Ordered connection sequence:

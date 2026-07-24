@@ -2046,3 +2046,65 @@ Outcome:
 - No rebase, force operation, history rewrite, tag, release, deployment, pull-request
   mutation, or branch deletion occurred. The closeout documentation remains subject to
   one final non-force push and fresh remote-ref verification.
+
+## 2026-07-24 - First Gate 8 Migration Connection Assessment
+
+- Inspected the accepted pending-finalization migration contract, the production store
+  migration and CLI, six store migration tests, three CLI integration cases, and the
+  CLI argument test against the Gate 8 supported state-version migration criterion.
+- The named evidence supports exact schema-v1 value preservation, absent/current
+  non-writing outcomes, corruption/future-version/source-drift/pre-publication failure
+  preservation, candidate validation, atomic replacement, and current-schema
+  checkpoint resolution.
+- The evidence stops before a migrated post-RunRecord-reference checkpoint re-enters
+  the real Scheduler cycle. It does not yet establish that recovery uses the retained
+  reference without another child execution, RunRecord publication, or effect outcome,
+  so the affected exit criterion remains partially satisfied and whole-Gate 8 maturity
+  is unchanged.
+- The smallest remaining Gate 8-owned dependency is one named migration-to-cycle
+  recovery integration fixture over that durable prefix. Authenticated controls,
+  production adapters, and role-based multi-agent work remain assigned to Gates 12, 11,
+  and 13.
+- Fresh migration and structural verification ran 39 tests across 8 suites: 38 passed,
+  one existing privilege-dependent Windows symbolic-link setup case skipped, and no
+  failures or errors occurred.
+- Fresh `git diff --check` produced no output. No production/test code, architecture
+  contract, accepted decision, durable artifact, external state, commit, push, merge,
+  release, or deployment changed.
+
+## 2026-07-24 - Migrated Scheduler Cycle Recovery Integration
+
+- Added `EnhancerCliSchedulerMigrationRecoveryIntegrationTest`, a named real-filesystem
+  fixture containing one admitted active WorkItem, matching executing AgentRun, one
+  persisted Verified RunRecord, one empty external-effect ledger, and a schema-v1
+  pending-finalization checkpoint carrying the exact RunRecord reference.
+- The supported `scheduler-migrate-cycle-checkpoint` command produced the exact
+  schema-v2 checkpoint with no replacement AgentRun identity. The real process-isolated
+  `scheduler-cycle` composition then reached one `VERIFIED_COMPLETED` queue disposition
+  from the retained reference, created no invocation root or additional RunRecord, left
+  the effect ledger at revision 0 with no records and byte-identical storage, completed
+  the AgentRun, and cleared the checkpoint.
+- The first characterization run reached the expected verified disposition but failed
+  because the fixture compared two `ExternalEffectLedgerState` instances by object
+  identity. The failure was classified as test-only; replacing that assertion with
+  revision, record-list, and persisted-byte comparisons required no production change.
+- The corrected focused fixture passed. The Runtime/CLI regression passed all 311 tests
+  across 59 suites with zero skips, failures, or errors.
+- Fresh `clean build --no-build-cache --warning-mode all --quiet` completed under Java
+  17 `-Xlint:all -Werror`: 553 tests across 111 suites, 550 passed, three existing
+  privilege-dependent Windows symbolic-link setup cases skipped, and zero failures or
+  errors.
+- The supported-migration fixture slice is now satisfied for the only losslessly
+  migratable schema. Queue, runtime, and external-effect schema v1 remain unsupported,
+  and Gate 8 as a whole remains `Specified - Next`.
+
+## 2026-07-24 - Migrated Scheduler Cycle Recovery Documentation Closeout
+
+- Post-synchronization
+  `EnhancerCliSchedulerMigrationRecoveryIntegrationTest`, `DocumentOwnershipTest`,
+  `DecisionLogIndexTest`, `RuntimePackageBoundaryTest`, `ProjectContextReaderTest`, and
+  `RepositoryTaskPlannerTest` ran 21 tests across 6 suites: 20 passed, one existing
+  privilege-dependent Windows symbolic-link setup case skipped, and zero failures or
+  errors occurred.
+- Fresh `git diff --check` produced no output. Architecture, accepted decisions, and
+  session-only handoff facts did not change.

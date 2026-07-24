@@ -2,65 +2,60 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Deliver the verified Gate 8 invocation-recovery, maturity, and pending-finalization
-migration increments through a remote branch and `origin/main`.
+Deliver the verified Gate 8 migration-to-cycle recovery increment through a dedicated
+remote branch and `origin/main`.
 
 ## Task ID
 
-deliver-gate-8-recovery-and-migration-to-origin-main
+deliver-gate-8-migration-cycle-recovery-to-origin-main
 
 ## Context
 
-The working tree contains three completed, freshly verified increments since local
-`main` and `origin/main` last matched: invocation-spool recovery inspection, whole-Gate
-8 maturity plus the first migration decision, and the supported pending-finalization
-schema migration. The user explicitly requested commit, push, and merge to
-`origin/main`.
+The working tree contains the completed migration-connection assessment and its
+follow-up named migration-to-cycle recovery integration fixture. The fixture and
+canonical documentation are freshly verified, and the user explicitly requested
+commit, push, and merge to the main branch.
 
 ## Justified By
 
 - 2026-07-24: Migrate The Pending-Finalization Checkpoint Before Other Gate 8 State
 - 2026-07-24: Assess Gate 8 Maturity Against Every Exit Criterion
-- 2026-07-24: Project Invocation-Spool Recovery Through The Checkpoint-Correlated Cycle
 
 ## Acceptance Criteria
 
-- Confirm the checkpoint is empty, the branch and remote identities are explicit, and
-  the complete intended diff passes `git diff --check`.
-- Run a fresh full strict-lint build before delivery and read its complete result.
-- Create a dedicated delivery branch from the freshly fetched `origin/main`; refuse
-  divergence or unexpected remote advancement rather than rebasing, resetting, or
-  force-updating.
-- Commit every intended changed and new path exactly once with no ignored artifact,
-  secret, credential, generated build output, or unrelated user change.
-- Push the delivery branch to `origin`, verify its remote commit, fast-forward local
-  `main` to that commit, and push `main` without force.
-- Query remote refs after each push and require final local `main`, remote delivery
-  branch, and `origin/main` to name the expected commits.
-- Record delivery verification, commit that closeout on `main`, push it, and verify the
-  final remote SHA before reporting completion.
-- Keep the repository checkpoint active through every commit, push, merge, and final
-  external-state verification; stabilize and clear it only after the intended Git state
-  is clean and synchronized.
+- Confirm the checkpoint is empty, local `main` and freshly fetched `origin/main` share
+  the expected base, and the intended diff contains exactly the six known paths.
+- Run a fresh full strict-lint build and read its complete result before delivery.
+- Create a dedicated delivery branch from the verified `origin/main` base without
+  rebasing, resetting, force-updating, or absorbing unexpected upstream work.
+- Stage and commit exactly the intended test and canonical-document changes with no
+  generated output, ignored artifact, credential, secret, or unrelated user change.
+- Push the delivery branch without force and verify its fetched remote commit.
+- Fast-forward local `main` to the delivery commit, push `main` without force, and
+  verify the remote reference.
+- Append delivery evidence, complete this task, commit the closeout on `main`, push it
+  without force, and require final local `main` and `origin/main` to match.
+- Keep the development-session checkpoint active through every commit, push,
+  fast-forward, and remote-state verification; stabilize and clear it only after the
+  intended final Git state is synchronized.
 
 ## Out Of Scope
 
-- Force push, history rewriting, rebase, hard reset, squash, deletion, tag, release,
-  publication, deployment, pull-request mutation, or branch deletion.
-- Absorbing unexpected upstream commits, conflicts, unrelated user changes, generated
-  build output, credentials, or secrets.
-- Changing implementation, architecture, maturity, or accepted decisions beyond the
-  already verified working tree and delivery closeout evidence.
+- Rebase, force push, history rewrite, hard reset, squash, tag, release, deployment,
+  pull-request mutation, branch deletion, or merge commit.
+- Production-code or schema changes, additional recovery behavior, or expansion beyond
+  the already verified six-path increment and delivery closeout.
+- Absorbing upstream divergence, conflicts, unrelated changes, generated build output,
+  credentials, or secrets.
 
 ## Approval
 
-The user explicitly requested on 2026-07-24 that the completed work be committed, pushed,
-and merged into `origin/main`. This grants all three otherwise separate external-delivery
-authorities for this exact working tree.
+The user explicitly requested commit, push, and merge to the main branch. This grants
+those three otherwise separate external-delivery authorities for this exact increment.
 
 ## Allowed Tools
 
@@ -68,28 +63,10 @@ authorities for this exact working tree.
 
 ## Verification
 
-- Fresh `git fetch origin --prune` showed local `main` and `origin/main` both at
-  `ef86a701c90257b69921a7b9a7fa04c21aa657c8` before delivery, with no upstream
-  divergence to absorb.
-- Fresh `clean build --no-build-cache --warning-mode all --quiet` ran 552 tests across
-  110 suites: 549 passed, three existing Windows symbolic-link privilege cases skipped,
-  and no failures or errors occurred.
-- The staged review contained exactly the intended 31 paths, no unstaged difference, and
-  no `git diff --cached --check` error. Commit
-  `0ab89aa2453ba950c6c0ad3702bd6f9308598e00` records those paths.
-- The dedicated `feat/gate-8-recovery-and-migration` branch was pushed without force and
-  freshly fetched at that commit. Local `main` then fast-forwarded from `ef86a70` to
-  `0ab89aa` and a non-force push advanced `origin/main` to the same commit.
-- A fresh post-push fetch and reference comparison showed local `main`,
-  `origin/main`, the local delivery branch, and its remote-tracking branch all at
-  `0ab89aa2453ba950c6c0ad3702bd6f9308598e00`, with a clean working tree.
-- No rebase, force, history rewrite, tag, release, deployment, pull-request mutation, or
-  branch deletion occurred.
-- This delivery closeout remains subject to one final non-force `main` push and fresh
-  remote reference comparison after the append-only evidence and task-state
-  synchronization are committed.
+Pending delivery verification.
 
 ## Next
 
-Assess the verified first migration connection against the Gate 8 migration exit-
-criterion slice, then select the smallest remaining Gate 8-owned dependency.
+After delivery, assess the smallest broader Gate 8 lost-acknowledgement gap, beginning
+with the orphaned-RunRecord window between child persistence and result-spool
+publication.

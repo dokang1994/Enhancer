@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-07-24 - Verify Migrated Scheduler Cycle Recovery
+
+- Added a named real-filesystem integration fixture for the supported
+  pending-finalization schema migration followed by the real `scheduler-cycle` command.
+- Proved that a migrated post-RunRecord-reference prefix reaches exactly one verified
+  queue disposition without creating an invocation spool, another RunRecord, or another
+  external-effect outcome.
+- Proved that the empty effect ledger remains byte-identical and the converted cycle
+  checkpoint clears after finalization.
+- Changed no production behavior, durable schema, migration command, or whole-Gate 8
+  maturity.
+
+## 2026-07-24 - Assess The First Gate 8 Migration Connection
+
+- Mapped the supported pending-finalization migration command, store contract, and
+  named tests to the Gate 8 migration exit-criterion slice.
+- Confirmed that exact conversion, failure preservation, idempotence, source-drift
+  refusal, and current-schema checkpoint resolution are Integrated.
+- Kept the whole criterion partial because no fixture yet resumes a migrated
+  post-RunRecord-reference checkpoint through the real Scheduler cycle and proves that
+  process execution, RunRecord publication, and effects remain singular.
+- Selected that bounded migration-to-cycle recovery fixture as the smallest remaining
+  Gate 8-owned dependency without changing runtime behavior or whole-gate maturity.
+
 ## 2026-07-24 - Add Supported Pending-Finalization State Migration
 
 - Added lossless schema-v1-to-v2 pending-finalization migration with typed absent,
