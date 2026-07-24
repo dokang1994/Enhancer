@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -68,7 +68,26 @@ authorities for this exact working tree.
 
 ## Verification
 
-Pending.
+- Fresh `git fetch origin --prune` showed local `main` and `origin/main` both at
+  `ef86a701c90257b69921a7b9a7fa04c21aa657c8` before delivery, with no upstream
+  divergence to absorb.
+- Fresh `clean build --no-build-cache --warning-mode all --quiet` ran 552 tests across
+  110 suites: 549 passed, three existing Windows symbolic-link privilege cases skipped,
+  and no failures or errors occurred.
+- The staged review contained exactly the intended 31 paths, no unstaged difference, and
+  no `git diff --cached --check` error. Commit
+  `0ab89aa2453ba950c6c0ad3702bd6f9308598e00` records those paths.
+- The dedicated `feat/gate-8-recovery-and-migration` branch was pushed without force and
+  freshly fetched at that commit. Local `main` then fast-forwarded from `ef86a70` to
+  `0ab89aa` and a non-force push advanced `origin/main` to the same commit.
+- A fresh post-push fetch and reference comparison showed local `main`,
+  `origin/main`, the local delivery branch, and its remote-tracking branch all at
+  `0ab89aa2453ba950c6c0ad3702bd6f9308598e00`, with a clean working tree.
+- No rebase, force, history rewrite, tag, release, deployment, pull-request mutation, or
+  branch deletion occurred.
+- This delivery closeout remains subject to one final non-force `main` push and fresh
+  remote reference comparison after the append-only evidence and task-state
+  synchronization are committed.
 
 ## Next
 
