@@ -1852,3 +1852,173 @@ This assessment itself changed no production or test code and did not change Gat
 - Scope held: the command scans no effect root, probes no external system, exposes no
   evidence content, and performs no recovery, mutation, adapter invocation, retry,
   waiting, polling, schema change, commit, push, merge, release, or deployment.
+
+## Read-Only Scheduler Invocation Recovery Status Implementation
+
+- The aligned projection RED stopped at `compileTestJava` with two expected missing
+  symbols. The reader and CLI argument REDs then each stopped with one expected missing
+  symbol for their absent read-only boundary.
+- Focused projection, reader, argument, and real-filesystem CLI tests passed 5 tests
+  across 4 suites with zero failures, errors, or skips. They cover no-cycle
+  non-creation, absent invocation, validated work awaiting a result, and bounded command
+  parsing/output.
+- Runtime and CLI regressions passed 296 tests across 55 suites with zero failures,
+  errors, or skips.
+- Fresh `clean build --no-build-cache --warning-mode all --quiet` completed under the
+  build-enforced Java 17 `-Xlint:all -Werror` policy: 538 tests across 107 suites, 535
+  passed, 3 existing privilege-dependent Windows symbolic-link setup cases skipped, and
+  0 failures or errors.
+- Scope held: the command creates, consumes, launches, cleans, recovers, retries,
+  scans, and mutates no invocation, queue, runtime, checkpoint, Evidence, RunRecord, or
+  effect artifact; it makes no child-liveness or external-system claim.
+
+## Read-Only Scheduler Invocation Recovery Status Documentation Closeout
+
+- Post-synchronization `DocumentOwnershipTest`, `DecisionLogIndexTest`,
+  `RuntimePackageBoundaryTest`, `ProjectContextReaderTest`, and the four focused feature
+  suites passed 21 tests across 8 suites: 20 passed, one existing
+  privilege-dependent Windows symbolic-link setup case skipped, and 0 failures or
+  errors. Fresh `git diff --check` produced no output.
+
+## Read-Only Scheduler Invocation Recovery Status Focused Completion
+
+- The expanded focused run passed 9 tests across 4 suites with zero skips, failures, or
+  errors. It now proves pure phase precedence, result-without-work rejection, corrupt and
+  several-message refusal, stable-sample drift rejection, valid result-to-RunRecord
+  binding, real-filesystem CLI corruption/non-creation/immutability, and bounded output.
+- Fresh runtime and CLI regressions passed 300 tests across 55 suites with zero skips,
+  failures, or errors.
+- Fresh `clean build --no-build-cache --warning-mode all --quiet` completed under Java
+  17 `-Xlint:all -Werror`: 542 tests across 107 suites, 539 passed, 3 existing
+  privilege-dependent Windows symbolic-link setup cases skipped, and 0 failures or
+  errors.
+
+## Read-Only Scheduler Invocation Recovery Status Final Structural Verification
+
+- Post-synchronization document ownership, decision index, runtime package boundary,
+  project context, and four focused feature suites ran 25 tests across 8 suites: 24
+  passed, one existing privilege-dependent Windows symbolic-link setup case skipped,
+  and 0 failures or errors. Fresh `git diff --check` produced no output.
+
+## Whole-Gate 8 Maturity Assessment
+
+Scope disposition:
+
+- Persisted Goal/AgentRun lifecycle: Integrated through the durable dispatcher, worker,
+  retry controller, finalizer, and filesystem recovery paths.
+- Goal-to-planning/execution/retry/done transitions: partially Integrated; execution,
+  verification, retry, and terminal disposition are connected, while distinct Memory
+  and Reflection runtime stages are not production connections.
+- Scheduler dependency, lease, idempotency, budgets, control, and recovery: partially
+  Integrated; dependency scheduling, one active slot, leases, durable requests, retry,
+  and recovery exist, while authenticated cancellation/pause/resume, priority,
+  fairness, and reassignment do not.
+- At-least-once delivery and effect safety: partially Integrated; stable identities,
+  fenced state/effect writes, checkpoint recovery, and explicit effect outcomes exist,
+  while supported state-version migration, general orphan reclamation, and production
+  external adapters do not.
+- Planner/Coder/Reviewer/Tester/Memory roles behind messages: unsatisfied as a Gate 13
+  connection; current execution is one sequential worker.
+- Dependency Analyzer and Verification Engine: partially Integrated through queue
+  dependency validation and the independent verification pipeline; no broader Kernel
+  Dependency Analyzer service exists.
+- Resource budgets, locks, leases, and checkpoints: partially Integrated through bounded
+  queues, attempts, cycles, timeouts, local queue locks, leases, and cycle checkpoints;
+  broader cost/context budgets and cross-store coordination remain absent.
+
+Exit-criterion disposition:
+
+- Interruption survival and durable resume: satisfied for named queue/runtime/retry/
+  process-isolated cycle prefixes and supported CLI recovery paths.
+- Worker communication through messages rather than direct Agent calls: partially
+  satisfied by work/result spools and Gate 7 envelopes; no role-based multi-worker bus
+  path or supported general message-bus entry point exists.
+- Explicit retry, stagnation, timeout, cancellation, verification, and completion:
+  partially satisfied; retry, stagnation, timeout, verification, and completion are
+  explicit, but admitted control requests are not authenticated/applied cancellation
+  events.
+- Runtime scheduling cannot expand task or Tool authority: satisfied by retained exact
+  WorkItem/task/tool-scope binding and authority-preserving execution tests.
+- Duplicate delivery, lost acknowledgement, lease expiry, restart, and supported
+  migration recover without an unrecorded duplicate effect: partially satisfied;
+  duplicate/restart/lease paths have named evidence, but broad lost-acknowledgement
+  recovery and any supported schema migration are absent.
+- No universal exactly-once claim and explicit effect outcomes: satisfied at the
+  contract and deterministic-adapter integration boundary; production adapters remain
+  Gate 11 work.
+
+Outcome:
+
+- Gate 8 remains `Specified - Next`; component and Operational sub-path maturity is not
+  promoted into a whole-gate claim.
+- The smallest Gate 8-owned next dependency is a bounded supported state-version
+  migration boundary. Gates 12, 11, and 13 retain authenticated controls, production
+  adapters, and role-based multi-agent execution.
+
+## Whole-Gate 8 Assessment Closeout Correction
+
+- The first final ownership check correctly failed because `CURRENT_TASK.md` duplicated
+  the whole-gate maturity phrase owned by `PROJECT_STATE.md`. The duplicate was deleted.
+- The corrected document ownership, decision index, and project-context rerun executed
+  15 tests across 3 suites: 14 passed, one existing privilege-dependent Windows
+  symbolic-link setup case skipped, and 0 failures or errors. Fresh `git diff --check`
+  produced no output.
+
+## 2026-07-24 - First Gate 8 State-Version Migration Boundary
+
+- Compared the exact prior schema with the current contract for the Scheduler queue,
+  Agent runtime, external-effect ledger, and pending-finalization checkpoint. The queue
+  lacks exact terminal admission values, runtime lacks attempt/retry-decision history,
+  and the effect ledger lacks adapter/evidence bindings; pending finalization alone maps
+  losslessly by preserving Goal, AgentRun, and optional RunRecord-reference values and
+  setting the new replacement AgentRun identity to absent.
+- Accepted and documented a separate stopped-Scheduler maintenance boundary with full
+  old-envelope validation, explicit absent/already-current non-writing outcomes,
+  candidate-first same-directory atomic replacement, source-drift refusal, and unchanged
+  original bytes on every pre-publication failure. Ordinary resolution and execution
+  remain schema-v1 fail-closed.
+- Focused pending-finalization characterization, decision-index, document-ownership,
+  project-context, decision-projection, and roadmap-planner verification ran 33 tests
+  across 6 suites: 32 passed, one existing privilege-dependent Windows symbolic-link
+  setup case skipped, and 0 failures or errors occurred.
+- Fresh `clean build --no-build-cache --warning-mode all --quiet` ran 542 tests across
+  107 suites: 539 passed, three existing privilege-dependent Windows symbolic-link
+  setup cases skipped, and 0 failures or errors occurred.
+- Fresh `git diff --check` produced no output. No production code, durable artifact,
+  schema, runtime behavior, authority, external state, commit, push, merge, release, or
+  deployment changed.
+
+## 2026-07-24 - Supported Pending-Finalization Schema Migration
+
+- RED compilation failed only because
+  `PendingFinalizationMigrationResult`,
+  `ConcurrentPendingFinalizationMigrationException`,
+  `migrateSchemaV1ToCurrent`, and
+  `SchedulerMigrateCycleCheckpointCliCommand` did not yet exist. The failure matched the
+  accepted migration task and no unrelated failure was absorbed.
+- Added exact schema-v1 decoding and lossless v2 mapping for Goal, AgentRun, and optional
+  RunRecord reference with an absent replacement AgentRun identity. Normal
+  `findPending` remains schema-v1 fail-closed.
+- Added validated candidate-first publication, bounded reread, source-byte drift refusal,
+  same-directory atomic replacement, and finally-block cleanup. Store integration
+  fixtures prove reference/no-reference conversion, absent and current non-writing
+  outcomes, corrupt and future-version original-byte preservation, observed drift
+  preservation, injected pre-publication failure cleanup, and normal v2 recovery.
+- Added `scheduler-migrate-cycle-checkpoint` with one explicit checkpoint root and stable
+  `ABSENT`, `ALREADY_CURRENT`, or `MIGRATED` output. Real-filesystem CLI tests prove
+  absent-root non-creation, successful recovery conversion, current-state non-rewrite,
+  bounded output, and corrupt-input internal failure without mutation.
+- Focused migration and existing pending-finalization verification ran 20 tests across
+  4 suites with 20 passed and no failures, errors, or skips. The broader runtime and CLI
+  regression ran 310 tests across 58 suites with all 310 passed.
+- The first combined implementation/document structure run correctly failed one of 43
+  tests because `CURRENT_TASK.md` shortened an accepted decision heading. The exact
+  heading correction then passed the focused suite, but the active checkpoint correctly
+  refused that task-contract mutation. The old contract was restored, its implementation
+  checkpoint was stabilized and cleared, and the correction was reapplied before a fresh
+  closeout checkpoint. No checkpoint was force-cleared or treated as authority.
+- Fresh `clean build --no-build-cache --warning-mode all --quiet` after that recovery ran
+  552 tests across 110 suites: 549 passed, three existing privilege-dependent Windows
+  symbolic-link setup cases skipped, and 0 failures or errors occurred.
+- Fresh `git diff --check` produced no output. No external artifact, authority, Tool
+  permission, commit, push, merge, release, or deployment changed.

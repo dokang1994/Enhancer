@@ -1,5 +1,46 @@
 # Changelog
 
+## 2026-07-24 - Add Supported Pending-Finalization State Migration
+
+- Added lossless schema-v1-to-v2 pending-finalization migration with typed absent,
+  already-current, and migrated outcomes while normal recovery remains fail-closed.
+- Added candidate write/read validation, source-byte drift refusal, atomic replacement,
+  and cleanup that preserves the original artifact on every pre-publication failure.
+- Added the separate stopped-Scheduler `scheduler-migrate-cycle-checkpoint` command with
+  bounded output and documented recovery.
+- Added exact conversion, non-writing idempotence, corruption/future-version,
+  source-drift, candidate-failure, original-byte, CLI, and normal-recovery coverage.
+
+## 2026-07-24 - Define First Gate 8 State Migration Boundary
+
+- Selected the pending-finalization checkpoint as the first supported migration target
+  because its schema-v1 meaning embeds losslessly in schema v2.
+- Fixed the old-to-current mapping, explicit stopped-Scheduler maintenance boundary,
+  candidate-first atomic publication, source-drift refusal, and original-byte
+  preservation contract.
+- Kept ordinary recovery fail-closed and deferred queue, runtime, and external-effect
+  migration until their missing history or evidence has a separately accepted policy.
+- Changed no production code, artifact schema, runtime behavior, authority, external
+  state, commit, push, release, or deployment.
+
+## 2026-07-24 - Assess Whole-Gate 8 Maturity
+
+- Audited every Gate 8 scope item and exit criterion against named current production
+  connections and fresh evidence.
+- Retained `Specified - Next`; Operational submission/cycle sub-paths do not satisfy
+  missing authenticated controls, migration, priority/fairness, role-based workers,
+  broader lost-acknowledgement, or production-adapter requirements.
+- Selected a bounded supported state-version migration boundary as the next Gate 8-owned
+  dependency without changing runtime behavior or schema.
+
+## 2026-07-24 - Add Read-Only Scheduler Invocation Recovery Status
+
+- Added the checkpoint-correlated invocation-spool projection and bounded stable reader.
+- Added `scheduler-invocation-status` with explicit Scheduler and invocation roots plus
+  bounded metadata output.
+- Added pure phase, corrupt/several-message, drift, result-to-RunRecord, non-creation,
+  immutability, and output-bound coverage without process launch or spool mutation.
+
 ## 2026-07-23 - Add Read-Only Scheduler External-Effect Recovery Status
 
 - Added runtime-owned `SchedulerExternalEffectRecoveryStatus` with conservative phases

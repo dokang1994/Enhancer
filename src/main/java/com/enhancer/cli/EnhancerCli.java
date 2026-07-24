@@ -45,10 +45,13 @@ import com.enhancer.runtime.GeneratedInputSubmissionService;
 import com.enhancer.runtime.GeneratedSubmissionIdentities;
 import com.enhancer.runtime.GeneratedSubmissionRequest;
 import com.enhancer.runtime.MissingSchedulerQueueStateException;
+import com.enhancer.runtime.PendingFinalizationMigrationResult;
 import com.enhancer.runtime.ExternalEffectStatus;
 import com.enhancer.runtime.SchedulerDrainResult;
 import com.enhancer.runtime.SchedulerExternalEffectRecoveryStatus;
 import com.enhancer.runtime.SchedulerExternalEffectRecoveryStatusReader;
+import com.enhancer.runtime.SchedulerInvocationRecoveryStatus;
+import com.enhancer.runtime.SchedulerInvocationRecoveryStatusReader;
 import com.enhancer.runtime.SchedulerQueueState;
 import com.enhancer.runtime.SchedulerQueueStatus;
 import com.enhancer.runtime.SchedulerRecoveryStatus;
@@ -137,6 +140,14 @@ public final class EnhancerCli {
                     instanceof SchedulerExternalEffectStatusCliCommand effects) {
                 return executeSchedulerExternalEffectStatus(
                         effects, stdout);
+            }
+            if (command instanceof SchedulerInvocationStatusCliCommand invocation) {
+                return executeSchedulerInvocationStatus(invocation, stdout);
+            }
+            if (command
+                    instanceof SchedulerMigrateCycleCheckpointCliCommand migration) {
+                return executeSchedulerMigrateCycleCheckpoint(
+                        migration, stdout);
             }
             if (command instanceof SchedulerCycleCliCommand cycle) {
                 return executeSchedulerCycle(cycle, stdout);
@@ -488,6 +499,32 @@ public final class EnhancerCli {
         return exitCode.code();
     }
 
+    private int executeSchedulerMigrateCycleCheckpoint(
+            SchedulerMigrateCycleCheckpointCliCommand command,
+            PrintStream stdout) throws IOException {
+        PendingFinalizationMigrationResult result =
+                new FileSystemPendingFinalizationStore(
+                        command.cycleCheckpointRoot())
+                        .migrateSchemaV1ToCurrent();
+        String sourceSchemaVersion = switch (result) {
+            case ABSENT -> "NONE";
+            case ALREADY_CURRENT -> Integer.toString(
+                    FileSystemPendingFinalizationStore
+                            .CURRENT_SCHEMA_VERSION);
+            case MIGRATED -> Integer.toString(
+                    FileSystemPendingFinalizationStore
+                            .PREVIOUS_SCHEMA_VERSION);
+        };
+        writeBounded(stdout, String.join("\n",
+                "status=" + result,
+                "exitCode=0",
+                "sourceSchemaVersion=" + sourceSchemaVersion,
+                "targetSchemaVersion="
+                        + FileSystemPendingFinalizationStore
+                                .CURRENT_SCHEMA_VERSION) + "\n");
+        return 0;
+    }
+
     private int executeRunRecordList(
             RunRecordListCliCommand command,
             PrintStream stdout) throws IOException {
@@ -681,6 +718,61 @@ public final class EnhancerCli {
                     + "=" + effect.idempotencyKey()
                     + "," + effect.status()
                     + "," + effect.agentRunId());
+        }
+        writeBounded(stdout, String.join("\n", output) + "\n");
+        return 0;
+    }
+
+    private int executeSchedulerInvocationStatus(
+            SchedulerInvocationStatusCliCommand command,
+            PrintStream stdout) throws IOException {
+        FileSystemAgentRuntimeStateStore runtimeStore =
+                new FileSystemAgentRuntimeStateStore(command.runtimeRoot());
+        SchedulerInvocationRecoveryStatus status;
+        try {
+            status = new SchedulerInvocationRecoveryStatusReader(
+                    new SchedulerRecoveryStatusReader(
+                            new FileSystemSchedulerQueueStore(command.queueRoot()),
+                            runtimeStore,
+                            new FileSystemPendingFinalizationStore(
+                                    command.cycleCheckpointRoot()),
+                            new FileSystemRunRecordStore(command.runRecordRoot())),
+                    runtimeStore,
+                    new FileSystemRunRecordStore(command.runRecordRoot()),
+                    command.invocationRoot())
+                    .read(command.queueId());
+        } catch (MissingSchedulerQueueStateException exception) {
+            throw new CliUsageException(
+                    "queue configuration is invalid: " + safeMessage(exception),
+                    exception);
+        }
+        List<String> messages = new ArrayList<>();
+        if (status.workMessagePresent()) {
+            messages.add("work");
+        }
+        if (status.resultMessagePresent()) {
+            messages.add("result");
+        }
+        int returned = Math.min(command.limit(), messages.size());
+        List<String> output = new ArrayList<>(List.of(
+                "status=" + status.phase(),
+                "exitCode=0",
+                "queueId=" + status.queueId(),
+                "queueRevision=" + status.queueRevision(),
+                "schedulerStatus=" + status.schedulerPhase(),
+                "checkpointPresent=" + status.goalId().isPresent(),
+                "invocationPresent=" + status.invocationPresent(),
+                "workMessagePresent=" + status.workMessagePresent(),
+                "resultMessagePresent=" + status.resultMessagePresent(),
+                "totalMessages=" + messages.size(),
+                "requestedLimit=" + command.limit(),
+                "returnedMessages=" + returned));
+        status.goalId().ifPresent(value -> output.add("goalId=" + value));
+        status.agentRunId().ifPresent(value -> output.add("agentRunId=" + value));
+        status.workItemId().ifPresent(value -> output.add("workItemId=" + value));
+        status.runtimeRevision().ifPresent(value -> output.add("runtimeRevision=" + value));
+        for (int index = 0; index < returned; index++) {
+            output.add("message." + (index + 1) + "=" + messages.get(index));
         }
         writeBounded(stdout, String.join("\n", output) + "\n");
         return 0;

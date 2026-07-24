@@ -11,6 +11,24 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### 2026-07-24: Migrate The Pending-Finalization Checkpoint Before Other Gate 8 State
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-24-migrate-the-pending-finalization-checkpoint-before-other-gate-8-state.md)
+
+### 2026-07-24: Assess Gate 8 Maturity Against Every Exit Criterion
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-24-assess-gate-8-maturity-against-every-exit-criterion.md)
+
+### 2026-07-24: Project Invocation-Spool Recovery Through The Checkpoint-Correlated Cycle
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-24-project-invocation-spool-recovery-through-the-checkpoint-correlated-cycle.md)
+
 ### 2026-07-23: Project External-Effect Recovery Through The Checkpoint-Correlated Goal
 
 Status: Accepted Decision

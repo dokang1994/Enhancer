@@ -197,6 +197,46 @@ recovers, scans, or mutates a store. `externalSystemState=NOT_PROBED` is intenti
 Missing or corrupt referenced evidence, impossible bindings, and observed Scheduler,
 runtime, or ledger drift exit `70`; a missing queue remains configuration exit `2`.
 
+## Inspect Process-Isolated Invocation Recovery Status
+
+`scheduler-invocation-status` reuses the checkpoint-correlated Scheduler observation
+and reads only the correlated Goal/AgentRun private invocation namespace:
+
+```powershell
+.\scripts\gradle.ps1 run --args="scheduler-invocation-status --queue-root C:\Enhancer\.enhancer\queue --queue-id <canonical-queue-uuid> --runtime-root C:\Enhancer\.enhancer\runtime --cycle-checkpoint-root C:\Enhancer\.enhancer\scheduler-checkpoint --run-record-root C:\Enhancer\.enhancer\run-records --invocation-root C:\Enhancer\.enhancer\invocations --limit 8"
+```
+
+The status is `NO_CORRELATED_CYCLE`, `RUNTIME_NOT_RECORDED`, `INVOCATION_ABSENT`,
+`WORK_MESSAGE_ABSENT`, `WORK_MESSAGE_AWAITING_RESULT`, or
+`RESULT_MESSAGE_PUBLISHED`. The 1-through-8 limit bounds reported work/result presence
+metadata; payload, evidence, and RunRecord content are never printed. Corrupt, foreign,
+symbolic-link, several-message, mismatched-result, or changing observations exit `70`.
+The command never creates, consumes, launches, cleans, recovers, retries, scans, mutates,
+or establishes child-process liveness.
+
+## Migrate A Legacy Scheduler Cycle Checkpoint
+
+Stop every Scheduler process that uses the cycle-checkpoint root before migration. Then
+invoke the separate maintenance command:
+
+```powershell
+.\scripts\gradle.ps1 run --args="scheduler-migrate-cycle-checkpoint --cycle-checkpoint-root C:\Enhancer\.enhancer\scheduler-checkpoint"
+```
+
+`ABSENT` means no checkpoint exists and creates no root. `ALREADY_CURRENT` validates an
+existing schema-v2 checkpoint without rewriting it. `MIGRATED` means one valid schema-v1
+checkpoint was losslessly replaced by schema v2: Goal, AgentRun, and optional RunRecord
+reference are retained, and the schema-v2 replacement AgentRun identity is absent.
+
+The command validates the complete old artifact, writes and rereads a private candidate,
+refuses observed source drift, and uses same-directory atomic replacement only after the
+source bytes still match. Corrupt, future-version, changed, or publication-failed input
+exits `70`; every failure before successful replacement leaves the source artifact
+authoritative and removes the private candidate when possible. The command creates no
+backup and provides no live old-writer, rollback, or parent-directory power-loss
+guarantee. After `MIGRATED` or `ALREADY_CURRENT`, restart the Scheduler and reinvoke the
+original recovery command.
+
 ## Recover One Durable Scheduler Cycle
 
 `scheduler-cycle` recovers an already-existing durable Scheduler queue and runs exactly
@@ -256,6 +296,7 @@ fails closed.
 |---|---|
 | Submission interrupted or produced no trusted result | Reinvoke `scheduler-submit` with every original argument against the unchanged governed project. Accept `ADMITTED` or `REPLAYED`; do not invoke the cycle while submission remains an error. |
 | `ADMITTED` or `REPLAYED` | The work is durable but not necessarily executed. Use `scheduler-status` when queue inspection is needed, then invoke `scheduler-cycle` or `scheduler-drain` separately only when execution is intended. |
+| Cycle, drain, or recovery inspection reports an unsupported pending-finalization schema | Stop every Scheduler process using that cycle-checkpoint root. Run `scheduler-migrate-cycle-checkpoint` once against the retained root. Restart and reinvoke recovery only after `MIGRATED` or `ALREADY_CURRENT`; on exit `70`, retain the unchanged source and do not execute the cycle. |
 | Cycle or drain interrupted or exits `70` | Preserve the queue and every execution root. Run `scheduler-recovery-status` with those retained roots to identify the durable prefix without changing it. When it reports a Goal, run `scheduler-external-effect-status` before considering retry so prepared, user-recovery, applied/deduplicated, and compensated histories remain explicit; if a RunRecord reference is present, inspect it with `replay`. Correct only the reported environmental problem, then reinvoke the same execution command so the worker checkpoint can recover. Do not resubmit work to repair execution. |
 | Cycle reports `VERIFIED_COMPLETED` | The WorkItem is terminally verified. Exact submission replay remains a no-op, and a later cycle for an otherwise empty queue reports `IDLE`. |
 | Cycle reports `FAILED` and exits `40` | The WorkItem is terminally failed. Discover retained evidence with `run-record-list`, inspect a selected record with `replay`, and retain runtime state; resubmitting the same identity is not a retry. New work requires separately approved inputs and a new message identity. |

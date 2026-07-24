@@ -453,6 +453,23 @@ Exit criteria:
 
 Status: Specified - Next
 
+Whole-gate assessment:
+
+- retained at `Specified - Next` by the pre-migration assessment on 2026-07-24 because
+  authenticated control
+  application, supported state-version migration, priority/fairness, role-based message
+  workers, broader lost-acknowledgement recovery, and production external-effect
+  handling still lack named current connections;
+- the first supported migration connection now exists; the next Gate 8-owned dependency
+  is to assess that evidence against the migration exit-criterion slice and then select
+  the smallest remaining Gate 8 gap. Authenticated controls, production adapters, and
+  multi-agent roles remain owned by Gates 12, 11, and 13 respectively.
+- the first migration boundary is Contract Verified and Integrated: an explicit
+  stopped-Scheduler maintenance command losslessly converts only the schema-v1
+  pending-finalization checkpoint to schema v2 through validated candidate-first atomic
+  replacement, while normal recovery remains fail-closed and other store migrations
+  await separate information-recovery policies.
+
 Current increment:
 
 - Contract Verified: immutable `WorkItem` admission over one unchanged Gate 7 work envelope, with a distinct canonical identity and bounded required capability but no scheduling or execution behavior;
@@ -505,6 +522,20 @@ Current increment:
   Real-filesystem integration proves representative prefixes, non-creation, immutable
   artifacts, corrupt-evidence refusal, bounded output, and no adapter invocation,
   external-system probing, or mutation;
+- Contract Verified and Integrated read-only invocation-spool recovery inspection:
+  `SchedulerInvocationRecoveryStatus` and `scheduler-invocation-status` reuse the
+  checkpoint-correlated Scheduler Goal/AgentRun, inspect only that private invocation
+  namespace, validate exact work/result transport and RunRecord bindings, and reject a
+  changed bounded second sample. The command never consumes, launches, cleans, recovers,
+  retries, scans, mutates, or claims worker liveness;
+- Contract Verified and Integrated first state-version migration boundary:
+  `FileSystemPendingFinalizationStore.migrateSchemaV1ToCurrent` and
+  `scheduler-migrate-cycle-checkpoint` preserve every schema-v1 pending-finalization
+  value, map the schema-v2 replacement AgentRun identity to absent, return typed
+  absent/already-current/migrated outcomes, and publish only a reread validated candidate
+  after source-byte equality. Real-filesystem store and CLI tests prove ordinary v1
+  rejection, exact conversion, non-writing idempotence, candidate cleanup, source-drift
+  refusal, corrupt-input preservation, and normal recovery;
 - deferred: real authorized external adapters, admission-history compaction/cleanup or schema-v1 queue migration, worker polling/service operation, general forward-reference graph/cycle handling, authenticated cancellation/pause/resume application, priority/fairness, broader budgets, checkpoints beyond current snapshots, schema-v1 runtime or effect-ledger migration, power-loss directory durability, broader multi-process and cross-store coordination, distributed locks and clock-skew handling, and broader production wiring.
 
 Ordered connection sequence:

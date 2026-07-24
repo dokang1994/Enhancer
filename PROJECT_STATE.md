@@ -2,7 +2,7 @@
 
 ## Updated At
 
-2026-07-23
+2026-07-24
 
 ## Repository State
 
@@ -19,6 +19,15 @@ it does not restate which commit published which increment.
 ## Capability Maturity
 
 ### Contract Verified
+
+- Read-only Scheduler invocation-spool recovery status under `com.enhancer.runtime`:
+  `SchedulerInvocationRecoveryStatus` projects the checkpoint-correlated Goal/AgentRun
+  namespace as no cycle, runtime not recorded, absent invocation, absent work, validated
+  work awaiting result, or validated published result. Its reader reuses
+  `SchedulerRecoveryStatusReader`, validates exact work/result and RunRecord bindings,
+  rejects corrupt, foreign, symbolic, several-message, and changed bounded samples, and
+  performs no scan, creation, consumption, process launch, cleanup, recovery, retry, or
+  mutation.
 
 - Read-only Scheduler external-effect recovery status under `com.enhancer.runtime`:
   `SchedulerExternalEffectRecoveryStatus` conservatively classifies the
@@ -75,6 +84,12 @@ it does not restate which commit published which increment.
 - Backoff or delayed retry, pause/resume, run-scoped or causation-graph cancellation, priority ordering, competing queue consumers, threading, journal persistence, durable/remote IPC adapters, and supported messaging entry points remain outside these verified contracts.
 
 ### Integrated
+
+- Gate 8 read-only Scheduler invocation-status CLI: `scheduler-invocation-status`
+  composes the checkpoint-correlated Scheduler projection with one explicit invocation
+  root and a 1-through-8 bound. Real-filesystem coverage proves no-cycle non-creation,
+  absent invocation, validated work/result phases, corruption refusal, immutable queue
+  and spool artifacts, bounded output, and no child-liveness claim or mutation.
 
 - Gate 8 read-only Scheduler external-effect recovery-status CLI:
   `scheduler-external-effect-status` composes the existing checkpoint-correlated
@@ -247,6 +262,24 @@ it does not restate which commit published which increment.
 - Delivery Gate 6: Integrated by the 2026-07-15 re-scope-and-promotion decision; diagnostics, terminal-session, and active/selected-file observation moved to Gate 12.
 - Delivery Gate 7: Contract Verified after a fresh Integrated maturity assessment. The work-message queue/journal/replay/idempotency path now has a named durable Scheduler-queue consumer, the durable control-request queue path is Integrated, and connection 3d gives `MessageTransport` one named local work/result-spool consumer. Result/handoff flows, authenticated control application, topic, cancellation/cascade-ordering/backpressure, and reliability branches beyond the named control retry/dead-letter path remain contract-only; no durable bus or supported messaging entry point exists.
 - Delivery Gate 8: Specified - Next; `WorkItem` admission, the dependency-ready single-worker queue, durable schema-v2 queue state/exact admission history/restart recovery with queue-scoped local cross-process update serialization, schema-v2 Goal/AgentRun and retry-decision history, fenced single-owner lease/expiry recovery, durable control-request admission, the bounded fence-checked external-effect ledger, the bounded AgentRun retry decision and durable controller, split RunRecord-backed result/terminal finalization, durable queue terminal disposition, the durable Scheduler worker (3a), the AgentLoop-backed execution port, the `WorkPayload` execution-input extension, the isolated process lifecycle (3b), the local spool adapter (3c), process-isolated execution (3d), durable submission intent/queue creation, the replay-safe generated-input submission boundary, the bounded foreground drain, the checkpoint-anchored read-only recovery projection, and the correlated external-effect recovery projection are Contract Verified; the filesystem queue lock is also Integrated through a real child-JVM contention path, while restart-idempotent durable work-message admission, durable submission recovery and its explicit CLI, the generated-input submission CLI, the durable queue-to-lifecycle dispatch path, verified worker-over-real-execution path, process-isolated durable worker composition, retry-aware replacement execution/recovery, control-request queue-to-state path, the evidence-bound deterministic external-effect executor path, the recovery-only one-cycle CLI, the bounded `scheduler-drain` CLI, the read-only `scheduler-recovery-status` CLI, and the read-only `scheduler-external-effect-status` CLI are Integrated. The explicit submit-then-separately-cycle operator workflow and the generated-input `scheduler-submit-generated`-then-`scheduler-cycle` workflow are Operational sub-paths with documented recovery and actual-repository smoke runs, while Gate 8 as a whole remains `Specified - Next`. The retry-aware Worker creates the Goal ledger before execution, keeps the queue active across admitted attempts, checkpoints replacement identity before append, and converges to one final disposition. The process-isolated composition uses separate per-cycle work/result spools, the real child launcher, and exact route/envelope/cardinality plus RunRecord task/source/target/digest/status binding. Replay-safe generated-input submission is an Operational sub-path: the `scheduler-submit-generated` command plus a separate `scheduler-cycle` reached `ADMITTED -> VERIFIED_COMPLETED -> REPLAYED -> IDLE` on an actual Enhancer-repository smoke run with documented recovery, while Gate 8 as a whole remains `Specified - Next`. Production external adapters, authenticated control application, polling/service operation, and broader production wiring do not yet exist.
+- The 2026-07-24 pre-migration whole-Gate 8 assessment retained `Specified - Next`:
+  durable
+  lifecycle, sequential process-isolated execution, recovery inspection, authority
+  preservation, and several restart/idempotency paths have named evidence, but
+  authenticated control application, supported state-version migration, priority/
+  fairness, role-based message workers, broader lost-acknowledgement recovery, and
+  production external-effect adapters do not.
+- The first Gate 8 state-version migration capability is Contract Verified and
+  Integrated through the real filesystem and explicit CLI:
+  `FileSystemPendingFinalizationStore.migrateSchemaV1ToCurrent` losslessly preserves the
+  schema-v1 Goal, AgentRun, and optional RunRecord-reference values, leaves the new
+  replacement AgentRun identity absent, and returns `ABSENT`, `ALREADY_CURRENT`, or
+  `MIGRATED`. It validates and rereads a private v2 candidate, rejects source drift, and
+  atomically replaces only after the original bytes still match; every earlier failure
+  cleans the candidate and preserves the source. The separate stopped-Scheduler
+  `scheduler-migrate-cycle-checkpoint` command is the only supported entry point, while
+  normal recovery remains v1 fail-closed. Queue, runtime, and external-effect v1 formats
+  do not retain enough current-contract information to join this path.
 - Gate 6 `WorkspaceSnapshot`, `ProjectBrainView`, graph projection contract, `TaskImpactQuery`, `AcceptedDecisionProjector`, and `RunRecordMetadataCollector` sub-capabilities: Integrated through the fresh promotion audit `gate-6-sub-capability-integration-promotion`, each connected to real upstream and downstream components by named integration evidence.
 - Gate 6 `TaskJustificationProjector` and the `Justified By` reference grammar: Integrated; the first real reference resolved on the actual repository through the production composition.
 - Gate 6 authority boundary: the exit criterion "Workspace observations cannot override repository authority or grant Tool permission" is pinned by `WorkspaceAuthorityBoundaryIntegrationTest`.
@@ -276,6 +309,10 @@ system, not open tasks; each is retired only by a bounded increment of its own.
 - Failed, corrupt, timed-out, or incomplete process-isolated cycles retain their current invocation spool; successful checkpointed cycles retire it. No time-based spool cleanup service or history exists.
 - Same-bus work-message replay is duplicate-free and fresh-bus exact replay is a no-revision durable admission success, but queue schema-v1 migration and exact-history compaction/cleanup do not exist. Changed-envelope identity reuse intentionally fails closed and dead-letters.
 - Scheduler queue updates are serialized only for cooperating local filesystem-store writers. The lock does not coordinate runtime/effect/checkpoint stores, provide a cross-store transaction, identify the current owner, wait or recover a holder, or claim distributed/network-filesystem safety.
+- Pending-finalization migration requires the owning Scheduler to be stopped. Its final
+  source-byte comparison detects observed drift but does not coordinate an old-version
+  writer, retain a backup, provide rollback, or add parent-directory power-loss
+  durability.
 - `scheduler-status` is a queue-local persisted snapshot, not a worker-liveness or
   cross-store recovery view. In particular, `ACTIVE` reports the stored slot without
   proving that its worker process is still running.

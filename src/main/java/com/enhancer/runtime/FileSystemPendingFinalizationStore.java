@@ -40,15 +40,26 @@ public final class FileSystemPendingFinalizationStore
             Integer.BYTES + Long.BYTES + Integer.BYTES + DIGEST_BYTES;
     static final int MAX_STATE_BYTES = 16 * 1024;
     private static final int MAX_STRING_BYTES = 4 * 1024;
-    static final int CURRENT_SCHEMA_VERSION = 2;
+    public static final int PREVIOUS_SCHEMA_VERSION = 1;
+    public static final int CURRENT_SCHEMA_VERSION = 2;
     private static final String PAYLOAD_KIND = "pending-finalization";
     private static final String FILE_NAME = "pending.finalization";
 
     private final Path storageRoot;
+    private final PendingFinalizationMigrationHook migrationHook;
 
     public FileSystemPendingFinalizationStore(Path storageRoot) {
+        this(storageRoot, ignored -> {
+        });
+    }
+
+    FileSystemPendingFinalizationStore(
+            Path storageRoot,
+            PendingFinalizationMigrationHook migrationHook) {
         Objects.requireNonNull(storageRoot, "storageRoot must not be null");
         this.storageRoot = storageRoot.toAbsolutePath().normalize();
+        this.migrationHook = Objects.requireNonNull(
+                migrationHook, "migrationHook must not be null");
     }
 
     @Override
@@ -105,6 +116,80 @@ public final class FileSystemPendingFinalizationStore
     @Override
     public Optional<PendingFinalization> findPending() throws IOException {
         Path artifact = artifactPath();
+        Optional<ValidatedEnvelope> validated =
+                readValidatedEnvelope(artifact);
+        if (validated.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(decodeCurrent(
+                validated.orElseThrow().payload()));
+    }
+
+    /**
+     * Explicitly migrates the single schema-v1 checkpoint to the current
+     * schema. Callers must stop the owning Scheduler before invoking it.
+     */
+    public PendingFinalizationMigrationResult migrateSchemaV1ToCurrent()
+            throws IOException {
+        Path artifact = artifactPath();
+        Optional<ValidatedEnvelope> existing =
+                readValidatedEnvelope(artifact);
+        if (existing.isEmpty()) {
+            return PendingFinalizationMigrationResult.ABSENT;
+        }
+        ValidatedEnvelope original = existing.orElseThrow();
+        int schemaVersion = schemaVersion(original.payload());
+        if (schemaVersion == CURRENT_SCHEMA_VERSION) {
+            decodeCurrent(original.payload());
+            return PendingFinalizationMigrationResult.ALREADY_CURRENT;
+        }
+        if (schemaVersion != PREVIOUS_SCHEMA_VERSION) {
+            throw corrupted("state schema version is unsupported");
+        }
+        PendingFinalization migrated = decodePrevious(original.payload());
+        byte[] candidateEnvelope = encodeEnvelope(migrated);
+        prepareRoot();
+        Path candidate = Files.createTempFile(
+                storageRoot, ".pending-migration-", ".tmp");
+        try {
+            writeCandidate(candidate, candidateEnvelope);
+            ValidatedEnvelope validatedCandidate =
+                    readValidatedEnvelope(candidate).orElseThrow(() ->
+                            corrupted("migration candidate is missing"));
+            PendingFinalization decodedCandidate =
+                    decodeCurrent(validatedCandidate.payload());
+            if (!migrated.equals(decodedCandidate)) {
+                throw corrupted(
+                        "migration candidate does not match converted state");
+            }
+            migrationHook.beforeSourceValidation(artifact);
+            Optional<ValidatedEnvelope> current =
+                    readValidatedEnvelope(artifact);
+            if (current.isEmpty()
+                    || !MessageDigest.isEqual(
+                            original.bytes(),
+                            current.orElseThrow().bytes())) {
+                throw new ConcurrentPendingFinalizationMigrationException();
+            }
+            try {
+                Files.move(
+                        candidate,
+                        artifact,
+                        StandardCopyOption.ATOMIC_MOVE,
+                        StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException exception) {
+                throw new IOException(
+                        "Pending finalization storage requires atomic move support",
+                        exception);
+            }
+        } finally {
+            Files.deleteIfExists(candidate);
+        }
+        return PendingFinalizationMigrationResult.MIGRATED;
+    }
+
+    private Optional<ValidatedEnvelope> readValidatedEnvelope(
+            Path artifact) throws IOException {
         if (!Files.exists(artifact, LinkOption.NOFOLLOW_LINKS)) {
             return Optional.empty();
         }
@@ -152,7 +237,7 @@ public final class FileSystemPendingFinalizationStore
             throw corrupted(
                     "envelope digest does not match stored metadata");
         }
-        return Optional.of(decode(payload));
+        return Optional.of(new ValidatedEnvelope(payload, envelope));
     }
 
     @Override
@@ -191,7 +276,7 @@ public final class FileSystemPendingFinalizationStore
         return bytes.toByteArray();
     }
 
-    private PendingFinalization decode(byte[] payload)
+    private PendingFinalization decodeCurrent(byte[] payload)
             throws CorruptedPendingFinalizationException {
         try (DataInputStream input =
                 new DataInputStream(new ByteArrayInputStream(payload))) {
@@ -226,6 +311,83 @@ public final class FileSystemPendingFinalizationStore
                     exception);
         } catch (IOException | RuntimeException exception) {
             throw corrupted("state could not be decoded", exception);
+        }
+    }
+
+    private PendingFinalization decodePrevious(byte[] payload)
+            throws CorruptedPendingFinalizationException {
+        try (DataInputStream input =
+                new DataInputStream(new ByteArrayInputStream(payload))) {
+            if (input.readInt() != PREVIOUS_SCHEMA_VERSION) {
+                throw corrupted("state schema version is unsupported");
+            }
+            if (!PAYLOAD_KIND.equals(readString(input))) {
+                throw corrupted("state payload kind is invalid");
+            }
+            String goalId = readString(input);
+            String agentRunId = readString(input);
+            Optional<String> reference = readPresence(input)
+                    ? Optional.of(readString(input))
+                    : Optional.empty();
+            if (input.available() != 0) {
+                throw corrupted("state contains trailing bytes");
+            }
+            return new PendingFinalization(
+                    goalId,
+                    agentRunId,
+                    reference,
+                    Optional.empty());
+        } catch (CorruptedPendingFinalizationException exception) {
+            throw exception;
+        } catch (EOFException exception) {
+            throw corrupted(
+                    "state ended before all fields were read",
+                    exception);
+        } catch (IOException | RuntimeException exception) {
+            throw corrupted("state could not be decoded", exception);
+        }
+    }
+
+    private int schemaVersion(byte[] payload)
+            throws CorruptedPendingFinalizationException {
+        if (payload.length < Integer.BYTES) {
+            throw corrupted("state ended before schema version");
+        }
+        return ByteBuffer.wrap(payload).getInt();
+    }
+
+    private byte[] encodeEnvelope(PendingFinalization pending)
+            throws IOException {
+        byte[] payload = encode(pending);
+        if (payload.length > MAX_STATE_BYTES) {
+            throw new IOException(
+                    "Pending finalization exceeds the supported size limit");
+        }
+        long storedAtMillis = Instant.now().toEpochMilli();
+        byte[] digest = envelopeDigest(
+                storedAtMillis,
+                payload.length,
+                payload);
+        return ByteBuffer.allocate(HEADER_BYTES + payload.length)
+                .putInt(ENVELOPE_MAGIC)
+                .putLong(storedAtMillis)
+                .putInt(payload.length)
+                .put(digest)
+                .put(payload)
+                .array();
+    }
+
+    private void writeCandidate(Path candidate, byte[] envelope)
+            throws IOException {
+        try (FileChannel channel = FileChannel.open(
+                candidate,
+                StandardOpenOption.WRITE,
+                StandardOpenOption.TRUNCATE_EXISTING)) {
+            ByteBuffer remaining = ByteBuffer.wrap(envelope);
+            while (remaining.hasRemaining()) {
+                channel.write(remaining);
+            }
+            channel.force(true);
         }
     }
 
@@ -331,5 +493,25 @@ public final class FileSystemPendingFinalizationStore
             String reason,
             Throwable cause) {
         return new CorruptedPendingFinalizationException(reason, cause);
+    }
+
+    private record ValidatedEnvelope(
+            byte[] payload,
+            byte[] bytes) {
+
+        private ValidatedEnvelope {
+            payload = payload.clone();
+            bytes = bytes.clone();
+        }
+
+        @Override
+        public byte[] payload() {
+            return payload.clone();
+        }
+
+        @Override
+        public byte[] bytes() {
+            return bytes.clone();
+        }
     }
 }

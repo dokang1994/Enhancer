@@ -499,6 +499,20 @@ explicit effect and Evidence roots and a 1-through-8 ledger-prefix limit. It cre
 recovers, scans, invokes, retries, compensates, or mutates nothing and makes no claim
 about an external system beyond integrity-checked adapter-established evidence.
 
+`SchedulerInvocationRecoveryStatus` is the separate read-only transport-artifact
+observation. `SchedulerInvocationRecoveryStatusReader` first obtains the existing
+checkpoint-correlated Scheduler projection and reads no invocation path without its Goal
+and AgentRun. With a recorded runtime, it derives only that pair's private invocation
+namespace and validates at most one work and result spool message against the exact
+runtime WorkItem. A result message remains a claim until its destination, correlation,
+logical run, causation, task, execution input, verification status, and referenced
+RunRecord binding all match. The reader takes a bounded second Scheduler/runtime/spool
+sample and refuses observed drift; corrupt, foreign, symbolic-link, or several-message
+spools fail closed. The separate `scheduler-invocation-status` command requires the
+existing Scheduler recovery roots, one explicit invocation root, and a 1-through-8
+message prefix limit. It creates, consumes, launches, cleans, recovers, retries, scans,
+or mutates nothing and makes no child-liveness claim.
+
 `AgentLoopAgentRunExecution` is the first production implementation of that port: it drives the Integrated Gate 1-4 pipeline (governed `read-file` `ToolExecutor`, `EvidenceRecorder`-persisted evidence, the bounded `AgentRunController`/`AgentLoop`, `DeterministicReadFileVerifier`, and the application `AgentRunFinalizer`) against the approved task's own source document — the `read-file` target is `taskRevision().sourceDocument()` and the expected content SHA-256 is `taskRevision().sourceSha256()` — and returns the persisted `run-record/<uuid>` reference. The `ApprovedTask` is constructed directly from the WorkItem's fields (no `ApprovedTaskReader`, no `In Progress` coupling), so the runtime finalizer's taskId-plus-sourceDocument binding holds by construction; the port must persist through the same `RunRecordStore` the worker's finalizer resolves from. A digest mismatch or Tool failure is carried in a persisted non-`VERIFIED` RunRecord, never thrown, and is real drift detection; the runtime result boundary records it as a failed attempt at `RETRY_PENDING` without a terminal queue disposition. The derivation of `(targetPath, expectedContentSha256)` from the WorkItem sits behind one private seam.
 
 `WorkPayload` now carries an optional caller-supplied `ExecutionInput(targetPath, expectedContentSha256)`: the port's seam prefers the declared input and falls back to the approved task's own source document when it is absent, so a WorkItem can execute an arbitrary governed target through the same contained read-file, evidence, verification, and RunRecord pipeline while the `ApprovedTask` binding stays the source document (exactly as the CLI separates `CURRENT_TASK.md` from `target-path`). The input is explicit caller authority data supplied through a `WorkMessagePublisher` overload — snapshot observations are evidence, not approval authority, so they never derive it. Both filesystem serializers persist the optional input after `allowedTools` with a presence flag; queue and runtime state both embed it in schema v2, with incompatible snapshots failing closed. Multiple inputs, payload-carried plans or Tool-call scripts, and write Tools remain out of scope.
@@ -506,6 +520,42 @@ about an external system beyond integrity-checked adapter-established evidence.
 `RuntimeControlAdmissionHandler` is the bounded Gate 7-to-Gate 8 request connection for control envelopes. It recovers one named Goal and records an exact `ControlPayload` envelope only while that Goal and its AgentRun are active, after matching logical run, correlation, and work-message causation and rejecting runtime-identity collisions. `AgentRuntimeState` retains at most 256 requests in admission order; exact message replay is a no-revision duplicate, identity reuse with different content fails closed, and every later lifecycle state retains the exact ledger prefix. `FileSystemAgentRuntimeStateStore` encodes the full envelopes in schema v2, requires the ledger to stay prefix-monotonic on update, and publishes the new revision atomically before the handler returns. Checked storage failure becomes handler failure so the existing bus retry/dead-letter contract remains visible. Incompatible schema-v1 runtime payloads fail explicitly.
 
 This boundary records an untrusted request, not an accepted transition. The envelope producer and control reason are diagnostic provenance and cannot pause, resume, cancel, release a lease, mutate the queue, interrupt a worker, expand Tool scope, or change bus cancellation. Gate 12 must authenticate and authorize a later application path before any of those state changes can exist.
+
+### Gate 8 Pending-Finalization State Migration Boundary
+
+The first supported Gate 8 state-version migration targets only the
+`FileSystemPendingFinalizationStore` schema-v1 checkpoint. Its Goal identity, AgentRun
+identity, and optional RunRecord reference map exactly into schema v2, whose added
+replacement AgentRun identity is absent for every v1 value. This is the only current
+schema-v1-to-v2 conversion that neither invents nor discards durable information: queue
+v1 lacks exact terminal admission values, runtime v1 lacks attempt and retry-decision
+history, and external-effect v1 lacks adapter identity and terminal evidence binding.
+
+`FileSystemPendingFinalizationStore.migrateSchemaV1ToCurrent` is the explicit
+maintenance operation over the caller-named cycle-checkpoint root while its Scheduler is
+stopped. Ordinary `findPending`, worker recovery, Scheduler cycles and drains, and
+read-only status surfaces continue to reject schema v1 and never migrate as a side
+effect. The operation reads only the fixed pending-finalization artifact, validates the
+complete bounded integrity envelope and v1 payload, maps `replacementAgentRunId` to
+empty, and returns typed `ABSENT`, `ALREADY_CURRENT`, or `MIGRATED`. The first two
+outcomes do not create or rewrite an artifact.
+
+The complete v2 candidate is encoded and validated in a private same-directory file.
+Immediately before the existing atomic-replace publication boundary, the source bytes
+must still equal the validated input. Until replacement succeeds, the original v1 path
+and bytes remain authoritative; read, validation, candidate-write, drift, or publication
+failure removes only the candidate when possible. Successful replacement makes the v2
+artifact authoritative without promising a backup, rollback copy, parent-directory
+power-loss durability, concurrent old-version writer safety, or migration of any other
+store.
+
+The separate `scheduler-migrate-cycle-checkpoint` command takes only the explicit
+cycle-checkpoint root and exposes those three bounded outcomes. Corrupt, future-version,
+or concurrently changed source state exits through the normal internal-error boundary;
+tests over real filesystem artifacts prove exact conversion with and without a RunRecord
+reference, current/absent non-writing behavior, ordinary v1 rejection, candidate cleanup,
+source-drift refusal, byte-identical corrupt-input failure, and normal v2 recovery after
+migration.
 
 ### Gate 8 Durable External-Effect Ledger
 
