@@ -2459,3 +2459,26 @@ Outcome:
 - No schema or migration change, priority admission input, time aging, additional
   priority class, WorkItem or Tool authority change, commit, push, merge, release,
   deployment, or external state change occurred.
+
+## 2026-07-27 - Priority And Fairness Main-Branch Delivery
+
+- A fresh `git fetch origin main` established local `main` and `origin/main` at
+  `862e238` with divergence `0 0` before delivery. Because the completed working tree
+  was already on `main`, there was no distinct topic branch to merge and no redundant
+  merge commit was manufactured.
+- The first strict delivery build ran all 580 tests and exposed one aligned document
+  failure: `DecisionLogIndexTest` rejected a user-authorization justification without
+  a matching accepted decision. No production or behavioral test failed. Recording
+  the direct-main delivery decision and index entry resolved that structural contract.
+- Fresh strict `clean build --no-build-cache --warning-mode all --quiet` then passed
+  580 tests across 115 suites: 577 passed, three existing Windows symbolic-link
+  privilege-dependent setup cases skipped, and zero failures or errors occurred.
+  Production and test compilation completed without warnings.
+- The complete staged diff covered 30 paths with 2,147 insertions and 91 deletions.
+  `git diff --cached --check` passed, all intended tracked and new paths were present,
+  and a bounded credential-pattern scan found zero matches.
+- Commit `6b1f5782205fe2fb040cfd2aa743743b1aae025f` advanced local `main` and was pushed
+  without force from `862e238` to `origin/main`.
+- A fresh `git ls-remote origin refs/heads/main` returned
+  `6b1f5782205fe2fb040cfd2aa743743b1aae025f`; local `HEAD` and the `origin/main`
+  tracking reference matched it after the push.
