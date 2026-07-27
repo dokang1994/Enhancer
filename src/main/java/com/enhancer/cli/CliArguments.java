@@ -63,6 +63,9 @@ final class CliArguments {
                     Set.of("cycle-checkpoint-root");
     private static final Set<String> SCHEDULER_MIGRATE_QUEUE_OPTIONS =
             Set.of("queue-root", "queue-id");
+    private static final Set<String>
+            SCHEDULER_MIGRATE_SUBMISSION_MANIFEST_OPTIONS =
+                    Set.of("submission-root", "submission-id");
     private static final Set<String> SCHEDULER_CYCLE_OPTIONS = Set.of(
             "project-root",
             "queue-root",
@@ -141,7 +144,8 @@ final class CliArguments {
                             + "scheduler-invocation-status, scheduler-cycle, "
                             + "scheduler-drain, "
                             + "scheduler-migrate-cycle-checkpoint, "
-                            + "scheduler-migrate-queue, or "
+                            + "scheduler-migrate-queue, "
+                            + "scheduler-migrate-submission-manifest, or "
                             + "checkpoint operation");
         }
         String command = arguments[0];
@@ -176,6 +180,18 @@ final class CliArguments {
                 yield new SchedulerMigrateQueueCliCommand(
                         path(options.get("queue-root"), "queue-root"),
                         canonicalUuid(options.get("queue-id"), "queue-id"));
+            }
+            case "scheduler-migrate-submission-manifest" -> {
+                Map<String, String> options = parseOptions(
+                        arguments,
+                        SCHEDULER_MIGRATE_SUBMISSION_MANIFEST_OPTIONS);
+                yield new SchedulerMigrateSubmissionManifestCliCommand(
+                        path(
+                                options.get("submission-root"),
+                                "submission-root"),
+                        canonicalUuid(
+                                options.get("submission-id"),
+                                "submission-id"));
             }
             case "scheduler-cycle" -> parseSchedulerCycle(
                     parseOptions(arguments, SCHEDULER_CYCLE_OPTIONS));

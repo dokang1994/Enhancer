@@ -376,15 +376,27 @@ the target queue UUID, fixed queue capacity, bounded required capability, and un
 does not duplicate a mutable admission status.
 
 `SubmissionManifestStore` persists that intent before any queue creation.
-`FileSystemSubmissionManifestStore` publishes one bounded schema-v1 binary artifact by
+`FileSystemSubmissionManifestStore` publishes one bounded schema-v2 binary artifact by
 atomic move with an integrity envelope, strict UTF-8 decoding, canonical artifact naming,
 and explicit missing, corrupt, oversized, trailing, and identity-mismatch failures. Exact
 replay returns without rewriting; changed content under the same submission identity
 fails closed.
 
+Requested priority is Scheduler submission intent, not work or execution authority.
+The immutable manifest contains exactly one `NORMAL` or `EXPEDITED` value, while its
+compatibility construction remains `NORMAL`.
+Manifest equality, generated caller-intent comparison, and exact queue admission must
+all include that value. Ordinary resolution becomes v2-only; existing schema-v1
+manifests require a separate submission-identity-scoped stopped-submission migration
+that retains every field, assigns `NORMAL`, validates and rereads a same-directory
+candidate, refuses source drift, and atomically replaces only an unchanged valid source.
+`scheduler-migrate-submission-manifest` exposes that bounded operation with typed
+absent, already-current, and migrated output. The migration invokes no queue recovery,
+admission, claim, execution, Tool, effect, or priority input.
+
 `DurableWorkSubmissionService` composes the three monotonic recovery prefixes: persist
 the exact manifest, create the declared queue only when absent or resolve and verify its
-fixed capacity before recovery, then pass the exact envelope through
+fixed capacity before recovery, then pass the exact envelope and manifest priority through
 `DurableWorkItemAdmissionHandler`. The queue remains the admission authority and its exact
 history derives completion, so there is no queue-to-receipt update. A failure after either
 earlier prefix is resumed by the same submission, and a fully admitted exact replay changes
@@ -402,14 +414,21 @@ generates neither identity nor time and never invokes a worker, Tool, evidence s
 RunRecord store, or `scheduler-cycle`. Bounded output reports `ADMITTED` only when the
 queue revision advances and `REPLAYED` for an exact already-admitted submission.
 
+Manifest schema v2 and its explicit migration are the verified prerequisite for a later
+task in which `scheduler-submit` and then `scheduler-submit-generated` may accept optional
+`--priority NORMAL|EXPEDITED`; omission remains `NORMAL`. Invalid or replay-conflicting
+priority fails before manifest or queue mutation, and bounded success output reports
+the effective value. The generic Gate 7 message admission path retains its existing
+`NORMAL` default because the envelope carries no separate Scheduler priority intent.
+
 Generated submission inputs do not require a second durable invocation manifest. The
-accepted next boundary uses one caller-retained canonical submission UUID as the stable
+generated-input boundary uses one caller-retained canonical submission UUID as the stable
 replay key and message identity, derives queue/correlation/logical-run identities through
 versioned domain separation, and makes the existing `DurableSubmissionManifest` the sole
 owner of the generated occurrence time and exact work envelope. First use captures and
 persists that manifest before queue creation; replay resolves it before consulting a clock
-or recapturing repository context and rejects caller-intent drift. This future boundary
-must remain separate from `scheduler-cycle`, polling, and automatic execution.
+or recapturing repository context and rejects caller-intent drift. This boundary remains
+separate from `scheduler-cycle`, polling, and automatic execution.
 
 ### Gate 8 Durable Goal And AgentRun Lifecycle
 

@@ -11,6 +11,18 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### 2026-07-27: Deliver Submission Manifest Schema V2 Priority Migration Directly To Main
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-27-deliver-submission-manifest-schema-v2-priority-migration-directly-to-main.md)
+
+### 2026-07-27: Persist Requested Scheduler Priority In Submission Manifest Before Exposing Admission Input
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-27-persist-requested-scheduler-priority-in-submission-manifest-before-exposing-admission-input.md)
+
 ### User authorization on 2026-07-27 to commit, push, and merge the completed work to
 
 Status: Accepted Decision

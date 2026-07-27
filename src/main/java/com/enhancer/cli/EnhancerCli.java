@@ -57,6 +57,7 @@ import com.enhancer.runtime.SchedulerQueueMigrationResult;
 import com.enhancer.runtime.SchedulerQueueStatus;
 import com.enhancer.runtime.SchedulerRecoveryStatus;
 import com.enhancer.runtime.SchedulerRecoveryStatusReader;
+import com.enhancer.runtime.SubmissionManifestMigrationResult;
 import com.enhancer.runtime.WorkItemDisposition;
 import com.enhancer.session.DevelopmentSessionCheckpoint;
 import com.enhancer.session.DevelopmentSessionCheckpointConflictException;
@@ -152,6 +153,12 @@ public final class EnhancerCli {
             }
             if (command instanceof SchedulerMigrateQueueCliCommand migration) {
                 return executeSchedulerMigrateQueue(migration, stdout);
+            }
+            if (command
+                    instanceof SchedulerMigrateSubmissionManifestCliCommand
+                            migration) {
+                return executeSchedulerMigrateSubmissionManifest(
+                        migration, stdout);
             }
             if (command instanceof SchedulerCycleCliCommand cycle) {
                 return executeSchedulerCycle(cycle, stdout);
@@ -549,6 +556,32 @@ public final class EnhancerCli {
                 "sourceSchemaVersion=" + sourceSchemaVersion,
                 "targetSchemaVersion="
                         + SchedulerQueueState.CURRENT_SCHEMA_VERSION) + "\n");
+        return 0;
+    }
+
+    private int executeSchedulerMigrateSubmissionManifest(
+            SchedulerMigrateSubmissionManifestCliCommand command,
+            PrintStream stdout) throws IOException {
+        SubmissionManifestMigrationResult result =
+                new FileSystemSubmissionManifestStore(command.submissionRoot())
+                        .migrateSchemaV1ToCurrent(command.submissionId());
+        String sourceSchemaVersion = switch (result) {
+            case ABSENT -> "NONE";
+            case ALREADY_CURRENT -> Integer.toString(
+                    FileSystemSubmissionManifestStore
+                            .CURRENT_SCHEMA_VERSION);
+            case MIGRATED -> Integer.toString(
+                    FileSystemSubmissionManifestStore
+                            .PREVIOUS_SCHEMA_VERSION);
+        };
+        writeBounded(stdout, String.join("\n",
+                "status=" + result,
+                "exitCode=0",
+                "submissionId=" + command.submissionId(),
+                "sourceSchemaVersion=" + sourceSchemaVersion,
+                "targetSchemaVersion="
+                        + FileSystemSubmissionManifestStore
+                                .CURRENT_SCHEMA_VERSION) + "\n");
         return 0;
     }
 

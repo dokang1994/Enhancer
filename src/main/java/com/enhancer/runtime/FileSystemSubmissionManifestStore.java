@@ -40,7 +40,8 @@ import java.util.UUID;
 public final class FileSystemSubmissionManifestStore
         implements SubmissionManifestStore {
     private static final int ENVELOPE_MAGIC = 0x45534d31;
-    private static final int SCHEMA_VERSION = 1;
+    public static final int PREVIOUS_SCHEMA_VERSION = 1;
+    public static final int CURRENT_SCHEMA_VERSION = 2;
     private static final int DIGEST_BYTES = 32;
     private static final int HEADER_BYTES =
             Integer.BYTES + Long.BYTES + Integer.BYTES + DIGEST_BYTES;
@@ -50,10 +51,20 @@ public final class FileSystemSubmissionManifestStore
     private static final String FILE_SUFFIX = ".submission-manifest";
 
     private final Path storageRoot;
+    private final SubmissionManifestMigrationHook migrationHook;
 
     public FileSystemSubmissionManifestStore(Path storageRoot) {
+        this(storageRoot, source -> {
+        });
+    }
+
+    FileSystemSubmissionManifestStore(
+            Path storageRoot,
+            SubmissionManifestMigrationHook migrationHook) {
         Objects.requireNonNull(storageRoot, "storageRoot must not be null");
         this.storageRoot = storageRoot.toAbsolutePath().normalize();
+        this.migrationHook = Objects.requireNonNull(
+                migrationHook, "migrationHook must not be null");
     }
 
     @Override
@@ -79,54 +90,78 @@ public final class FileSystemSubmissionManifestStore
             throws IOException {
         String canonicalId = canonicalUuid(submissionId, "submissionId");
         Path artifact = artifactPath(canonicalId);
-        if (!Files.exists(artifact, LinkOption.NOFOLLOW_LINKS)) {
-            throw missing(canonicalId);
+        ValidatedEnvelope envelope = readValidatedEnvelope(
+                artifact, canonicalId).orElseThrow(() -> missing(canonicalId));
+        return decode(canonicalId, envelope.payload());
+    }
+
+    /**
+     * Explicitly migrates one schema-v1 manifest to the current schema.
+     * Callers must stop submission using this identity before invoking it.
+     */
+    public SubmissionManifestMigrationResult migrateSchemaV1ToCurrent(
+            String submissionId) throws IOException {
+        String canonicalId = canonicalUuid(submissionId, "submissionId");
+        Path artifact = artifactPath(canonicalId);
+        Optional<ValidatedEnvelope> resolved =
+                readValidatedEnvelope(artifact, canonicalId);
+        if (resolved.isEmpty()) {
+            return SubmissionManifestMigrationResult.ABSENT;
         }
-        if (!Files.isRegularFile(artifact, LinkOption.NOFOLLOW_LINKS)) {
-            throw corrupted(canonicalId, "artifact is not a regular file");
+        ValidatedEnvelope original = resolved.orElseThrow();
+        int version = schemaVersion(original.payload(), canonicalId);
+        if (version == CURRENT_SCHEMA_VERSION) {
+            decode(canonicalId, original.payload());
+            return SubmissionManifestMigrationResult.ALREADY_CURRENT;
         }
-        long size = Files.size(artifact);
-        if (size < HEADER_BYTES || size > HEADER_BYTES + MAX_PAYLOAD_BYTES) {
-            throw corrupted(canonicalId, "artifact size is outside supported bounds");
+        if (version != PREVIOUS_SCHEMA_VERSION) {
+            throw corrupted(canonicalId, "payload schema version is unsupported");
         }
 
-        byte[] envelope;
+        DurableSubmissionManifest migrated =
+                decodePrevious(canonicalId, original.payload());
+        byte[] candidateEnvelope = encodeEnvelope(migrated);
+        Path candidate = Files.createTempFile(
+                storageRoot, ".submission-migration-", ".tmp");
         try {
-            envelope = BoundedFileOperations.readAllBytes(
-                    artifact, HEADER_BYTES + MAX_PAYLOAD_BYTES);
-        } catch (FileSizeLimitExceededException exception) {
-            throw corrupted(
-                    canonicalId,
-                    "artifact grew outside supported bounds while reading",
-                    exception);
-        } catch (NoSuchFileException exception) {
-            throw missing(canonicalId);
+            writeCandidate(candidate, candidateEnvelope);
+            ValidatedEnvelope validatedCandidate =
+                    readValidatedEnvelope(candidate, canonicalId)
+                            .orElseThrow(() -> corrupted(
+                                    canonicalId,
+                                    "migration candidate is missing"));
+            DurableSubmissionManifest decodedCandidate =
+                    decode(canonicalId, validatedCandidate.payload());
+            if (!migrated.equals(decodedCandidate)) {
+                throw corrupted(
+                        canonicalId,
+                        "migration candidate does not match converted manifest");
+            }
+            migrationHook.beforeSourceValidation(artifact);
+            Optional<ValidatedEnvelope> current =
+                    readValidatedEnvelope(artifact, canonicalId);
+            if (current.isEmpty()
+                    || !MessageDigest.isEqual(
+                            original.bytes(),
+                            current.orElseThrow().bytes())) {
+                throw new ConcurrentSubmissionManifestMigrationException(
+                        canonicalId);
+            }
+            try {
+                Files.move(
+                        candidate,
+                        artifact,
+                        StandardCopyOption.ATOMIC_MOVE,
+                        StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException exception) {
+                throw new IOException(
+                        "atomic submission manifest migration is not supported",
+                        exception);
+            }
+        } finally {
+            Files.deleteIfExists(candidate);
         }
-        ByteBuffer buffer = ByteBuffer.wrap(envelope);
-        if (buffer.getInt() != ENVELOPE_MAGIC) {
-            throw corrupted(canonicalId, "envelope header is invalid");
-        }
-        long storedAtMillis = buffer.getLong();
-        int declaredLength = buffer.getInt();
-        if (declaredLength < 0
-                || declaredLength > MAX_PAYLOAD_BYTES
-                || declaredLength != buffer.remaining() - DIGEST_BYTES) {
-            throw corrupted(
-                    canonicalId,
-                    "declared payload length does not match the artifact");
-        }
-        byte[] declaredDigest = new byte[DIGEST_BYTES];
-        buffer.get(declaredDigest);
-        byte[] payload = new byte[declaredLength];
-        buffer.get(payload);
-        byte[] actualDigest = envelopeDigest(
-                storedAtMillis, declaredLength, payload);
-        if (!MessageDigest.isEqual(declaredDigest, actualDigest)) {
-            throw corrupted(
-                    canonicalId,
-                    "envelope digest does not match stored metadata");
-        }
-        return decode(canonicalId, payload);
+        return SubmissionManifestMigrationResult.MIGRATED;
     }
 
     Path artifactPath(String submissionId) {
@@ -149,6 +184,24 @@ public final class FileSystemSubmissionManifestStore
     private void publish(
             DurableSubmissionManifest manifest,
             Path destination) throws IOException {
+        byte[] envelope = encodeEnvelope(manifest);
+        Path pending = Files.createTempFile(storageRoot, ".pending-", ".tmp");
+        try {
+            writeCandidate(pending, envelope);
+            try {
+                Files.move(pending, destination, StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException exception) {
+                throw new IOException(
+                        "atomic submission manifest persistence is not supported",
+                        exception);
+            }
+        } finally {
+            Files.deleteIfExists(pending);
+        }
+    }
+
+    private byte[] encodeEnvelope(
+            DurableSubmissionManifest manifest) throws IOException {
         byte[] payload = encode(manifest);
         if (payload.length > MAX_PAYLOAD_BYTES) {
             throw new IOException(
@@ -163,38 +216,33 @@ public final class FileSystemSubmissionManifestStore
                 .put(digest)
                 .put(payload);
         envelope.flip();
+        byte[] encoded = new byte[envelope.remaining()];
+        envelope.get(encoded);
+        return encoded;
+    }
 
-        Path pending = Files.createTempFile(storageRoot, ".pending-", ".tmp");
-        try {
-            try (FileChannel channel = FileChannel.open(
-                    pending,
-                    StandardOpenOption.WRITE,
-                    StandardOpenOption.TRUNCATE_EXISTING)) {
-                while (envelope.hasRemaining()) {
-                    channel.write(envelope);
-                }
-                channel.force(true);
+    private void writeCandidate(Path path, byte[] value) throws IOException {
+        try (FileChannel channel = FileChannel.open(
+                path,
+                StandardOpenOption.WRITE,
+                StandardOpenOption.TRUNCATE_EXISTING)) {
+            ByteBuffer buffer = ByteBuffer.wrap(value);
+            while (buffer.hasRemaining()) {
+                channel.write(buffer);
             }
-            try {
-                Files.move(pending, destination, StandardCopyOption.ATOMIC_MOVE);
-            } catch (AtomicMoveNotSupportedException exception) {
-                throw new IOException(
-                        "atomic submission manifest persistence is not supported",
-                        exception);
-            }
-        } finally {
-            Files.deleteIfExists(pending);
+            channel.force(true);
         }
     }
 
     private byte[] encode(DurableSubmissionManifest manifest) throws IOException {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         try (DataOutputStream output = new DataOutputStream(bytes)) {
-            output.writeInt(SCHEMA_VERSION);
+            output.writeInt(CURRENT_SCHEMA_VERSION);
             writeString(output, PAYLOAD_KIND);
             writeString(output, manifest.queueId());
             output.writeInt(manifest.maxWorkItems());
             writeString(output, manifest.requiredCapability());
+            writeString(output, manifest.priority().name());
             writeMessageEnvelope(output, manifest.workMessage());
         }
         return bytes.toByteArray();
@@ -205,7 +253,7 @@ public final class FileSystemSubmissionManifestStore
             byte[] payload) throws IOException {
         try (DataInputStream input =
                 new DataInputStream(new ByteArrayInputStream(payload))) {
-            if (input.readInt() != SCHEMA_VERSION) {
+            if (input.readInt() != CURRENT_SCHEMA_VERSION) {
                 throw corrupted(
                         expectedSubmissionId,
                         "payload schema version is unsupported");
@@ -213,11 +261,16 @@ public final class FileSystemSubmissionManifestStore
             if (!PAYLOAD_KIND.equals(readString(input))) {
                 throw corrupted(expectedSubmissionId, "payload kind is invalid");
             }
+            String queueId = readString(input);
+            int maxWorkItems = input.readInt();
+            String requiredCapability = readString(input);
+            SchedulerPriority priority = readPriority(input);
             DurableSubmissionManifest manifest = new DurableSubmissionManifest(
-                    readString(input),
-                    input.readInt(),
-                    readString(input),
-                    readMessageEnvelope(input));
+                    queueId,
+                    maxWorkItems,
+                    requiredCapability,
+                    readMessageEnvelope(input),
+                    priority);
             if (!expectedSubmissionId.equals(manifest.submissionId())) {
                 throw corrupted(
                         expectedSubmissionId,
@@ -245,6 +298,67 @@ public final class FileSystemSubmissionManifestStore
             throw corrupted(
                     expectedSubmissionId,
                     "payload could not be decoded",
+                    exception);
+        }
+    }
+
+    private DurableSubmissionManifest decodePrevious(
+            String expectedSubmissionId,
+            byte[] payload) throws IOException {
+        try (DataInputStream input =
+                new DataInputStream(new ByteArrayInputStream(payload))) {
+            if (input.readInt() != PREVIOUS_SCHEMA_VERSION) {
+                throw corrupted(
+                        expectedSubmissionId,
+                        "payload schema version is unsupported");
+            }
+            if (!PAYLOAD_KIND.equals(readString(input))) {
+                throw corrupted(expectedSubmissionId, "payload kind is invalid");
+            }
+            DurableSubmissionManifest manifest = new DurableSubmissionManifest(
+                    readString(input),
+                    input.readInt(),
+                    readString(input),
+                    readMessageEnvelope(input),
+                    SchedulerPriority.NORMAL);
+            if (!expectedSubmissionId.equals(manifest.submissionId())) {
+                throw corrupted(
+                        expectedSubmissionId,
+                        "submission identity does not match artifact");
+            }
+            if (input.available() != 0) {
+                throw corrupted(
+                        expectedSubmissionId,
+                        "payload contains trailing bytes");
+            }
+            return manifest;
+        } catch (CorruptedManifestException exception) {
+            throw exception;
+        } catch (EOFException exception) {
+            throw corrupted(
+                    expectedSubmissionId,
+                    "payload ended before all fields were read",
+                    exception);
+        } catch (IOException exception) {
+            throw corrupted(
+                    expectedSubmissionId,
+                    "payload could not be decoded",
+                    exception);
+        } catch (RuntimeException exception) {
+            throw corrupted(
+                    expectedSubmissionId,
+                    "payload could not be decoded",
+                    exception);
+        }
+    }
+
+    private SchedulerPriority readPriority(DataInputStream input)
+            throws IOException {
+        try {
+            return SchedulerPriority.valueOf(readString(input));
+        } catch (IllegalArgumentException exception) {
+            throw new IOException(
+                    "submission manifest priority is unsupported",
                     exception);
         }
     }
@@ -428,6 +542,69 @@ public final class FileSystemSubmissionManifestStore
                 .array());
     }
 
+    private Optional<ValidatedEnvelope> readValidatedEnvelope(
+            Path artifact,
+            String submissionId) throws IOException {
+        if (!Files.exists(artifact, LinkOption.NOFOLLOW_LINKS)) {
+            return Optional.empty();
+        }
+        if (!Files.isRegularFile(artifact, LinkOption.NOFOLLOW_LINKS)) {
+            throw corrupted(submissionId, "artifact must be a regular file");
+        }
+        try {
+            long artifactSize = Files.size(artifact);
+            long maximumEnvelopeBytes = (long) HEADER_BYTES + MAX_PAYLOAD_BYTES;
+            if (artifactSize < HEADER_BYTES
+                    || artifactSize > maximumEnvelopeBytes) {
+                throw corrupted(
+                        submissionId,
+                        "artifact size is outside supported bounds");
+            }
+            byte[] envelope = BoundedFileOperations.readAllBytes(
+                    artifact, maximumEnvelopeBytes);
+            ByteBuffer buffer = ByteBuffer.wrap(envelope);
+            if (buffer.getInt() != ENVELOPE_MAGIC) {
+                throw corrupted(submissionId, "envelope magic is invalid");
+            }
+            long storedAtMillis = buffer.getLong();
+            int payloadLength = buffer.getInt();
+            if (payloadLength < 0
+                    || payloadLength > MAX_PAYLOAD_BYTES
+                    || payloadLength != buffer.remaining() - DIGEST_BYTES) {
+                throw corrupted(
+                        submissionId,
+                        "payload length is outside supported bounds");
+            }
+            byte[] storedDigest = new byte[DIGEST_BYTES];
+            buffer.get(storedDigest);
+            byte[] payload = new byte[payloadLength];
+            buffer.get(payload);
+            byte[] expectedDigest =
+                    envelopeDigest(storedAtMillis, payloadLength, payload);
+            if (!MessageDigest.isEqual(storedDigest, expectedDigest)) {
+                throw corrupted(submissionId, "envelope digest does not match");
+            }
+            return Optional.of(new ValidatedEnvelope(envelope, payload));
+        } catch (NoSuchFileException exception) {
+            return Optional.empty();
+        } catch (FileSizeLimitExceededException exception) {
+            throw corrupted(
+                    submissionId,
+                    "artifact size is outside supported bounds",
+                    exception);
+        }
+    }
+
+    private int schemaVersion(byte[] payload, String submissionId)
+            throws IOException {
+        if (payload.length < Integer.BYTES) {
+            throw corrupted(
+                    submissionId,
+                    "payload ended before schema version was read");
+        }
+        return ByteBuffer.wrap(payload).getInt();
+    }
+
     private byte[] sha256(byte[] value) {
         try {
             return MessageDigest.getInstance("SHA-256").digest(value);
@@ -478,6 +655,23 @@ public final class FileSystemSubmissionManifestStore
 
         private CorruptedManifestException(String message, Throwable cause) {
             super(message, cause);
+        }
+    }
+
+    private record ValidatedEnvelope(byte[] bytes, byte[] payload) {
+        private ValidatedEnvelope {
+            bytes = bytes.clone();
+            payload = payload.clone();
+        }
+
+        @Override
+        public byte[] bytes() {
+            return bytes.clone();
+        }
+
+        @Override
+        public byte[] payload() {
+            return payload.clone();
         }
     }
 }

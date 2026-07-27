@@ -16,13 +16,23 @@ public final class DurableWorkItemAdmissionHandler implements MessageHandler {
     private static final long WORK_ITEM_DOMAIN_BIT = Long.MIN_VALUE;
 
     private final String requiredCapability;
+    private final SchedulerPriority priority;
     private final DurableSingleWorkerSchedulerQueue queue;
 
     public DurableWorkItemAdmissionHandler(
             String requiredCapability,
             DurableSingleWorkerSchedulerQueue queue) {
+        this(requiredCapability, SchedulerPriority.NORMAL, queue);
+    }
+
+    public DurableWorkItemAdmissionHandler(
+            String requiredCapability,
+            SchedulerPriority priority,
+            DurableSingleWorkerSchedulerQueue queue) {
         this.requiredCapability = Objects.requireNonNull(
                 requiredCapability, "requiredCapability must not be null");
+        this.priority = Objects.requireNonNull(
+                priority, "priority must not be null");
         this.queue = Objects.requireNonNull(queue, "queue must not be null");
     }
 
@@ -34,7 +44,8 @@ public final class DurableWorkItemAdmissionHandler implements MessageHandler {
                 requiredCapability,
                 envelope);
         try {
-            queue.admitIdempotently(new QueuedWork(workItem, Set.of()));
+            queue.admitIdempotently(new QueuedWork(
+                    workItem, Set.of(), priority));
         } catch (IOException exception) {
             throw new UncheckedIOException(
                     "work item could not be persisted in the Scheduler queue",

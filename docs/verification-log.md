@@ -2482,3 +2482,57 @@ Outcome:
 - A fresh `git ls-remote origin refs/heads/main` returned
   `6b1f5782205fe2fb040cfd2aa743743b1aae025f`; local `HEAD` and the `origin/main`
   tracking reference matched it after the push.
+
+## 2026-07-27 - Scheduler Priority Admission Boundary Assessment
+
+- Inspected `DurableWorkItemAdmissionHandler`, `DurableSubmissionManifest`,
+  `FileSystemSubmissionManifestStore`, `DurableWorkSubmissionService`,
+  `GeneratedSubmissionRequest`, `GeneratedInputSubmissionService`, both submission CLI
+  compositions, and their replay/integration tests.
+- Every current production path constructs the two-argument `QueuedWork` compatibility
+  form and therefore admits `NORMAL`. Neither submission command accepts priority, the
+  generated request does not carry it, and manifest schema v1 cannot distinguish a
+  priority change during exact replay.
+- Selected the immutable submission manifest as the sole owner of caller-requested
+  priority. `WorkItem`, `MessageEnvelope`, `WorkPayload`, required capability, allowed
+  Tools, and execution input remain unchanged because priority grants no authority.
+- Fixed the prerequisite at manifest schema v2 plus explicit stopped-submission
+  schema-v1 migration assigning `NORMAL`. Ordinary resolution becomes v2-only;
+  candidate validation/reread, source-byte drift refusal, atomic replacement, cleanup,
+  and original-source preservation precede any later optional CLI priority input.
+  Generic Gate 7 durable message admission retains its `NORMAL` default.
+- Fresh focused verification passed 37 tests across nine suites with zero skips,
+  failures, or errors: decision indexing, document ownership, manifest storage,
+  generated submission, durable admission, both submission CLI integrations, priority
+  selector, and queue-state contracts. Fresh `git diff --check` produced no output.
+- No production code, schema, CLI, priority input, WorkItem or Tool authority, external
+  state, commit, push, merge, release, or deployment changed.
+
+## 2026-07-27 - Submission Manifest Schema V2 Priority And Migration
+
+- Test-first RED produced 17 aligned compilation errors for the absent manifest
+  priority, priority-bearing admission constructor, and typed migration surface. After
+  the minimum core implementation, focused manifest-store, migration, handler, and
+  durable recovery tests passed.
+- A second RED run executed the two new CLI migration tests; both failed because
+  `scheduler-migrate-submission-manifest` was still unknown. After adding the bounded
+  command, a five-suite focused GREEN run passed with zero failures.
+- `DurableSubmissionManifest` now retains exact `NORMAL`/`EXPEDITED` Scheduler intent
+  in schema v2, while the compatibility constructor, generic durable handler, and both
+  existing submission commands remain `NORMAL`. `DurableWorkSubmissionService`
+  propagates the stored value into exact dependency-free queue admission, and changed
+  priority under one submission identity fails before queue mutation.
+- The explicit store operation and command map one stopped schema-v1 manifest to
+  schema v2 with `NORMAL`. Tests cover ordinary v1 refusal, exact/current/absent
+  outcomes, absent-root non-creation, candidate reread and cleanup, corruption
+  preservation, source drift refusal, atomic replacement, and bounded CLI reporting
+  without queue or execution behavior.
+- The first strict full-build attempt exceeded the 120-second shell limit without a
+  reported test failure. A fresh rerun with a sufficient limit completed successfully:
+  `clean build --no-build-cache --warning-mode all --quiet` passed 589 tests across
+  117 suites, with 586 passed, three existing Windows symbolic-link
+  privilege-dependent setup cases skipped, and zero failures or errors. Production and
+  test compilation emitted no warnings.
+- Fresh `git diff --check` produced no output. No public submission priority input,
+  generated-request priority, WorkItem/payload/Tool authority change, dependency
+  change, commit, push, merge, release, deployment, or external state change occurred.

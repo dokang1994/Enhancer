@@ -16,6 +16,7 @@ import com.enhancer.runtime.FileSystemSubmissionManifestStore;
 import com.enhancer.runtime.QueuedWork;
 import com.enhancer.runtime.SchedulerQueueState;
 import com.enhancer.runtime.SchedulerQueueStore;
+import com.enhancer.runtime.SchedulerPriority;
 import com.enhancer.runtime.WorkItem;
 import com.enhancer.workspace.ApprovedTaskRevision;
 import java.io.IOException;
@@ -81,6 +82,39 @@ class DurableSubmissionRecoveryIntegrationTest {
         assertEquals(before.maxWorkItems(), after.maxWorkItems());
         assertEquals(before.pendingWork(), after.pendingWork());
         assertEquals(before.activeWork(), after.activeWork());
+    }
+
+    @Test
+    void expeditedManifestPersistsAndAdmitsTheExactPriority() throws Exception {
+        Path root = temporaryRoot.resolve("expedited");
+        FileSystemSubmissionManifestStore manifests =
+                new FileSystemSubmissionManifestStore(root.resolve("manifests"));
+        FileSystemSchedulerQueueStore queues =
+                new FileSystemSchedulerQueueStore(root.resolve("queues"));
+        DurableSubmissionManifest expedited = new DurableSubmissionManifest(
+                QUEUE_ID,
+                8,
+                "read-file-worker",
+                submission("submission-test").workMessage(),
+                SchedulerPriority.EXPEDITED);
+
+        new DurableWorkSubmissionService(manifests, queues).submit(expedited);
+
+        assertEquals(SchedulerPriority.EXPEDITED,
+                manifests.resolve(MESSAGE_ID).priority());
+        SchedulerQueueState admitted = queues.resolve(QUEUE_ID);
+        assertEquals(
+                SchedulerPriority.EXPEDITED,
+                admitted.pendingWork().get(0).priority());
+        assertThrows(IllegalArgumentException.class, () ->
+                new DurableWorkSubmissionService(manifests, queues).submit(
+                        new DurableSubmissionManifest(
+                                QUEUE_ID,
+                                8,
+                                "read-file-worker",
+                                expedited.workMessage(),
+                                SchedulerPriority.NORMAL)));
+        assertEquals(1L, queues.resolve(QUEUE_ID).revision());
     }
 
     private void verifyRestartAfterManifestPersistence(Path root) throws Exception {

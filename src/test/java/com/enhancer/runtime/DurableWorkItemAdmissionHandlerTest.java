@@ -50,6 +50,31 @@ class DurableWorkItemAdmissionHandlerTest {
     }
 
     @Test
+    void explicitPriorityAdmissionDoesNotChangeTheDefaultHandler() throws Exception {
+        RecordingStore expeditedStore = new RecordingStore();
+        DurableSingleWorkerSchedulerQueue expeditedQueue =
+                DurableSingleWorkerSchedulerQueue.create(
+                        QUEUE_ID, 8, expeditedStore);
+        new DurableWorkItemAdmissionHandler(
+                "read-file-worker",
+                SchedulerPriority.EXPEDITED,
+                expeditedQueue).handle(workMessage());
+        assertEquals(
+                SchedulerPriority.EXPEDITED,
+                expeditedStore.state.pendingWork().get(0).priority());
+
+        RecordingStore defaultStore = new RecordingStore();
+        DurableSingleWorkerSchedulerQueue defaultQueue =
+                DurableSingleWorkerSchedulerQueue.create(
+                        QUEUE_ID, 8, defaultStore);
+        new DurableWorkItemAdmissionHandler(
+                "read-file-worker", defaultQueue).handle(workMessage());
+        assertEquals(
+                SchedulerPriority.NORMAL,
+                defaultStore.state.pendingWork().get(0).priority());
+    }
+
+    @Test
     void storageFailureUsesBusRetryAndDeadLetterWithoutExposure()
             throws Exception {
         RecordingStore store = new RecordingStore();

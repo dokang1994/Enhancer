@@ -47,6 +47,23 @@ class FileSystemSubmissionManifestStoreTest {
     }
 
     @Test
+    void persistsExactPriorityAndRejectsChangedPriorityReplay() throws Exception {
+        FileSystemSubmissionManifestStore store =
+                new FileSystemSubmissionManifestStore(temporaryRoot);
+        DurableSubmissionManifest expedited = manifest(
+                "manifest-store-test", SchedulerPriority.EXPEDITED);
+
+        assertTrue(store.storeIdempotently(expedited));
+        assertEquals(
+                SchedulerPriority.EXPEDITED,
+                store.resolve(MESSAGE_ID).priority());
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> store.storeIdempotently(manifest(
+                        "manifest-store-test", SchedulerPriority.NORMAL)));
+    }
+
+    @Test
     void corruptedArtifactFailsExplicitly() throws Exception {
         FileSystemSubmissionManifestStore store =
                 new FileSystemSubmissionManifestStore(temporaryRoot);
@@ -63,6 +80,12 @@ class FileSystemSubmissionManifestStoreTest {
     }
 
     private DurableSubmissionManifest manifest(String producer) {
+        return manifest(producer, SchedulerPriority.NORMAL);
+    }
+
+    private DurableSubmissionManifest manifest(
+            String producer,
+            SchedulerPriority priority) {
         return new DurableSubmissionManifest(
                 QUEUE_ID,
                 4,
@@ -83,6 +106,7 @@ class FileSystemSubmissionManifestStoreTest {
                                 Set.of("read-file"),
                                 Optional.of(new WorkPayload.ExecutionInput(
                                         "CURRENT_TASK.md",
-                                        "e".repeat(64))))));
+                                        "e".repeat(64))))),
+                priority);
     }
 }

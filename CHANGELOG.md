@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-07-27 - Persist Submission Priority In Manifest Schema V2
+
+- Advanced immutable submission manifests to schema v2 with exact
+  `NORMAL`/`EXPEDITED` Scheduler priority and preserved existing constructors and
+  submission commands as `NORMAL`.
+- Propagated stored priority through durable submission into dependency-free exact
+  queue admission, including replay conflict refusal for a changed priority.
+- Added candidate-first schema-v1-to-v2 migration assigning `NORMAL` and the bounded
+  `scheduler-migrate-submission-manifest` command with typed absent/current/migrated
+  outcomes.
+- Kept `WorkItem`, envelope/payload authority, public submission priority input,
+  execution, commit, push, merge, release, and deployment unchanged.
+
+## 2026-07-27 - Assess Scheduler Priority Admission
+
+- Mapped generic durable message admission, explicit submission, and generated-input
+  submission against exact queue and manifest replay.
+- Selected `DurableSubmissionManifest`, not `WorkItem` or `WorkPayload`, as the owner
+  of caller-requested `NORMAL`/`EXPEDITED` Scheduler priority.
+- Required manifest schema v2 and an explicit stopped-submission schema-v1 migration
+  assigning `NORMAL` before either submission command exposes optional priority input.
+- Kept current production admission, manifest schema, CLI behavior, Tool authority,
+  commit, push, merge, release, and deployment unchanged.
+
 ## 2026-07-27 - Connect Durable Priority-Aware Queue Claims
 
 - Connected the pure `SchedulerPrioritySelector` to the non-recovery

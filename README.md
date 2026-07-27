@@ -372,6 +372,22 @@ Retain only the submission UUID, the caller-owned intent, and the submission/que
 exact replay; the cycle-specific roots follow the same recovery rules as the explicit
 workflow. Submission remains separate from execution, and there is no wrapper or polling.
 
+### Migrate A Schema-V1 Submission Manifest
+
+Stop submission for the named identity and migrate exactly one retained schema-v1
+manifest before replaying it:
+
+```powershell
+.\scripts\gradle.ps1 run --args="scheduler-migrate-submission-manifest --submission-root C:\Enhancer\.enhancer\submissions --submission-id <canonical-submission-uuid>"
+```
+
+The bounded result is `MIGRATED`, `ALREADY_CURRENT`, or `ABSENT`. Migration retains the
+exact schema-v1 intent, assigns `NORMAL`, and publishes schema v2 only after validating
+and rereading a same-directory candidate and confirming the source bytes did not change.
+It does not create or recover a queue, admit or claim work, execute a worker or Tool, or
+accept priority input. Ordinary submission resolution rejects schema v1, so do not use
+either submission command on that identity until the explicit migration succeeds.
+
 ## Development Session Checkpoints
 
 Forced termination recovery does not depend on `SESSION_HANDOFF.md` being updated at

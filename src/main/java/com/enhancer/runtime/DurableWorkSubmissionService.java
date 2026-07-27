@@ -31,7 +31,9 @@ public final class DurableWorkSubmissionService {
         long revisionBeforeAdmission = queue.revision();
         try {
             new DurableWorkItemAdmissionHandler(
-                    manifest.requiredCapability(), queue)
+                    manifest.requiredCapability(),
+                    manifest.priority(),
+                    queue)
                     .handle(manifest.workMessage());
         } catch (UncheckedIOException exception) {
             throw exception.getCause();

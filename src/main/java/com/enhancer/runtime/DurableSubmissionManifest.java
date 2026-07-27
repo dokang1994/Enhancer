@@ -12,7 +12,21 @@ public record DurableSubmissionManifest(
         String queueId,
         int maxWorkItems,
         String requiredCapability,
-        MessageEnvelope workMessage) {
+        MessageEnvelope workMessage,
+        SchedulerPriority priority) {
+
+    public DurableSubmissionManifest(
+            String queueId,
+            int maxWorkItems,
+            String requiredCapability,
+            MessageEnvelope workMessage) {
+        this(
+                queueId,
+                maxWorkItems,
+                requiredCapability,
+                workMessage,
+                SchedulerPriority.NORMAL);
+    }
 
     public DurableSubmissionManifest {
         Objects.requireNonNull(workMessage, "workMessage must not be null");
@@ -27,6 +41,7 @@ public record DurableSubmissionManifest(
                 requiredCapability,
                 workMessage);
         requiredCapability = validated.requiredCapability();
+        Objects.requireNonNull(priority, "priority must not be null");
     }
 
     public String submissionId() {
