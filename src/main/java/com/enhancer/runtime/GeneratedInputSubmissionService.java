@@ -73,7 +73,8 @@ public final class GeneratedInputSubmissionService {
                 identities.queueId(),
                 request.maxWorkItems(),
                 request.requiredCapability(),
-                envelope);
+                envelope,
+                request.priority());
     }
 
     private void requireConsistent(
@@ -86,6 +87,8 @@ public final class GeneratedInputSubmissionService {
                 "queue capacity does not match the submission manifest");
         require(manifest.requiredCapability().equals(request.requiredCapability()),
                 "required capability does not match the submission manifest");
+        require(manifest.priority() == request.priority(),
+                "requested priority does not match the submission manifest");
 
         MessageEnvelope envelope = manifest.workMessage();
         require(envelope.messageId().equals(request.submissionId()),

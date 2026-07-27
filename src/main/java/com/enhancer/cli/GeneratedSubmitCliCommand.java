@@ -1,5 +1,6 @@
 package com.enhancer.cli;
 
+import com.enhancer.runtime.SchedulerPriority;
 import java.nio.file.Path;
 
 /**
@@ -18,5 +19,6 @@ record GeneratedSubmitCliCommand(
         String requiredCapability,
         String producer,
         String targetPath,
-        String expectedSha256) implements CliCommand {
+        String expectedSha256,
+        SchedulerPriority priority) implements CliCommand {
 }

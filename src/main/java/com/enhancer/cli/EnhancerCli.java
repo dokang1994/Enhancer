@@ -934,7 +934,8 @@ public final class EnhancerCli {
                     command.queueId(),
                     command.maxWorkItems(),
                     command.requiredCapability(),
-                    workMessage);
+                    workMessage,
+                    command.priority());
             result = new DurableWorkSubmissionService(
                     new FileSystemSubmissionManifestStore(command.submissionRoot()),
                     new FileSystemSchedulerQueueStore(command.queueRoot()))
@@ -952,6 +953,7 @@ public final class EnhancerCli {
                 "submissionId=" + result.submissionId(),
                 "queueId=" + result.queueId(),
                 "queueRevision=" + result.queueRevision(),
+                "priority=" + command.priority().name(),
                 "manifestCreated=" + result.manifestCreated(),
                 "queueCreated=" + result.queueCreated(),
                 "workAdmitted=" + result.workAdmitted(),
@@ -973,7 +975,8 @@ public final class EnhancerCli {
                     command.producer(),
                     command.taskId(),
                     command.targetPath(),
-                    command.expectedSha256());
+                    command.expectedSha256(),
+                    command.priority());
             result = new GeneratedInputSubmissionService(
                     manifestStore,
                     new FileSystemSchedulerQueueStore(command.queueRoot()),
@@ -988,9 +991,10 @@ public final class EnhancerCli {
         }
 
         // The manifest is the sole generated-input recovery record; read the generated
-        // identities, occurrence time, and snapshot back from it for auditable output.
-        MessageEnvelope workMessage =
-                manifestStore.resolve(command.submissionId()).workMessage();
+        // identities, occurrence time, priority, and snapshot back from it for auditable output.
+        DurableSubmissionManifest storedManifest =
+                manifestStore.resolve(command.submissionId());
+        MessageEnvelope workMessage = storedManifest.workMessage();
         WorkPayload work = (WorkPayload) workMessage.payload();
         String status = result.workAdmitted() ? "ADMITTED" : "REPLAYED";
         writeBounded(stdout, String.join("\n",
@@ -1002,6 +1006,7 @@ public final class EnhancerCli {
                 "logicalRunId=" + workMessage.logicalRunId(),
                 "occurredAt=" + workMessage.occurredAt(),
                 "queueRevision=" + result.queueRevision(),
+                "priority=" + storedManifest.priority().name(),
                 "manifestCreated=" + result.manifestCreated(),
                 "queueCreated=" + result.queueCreated(),
                 "workAdmitted=" + result.workAdmitted(),

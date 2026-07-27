@@ -149,6 +149,40 @@ class GeneratedInputSubmissionServiceTest {
     }
 
     @Test
+    void firstUsePersistsRequestedPriority() throws Exception {
+        service(FIRST_USE).submit(
+                new GeneratedSubmissionRequest(
+                        SUBMISSION_ID, 4, CAPABILITY, PRODUCER, TASK_ID, TARGET, DIGEST,
+                        SchedulerPriority.EXPEDITED),
+                (identities, occurredAt) ->
+                        envelope(identities, occurredAt, PRODUCER, DIGEST));
+
+        DurableSubmissionManifest stored = new FileSystemSubmissionManifestStore(
+                manifestRoot).resolve(SUBMISSION_ID);
+        assertEquals(SchedulerPriority.EXPEDITED, stored.priority());
+    }
+
+    @Test
+    void conflictingPriorityOnReplayFailsClosedBeforeContext() throws Exception {
+        service(FIRST_USE).submit(request(CAPABILITY),
+                (identities, occurredAt) ->
+                        envelope(identities, occurredAt, PRODUCER, DIGEST));
+
+        GeneratedInputSubmissionService replay = new GeneratedInputSubmissionService(
+                new FileSystemSubmissionManifestStore(manifestRoot),
+                new FileSystemSchedulerQueueStore(queueRoot),
+                Clock.fixed(LATER, ZoneOffset.UTC));
+
+        assertThrows(IllegalArgumentException.class, () -> replay.submit(
+                new GeneratedSubmissionRequest(
+                        SUBMISSION_ID, 4, CAPABILITY, PRODUCER, TASK_ID, TARGET, DIGEST,
+                        SchedulerPriority.EXPEDITED),
+                (identities, occurredAt) -> {
+                    throw new AssertionError("must fail before capturing context");
+                }));
+    }
+
+    @Test
     void firstUseEnvelopeInconsistentWithRequestFailsClosed() throws Exception {
         GeneratedInputSubmissionService service = service(FIRST_USE);
 

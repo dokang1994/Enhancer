@@ -10,12 +10,14 @@ import com.enhancer.runtime.DurableSingleWorkerSchedulerQueue;
 import com.enhancer.runtime.DurableSubmissionManifest;
 import com.enhancer.runtime.FileSystemSchedulerQueueStore;
 import com.enhancer.runtime.FileSystemSubmissionManifestStore;
+import com.enhancer.runtime.SchedulerPriority;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
+import java.util.Arrays;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Optional;
@@ -84,15 +86,74 @@ class EnhancerCliSchedulerSubmitIntegrationTest {
         assertEquals(1L, recoverQueue(layout).revision());
     }
 
+    @Test
+    void emitsEffectivePriorityAndPersistsRequestedPriority() throws Exception {
+        Layout layout = layout();
+        writeGovernedProject(layout.projectRoot());
+        String targetDigest = writeTarget(
+                layout.projectRoot(), "scheduler submit target\n");
+
+        Execution expedited = executeWithPriority(
+                layout, TASK_ID, "scheduler-submit-cli-test", targetDigest, "EXPEDITED");
+
+        assertEquals(0, expedited.exitCode());
+        assertTrue(expedited.stdout().contains("status=ADMITTED"));
+        assertTrue(expedited.stdout().contains("priority=EXPEDITED"));
+        DurableSubmissionManifest manifest = new FileSystemSubmissionManifestStore(
+                layout.submissionRoot()).resolve(MESSAGE_ID);
+        assertEquals(SchedulerPriority.EXPEDITED, manifest.priority());
+
+        Execution replay = executeWithPriority(
+                layout, TASK_ID, "scheduler-submit-cli-test", targetDigest, "EXPEDITED");
+
+        assertEquals(0, replay.exitCode());
+        assertTrue(replay.stdout().contains("status=REPLAYED"));
+        assertTrue(replay.stdout().contains("priority=EXPEDITED"));
+    }
+
+    @Test
+    void defaultsEffectivePriorityToNormalWhenOmitted() throws Exception {
+        Layout layout = layout();
+        writeGovernedProject(layout.projectRoot());
+        String targetDigest = writeTarget(
+                layout.projectRoot(), "scheduler submit target\n");
+
+        Execution normal = execute(
+                layout, TASK_ID, "scheduler-submit-cli-test", targetDigest);
+
+        assertEquals(0, normal.exitCode());
+        assertTrue(normal.stdout().contains("priority=NORMAL"));
+        DurableSubmissionManifest manifest = new FileSystemSubmissionManifestStore(
+                layout.submissionRoot()).resolve(MESSAGE_ID);
+        assertEquals(SchedulerPriority.NORMAL, manifest.priority());
+    }
+
     private Execution execute(
             Layout layout,
             String taskId,
             String producer,
             String targetDigest) {
+        return run(arguments(layout, taskId, producer, targetDigest));
+    }
+
+    private Execution executeWithPriority(
+            Layout layout,
+            String taskId,
+            String producer,
+            String targetDigest,
+            String priority) {
+        String[] base = arguments(layout, taskId, producer, targetDigest);
+        String[] withPriority = Arrays.copyOf(base, base.length + 2);
+        withPriority[base.length] = "--priority";
+        withPriority[base.length + 1] = priority;
+        return run(withPriority);
+    }
+
+    private Execution run(String[] arguments) {
         ByteArrayOutputStream stdout = new ByteArrayOutputStream();
         ByteArrayOutputStream stderr = new ByteArrayOutputStream();
         int exitCode = new EnhancerCli().execute(
-                arguments(layout, taskId, producer, targetDigest),
+                arguments,
                 new PrintStream(stdout, true, StandardCharsets.UTF_8),
                 new PrintStream(stderr, true, StandardCharsets.UTF_8));
         return new Execution(

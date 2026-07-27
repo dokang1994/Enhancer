@@ -519,8 +519,10 @@ Whole-gate assessment:
   `NORMAL`/`EXPEDITED` intent and durable submission passes it to exact queue admission.
   `scheduler-migrate-submission-manifest` maps one stopped schema-v1 submission to
   `NORMAL` through candidate-first atomic replacement and source-drift refusal.
-  Generic durable message admission and both existing submission commands still default
-  to `NORMAL`; no current public input changes priority.
+  Both the explicit `scheduler-submit` and generated-input `scheduler-submit-generated`
+  commands now accept one optional public `--priority NORMAL|EXPEDITED` input and report
+  the effective priority, while generic durable message admission still defaults to
+  `NORMAL`.
 
 Current increment:
 
@@ -597,7 +599,7 @@ Current increment:
   or additional RunRecord/effect outcome, preserves the effect artifact bytes, and
   clears the checkpoint. This satisfies the supported-migration fixture slice without a
   second schema migration or whole-gate promotion;
-- deferred: real authorized external adapters, admission-history compaction/cleanup or schema-v1 queue migration, worker polling/service operation, general forward-reference graph/cycle handling, authenticated cancellation/pause/resume application, public priority admission input after its manifest-v2 migration prerequisite, time-based aging, broader budgets, checkpoints beyond current snapshots, schema-v1 runtime or effect-ledger migration, power-loss directory durability, broader multi-process and cross-store coordination, distributed locks and clock-skew handling, and broader production wiring.
+- deferred: real authorized external adapters, admission-history compaction/cleanup or schema-v1 queue migration, worker polling/service operation, general forward-reference graph/cycle handling, authenticated cancellation/pause/resume application, time-based aging, broader budgets, checkpoints beyond current snapshots, schema-v1 runtime or effect-ledger migration, power-loss directory durability, broader multi-process and cross-store coordination, distributed locks and clock-skew handling, and broader production wiring.
 
 Ordered connection sequence:
 

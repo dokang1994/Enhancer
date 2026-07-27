@@ -6,76 +6,80 @@ Completed
 
 ## Task
 
-Deliver the completed submission manifest schema-v2 priority persistence and migration
-increment to `origin/main`.
+Connect the same optional `NORMAL`/`EXPEDITED` priority input and effective-priority output
+to the generated-input `scheduler-submit-generated` CLI command, with generated replay
+comparing the caller-owned requested priority against the stored manifest before consulting
+the clock or recapturing repository context, without adding new authority, schema change,
+queue selection change, or execution.
 
 ## Task ID
 
-deliver-submission-manifest-schema-v2-priority-migration
+connect-scheduler-submit-generated-priority-input-and-output
 
 ## Context
 
-The implementation task is completed and freshly verified. The user now explicitly
-authorized commit, push, and merge. The completed changes already reside in the local
-`main` working tree, so delivery must preserve that topology without manufacturing an
-empty merge commit.
+The immediately preceding increment connected an optional `--priority` input and
+effective-priority output to the explicit `scheduler-submit` command. Submission manifest
+schema v2 already persists the priority and `DurableWorkSubmissionService` already
+propagates it, so the generated-input command only needed the same caller-owned input,
+first-use persistence, replay comparison, and output. The generated command previously
+always admitted `NORMAL`.
 
 ## Justified By
 
-- 2026-07-27: Deliver Submission Manifest Schema V2 Priority Migration Directly To Main
 - 2026-07-27: Persist Requested Scheduler Priority In Submission Manifest Before Exposing Admission Input
 
 ## Acceptance Criteria
 
-- Fetch `origin/main` and confirm the local and remote branch share the expected base
-  without absorbing unrelated remote changes.
-- Run a fresh strict full build and read its complete test evidence before committing.
-- Review the complete staged path set, whitespace, and bounded credential-pattern scan.
-- Commit the completed implementation and synchronized project documents on local
-  `main` with an ordinary commit.
-- Push local `main` to `origin/main` without force; do not create a content-free merge
-  commit when no topic branch exists.
-- Record delivery history in its owning documents, commit that record separately, and
-  push it without force.
-- Freshly verify that local `HEAD`, `origin/main`, and the remote-advertised
-  `refs/heads/main` are identical and that the working tree is clean.
+- `scheduler-submit-generated` accepts one optional `--priority NORMAL|EXPEDITED`; omission
+  defaults to `NORMAL`, any other value fails usage before manifest or queue mutation.
+- First use persists the caller-owned priority in the generated manifest; a replay under
+  the same submission UUID with a different priority fails closed before the clock or
+  repository context is consulted.
+- Bounded output reports the effective `priority` on both `ADMITTED` and `REPLAYED`.
+- The generic message-admission `NORMAL` default, queue selection and fairness, schema,
+  authority, and dependencies are unchanged.
 
 ## Out Of Scope
 
-- Further feature behavior; public priority input; generated-request priority; release,
-  tag, deployment, pull-request mutation, branch deletion, force push, history rewrite,
-  destructive operation, permission expansion, or unrelated cleanup.
+- Generic message-admission priority input, priority policy or defaults change, queue
+  selection or fairness change, schema change, new authority, execution, polling, Gate 9,
+  release, or deployment.
 
 ## Approval
 
-The user explicitly requested commit, push, and merge for the completed work on
-2026-07-27.
+The user explicitly asked to continue the project on 2026-07-28. This increment is the
+generated-input half of the CLI connection already authorized by the accepted
+priority-persistence decision.
 
 ## Allowed Tools
 
 - read-file
-- write-docs
-- verify
-- git
-- network
 
 ## Verification
 
-Fresh `git fetch origin main` established local `main`, `origin/main`, and their
-merge-base at `406ea06468b690262f3ae08d2f759f82be4e4f1f`, with divergence `0 0`.
+Acceptance was satisfied test-first. Two `CliArgumentsTest`, two
+`GeneratedInputSubmissionServiceTest`, and three
+`EnhancerCliSchedulerGeneratedSubmitIntegrationTest` cases were written first and failed to
+compile on the absent `GeneratedSubmitCliCommand.priority()` and the eight-argument
+`GeneratedSubmissionRequest`; after the minimal implementation the targeted reruns passed,
+proving first-use `EXPEDITED` persists an `EXPEDITED` manifest and prints
+`priority=EXPEDITED` on `ADMITTED` and exact `REPLAYED`, omission persists and prints
+`NORMAL`, a same-UUID replay with a different priority fails closed before the envelope
+factory runs (exit `2`, no manifest or queue-revision change), and lowercase/unknown values
+are rejected.
 
-Fresh strict `clean build --no-build-cache --warning-mode all --quiet` passed 589 tests
-across 117 suites: 586 passed, three existing Windows symbolic-link
-privilege-dependent setup cases skipped, and zero failures or errors occurred.
-
-The complete staged diff covered 26 paths with 1,151 insertions and 135 deletions.
-`git diff --cached --check` passed and the bounded credential-pattern scan found zero
-matches. Commit `b6f75051b4fb1f2bc8bb1a574e5526afec4acc88` was pushed from local
-`main` to `origin/main` without force. A fresh remote query returned the same commit for
-`refs/heads/main`. The final delivery-record commit and remote identity check follow
-this record.
+The full strict `clean build --no-build-cache --warning-mode all` (encoding supplied
+through `-Dorg.gradle.jvmargs=-Dfile.encoding=UTF-8`) passed 600 tests across 117 suites:
+597 passed, three existing Windows symbolic-link privilege-dependent setup cases skipped,
+and zero failures or errors, with no compiler warnings under `-Xlint:all -Werror`.
+`git diff --check` produced no output and a bounded credential scan found zero matches.
+Append-only evidence is in `docs/verification-log.md`.
 
 ## Next
 
-After delivery, connect optional `NORMAL`/`EXPEDITED` input and effective-priority
-output to the explicit `scheduler-submit` command in a separate task.
+The explicit and generated submission commands now both expose priority. Select the next
+Scheduler increment from the roadmap's still-deferred selection work, for example
+`scheduler-status`/`scheduler-recovery-status` surfacing the effective queue priority and
+fairness state so an operator can observe how admitted priority affects selection, without
+adding queue selection change, new authority, execution, or polling.

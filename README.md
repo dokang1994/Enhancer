@@ -125,10 +125,16 @@ time, queue bound, capability, target, and expected digest remains an explicit i
 ```
 
 The bounded status is `ADMITTED` when the queue revision advances and `REPLAYED` when
-the exact submission is already present. Preserve and reuse every argument to recover an
-interrupted submission. Reusing a message identity with changed content or naming a task
-that does not match the active repository task exits `2` without admitting changed work.
-The command does not execute the work; invoke `scheduler-cycle` separately.
+the exact submission is already present. `--priority` is the one optional input; it
+accepts exactly `NORMAL` (the default when omitted) or `EXPEDITED`, and any other value
+exits `2`. The command reports the effective `priority` on both statuses. Priority is
+scheduler-only selection metadata that grants no Tool, task, or execution authority, and
+it is part of the immutable submission content: reusing a message identity with a
+different priority exits `2` without admitting changed work, so exact replay must reuse
+the original priority. Preserve and reuse every argument to recover an interrupted
+submission. Reusing a message identity with changed content or naming a task that does not
+match the active repository task exits `2` without admitting changed work. The command
+does not execute the work; invoke `scheduler-cycle` separately.
 
 ## Inspect Durable Scheduler Queue Status
 
@@ -346,15 +352,20 @@ correlation, logical-run identity, or occurrence time is supplied, and the expli
 ```
 
 The bounded status is `ADMITTED` when the queue revision advances and `REPLAYED` when the
-exact submission is already present. The output prints the generated `queueId`,
-`correlationId`, `logicalRunId`, `occurredAt`, and `workspaceSnapshotId` for auditing; pass
-the printed `queueId` to `scheduler-cycle` or `scheduler-drain`. On the first invocation
-the occurrence time and governed repository snapshot are captured, the immutable
-submission manifest is persisted, and the queue is created and the work admitted. On any
-later invocation the manifest is resolved before the clock or repository context is
-consulted, so the exact occurrence time and envelope are reused; changing any caller-owned
-intent (task, capacity, capability, producer, target, or digest) under the same submission
-UUID exits `2` without admitting changed work.
+exact submission is already present. Like `scheduler-submit`, it accepts the one optional
+`--priority NORMAL|EXPEDITED` input, which defaults to `NORMAL` on omission and exits `2`
+on any other value; the priority is caller-owned intent, so it is part of the replay tuple
+and a later invocation supplying a different priority under the same submission UUID fails
+closed before the clock or repository context is consulted. The output prints the generated
+`queueId`, `correlationId`, `logicalRunId`, `occurredAt`, effective `priority`, and
+`workspaceSnapshotId` for auditing; pass the printed `queueId` to `scheduler-cycle` or
+`scheduler-drain`. On the first invocation the occurrence time and governed repository
+snapshot are captured, the immutable submission manifest is persisted, and the queue is
+created and the work admitted. On any later invocation the manifest is resolved before the
+clock or repository context is consulted, so the exact occurrence time and envelope are
+reused; changing any caller-owned intent (task, capacity, capability, producer, target,
+digest, or priority) under the same submission UUID exits `2` without admitting changed
+work.
 
 A real-repository smoke run reads `README.md` and observes
 `ADMITTED -> VERIFIED_COMPLETED -> REPLAYED -> IDLE` with one retained manifest, one
