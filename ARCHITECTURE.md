@@ -406,20 +406,23 @@ lock, external-effect adapter, or Gate 9 behavior.
 
 `scheduler-submit` is the supported command for this boundary. The caller supplies the
 project, submission, and queue roots plus every task, queue, message, correlation,
-logical-run, producer, capability, capacity, occurrence-time, target, and digest input.
+logical-run, producer, capability, capacity, occurrence-time, target, and digest input,
+and one optional `--priority NORMAL|EXPEDITED` selecting the Scheduler priority.
 The command resolves the matching repository-approved active task, captures one
 repository-memory Workspace snapshot at the supplied occurrence time, constructs the
 exact dependency-free work envelope, and calls `DurableWorkSubmissionService`. It
 generates neither identity nor time and never invokes a worker, Tool, evidence store,
 RunRecord store, or `scheduler-cycle`. Bounded output reports `ADMITTED` only when the
-queue revision advances and `REPLAYED` for an exact already-admitted submission.
+queue revision advances and `REPLAYED` for an exact already-admitted submission, and
+reports the effective `priority` on both.
 
-Manifest schema v2 and its explicit migration are the verified prerequisite for a later
-task in which `scheduler-submit` and then `scheduler-submit-generated` may accept optional
-`--priority NORMAL|EXPEDITED`; omission remains `NORMAL`. Invalid or replay-conflicting
-priority fails before manifest or queue mutation, and bounded success output reports
-the effective value. The generic Gate 7 message admission path retains its existing
-`NORMAL` default because the envelope carries no separate Scheduler priority intent.
+Manifest schema v2 and its explicit migration are the verified prerequisite that both
+submission commands now satisfy: `scheduler-submit` and `scheduler-submit-generated` each
+accept the optional `--priority NORMAL|EXPEDITED` input, default to `NORMAL` on omission,
+reject any other value, and fail before manifest or queue mutation on an invalid or
+replay-conflicting priority, reporting the effective value in bounded output. The generic
+Gate 7 message admission path retains its existing `NORMAL` default because the envelope
+carries no separate Scheduler priority intent.
 
 Generated submission inputs do not require a second durable invocation manifest. The
 generated-input boundary uses one caller-retained canonical submission UUID as the stable
@@ -427,8 +430,9 @@ replay key and message identity, derives queue/correlation/logical-run identitie
 versioned domain separation, and makes the existing `DurableSubmissionManifest` the sole
 owner of the generated occurrence time and exact work envelope. First use captures and
 persists that manifest before queue creation; replay resolves it before consulting a clock
-or recapturing repository context and rejects caller-intent drift. This boundary remains
-separate from `scheduler-cycle`, polling, and automatic execution.
+or recapturing repository context and rejects caller-intent drift, including a changed
+caller-owned priority. This boundary remains separate from `scheduler-cycle`, polling, and
+automatic execution.
 
 ### Gate 8 Durable Goal And AgentRun Lifecycle
 

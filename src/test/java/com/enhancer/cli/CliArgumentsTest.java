@@ -3,6 +3,7 @@ package com.enhancer.cli;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.enhancer.runtime.SchedulerPriority;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
@@ -428,6 +429,37 @@ class CliArgumentsTest {
     }
 
     @Test
+    void parsesOptionalSchedulerSubmitPriority() {
+        String[] expedited = Arrays.copyOf(
+                schedulerSubmitArguments("8", "2026-07-22T16:00:00Z"), 31);
+        expedited[29] = "--priority";
+        expedited[30] = "EXPEDITED";
+        SchedulerSubmitCliCommand submit =
+                (SchedulerSubmitCliCommand) CliArguments.parse(expedited);
+        assertEquals(SchedulerPriority.EXPEDITED, submit.priority());
+
+        SchedulerSubmitCliCommand defaulted =
+                (SchedulerSubmitCliCommand) CliArguments.parse(
+                        schedulerSubmitArguments("8", "2026-07-22T16:00:00Z"));
+        assertEquals(SchedulerPriority.NORMAL, defaulted.priority());
+    }
+
+    @Test
+    void rejectsUnknownSchedulerSubmitPriority() {
+        String[] lowerCase = Arrays.copyOf(
+                schedulerSubmitArguments("8", "2026-07-22T16:00:00Z"), 31);
+        lowerCase[29] = "--priority";
+        lowerCase[30] = "normal";
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(lowerCase));
+
+        String[] unknown = Arrays.copyOf(
+                schedulerSubmitArguments("8", "2026-07-22T16:00:00Z"), 31);
+        unknown[29] = "--priority";
+        unknown[30] = "high";
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(unknown));
+    }
+
+    @Test
     void parsesGeneratedInputSchedulerSubmitInput() {
         GeneratedSubmitCliCommand generated =
                 (GeneratedSubmitCliCommand) CliArguments.parse(
@@ -467,6 +499,34 @@ class CliArgumentsTest {
         String[] explicitOption = generatedSubmitArguments("8");
         explicitOption[9] = "--queue-id";
         assertThrows(CliUsageException.class, () -> CliArguments.parse(explicitOption));
+    }
+
+    @Test
+    void parsesOptionalGeneratedSubmitPriority() {
+        String[] expedited = Arrays.copyOf(generatedSubmitArguments("8"), 23);
+        expedited[21] = "--priority";
+        expedited[22] = "EXPEDITED";
+        GeneratedSubmitCliCommand generated =
+                (GeneratedSubmitCliCommand) CliArguments.parse(expedited);
+        assertEquals(SchedulerPriority.EXPEDITED, generated.priority());
+
+        GeneratedSubmitCliCommand defaulted =
+                (GeneratedSubmitCliCommand) CliArguments.parse(
+                        generatedSubmitArguments("8"));
+        assertEquals(SchedulerPriority.NORMAL, defaulted.priority());
+    }
+
+    @Test
+    void rejectsUnknownGeneratedSubmitPriority() {
+        String[] lowerCase = Arrays.copyOf(generatedSubmitArguments("8"), 23);
+        lowerCase[21] = "--priority";
+        lowerCase[22] = "expedited";
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(lowerCase));
+
+        String[] unknown = Arrays.copyOf(generatedSubmitArguments("8"), 23);
+        unknown[21] = "--priority";
+        unknown[22] = "urgent";
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(unknown));
     }
 
     private String[] generatedSubmitArguments(String maxWorkItems) {

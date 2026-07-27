@@ -2555,3 +2555,75 @@ Outcome:
   `b6f75051b4fb1f2bc8bb1a574e5526afec4acc88`. Force push, history rewrite, merge
   commit, tag, release, deployment, pull-request mutation, and branch deletion did not
   occur.
+
+## 2026-07-28 - Connect scheduler-submit Optional Priority Input And Effective-Priority Output
+
+- Test-first: two `EnhancerCliSchedulerSubmitIntegrationTest` cases and two
+  `CliArgumentsTest` cases were written before implementation and failed for the
+  expected reason. The first strict run failed to compile with
+  `cannot find symbol: method priority()` on `SchedulerSubmitCliCommand`, confirming
+  the absent optional-priority input and effective-priority output.
+- The minimal implementation added an optional `SchedulerPriority priority` to
+  `SchedulerSubmitCliCommand`, an optional-option overload of `CliArguments.parseOptions`
+  with `--priority` in `SCHEDULER_SUBMIT_OPTIONAL_OPTIONS`, exact `NORMAL`/`EXPEDITED`
+  validation defaulting to `NORMAL` on omission and failing usage otherwise, propagation
+  through the five-argument `DurableSubmissionManifest`, and a `priority=` bounded-output
+  line derived from the effective command priority.
+- The targeted rerun passed both `CliArgumentsTest` and
+  `EnhancerCliSchedulerSubmitIntegrationTest`, proving `--priority EXPEDITED` persists an
+  `EXPEDITED` manifest and prints `priority=EXPEDITED` on `ADMITTED` and on exact
+  `REPLAYED`, omission persists and prints `NORMAL`, and lowercase/unknown values are
+  rejected. `scheduler-submit-generated` was left unchanged.
+- An initial full strict `clean build --no-build-cache --warning-mode all` run set the
+  encoding through the `JAVA_TOOL_OPTIONS` environment variable, which leaked a
+  `Picked up JAVA_TOOL_OPTIONS` line into the child JVM stdout that
+  `FileSystemSchedulerQueueStoreIntegrationTest.refusesUpdateWhileAnotherJvmOwnsTheQueueWriterLock`
+  reads through its merged error stream, failing that single cross-JVM lock case for a
+  reason unrelated to this change. Re-running the same test in isolation without that
+  environment variable passed, and the full strict `clean build --no-build-cache
+  --warning-mode all` rerun that supplied the encoding through
+  `-Dorg.gradle.jvmargs=-Dfile.encoding=UTF-8` instead passed 593 tests across 117
+  suites: 590 passed, three existing Windows symbolic-link privilege-dependent setup
+  cases skipped, and zero failures or errors. Production and test compilation emitted no
+  warnings under `-Xlint:all -Werror`.
+- Fresh `git diff --check` produced no output and a bounded credential-pattern scan of
+  the diff found zero matches. No generated-request priority input, WorkItem/payload/Tool
+  authority change, schema change, dependency change, commit, push, merge, release,
+  deployment, or external state change occurred.
+
+## 2026-07-28 - Connect scheduler-submit-generated Optional Priority Input And Effective-Priority Output
+
+- Test-first: two `CliArgumentsTest`, two `GeneratedInputSubmissionServiceTest`, and three
+  `EnhancerCliSchedulerGeneratedSubmitIntegrationTest` cases were written before
+  implementation and failed for the expected reason. The first strict run failed to
+  compile with `cannot find symbol: method priority()` on `GeneratedSubmitCliCommand` and
+  an eight-argument `GeneratedSubmissionRequest` constructor mismatch, confirming the
+  absent generated-input optional-priority input, persistence, and output.
+- The minimal implementation added an optional `SchedulerPriority priority` to
+  `GeneratedSubmissionRequest` (with a seven-argument compatibility constructor defaulting
+  to `NORMAL`) and to `GeneratedSubmitCliCommand`, a `--priority` entry in
+  `SCHEDULER_SUBMIT_GENERATED_OPTIONAL_OPTIONS` parsed by the shared exact
+  `NORMAL`/`EXPEDITED` validator, first-use manifest construction through the
+  five-argument `DurableSubmissionManifest`, a manifest-versus-request priority equality
+  check in `GeneratedInputSubmissionService.requireConsistent` before any clock or
+  repository-context capture, and a `priority=` bounded-output line read back from the
+  resolved manifest.
+- The targeted rerun passed `CliArgumentsTest`, `GeneratedInputSubmissionServiceTest`,
+  `EnhancerCliSchedulerGeneratedSubmitIntegrationTest`, and the earlier
+  `EnhancerCliSchedulerSubmitIntegrationTest`, proving first-use `EXPEDITED` persists an
+  `EXPEDITED` manifest and prints `priority=EXPEDITED` on `ADMITTED` and exact `REPLAYED`,
+  omission persists and prints `NORMAL`, a replay supplying a different priority under the
+  same submission UUID fails closed before the envelope factory runs (exit `2`,
+  `status=ERROR`, no manifest byte or queue-revision change), and lowercase/unknown values
+  are rejected.
+- The full strict `clean build --no-build-cache --warning-mode all` (encoding supplied
+  through `-Dorg.gradle.jvmargs=-Dfile.encoding=UTF-8`, not the `JAVA_TOOL_OPTIONS`
+  environment variable, which otherwise fails the cross-JVM queue-writer-lock case by
+  leaking a `Picked up JAVA_TOOL_OPTIONS` line into child-process stdout) passed 600 tests
+  across 117 suites: 597 passed, three existing Windows symbolic-link privilege-dependent
+  setup cases skipped, and zero failures or errors. Production and test compilation emitted
+  no warnings under `-Xlint:all -Werror`.
+- Fresh `git diff --check` produced no output and a bounded credential-pattern scan of the
+  diff found zero matches. No new authority, schema change, queue selection or fairness
+  change, generic message-admission priority input, dependency change, commit, push, merge,
+  release, deployment, or external state change occurred.

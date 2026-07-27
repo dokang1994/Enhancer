@@ -18,7 +18,27 @@ public record GeneratedSubmissionRequest(
         String producer,
         String taskId,
         String targetPath,
-        String expectedSha256) {
+        String expectedSha256,
+        SchedulerPriority priority) {
+
+    public GeneratedSubmissionRequest(
+            String submissionId,
+            int maxWorkItems,
+            String requiredCapability,
+            String producer,
+            String taskId,
+            String targetPath,
+            String expectedSha256) {
+        this(
+                submissionId,
+                maxWorkItems,
+                requiredCapability,
+                producer,
+                taskId,
+                targetPath,
+                expectedSha256,
+                SchedulerPriority.NORMAL);
+    }
 
     public GeneratedSubmissionRequest {
         submissionId = GeneratedSubmissionIdentities.canonicalSubmissionId(submissionId);
@@ -27,5 +47,6 @@ public record GeneratedSubmissionRequest(
         Objects.requireNonNull(taskId, "taskId must not be null");
         Objects.requireNonNull(targetPath, "targetPath must not be null");
         Objects.requireNonNull(expectedSha256, "expectedSha256 must not be null");
+        Objects.requireNonNull(priority, "priority must not be null");
     }
 }

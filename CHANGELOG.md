@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-07-28 - Connect scheduler-submit-generated Optional Priority Input And Output
+
+- Added the same optional `--priority NORMAL|EXPEDITED` input to the generated-input
+  `scheduler-submit-generated` command, defaulting to `NORMAL` on omission and rejecting
+  any other value.
+- Persisted the caller-owned priority into the generated manifest on first use and
+  compared it against the stored manifest on replay before consulting the clock or
+  recapturing repository context, failing closed on a changed priority; reported the
+  effective `priority` in bounded output.
+- Left the generic message-admission `NORMAL` default, queue selection/fairness, schema,
+  authority, dependencies, commit, push, merge, release, and deployment unchanged.
+
+## 2026-07-28 - Connect scheduler-submit Optional Priority Input And Output
+
+- Added an optional `--priority NORMAL|EXPEDITED` input to the explicit
+  `scheduler-submit` command, defaulting to `NORMAL` on omission and rejecting any other
+  value before manifest or queue mutation.
+- Propagated the selected priority through the immutable submission manifest into exact
+  queue admission and reported the effective `priority` in bounded `ADMITTED`/`REPLAYED`
+  output; a replay-conflicting priority fails closed like other changed content.
+- Left `scheduler-submit-generated`, the generic message-admission `NORMAL` default,
+  `WorkItem`/payload/Tool authority, schema, dependencies, commit, push, merge, release,
+  and deployment unchanged.
+
 ## 2026-07-27 - Deliver Submission Manifest Schema V2 Priority Migration
 
 - Verified local `main` and `origin/main` shared base `406ea06` with divergence `0 0`

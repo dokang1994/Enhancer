@@ -3,6 +3,7 @@ package com.enhancer.cli;
 import com.enhancer.runtime.AgentRunLease;
 import com.enhancer.runtime.AgentRunRetryPolicy;
 import com.enhancer.runtime.IsolatedWorkerLauncher;
+import com.enhancer.runtime.SchedulerPriority;
 import com.enhancer.runtime.SingleWorkerSchedulerQueue;
 import com.enhancer.session.DevelopmentSessionCheckpointState;
 import java.nio.file.InvalidPathException;
@@ -110,6 +111,8 @@ final class CliArguments {
             "occurred-at",
             "target-path",
             "expected-sha256");
+    private static final Set<String> SCHEDULER_SUBMIT_OPTIONAL_OPTIONS =
+            Set.of("priority");
     private static final Set<String> SCHEDULER_SUBMIT_GENERATED_OPTIONS = Set.of(
             "project-root",
             "submission-root",
@@ -121,6 +124,8 @@ final class CliArguments {
             "producer",
             "target-path",
             "expected-sha256");
+    private static final Set<String> SCHEDULER_SUBMIT_GENERATED_OPTIONAL_OPTIONS =
+            Set.of("priority");
     private static final Set<String> CHECKPOINT_START_OPTIONS = Set.of(
             "project-root", "step", "next-action");
     private static final Set<String> CHECKPOINT_RECORD_OPTIONS = Set.of(
@@ -198,9 +203,15 @@ final class CliArguments {
             case "scheduler-drain" -> parseSchedulerDrain(
                     parseOptions(arguments, SCHEDULER_DRAIN_OPTIONS));
             case "scheduler-submit" -> parseSchedulerSubmit(
-                    parseOptions(arguments, SCHEDULER_SUBMIT_OPTIONS));
+                    parseOptions(
+                            arguments,
+                            SCHEDULER_SUBMIT_OPTIONS,
+                            SCHEDULER_SUBMIT_OPTIONAL_OPTIONS));
             case "scheduler-submit-generated" -> parseSchedulerSubmitGenerated(
-                    parseOptions(arguments, SCHEDULER_SUBMIT_GENERATED_OPTIONS));
+                    parseOptions(
+                            arguments,
+                            SCHEDULER_SUBMIT_GENERATED_OPTIONS,
+                            SCHEDULER_SUBMIT_GENERATED_OPTIONAL_OPTIONS));
             case "checkpoint-start" -> parseCheckpointStart(arguments);
             case "checkpoint-record" -> parseCheckpointRecord(arguments);
             case "checkpoint-show" -> new CheckpointShowCliCommand(
@@ -453,7 +464,20 @@ final class CliArguments {
                 nonBlank(options.get("producer"), "producer"),
                 instant(options.get("occurred-at"), "occurred-at"),
                 nonBlank(options.get("target-path"), "target-path"),
-                digest);
+                digest,
+                priority(options.get("priority")));
+    }
+
+    private static SchedulerPriority priority(String value) {
+        if (value == null) {
+            return SchedulerPriority.NORMAL;
+        }
+        try {
+            return SchedulerPriority.valueOf(value);
+        } catch (IllegalArgumentException exception) {
+            throw new CliUsageException(
+                    "priority must be NORMAL or EXPEDITED", exception);
+        }
     }
 
     private static GeneratedSubmitCliCommand parseSchedulerSubmitGenerated(
@@ -480,12 +504,20 @@ final class CliArguments {
                 nonBlank(options.get("required-capability"), "required-capability"),
                 nonBlank(options.get("producer"), "producer"),
                 nonBlank(options.get("target-path"), "target-path"),
-                digest);
+                digest,
+                priority(options.get("priority")));
     }
 
     private static Map<String, String> parseOptions(
             String[] arguments,
             Set<String> expectedOptions) {
+        return parseOptions(arguments, expectedOptions, Set.of());
+    }
+
+    private static Map<String, String> parseOptions(
+            String[] arguments,
+            Set<String> requiredOptions,
+            Set<String> optionalOptions) {
         if ((arguments.length - 1) % 2 != 0) {
             throw new CliUsageException("every option requires exactly one value");
         }
@@ -496,7 +528,7 @@ final class CliArguments {
                 throw new CliUsageException("invalid option: " + token);
             }
             String name = token.substring(2);
-            if (!expectedOptions.contains(name)) {
+            if (!requiredOptions.contains(name) && !optionalOptions.contains(name)) {
                 throw new CliUsageException("unknown option: --" + name);
             }
             String value = arguments[index + 1];
@@ -504,7 +536,7 @@ final class CliArguments {
                 throw new CliUsageException("duplicate option: --" + name);
             }
         }
-        for (String option : expectedOptions) {
+        for (String option : requiredOptions) {
             if (!options.containsKey(option)) {
                 throw new CliUsageException("missing required option: --" + option);
             }
