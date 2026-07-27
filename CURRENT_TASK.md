@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -62,9 +62,18 @@ those external delivery authorities for this exact working-tree increment.
 
 ## Verification
 
-Pending fresh delivery verification.
+- Fresh pre-delivery fetch showed local `main`, `origin/main`, and their merge base at
+  `65c5c8856fa431302808091d5c30d41219ff8491` with zero ahead/behind divergence.
+- Fresh strict build passed 559 tests across 112 suites with zero failures or errors;
+  three existing privilege-dependent Windows symbolic-link cases skipped.
+- Exactly 20 intended paths passed staged diff and secret-pattern review.
+- Implementation commit `81cffd914514816a3ebb5b132368cdf24a77ac97` was pushed to
+  `origin/feat/gate-8-deterministic-runrecord-recovery`, fast-forwarded into local
+  `main`, and pushed to `origin/main`; a fresh fetch showed all three references equal.
+- No rebase, force operation, history rewrite, merge commit, tag, release, deployment,
+  pull-request mutation, or branch deletion occurred.
 
 ## Next
 
-After delivery, select the next bounded task from the broader Gate 8 and later-gate
-gaps; do not extend this delivery increment.
+Select the next bounded task from the broader Gate 8 and later-gate gaps; do not extend
+this completed delivery increment.

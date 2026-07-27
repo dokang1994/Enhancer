@@ -2285,3 +2285,25 @@ Outcome:
 - No production code, persistence schema, CLI, authority, capability maturity,
   external state, commit, push, merge, release, or deployment changed in this fixture
   increment.
+
+## 2026-07-27 - Deterministic RunRecord Recovery Main Delivery
+
+- A fresh fetch confirmed local `main`, `origin/main`, and their merge base at
+  `65c5c8856fa431302808091d5c30d41219ff8491`, with zero ahead/behind divergence before
+  delivery.
+- Fresh `clean build --no-build-cache --warning-mode all --quiet` passed 559 tests
+  across 112 suites: 556 passed, three existing privilege-dependent Windows
+  symbolic-link setup cases skipped, and zero failures or errors occurred. Strict
+  production and test compilation completed without warnings.
+- Review selected exactly the intended 20 source, test, accepted-decision, and owning
+  document paths. Cached and working-tree diff checks passed, and the changed-file
+  secret-pattern scan found no matches.
+- Created `feat/gate-8-deterministic-runrecord-recovery` from the verified base and
+  recorded implementation commit
+  `81cffd914514816a3ebb5b132368cdf24a77ac97`.
+- The feature branch was pushed without force and fresh-fetched at the implementation
+  commit. Local `main` then fast-forwarded without a merge commit, `origin/main` was
+  pushed without force, and another fresh fetch showed local `main`, `origin/main`, and
+  the remote feature branch all at the implementation commit.
+- No rebase, force operation, history rewrite, tag, release, deployment, pull-request
+  mutation, branch deletion, or unrelated upstream integration occurred.

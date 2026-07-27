@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-27 - Deliver Deterministic RunRecord Recovery
+
+- Committed the deterministic Goal/AgentRun-bound RunRecord recovery implementation,
+  recovery fixtures, accepted decision, and owning documents as `81cffd9`.
+- Pushed the dedicated feature branch, fast-forwarded local `main`, and pushed
+  `origin/main` without force; fresh remote references matched the implementation
+  commit.
+- Used no rebase, history rewrite, merge commit, force operation, tag, release,
+  deployment, pull-request mutation, or branch deletion.
+
 ## 2026-07-27 - Verify Recovery After Disposition Before Checkpoint Clear
 
 - Added a worker fixture that forces checkpoint clearing to fail after a verified
