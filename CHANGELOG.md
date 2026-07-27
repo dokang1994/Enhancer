@@ -1,5 +1,63 @@
 # Changelog
 
+## 2026-07-27 - Connect Durable Priority-Aware Queue Claims
+
+- Connected the pure `SchedulerPrioritySelector` to the non-recovery
+  `SingleWorkerSchedulerQueue.claimNext` path over the complete admission-ordered set
+  of dependency-ready candidates.
+- Persisted the selected active WorkItem and next consecutive-expedited progress in one
+  durable transition, with persistence failure leaving both unchanged.
+- Preserved one-shot recovery claim precedence without double-counting fairness,
+  same-priority admission order, dependency readiness, `WorkItem` authority, and the
+  existing schema-v3 format.
+- Kept priority admission input, aging, additional priority classes, commit, push,
+  merge, release, and deployment unchanged.
+
+## 2026-07-27 - Add Priority-Aware Queue Schema V3 And Migration
+
+- Advanced durable Scheduler queues to schema v3 with exact queued priority, bounded
+  expedited-burst configuration and progress, and a one-shot recovery-preferred
+  WorkItem identity.
+- Preserved existing `NORMAL` construction and FIFO ordinary claims while ensuring an
+  interrupted active WorkItem is durably requeued and reclaimed before FIFO without
+  advancing fairness twice.
+- Added candidate-first, source-drift-refusing schema-v2-to-v3 migration plus the
+  explicit stopped-Scheduler `scheduler-migrate-queue` command.
+- Kept `WorkItem`, priority admission input, non-recovery priority selection, Scheduler
+  authority, commit, push, merge, release, and deployment unchanged.
+
+## 2026-07-27 - Assess Priority-Aware Queue Schema V3 Migration
+
+- Mapped queue schema v2 losslessly to a proposed v3 with default `NORMAL` priority,
+  maximum expedited burst `4`, zero fairness progress, and unchanged queue history and
+  status partition.
+- Added a required one-shot recovery reservation to the design so restart reclaims the
+  previously active WorkItem before priority selection and does not count the same
+  durable claim twice.
+- Selected the v3 state/filesystem codec and explicit candidate-first stopped-Scheduler
+  migration as the next bounded prerequisite. No production code, schema, CLI,
+  scheduling behavior, authority, or maturity changed in this assessment.
+
+## 2026-07-27 - Add Pure Scheduler Priority And Fairness Selection
+
+- Added bounded `NORMAL`/`EXPEDITED` Scheduler priority and a pure selector over
+  admission-ordered ready candidates.
+- Added oldest-ready class ordering, a bounded expedited burst, forced normal
+  selection after burst exhaustion, reset/capped fairness progress, and fail-closed
+  input validation.
+- Kept `WorkItem`, `QueuedWork`, queue persistence, CLI, recovery, and authority
+  unchanged; durable `claimNext` integration remains a separate schema/migration task.
+
+## 2026-07-27 - Assess The First Priority And Fairness Connection
+
+- Mapped priority placement against immutable work authority, `QueuedWork`, current
+  FIFO readiness, exact durable admission history, and queue schema-v2 recovery.
+- Selected a pure deterministic `NORMAL`/`EXPEDITED` selector with admission-order
+  tie-breaking and a bounded expedited burst as the smallest first contract.
+- Deferred queue integration until a separate schema/migration task can persist queued
+  priority and fairness progress; changed no production behavior, schema, CLI,
+  maturity, authority, or external state.
+
 ## 2026-07-27 - Deliver Deterministic RunRecord Recovery
 
 - Committed the deterministic Goal/AgentRun-bound RunRecord recovery implementation,

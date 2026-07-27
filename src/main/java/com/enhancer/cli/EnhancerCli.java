@@ -53,6 +53,7 @@ import com.enhancer.runtime.SchedulerExternalEffectRecoveryStatusReader;
 import com.enhancer.runtime.SchedulerInvocationRecoveryStatus;
 import com.enhancer.runtime.SchedulerInvocationRecoveryStatusReader;
 import com.enhancer.runtime.SchedulerQueueState;
+import com.enhancer.runtime.SchedulerQueueMigrationResult;
 import com.enhancer.runtime.SchedulerQueueStatus;
 import com.enhancer.runtime.SchedulerRecoveryStatus;
 import com.enhancer.runtime.SchedulerRecoveryStatusReader;
@@ -148,6 +149,9 @@ public final class EnhancerCli {
                     instanceof SchedulerMigrateCycleCheckpointCliCommand migration) {
                 return executeSchedulerMigrateCycleCheckpoint(
                         migration, stdout);
+            }
+            if (command instanceof SchedulerMigrateQueueCliCommand migration) {
+                return executeSchedulerMigrateQueue(migration, stdout);
             }
             if (command instanceof SchedulerCycleCliCommand cycle) {
                 return executeSchedulerCycle(cycle, stdout);
@@ -522,6 +526,29 @@ public final class EnhancerCli {
                 "targetSchemaVersion="
                         + FileSystemPendingFinalizationStore
                                 .CURRENT_SCHEMA_VERSION) + "\n");
+        return 0;
+    }
+
+    private int executeSchedulerMigrateQueue(
+            SchedulerMigrateQueueCliCommand command,
+            PrintStream stdout) throws IOException {
+        SchedulerQueueMigrationResult result =
+                new FileSystemSchedulerQueueStore(command.queueRoot())
+                        .migrateSchemaV2ToCurrent(command.queueId());
+        String sourceSchemaVersion = switch (result) {
+            case ABSENT -> "NONE";
+            case ALREADY_CURRENT -> Integer.toString(
+                    SchedulerQueueState.CURRENT_SCHEMA_VERSION);
+            case MIGRATED -> Integer.toString(
+                    SchedulerQueueState.PREVIOUS_SCHEMA_VERSION);
+        };
+        writeBounded(stdout, String.join("\n",
+                "status=" + result,
+                "exitCode=0",
+                "queueId=" + command.queueId(),
+                "sourceSchemaVersion=" + sourceSchemaVersion,
+                "targetSchemaVersion="
+                        + SchedulerQueueState.CURRENT_SCHEMA_VERSION) + "\n");
         return 0;
     }
 

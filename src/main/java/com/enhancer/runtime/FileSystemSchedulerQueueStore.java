@@ -55,10 +55,20 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
     private static final String PAYLOAD_KIND = "scheduler-queue-state";
 
     private final Path storageRoot;
+    private final SchedulerQueueMigrationHook migrationHook;
 
     public FileSystemSchedulerQueueStore(Path storageRoot) {
+        this(storageRoot, ignored -> {
+        });
+    }
+
+    FileSystemSchedulerQueueStore(
+            Path storageRoot,
+            SchedulerQueueMigrationHook migrationHook) {
         Objects.requireNonNull(storageRoot, "storageRoot must not be null");
         this.storageRoot = storageRoot.toAbsolutePath().normalize();
+        this.migrationHook = Objects.requireNonNull(
+                migrationHook, "migrationHook must not be null");
     }
 
     @Override
@@ -120,6 +130,11 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
         if (nextState.maxWorkItems() != current.maxWorkItems()) {
             throw new IOException(
                     "Scheduler queue capacity must not change");
+        }
+        if (nextState.maximumExpeditedBurst()
+                != current.maximumExpeditedBurst()) {
+            throw new IOException(
+                    "Scheduler queue maximum expedited burst must not change");
         }
         if (current.logicalRunId().isPresent()
                 && !current.logicalRunId().equals(nextState.logicalRunId())) {
@@ -203,6 +218,107 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
         return decode(canonicalQueueId, payload);
     }
 
+    /**
+     * Explicitly migrates one schema-v2 queue to the current schema. Callers
+     * must stop every Scheduler using the queue before invoking it.
+     */
+    public SchedulerQueueMigrationResult migrateSchemaV2ToCurrent(
+            String queueId) throws IOException {
+        String canonicalQueueId =
+                SchedulerQueueState.requireCanonicalQueueId(queueId);
+        Path artifact = artifactPath(canonicalQueueId);
+        if (!Files.exists(artifact, LinkOption.NOFOLLOW_LINKS)) {
+            return SchedulerQueueMigrationResult.ABSENT;
+        }
+        prepareRoot();
+        try (FileChannel lockChannel = FileChannel.open(
+                lockPath(canonicalQueueId),
+                StandardOpenOption.CREATE,
+                StandardOpenOption.WRITE,
+                LinkOption.NOFOLLOW_LINKS)) {
+            FileLock acquired;
+            try {
+                acquired = lockChannel.tryLock();
+            } catch (OverlappingFileLockException exception) {
+                throw new ConcurrentSchedulerQueueUpdateException(
+                        canonicalQueueId, exception);
+            }
+            if (acquired == null) {
+                throw new ConcurrentSchedulerQueueUpdateException(
+                        canonicalQueueId);
+            }
+            try (FileLock lock = acquired) {
+                if (!lock.isValid()) {
+                    throw new ConcurrentSchedulerQueueUpdateException(
+                            canonicalQueueId);
+                }
+                return migrateWhileLocked(canonicalQueueId, artifact);
+            }
+        }
+    }
+
+    private SchedulerQueueMigrationResult migrateWhileLocked(
+            String queueId,
+            Path artifact) throws IOException {
+        Optional<ValidatedEnvelope> existing =
+                readValidatedEnvelope(artifact, queueId);
+        if (existing.isEmpty()) {
+            throw new ConcurrentSchedulerQueueMigrationException(queueId);
+        }
+        ValidatedEnvelope original = existing.orElseThrow();
+        int schemaVersion = schemaVersion(original.payload(), queueId);
+        if (schemaVersion == SchedulerQueueState.CURRENT_SCHEMA_VERSION) {
+            decode(queueId, original.payload());
+            return SchedulerQueueMigrationResult.ALREADY_CURRENT;
+        }
+        if (schemaVersion != SchedulerQueueState.PREVIOUS_SCHEMA_VERSION) {
+            throw corrupted(queueId, "state schema version is unsupported");
+        }
+        SchedulerQueueState migrated =
+                decodePrevious(queueId, original.payload());
+        byte[] candidateEnvelope = encodeEnvelope(migrated);
+        Path candidate = Files.createTempFile(
+                storageRoot, ".queue-migration-", ".tmp");
+        try {
+            writeCandidate(candidate, candidateEnvelope);
+            ValidatedEnvelope validatedCandidate =
+                    readValidatedEnvelope(candidate, queueId)
+                            .orElseThrow(() -> corrupted(
+                                    queueId,
+                                    "migration candidate is missing"));
+            SchedulerQueueState decodedCandidate =
+                    decode(queueId, validatedCandidate.payload());
+            if (!sameState(migrated, decodedCandidate)) {
+                throw corrupted(
+                        queueId,
+                        "migration candidate does not match converted state");
+            }
+            migrationHook.beforeSourceValidation(artifact);
+            Optional<ValidatedEnvelope> current =
+                    readValidatedEnvelope(artifact, queueId);
+            if (current.isEmpty()
+                    || !MessageDigest.isEqual(
+                            original.bytes(),
+                            current.orElseThrow().bytes())) {
+                throw new ConcurrentSchedulerQueueMigrationException(queueId);
+            }
+            try {
+                Files.move(
+                        candidate,
+                        artifact,
+                        StandardCopyOption.ATOMIC_MOVE,
+                        StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException exception) {
+                throw new IOException(
+                        "atomic Scheduler queue migration is not supported",
+                        exception);
+            }
+        } finally {
+            Files.deleteIfExists(candidate);
+        }
+        return SchedulerQueueMigrationResult.MIGRATED;
+    }
+
     private void prepareRoot() throws IOException {
         Files.createDirectories(storageRoot);
         if (!Files.isDirectory(storageRoot, LinkOption.NOFOLLOW_LINKS)) {
@@ -282,6 +398,10 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
             writeString(output, state.queueId());
             output.writeLong(state.revision());
             output.writeInt(state.maxWorkItems());
+            output.writeInt(state.maximumExpeditedBurst());
+            output.writeInt(state.consecutiveExpeditedClaims());
+            writeOptionalString(
+                    output, state.recoveryPreferredWorkItemId());
             writeOptionalString(output, state.logicalRunId());
             writeStringList(output, state.admissionOrder());
             writeQueuedWorkList(output, state.admittedWork());
@@ -318,6 +438,10 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
             }
             long revision = input.readLong();
             int maxWorkItems = input.readInt();
+            int maximumExpeditedBurst = input.readInt();
+            int consecutiveExpeditedClaims = input.readInt();
+            Optional<String> recoveryPreferredWorkItemId =
+                    readOptionalString(input);
             Optional<String> logicalRunId = readOptionalString(input);
             List<String> admissionOrder = readStringList(input);
             List<QueuedWork> admittedWork = readQueuedWorkList(input);
@@ -336,6 +460,78 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
                     queueId,
                     revision,
                     maxWorkItems,
+                    maximumExpeditedBurst,
+                    consecutiveExpeditedClaims,
+                    recoveryPreferredWorkItemId,
+                    logicalRunId,
+                    admissionOrder,
+                    admittedWork,
+                    pendingWork,
+                    activeWork,
+                    completedWorkItemIds,
+                    failedWorkItemIds);
+        } catch (CorruptedSchedulerQueueStateException exception) {
+            throw exception;
+        } catch (EOFException exception) {
+            throw corrupted(
+                    expectedQueueId,
+                    "state ended before all fields were read",
+                    exception);
+        } catch (IOException | RuntimeException exception) {
+            throw corrupted(
+                    expectedQueueId,
+                    "state could not be decoded",
+                    exception);
+        }
+    }
+
+    private SchedulerQueueState decodePrevious(
+            String expectedQueueId,
+            byte[] payload) throws CorruptedSchedulerQueueStateException {
+        try (DataInputStream input =
+                new DataInputStream(new ByteArrayInputStream(payload))) {
+            if (input.readInt()
+                    != SchedulerQueueState.PREVIOUS_SCHEMA_VERSION) {
+                throw corrupted(
+                        expectedQueueId,
+                        "state schema version is unsupported");
+            }
+            if (!PAYLOAD_KIND.equals(readString(input))) {
+                throw corrupted(
+                        expectedQueueId,
+                        "state payload kind is invalid");
+            }
+            String queueId = readString(input);
+            if (!expectedQueueId.equals(queueId)) {
+                throw corrupted(
+                        expectedQueueId,
+                        "state queue identity does not match artifact");
+            }
+            long revision = input.readLong();
+            int maxWorkItems = input.readInt();
+            Optional<String> logicalRunId = readOptionalString(input);
+            List<String> admissionOrder = readStringList(input);
+            List<QueuedWork> admittedWork =
+                    readPreviousQueuedWorkList(input);
+            List<QueuedWork> pendingWork =
+                    readPreviousQueuedWorkList(input);
+            Optional<QueuedWork> activeWork =
+                    readPreviousOptionalQueuedWork(input);
+            Set<String> completedWorkItemIds = readStringSet(input);
+            Set<String> failedWorkItemIds = readStringSet(input);
+            if (input.available() != 0) {
+                throw corrupted(
+                        expectedQueueId,
+                        "state contains trailing bytes");
+            }
+            return new SchedulerQueueState(
+                    SchedulerQueueState.CURRENT_SCHEMA_VERSION,
+                    queueId,
+                    revision,
+                    maxWorkItems,
+                    SchedulerQueueState.DEFAULT_MAXIMUM_EXPEDITED_BURST,
+                    0,
+                    Optional.empty(),
                     logicalRunId,
                     admissionOrder,
                     admittedWork,
@@ -377,6 +573,16 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
         return List.copyOf(values);
     }
 
+    private List<QueuedWork> readPreviousQueuedWorkList(
+            DataInputStream input) throws IOException {
+        int size = readCollectionSize(input);
+        List<QueuedWork> values = new ArrayList<>();
+        for (int index = 0; index < size; index++) {
+            values.add(readPreviousQueuedWork(input));
+        }
+        return List.copyOf(values);
+    }
+
     private void writeOptionalQueuedWork(
             DataOutputStream output,
             Optional<QueuedWork> value) throws IOException {
@@ -393,6 +599,13 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
                 : Optional.empty();
     }
 
+    private Optional<QueuedWork> readPreviousOptionalQueuedWork(
+            DataInputStream input) throws IOException {
+        return readPresence(input)
+                ? Optional.of(readPreviousQueuedWork(input))
+                : Optional.empty();
+    }
+
     private void writeQueuedWork(
             DataOutputStream output,
             QueuedWork queuedWork) throws IOException {
@@ -401,9 +614,31 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
         writeString(output, workItem.requiredCapability());
         writeMessageEnvelope(output, workItem.workMessage());
         writeStringSet(output, queuedWork.dependencyWorkItemIds());
+        writeString(output, queuedWork.priority().name());
     }
 
     private QueuedWork readQueuedWork(DataInputStream input)
+            throws IOException {
+        WorkItem workItem = new WorkItem(
+                readString(input),
+                readString(input),
+                readMessageEnvelope(input));
+        Set<String> dependencies = readStringSet(input);
+        SchedulerPriority priority;
+        try {
+            priority = SchedulerPriority.valueOf(readString(input));
+        } catch (IllegalArgumentException exception) {
+            throw new IOException(
+                    "Scheduler queue priority is unsupported",
+                    exception);
+        }
+        return new QueuedWork(
+                workItem,
+                dependencies,
+                priority);
+    }
+
+    private QueuedWork readPreviousQueuedWork(DataInputStream input)
             throws IOException {
         return new QueuedWork(
                 new WorkItem(
@@ -411,6 +646,132 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
                         readString(input),
                         readMessageEnvelope(input)),
                 readStringSet(input));
+    }
+
+    private Optional<ValidatedEnvelope> readValidatedEnvelope(
+            Path artifact,
+            String queueId) throws IOException {
+        if (!Files.exists(artifact, LinkOption.NOFOLLOW_LINKS)) {
+            return Optional.empty();
+        }
+        if (!Files.isRegularFile(artifact, LinkOption.NOFOLLOW_LINKS)) {
+            throw corrupted(queueId, "artifact is not a regular file");
+        }
+        long artifactSize = Files.size(artifact);
+        if (artifactSize < HEADER_BYTES
+                || artifactSize > HEADER_BYTES + MAX_STATE_BYTES) {
+            throw corrupted(
+                    queueId,
+                    "artifact size is outside supported bounds");
+        }
+        byte[] envelope;
+        try {
+            envelope = BoundedFileOperations.readAllBytes(
+                    artifact,
+                    HEADER_BYTES + MAX_STATE_BYTES);
+        } catch (FileSizeLimitExceededException exception) {
+            throw corrupted(
+                    queueId,
+                    "artifact grew outside supported bounds while reading");
+        } catch (NoSuchFileException exception) {
+            return Optional.empty();
+        }
+        ByteBuffer buffer = ByteBuffer.wrap(envelope);
+        if (buffer.getInt() != ENVELOPE_MAGIC) {
+            throw corrupted(queueId, "envelope header is invalid");
+        }
+        long storedAtMillis = buffer.getLong();
+        int declaredLength = buffer.getInt();
+        if (declaredLength < 0
+                || declaredLength > MAX_STATE_BYTES
+                || declaredLength != buffer.remaining() - DIGEST_BYTES) {
+            throw corrupted(
+                    queueId,
+                    "declared state length does not match the artifact");
+        }
+        byte[] declaredDigest = new byte[DIGEST_BYTES];
+        buffer.get(declaredDigest);
+        byte[] payload = new byte[declaredLength];
+        buffer.get(payload);
+        byte[] actualDigest = envelopeDigest(
+                storedAtMillis,
+                declaredLength,
+                payload);
+        if (!MessageDigest.isEqual(declaredDigest, actualDigest)) {
+            throw corrupted(
+                    queueId,
+                    "envelope digest does not match stored metadata");
+        }
+        return Optional.of(new ValidatedEnvelope(payload, envelope));
+    }
+
+    private int schemaVersion(byte[] payload, String queueId)
+            throws CorruptedSchedulerQueueStateException {
+        if (payload.length < Integer.BYTES) {
+            throw corrupted(
+                    queueId,
+                    "state ended before schema version");
+        }
+        return ByteBuffer.wrap(payload).getInt();
+    }
+
+    private byte[] encodeEnvelope(SchedulerQueueState state)
+            throws IOException {
+        byte[] payload = encode(state);
+        if (payload.length > MAX_STATE_BYTES) {
+            throw new IOException(
+                    "Scheduler queue state exceeds the supported size limit");
+        }
+        long storedAtMillis = Instant.now().toEpochMilli();
+        byte[] digest = envelopeDigest(
+                storedAtMillis,
+                payload.length,
+                payload);
+        return ByteBuffer.allocate(HEADER_BYTES + payload.length)
+                .putInt(ENVELOPE_MAGIC)
+                .putLong(storedAtMillis)
+                .putInt(payload.length)
+                .put(digest)
+                .put(payload)
+                .array();
+    }
+
+    private void writeCandidate(Path candidate, byte[] envelope)
+            throws IOException {
+        try (FileChannel channel = FileChannel.open(
+                candidate,
+                StandardOpenOption.WRITE,
+                StandardOpenOption.TRUNCATE_EXISTING)) {
+            ByteBuffer remaining = ByteBuffer.wrap(envelope);
+            while (remaining.hasRemaining()) {
+                channel.write(remaining);
+            }
+            channel.force(true);
+        }
+    }
+
+    private boolean sameState(
+            SchedulerQueueState first,
+            SchedulerQueueState second) {
+        return first.schemaVersion() == second.schemaVersion()
+                && first.queueId().equals(second.queueId())
+                && first.revision() == second.revision()
+                && first.maxWorkItems() == second.maxWorkItems()
+                && first.maximumExpeditedBurst()
+                        == second.maximumExpeditedBurst()
+                && first.consecutiveExpeditedClaims()
+                        == second.consecutiveExpeditedClaims()
+                && first.recoveryPreferredWorkItemId().equals(
+                        second.recoveryPreferredWorkItemId())
+                && first.logicalRunId().equals(second.logicalRunId())
+                && first.admissionOrder().equals(second.admissionOrder())
+                && first.admittedWork().equals(second.admittedWork())
+                && first.pendingWork().equals(second.pendingWork())
+                && first.activeWork().equals(second.activeWork())
+                && first.completedWorkItemIds().equals(
+                        second.completedWorkItemIds())
+                && first.failedWorkItemIds().equals(
+                        second.failedWorkItemIds());
     }
 
     private void writeMessageEnvelope(
@@ -709,5 +1070,22 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
         return new CorruptedSchedulerQueueStateException(
                 "corrupted Scheduler queue " + queueId + ": " + reason,
                 cause);
+    }
+
+    private record ValidatedEnvelope(byte[] payload, byte[] bytes) {
+        private ValidatedEnvelope {
+            payload = payload.clone();
+            bytes = bytes.clone();
+        }
+
+        @Override
+        public byte[] payload() {
+            return payload.clone();
+        }
+
+        @Override
+        public byte[] bytes() {
+            return bytes.clone();
+        }
     }
 }

@@ -2,6 +2,7 @@ package com.enhancer.runtime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.enhancer.bus.MessageEnvelope;
 import com.enhancer.bus.WorkPayload;
@@ -101,6 +102,110 @@ class SchedulerQueueStateTest {
         assertEquals(List.of(admitted), state.admittedWork());
         assertEquals(List.of(FIRST_ID), state.admissionOrder());
         assertEquals(Set.of(FIRST_ID), state.failedWorkItemIds());
+    }
+
+    @Test
+    void retainsPriorityFairnessAndOneShotRecoveryPreference() {
+        QueuedWork first = new QueuedWork(
+                workItem(FIRST_ID),
+                List.of(),
+                SchedulerPriority.NORMAL);
+        QueuedWork second = new QueuedWork(
+                workItem(SECOND_ID),
+                List.of(),
+                SchedulerPriority.EXPEDITED);
+        SchedulerQueueState state = new SchedulerQueueState(
+                SchedulerQueueState.CURRENT_SCHEMA_VERSION,
+                QUEUE_ID,
+                5,
+                8,
+                4,
+                3,
+                Optional.of(SECOND_ID),
+                Optional.of("logical-run-state-1"),
+                List.of(FIRST_ID, SECOND_ID),
+                List.of(first, second),
+                List.of(first, second),
+                Optional.empty(),
+                Set.of(),
+                Set.of());
+
+        assertEquals(SchedulerPriority.NORMAL, first.priority());
+        assertEquals(SchedulerPriority.EXPEDITED, second.priority());
+        assertEquals(4, state.maximumExpeditedBurst());
+        assertEquals(3, state.consecutiveExpeditedClaims());
+        assertEquals(
+                Optional.of(SECOND_ID),
+                state.recoveryPreferredWorkItemId());
+    }
+
+    @Test
+    void defaultsQueuedWorkAndInitialStateWithoutInventingProgress() {
+        QueuedWork queuedWork = new QueuedWork(
+                workItem(FIRST_ID), List.of());
+        SchedulerQueueState initial =
+                SchedulerQueueState.initial(QUEUE_ID, 8);
+
+        assertEquals(SchedulerPriority.NORMAL, queuedWork.priority());
+        assertEquals(
+                SchedulerQueueState.DEFAULT_MAXIMUM_EXPEDITED_BURST,
+                initial.maximumExpeditedBurst());
+        assertEquals(0, initial.consecutiveExpeditedClaims());
+        assertTrue(initial.recoveryPreferredWorkItemId().isEmpty());
+    }
+
+    @Test
+    void rejectsInvalidFairnessAndRecoveryPreferenceState() {
+        QueuedWork first = new QueuedWork(workItem(FIRST_ID), List.of());
+
+        assertThrows(IllegalArgumentException.class, () ->
+                new SchedulerQueueState(
+                        SchedulerQueueState.CURRENT_SCHEMA_VERSION,
+                        QUEUE_ID,
+                        5,
+                        8,
+                        4,
+                        5,
+                        Optional.empty(),
+                        Optional.of("logical-run-state-1"),
+                        List.of(FIRST_ID),
+                        List.of(first),
+                        List.of(first),
+                        Optional.empty(),
+                        Set.of(),
+                        Set.of()));
+        assertThrows(IllegalArgumentException.class, () ->
+                new SchedulerQueueState(
+                        SchedulerQueueState.CURRENT_SCHEMA_VERSION,
+                        QUEUE_ID,
+                        5,
+                        8,
+                        4,
+                        0,
+                        Optional.of(SECOND_ID),
+                        Optional.of("logical-run-state-1"),
+                        List.of(FIRST_ID),
+                        List.of(first),
+                        List.of(first),
+                        Optional.empty(),
+                        Set.of(),
+                        Set.of()));
+        assertThrows(IllegalArgumentException.class, () ->
+                new SchedulerQueueState(
+                        SchedulerQueueState.CURRENT_SCHEMA_VERSION,
+                        QUEUE_ID,
+                        5,
+                        8,
+                        4,
+                        0,
+                        Optional.of(FIRST_ID),
+                        Optional.of("logical-run-state-1"),
+                        List.of(FIRST_ID),
+                        List.of(first),
+                        List.of(),
+                        Optional.of(first),
+                        Set.of(),
+                        Set.of()));
     }
 
     private static WorkItem workItem(String workItemId) {

@@ -214,6 +214,31 @@ symbolic-link, several-message, mismatched-result, or changing observations exit
 The command never creates, consumes, launches, cleans, recovers, retries, scans, mutates,
 or establishes child-process liveness.
 
+## Migrate A Schema-V2 Scheduler Queue
+
+Stop every Scheduler process that uses the queue root and identity before migration.
+Then invoke the separate queue-scoped maintenance command:
+
+```powershell
+.\scripts\gradle.ps1 run --args="scheduler-migrate-queue --queue-root C:\Enhancer\.enhancer\queue --queue-id <canonical-queue-uuid>"
+```
+
+`ABSENT` means the named queue does not exist and creates no root. `ALREADY_CURRENT`
+validates schema v3 without rewriting the queue artifact. `MIGRATED` losslessly replaces
+one valid schema-v2 queue with schema v3: every identity, revision, capacity, logical-run
+binding, exact admission and pending order, active item, terminal disposition, WorkItem,
+envelope, capability, and dependency is retained. Existing work defaults to `NORMAL`,
+maximum expedited burst `4`, fairness progress `0`, and no migration-time recovery
+preference.
+
+The command uses the queue-scoped writer lock, validates and rereads a same-directory
+candidate, refuses source-byte drift, and atomically replaces only the unchanged
+validated source. Corrupt, future, changed, or publication-failed input exits `70`;
+every pre-publication failure leaves the source authoritative and removes the candidate
+when possible. Ordinary queue status, recovery, cycle, and drain operations never
+migrate schema v2 as a side effect. After `MIGRATED` or `ALREADY_CURRENT`, restart the
+Scheduler and reinvoke the intended operation.
+
 ## Migrate A Legacy Scheduler Cycle Checkpoint
 
 Stop every Scheduler process that uses the cycle-checkpoint root before migration. Then
@@ -296,6 +321,7 @@ fails closed.
 |---|---|
 | Submission interrupted or produced no trusted result | Reinvoke `scheduler-submit` with every original argument against the unchanged governed project. Accept `ADMITTED` or `REPLAYED`; do not invoke the cycle while submission remains an error. |
 | `ADMITTED` or `REPLAYED` | The work is durable but not necessarily executed. Use `scheduler-status` when queue inspection is needed, then invoke `scheduler-cycle` or `scheduler-drain` separately only when execution is intended. |
+| Queue inspection, recovery, cycle, or drain reports unsupported queue schema v2 | Stop every Scheduler process using that queue root and identity. Run `scheduler-migrate-queue` once with the retained root and queue UUID. Restart and reinvoke only after `MIGRATED` or `ALREADY_CURRENT`; on exit `70`, retain the unchanged source and do not execute the queue. |
 | Cycle, drain, or recovery inspection reports an unsupported pending-finalization schema | Stop every Scheduler process using that cycle-checkpoint root. Run `scheduler-migrate-cycle-checkpoint` once against the retained root. Restart and reinvoke recovery only after `MIGRATED` or `ALREADY_CURRENT`; on exit `70`, retain the unchanged source and do not execute the cycle. |
 | Cycle or drain interrupted or exits `70` | Preserve the queue and every execution root. Run `scheduler-recovery-status` with those retained roots to identify the durable prefix without changing it. When it reports a Goal, run `scheduler-external-effect-status` before considering retry so prepared, user-recovery, applied/deduplicated, and compensated histories remain explicit; if a RunRecord reference is present, inspect it with `replay`. Correct only the reported environmental problem, then reinvoke the same execution command so the worker checkpoint can recover. Do not resubmit work to repair execution. |
 | Cycle reports `VERIFIED_COMPLETED` | The WorkItem is terminally verified. Exact submission replay remains a no-op, and a later cycle for an otherwise empty queue reports `IDLE`. |

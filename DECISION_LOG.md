@@ -11,6 +11,24 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User authorization on 2026-07-27 to commit, push, and merge the completed work to
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-27-user-authorization-to-commit-push-and-merge-the-completed-work-to.md)
+
+### 2026-07-27: Preserve Queue Recovery Claims In Priority-Aware Schema V3
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-27-preserve-queue-recovery-claims-in-priority-aware-schema-v3.md)
+
+### 2026-07-27: Bound Initial Scheduler Priority Fairness To A Pure Admission-Ordered Burst Selector
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-27-bound-initial-scheduler-priority-fairness-to-a-pure-admission-ordered-burst-selector.md)
+
 ### 2026-07-27: Bind Process-Isolated RunRecords To Deterministic AgentRun Identities Before Result Publication
 
 Status: Accepted Decision

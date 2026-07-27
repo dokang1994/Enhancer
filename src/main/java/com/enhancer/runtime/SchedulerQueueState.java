@@ -15,12 +15,17 @@ import java.util.UUID;
  * Immutable schema-versioned state needed to reconstruct one run-scoped Scheduler queue.
  */
 public final class SchedulerQueueState {
-    public static final int CURRENT_SCHEMA_VERSION = 2;
+    public static final int PREVIOUS_SCHEMA_VERSION = 2;
+    public static final int CURRENT_SCHEMA_VERSION = 3;
+    public static final int DEFAULT_MAXIMUM_EXPEDITED_BURST = 4;
 
     private final int schemaVersion;
     private final String queueId;
     private final long revision;
     private final int maxWorkItems;
+    private final int maximumExpeditedBurst;
+    private final int consecutiveExpeditedClaims;
+    private final Optional<String> recoveryPreferredWorkItemId;
     private final Optional<String> logicalRunId;
     private final List<String> admissionOrder;
     private final List<QueuedWork> admittedWork;
@@ -34,6 +39,38 @@ public final class SchedulerQueueState {
             String queueId,
             long revision,
             int maxWorkItems,
+            Optional<String> logicalRunId,
+            List<String> admissionOrder,
+            List<QueuedWork> admittedWork,
+            List<QueuedWork> pendingWork,
+            Optional<QueuedWork> activeWork,
+            Set<String> completedWorkItemIds,
+            Set<String> failedWorkItemIds) {
+        this(
+                schemaVersion,
+                queueId,
+                revision,
+                maxWorkItems,
+                DEFAULT_MAXIMUM_EXPEDITED_BURST,
+                0,
+                Optional.empty(),
+                logicalRunId,
+                admissionOrder,
+                admittedWork,
+                pendingWork,
+                activeWork,
+                completedWorkItemIds,
+                failedWorkItemIds);
+    }
+
+    SchedulerQueueState(
+            int schemaVersion,
+            String queueId,
+            long revision,
+            int maxWorkItems,
+            int maximumExpeditedBurst,
+            int consecutiveExpeditedClaims,
+            Optional<String> recoveryPreferredWorkItemId,
             Optional<String> logicalRunId,
             List<String> admissionOrder,
             List<QueuedWork> admittedWork,
@@ -59,6 +96,29 @@ public final class SchedulerQueueState {
                             + SingleWorkerSchedulerQueue.MAX_WORK_ITEMS);
         }
         this.maxWorkItems = maxWorkItems;
+        if (maximumExpeditedBurst < 1
+                || maximumExpeditedBurst
+                        > SchedulerPrioritySelector.MAX_EXPEDITED_BURST) {
+            throw new IllegalArgumentException(
+                    "maximumExpeditedBurst must be between 1 and "
+                            + SchedulerPrioritySelector.MAX_EXPEDITED_BURST);
+        }
+        this.maximumExpeditedBurst = maximumExpeditedBurst;
+        if (consecutiveExpeditedClaims < 0
+                || consecutiveExpeditedClaims > maximumExpeditedBurst) {
+            throw new IllegalArgumentException(
+                    "consecutiveExpeditedClaims must be between 0 and "
+                            + "maximumExpeditedBurst");
+        }
+        this.consecutiveExpeditedClaims = consecutiveExpeditedClaims;
+        Objects.requireNonNull(
+                recoveryPreferredWorkItemId,
+                "recoveryPreferredWorkItemId must not be null");
+        this.recoveryPreferredWorkItemId =
+                recoveryPreferredWorkItemId.map(value ->
+                        canonicalUuid(
+                                value,
+                                "recoveryPreferredWorkItemId"));
         Objects.requireNonNull(logicalRunId, "logicalRunId must not be null");
         this.logicalRunId = logicalRunId.map(value -> {
             if (value.isBlank()) {
@@ -100,6 +160,9 @@ public final class SchedulerQueueState {
                 queueId,
                 0,
                 maxWorkItems,
+                DEFAULT_MAXIMUM_EXPEDITED_BURST,
+                0,
+                Optional.empty(),
                 Optional.empty(),
                 List.of(),
                 List.of(),
@@ -123,6 +186,18 @@ public final class SchedulerQueueState {
 
     public int maxWorkItems() {
         return maxWorkItems;
+    }
+
+    public int maximumExpeditedBurst() {
+        return maximumExpeditedBurst;
+    }
+
+    public int consecutiveExpeditedClaims() {
+        return consecutiveExpeditedClaims;
+    }
+
+    public Optional<String> recoveryPreferredWorkItemId() {
+        return recoveryPreferredWorkItemId;
     }
 
     public Optional<String> logicalRunId() {
@@ -218,6 +293,18 @@ public final class SchedulerQueueState {
                     active.dependencyWorkItemIds())) {
                 throw new IllegalArgumentException(
                         "active work dependencies must be completed");
+            }
+        });
+        recoveryPreferredWorkItemId.ifPresent(preferred -> {
+            if (activeWork.isPresent()) {
+                throw new IllegalArgumentException(
+                        "recovery preference must not coexist with active work");
+            }
+            boolean pending = pendingWork.stream().anyMatch(work ->
+                    preferred.equals(work.workItem().workItemId()));
+            if (!pending) {
+                throw new IllegalArgumentException(
+                        "recovery preference must reference pending work");
             }
         });
         if (!statusIds.equals(new LinkedHashSet<>(admissionOrder))) {

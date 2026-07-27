@@ -2307,3 +2307,155 @@ Outcome:
   the remote feature branch all at the implementation commit.
 - No rebase, force operation, history rewrite, tag, release, deployment, pull-request
   mutation, branch deletion, or unrelated upstream integration occurred.
+
+## 2026-07-27 - First Gate 8 Priority And Fairness Assessment
+
+- Inspected `QueuedWork`, `SingleWorkerSchedulerQueue`, `SchedulerQueueState`,
+  `FileSystemSchedulerQueueStore`, durable admission, and current FIFO/readiness tests.
+- Priority does not belong in `WorkItem`: it is Scheduler selection metadata and must
+  not expand Gate 7 message or Tool authority. `QueuedWork` is the eventual durable
+  home, but adding it there immediately requires a queue schema revision, a lossless
+  schema-v2 default mapping, explicit migration, and persisted fairness progress.
+- Selected a pure store-free selector as the smallest first contract. It consumes
+  admission-ordered ready candidates with bounded `NORMAL`/`EXPEDITED` priority, the
+  current consecutive-expedited count, and a bounded burst. It keeps oldest-ready order
+  within a class, permits expedited precedence below the burst, and forces the oldest
+  ready normal candidate when the burst is exhausted.
+- The selector's next named consumer is `SingleWorkerSchedulerQueue.claimNext`.
+  Admission, persistence, CLI, and recovery integration remain a separate schema and
+  migration task because restart-equivalent ordering requires both queued priority and
+  fairness progress to be durable.
+- Focused queue/state/store and repository-document verification passed 46 tests across
+  eight suites with zero failures or errors; one existing privilege-dependent Windows
+  symbolic-link setup case skipped. Fresh `git diff --check` produced no output.
+- No production code, persistence schema, CLI, capability maturity, authority,
+  external state, commit, push, merge, release, or deployment changed.
+
+## 2026-07-27 - Pure Scheduler Priority And Fairness Selector
+
+- RED failed test compilation with 41 expected missing-symbol errors for the absent
+  `SchedulerPriority` and `SchedulerPrioritySelector` contracts.
+- Added exactly two Scheduler-only priority values and a pure selector over at most
+  4096 unique canonical admission-ordered ready candidates. It validates the complete
+  input before selection, preserves oldest-ready order within each priority class,
+  bounds the expedited burst from 1 through 256, forces ready normal work after burst
+  exhaustion, resets progress after normal selection, and caps progress when only
+  expedited work remains.
+- Focused selector and existing in-memory/durable queue regression passed 19 tests
+  across three suites with zero skips, failures, or errors.
+- Fresh `clean build --no-build-cache --warning-mode all --quiet` passed 566 tests
+  across 113 suites: 563 passed, three existing privilege-dependent Windows
+  symbolic-link setup cases skipped, and zero failures or errors occurred. Strict
+  production and test compilation completed without warnings.
+- Fresh `git diff --check` produced no output.
+- `WorkItem`, `QueuedWork`, `SingleWorkerSchedulerQueue.claimNext`, queue persistence,
+  schema, migration, CLI, recovery, authority, capability maturity, and external state
+  remain unchanged. No commit, push, merge, release, or deployment occurred.
+
+## 2026-07-27 - Priority-Aware Queue Schema V3 Migration Assessment
+
+- Mapped queue schema v2 to the proposed v3 without changing queue identity, revision,
+  capacity, logical-run binding, exact admission prefix, pending order, optional active
+  item, or verified/failed terminal partition.
+- Fixed the lossless v2 defaults at `NORMAL` for every admitted item, maximum expedited
+  burst `4`, consecutive expedited claims `0`, and no migration-time recovery
+  reservation.
+- Identified a restart constraint not represented by priority and fairness alone:
+  recovery currently requeues active work while the pending-finalization checkpoint
+  remains bound to that exact WorkItem. Schema v3 therefore needs a durable one-shot
+  preferred WorkItem identity. Its next claim precedes priority selection, clears the
+  reservation, and leaves fairness progress unchanged because it replays the same
+  durable claim.
+- Defined an explicit queue-scoped stopped-Scheduler migration with typed
+  `ABSENT`/`ALREADY_CURRENT`/`MIGRATED` outcomes, same-directory candidate preparation
+  and complete reread, source-byte drift refusal, atomic replacement only after
+  validation, candidate cleanup on failure, and unchanged authoritative source bytes
+  on corruption or any earlier failure. Ordinary queue resolution and recovery
+  continue to reject v2 after v3 becomes current.
+- Selected one bounded next prerequisite: implement schema-v3 queue state and
+  filesystem codec plus that explicit v2-to-v3 migration. The eventual consumer remains
+  `SingleWorkerSchedulerQueue.claimNext`; selection integration and admission/CLI
+  priority inputs stay outside the prerequisite.
+- Fresh focused verification passed 41 tests across seven suites:
+  `SchedulerPrioritySelectorTest`, `SingleWorkerSchedulerQueueTest`,
+  `SchedulerQueueStateTest`, `DurableSingleWorkerSchedulerQueueTest`,
+  `FileSystemSchedulerQueueStoreIntegrationTest`, `DecisionLogIndexTest`, and
+  `DocumentOwnershipTest`. There were zero skips, failures, or errors.
+- Fresh `git diff --check` produced no output. The assessment changed no production
+  code, schema, CLI, scheduling behavior, maturity, authority, external state, commit,
+  push, merge, release, or deployment.
+
+## 2026-07-27 - Priority Schema Assessment Post-Synchronization Check
+
+- After synchronizing the completed task and append-only assessment evidence, fresh
+  `DecisionLogIndexTest`, `DocumentOwnershipTest`, and
+  `AcceptedDecisionProjectorTest` verification passed 11 tests across three suites
+  with zero skips, failures, or errors.
+- Fresh `git diff --check` again produced no output.
+
+## 2026-07-27 - Priority-Aware Queue Schema V3 And Migration
+
+- RED failed test compilation with 37 expected missing-symbol and constructor errors
+  for absent priority-bearing `QueuedWork`, schema-v3 fairness/recovery state, and the
+  queue migration operation.
+- Added queue schema v3 with exact per-admission `NORMAL`/`EXPEDITED` priority,
+  configured maximum expedited burst, consecutive expedited progress, and an optional
+  structurally bound one-shot recovery-preferred WorkItem identity. Two-argument
+  `QueuedWork` construction remains `NORMAL`, and `WorkItem` is unchanged.
+- Durable recovery now requeues interrupted active work, persists its exact preferred
+  identity, and reclaims it before ordinary FIFO while clearing the reservation and
+  leaving fairness progress unchanged. Non-recovery claims remain FIFO and do not yet
+  invoke `SchedulerPrioritySelector`.
+- Added `FileSystemSchedulerQueueStore.migrateSchemaV2ToCurrent` with typed
+  absent/already-current/migrated outcomes, queue-scoped locking, complete v2 decoding,
+  lossless defaults (`NORMAL`, burst `4`, progress `0`, no migration-time preference),
+  same-directory candidate write/reread, source-byte drift refusal, atomic replacement,
+  and candidate cleanup. Ordinary resolution and recovery reject schema v2.
+- Added the separate stopped-Scheduler `scheduler-migrate-queue --queue-root
+  <path> --queue-id <uuid>` surface. It reports bounded source/target schema metadata
+  and invokes no claim, recovery, execution, Tool, external effect, or priority input.
+- Core schema/store/recovery GREEN passed 42 tests across six suites. The CLI first
+  failed two tests with the expected unknown-command usage result, then the CLI plus
+  core regression passed 44 tests across seven suites. Both GREEN runs had zero skips,
+  failures, or errors.
+- Fresh strict `clean build --no-build-cache --warning-mode all --quiet` passed 576
+  tests across 115 suites: 573 passed, three existing Windows symbolic-link
+  privilege-dependent setup cases skipped, and zero failures or errors occurred.
+  Production and test compilation completed without warnings.
+- No priority admission input, non-recovery priority selection, time aging, additional
+  priority class, Scheduler authority, commit, push, merge, release, deployment, or
+  external state change occurred.
+
+## 2026-07-27 - Queue Schema V3 Post-Synchronization Check
+
+- After synchronizing architecture, capability maturity, roadmap, task, README,
+  decision index, changelog, and append-only evidence, fresh focused verification
+  passed 39 tests across eight suites with zero skips, failures, or errors.
+- The run covered decision indexing and projection, document ownership, queue schema
+  and recovery invariants, store and CLI migration, and the still-pure priority
+  selector. Fresh `git diff --check` produced no output.
+
+## 2026-07-27 - Durable Priority-Aware Queue Claims
+
+- Test-first RED ran 16 tests across `SingleWorkerSchedulerQueueTest` and
+  `DurableSingleWorkerSchedulerQueueTest`; four new behavioral contracts failed
+  because the ordinary FIFO path selected the older `NORMAL` WorkItem instead of the
+  ready `EXPEDITED` WorkItem. The other 12 tests passed.
+- Connected only the non-recovery `claimNext` path to
+  `SchedulerPrioritySelector`: it supplies every dependency-ready pending candidate
+  in admission order, activates the exact selection, and adopts the selector's next
+  consecutive-expedited progress.
+- The one-shot recovery preference remains first and leaves fairness progress
+  unchanged. The durable copy/persist/adopt boundary commits an ordinary selected
+  active WorkItem and next progress together; an injected store failure preserved the
+  prior pending set, empty active slot, revision, and zero progress.
+- Focused GREEN passed 31 tests across four suites, and the broader queue/priority
+  regression passed 48 tests across seven suites. Both runs had zero skips, failures,
+  or errors.
+- Fresh strict `clean build --no-build-cache --warning-mode all --quiet` passed 580
+  tests across 115 suites: 577 passed, three existing Windows symbolic-link
+  privilege-dependent setup cases skipped, and zero failures or errors occurred.
+  Production and test compilation completed without warnings.
+- No schema or migration change, priority admission input, time aging, additional
+  priority class, WorkItem or Tool authority change, commit, push, merge, release,
+  deployment, or external state change occurred.

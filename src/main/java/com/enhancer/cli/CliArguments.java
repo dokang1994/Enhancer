@@ -61,6 +61,8 @@ final class CliArguments {
     private static final Set<String>
             SCHEDULER_MIGRATE_CYCLE_CHECKPOINT_OPTIONS =
                     Set.of("cycle-checkpoint-root");
+    private static final Set<String> SCHEDULER_MIGRATE_QUEUE_OPTIONS =
+            Set.of("queue-root", "queue-id");
     private static final Set<String> SCHEDULER_CYCLE_OPTIONS = Set.of(
             "project-root",
             "queue-root",
@@ -138,7 +140,8 @@ final class CliArguments {
                             + "scheduler-external-effect-status, "
                             + "scheduler-invocation-status, scheduler-cycle, "
                             + "scheduler-drain, "
-                            + "scheduler-migrate-cycle-checkpoint, or "
+                            + "scheduler-migrate-cycle-checkpoint, "
+                            + "scheduler-migrate-queue, or "
                             + "checkpoint operation");
         }
         String command = arguments[0];
@@ -167,6 +170,13 @@ final class CliArguments {
                                             SCHEDULER_MIGRATE_CYCLE_CHECKPOINT_OPTIONS)
                                     .get("cycle-checkpoint-root"),
                                     "cycle-checkpoint-root"));
+            case "scheduler-migrate-queue" -> {
+                Map<String, String> options = parseOptions(
+                        arguments, SCHEDULER_MIGRATE_QUEUE_OPTIONS);
+                yield new SchedulerMigrateQueueCliCommand(
+                        path(options.get("queue-root"), "queue-root"),
+                        canonicalUuid(options.get("queue-id"), "queue-id"));
+            }
             case "scheduler-cycle" -> parseSchedulerCycle(
                     parseOptions(arguments, SCHEDULER_CYCLE_OPTIONS));
             case "scheduler-drain" -> parseSchedulerDrain(

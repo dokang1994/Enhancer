@@ -89,6 +89,47 @@ class DurableSingleWorkerSchedulerQueueTest {
     }
 
     @Test
+    void priorityClaimAndFairnessProgressCommitAsOneDurableTransition()
+            throws Exception {
+        MemoryQueueStore store = new MemoryQueueStore();
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.create(QUEUE_ID, 8, store);
+        WorkItem normal = workItem(FIRST_ID, "read-file-worker");
+        WorkItem expedited = workItem(SECOND_ID, "review-worker");
+        queue.enqueue(new QueuedWork(
+                normal, List.of(), SchedulerPriority.NORMAL));
+        queue.enqueue(new QueuedWork(
+                expedited, List.of(), SchedulerPriority.EXPEDITED));
+
+        store.failNextUpdate();
+        assertThrows(IOException.class, queue::claimNext);
+        SchedulerQueueState unchanged = store.resolve(QUEUE_ID);
+        assertEquals(0, unchanged.consecutiveExpeditedClaims());
+        assertTrue(unchanged.activeWork().isEmpty());
+        assertEquals(List.of(FIRST_ID, SECOND_ID),
+                unchanged.pendingWork().stream()
+                        .map(work -> work.workItem().workItemId())
+                        .toList());
+
+        assertSame(expedited, queue.claimNext().orElseThrow());
+        SchedulerQueueState claimed = store.resolve(QUEUE_ID);
+        assertEquals(1, claimed.consecutiveExpeditedClaims());
+        assertEquals(
+                Optional.of(expedited),
+                claimed.activeWork().map(QueuedWork::workItem));
+
+        DurableSingleWorkerSchedulerQueue recovered =
+                DurableSingleWorkerSchedulerQueue.recover(QUEUE_ID, store);
+        SchedulerQueueState recovery = store.resolve(QUEUE_ID);
+        assertEquals(1, recovery.consecutiveExpeditedClaims());
+        assertEquals(Optional.of(SECOND_ID),
+                recovery.recoveryPreferredWorkItemId());
+        assertSame(expedited, recovered.claimNext().orElseThrow());
+        assertEquals(1,
+                store.resolve(QUEUE_ID).consecutiveExpeditedClaims());
+    }
+
+    @Test
     void rejectsInvalidIdentityAndExistingCreation() throws Exception {
         MemoryQueueStore store = new MemoryQueueStore();
 

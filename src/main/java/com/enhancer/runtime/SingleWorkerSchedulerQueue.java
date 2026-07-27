@@ -1,6 +1,6 @@
 package com.enhancer.runtime;
 
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -21,6 +21,10 @@ public final class SingleWorkerSchedulerQueue {
     private final Map<String, QueuedWork> admittedWork = new LinkedHashMap<>();
     private final Set<String> completedWorkItemIds = new LinkedHashSet<>();
     private final Set<String> failedWorkItemIds = new LinkedHashSet<>();
+    private int maximumExpeditedBurst =
+            SchedulerQueueState.DEFAULT_MAXIMUM_EXPEDITED_BURST;
+    private int consecutiveExpeditedClaims;
+    private String recoveryPreferredWorkItemId;
     private String logicalRunId;
     private QueuedWork active;
 
@@ -39,6 +43,11 @@ public final class SingleWorkerSchedulerQueue {
     SingleWorkerSchedulerQueue(SchedulerQueueState state) {
         Objects.requireNonNull(state, "state must not be null");
         this.maxWorkItems = state.maxWorkItems();
+        this.maximumExpeditedBurst = state.maximumExpeditedBurst();
+        this.consecutiveExpeditedClaims =
+                state.consecutiveExpeditedClaims();
+        this.recoveryPreferredWorkItemId =
+                state.recoveryPreferredWorkItemId().orElse(null);
         this.logicalRunId = state.logicalRunId().orElse(null);
         for (QueuedWork queuedWork : state.admittedWork()) {
             admittedWork.put(
@@ -91,18 +100,49 @@ public final class SingleWorkerSchedulerQueue {
         if (active != null) {
             return Optional.empty();
         }
-        Iterator<Map.Entry<String, QueuedWork>> iterator =
-                pending.entrySet().iterator();
-        while (iterator.hasNext()) {
-            QueuedWork candidate = iterator.next().getValue();
+        if (recoveryPreferredWorkItemId != null) {
+            QueuedWork preferred = pending.remove(
+                    recoveryPreferredWorkItemId);
+            if (preferred == null
+                    || !completedWorkItemIds.containsAll(
+                            preferred.dependencyWorkItemIds())) {
+                throw new IllegalStateException(
+                        "recovery-preferred work must be ready and pending");
+            }
+            recoveryPreferredWorkItemId = null;
+            active = preferred;
+            return Optional.of(preferred.workItem());
+        }
+        List<SchedulerPrioritySelector.Candidate> readyCandidates =
+                new ArrayList<>();
+        for (QueuedWork candidate : pending.values()) {
             if (completedWorkItemIds.containsAll(
                     candidate.dependencyWorkItemIds())) {
-                iterator.remove();
-                active = candidate;
-                return Optional.of(candidate.workItem());
+                readyCandidates.add(
+                        new SchedulerPrioritySelector.Candidate(
+                                candidate.workItem().workItemId(),
+                                candidate.priority()));
             }
         }
-        return Optional.empty();
+        Optional<SchedulerPrioritySelector.Selection> selection =
+                SchedulerPrioritySelector.select(
+                        readyCandidates,
+                        consecutiveExpeditedClaims,
+                        maximumExpeditedBurst);
+        if (selection.isEmpty()) {
+            return Optional.empty();
+        }
+        SchedulerPrioritySelector.Selection selected =
+                selection.orElseThrow();
+        QueuedWork claimed = pending.remove(selected.workItemId());
+        if (claimed == null) {
+            throw new IllegalStateException(
+                    "selected work must remain pending");
+        }
+        active = claimed;
+        consecutiveExpeditedClaims =
+                selected.nextConsecutiveExpedited();
+        return Optional.of(claimed.workItem());
     }
 
     public void completeActiveVerified(String workItemId) {
@@ -170,6 +210,9 @@ public final class SingleWorkerSchedulerQueue {
                 queueId,
                 revision,
                 maxWorkItems,
+                maximumExpeditedBurst,
+                consecutiveExpeditedClaims,
+                Optional.ofNullable(recoveryPreferredWorkItemId),
                 logicalRunId(),
                 List.copyOf(admittedWork.keySet()),
                 List.copyOf(admittedWork.values()),
@@ -183,8 +226,10 @@ public final class SingleWorkerSchedulerQueue {
         if (active == null) {
             return false;
         }
+        String interruptedWorkItemId =
+                active.workItem().workItemId();
         Map<String, QueuedWork> recoverable = new LinkedHashMap<>(pending);
-        recoverable.put(active.workItem().workItemId(), active);
+        recoverable.put(interruptedWorkItemId, active);
         pending.clear();
         for (String workItemId : admittedWork.keySet()) {
             QueuedWork queuedWork = recoverable.get(workItemId);
@@ -193,6 +238,7 @@ public final class SingleWorkerSchedulerQueue {
             }
         }
         active = null;
+        recoveryPreferredWorkItemId = interruptedWorkItemId;
         return true;
     }
 

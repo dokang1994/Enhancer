@@ -17,12 +17,20 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class SingleWorkerSchedulerQueueTest {
+    private static final String QUEUE_ID =
+            "00000000-0000-0000-0000-000000000100";
     private static final String FIRST_ID =
             "00000000-0000-0000-0000-000000000101";
     private static final String SECOND_ID =
             "00000000-0000-0000-0000-000000000102";
     private static final String THIRD_ID =
             "00000000-0000-0000-0000-000000000103";
+    private static final String FOURTH_ID =
+            "00000000-0000-0000-0000-000000000104";
+    private static final String FIFTH_ID =
+            "00000000-0000-0000-0000-000000000105";
+    private static final String SIXTH_ID =
+            "00000000-0000-0000-0000-000000000106";
 
     @Test
     void claimsOneReadyItemAtATimeAndReleasesDependenciesAfterCompletion() {
@@ -72,6 +80,85 @@ class SingleWorkerSchedulerQueueTest {
         assertSame(first, queue.claimNext().orElseThrow());
         queue.completeActiveVerified(FIRST_ID);
         assertSame(second, queue.claimNext().orElseThrow());
+    }
+
+    @Test
+    void expeditedWorkPrecedesOlderNormalWorkAndAdvancesFairnessProgress() {
+        WorkItem normal = workItem(FIRST_ID, "read-file-worker");
+        WorkItem expedited = workItem(SECOND_ID, "review-worker");
+        SingleWorkerSchedulerQueue queue = new SingleWorkerSchedulerQueue();
+
+        queue.enqueue(new QueuedWork(
+                normal, List.of(), SchedulerPriority.NORMAL));
+        queue.enqueue(new QueuedWork(
+                expedited, List.of(), SchedulerPriority.EXPEDITED));
+
+        assertSame(expedited, queue.claimNext().orElseThrow());
+        SchedulerQueueState claimed = queue.snapshot(QUEUE_ID, 3);
+        assertEquals(1, claimed.consecutiveExpeditedClaims());
+        assertEquals(
+                Optional.of(expedited),
+                claimed.activeWork().map(QueuedWork::workItem));
+    }
+
+    @Test
+    void forcesOldestReadyNormalAfterTheConfiguredExpeditedBurst() {
+        WorkItem normal = workItem(FIRST_ID, "read-file-worker");
+        List<WorkItem> expedited = List.of(
+                workItem(SECOND_ID, "review-worker"),
+                workItem(THIRD_ID, "test-worker"),
+                workItem(FOURTH_ID, "test-worker"),
+                workItem(FIFTH_ID, "test-worker"),
+                workItem(SIXTH_ID, "test-worker"));
+        SingleWorkerSchedulerQueue queue = new SingleWorkerSchedulerQueue();
+
+        queue.enqueue(new QueuedWork(
+                normal, List.of(), SchedulerPriority.NORMAL));
+        for (WorkItem workItem : expedited) {
+            queue.enqueue(new QueuedWork(
+                    workItem, List.of(), SchedulerPriority.EXPEDITED));
+        }
+
+        for (int index = 0;
+                index < SchedulerQueueState.DEFAULT_MAXIMUM_EXPEDITED_BURST;
+                index++) {
+            WorkItem claimed = queue.claimNext().orElseThrow();
+            assertSame(expedited.get(index), claimed);
+            queue.completeActiveVerified(claimed.workItemId());
+        }
+        assertEquals(
+                SchedulerQueueState.DEFAULT_MAXIMUM_EXPEDITED_BURST,
+                queue.snapshot(QUEUE_ID, 10).consecutiveExpeditedClaims());
+
+        assertSame(normal, queue.claimNext().orElseThrow());
+        assertEquals(
+                0,
+                queue.snapshot(QUEUE_ID, 11).consecutiveExpeditedClaims());
+    }
+
+    @Test
+    void keepsSelectingOnlyExpeditedWorkWithFairnessProgressCapped() {
+        List<WorkItem> expedited = List.of(
+                workItem(FIRST_ID, "read-file-worker"),
+                workItem(SECOND_ID, "review-worker"),
+                workItem(THIRD_ID, "test-worker"),
+                workItem(FOURTH_ID, "test-worker"),
+                workItem(FIFTH_ID, "test-worker"));
+        SingleWorkerSchedulerQueue queue = new SingleWorkerSchedulerQueue();
+        for (WorkItem workItem : expedited) {
+            queue.enqueue(new QueuedWork(
+                    workItem, List.of(), SchedulerPriority.EXPEDITED));
+        }
+
+        for (WorkItem expected : expedited) {
+            WorkItem claimed = queue.claimNext().orElseThrow();
+            assertSame(expected, claimed);
+            queue.completeActiveVerified(claimed.workItemId());
+        }
+
+        assertEquals(
+                SchedulerQueueState.DEFAULT_MAXIMUM_EXPEDITED_BURST,
+                queue.snapshot(QUEUE_ID, 15).consecutiveExpeditedClaims());
     }
 
     @Test

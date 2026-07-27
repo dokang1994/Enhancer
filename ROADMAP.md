@@ -462,7 +462,8 @@ Status: Specified - Next
 Whole-gate assessment:
 
 - retained at `Specified - Next` after closing the pre-migration assessment's supported
-  migration gap because authenticated control application, priority/fairness,
+  migration gap and the first non-recovery priority/fairness connection because
+  authenticated control application, priority admission,
   role-based message workers, broader lost-acknowledgement recovery, and production
   external-effect handling still lack named current connections;
 - the first supported migration connection now satisfies its bounded exit-criterion
@@ -495,12 +496,31 @@ Whole-gate assessment:
   pending-finalization checkpoint to schema v2 through validated candidate-first atomic
   replacement, while normal recovery remains fail-closed and other store migrations
   await separate information-recovery policies.
+- the first priority/fairness selector is Contract Verified and its persistence
+  prerequisite now exists: the
+  pure admission-order-preserving selector distinguishes `NORMAL` and `EXPEDITED`, caps
+  consecutive expedited selection, and forces the oldest ready normal candidate after
+  the configured burst. `WorkItem` remains unchanged because priority is Scheduler
+  metadata, not Tool authority. The non-recovery
+  `SingleWorkerSchedulerQueue.claimNext` path now supplies complete ready candidates,
+  activates the selector result, and persists its next fairness progress with the claim.
+- the queue schema-v3 prerequisite is Contract Verified and its explicit migration
+  surface is Integrated: schema v3 retains every identity, revision, capacity,
+  logical-run binding, exact admission and
+  pending order, active item, and terminal partition; assign `NORMAL` to every admitted
+  item, maximum expedited burst `4`, consecutive expedited progress `0`, and no
+  migration-time recovery reservation. Ordinary v3 recovery persists interrupted active
+  work as a one-shot preferred claim and reclaims it before FIFO without counting the
+  same durable claim twice. `scheduler-migrate-queue` exposes candidate-first
+  stopped-Scheduler v2-to-v3 conversion with source-drift refusal and failure
+  preservation; ordinary resolution remains fail-closed on v2.
 
 Current increment:
 
 - Contract Verified: immutable `WorkItem` admission over one unchanged Gate 7 work envelope, with a distinct canonical identity and bounded required capability but no scheduling or execution behavior;
-- Contract Verified: immutable `QueuedWork` with up to 256 unique dependency identities plus a deterministic run-scoped `SingleWorkerSchedulerQueue` bounded to 4096 admissions, dependency-first validation, FIFO readiness, one active slot, matching completion, and no authority expansion;
-- Contract Verified: canonical queue identity and single-logical-run binding, immutable schema-v2 queue snapshots retaining every exact ordered admission including terminal work, bounded integrity-checked atomic filesystem persistence, persist-before-exposure admission/claim/disposition, revision-free exact admission replay, changed-content identity-reuse refusal, explicit schema-v1 rejection, and restart recovery that requeues interrupted active work in admission order under explicit at-least-once execution semantics;
+- Contract Verified: immutable priority-bearing `QueuedWork` with up to 256 unique dependency identities plus a deterministic run-scoped `SingleWorkerSchedulerQueue` bounded to 4096 admissions, dependency-first validation, admission-ordered priority selection with bounded expedited fairness, one active slot, one-shot exact recovery preference, matching completion, and no authority expansion;
+- Contract Verified: canonical queue identity and single-logical-run binding, immutable schema-v3 queue snapshots retaining every exact priority-bearing ordered admission including terminal work plus bounded burst/progress/recovery-preference state, bounded integrity-checked atomic filesystem persistence, persist-before-exposure admission/claim/disposition/recovery, revision-free exact admission replay, changed-content identity-reuse refusal, explicit ordinary v1/v2 rejection, and exact preferred active-work replay under explicit at-least-once execution semantics;
+- Contract Verified and Integrated queue migration: the queue-scoped store operation and separate `scheduler-migrate-queue` command losslessly map schema v2 to v3 through validated candidate-first atomic replacement, source-drift refusal, typed absent/current/migrated outcomes, and failure preservation without invoking recovery or execution;
 - Integrated sub-path: the real repository-derived work-message path reaches a separate persist-first durable admission handler, which derives one stable distinct WorkItem identity and admits dependency-free work through the filesystem-backed queue before success. A real process-isolated Scheduler cycle reaches terminal disposition, then fresh queue and bus instances accept the exact envelope without a second queue revision, WorkItem, RunRecord, or dead letter; changed-content identity reuse fails closed;
 - Contract Verified and Integrated submission path: one immutable manifest persists the target queue identity/capacity, required capability, and exact work envelope before queue creation. The application boundary creates only an absent queue or verifies an existing capacity before recovery, then uses exact durable admission; real-filesystem interruption after either completed prefix resumes to one WorkItem, while exact replay is revision-free and changed content fails closed. The separate explicit `scheduler-submit` CLI reaches this boundary without combining execution;
 - Contract Verified: one exact-WorkItem schema-v2 `RuntimeGoal` with an immutable history of at most 16 distinct `RuntimeAgentRun` attempts and attempt-bound retry decisions, deterministic forward-only per-attempt transitions, matching typed result envelopes, Verified-only Goal completion, durable `RETRY_PENDING` for failed attempts, Goal-wide fences, monotonic persist-before-exposure revisions, bounded integrity-checked filesystem state, and exact-prefix restart recovery;
@@ -569,7 +589,7 @@ Current increment:
   or additional RunRecord/effect outcome, preserves the effect artifact bytes, and
   clears the checkpoint. This satisfies the supported-migration fixture slice without a
   second schema migration or whole-gate promotion;
-- deferred: real authorized external adapters, admission-history compaction/cleanup or schema-v1 queue migration, worker polling/service operation, general forward-reference graph/cycle handling, authenticated cancellation/pause/resume application, priority/fairness, broader budgets, checkpoints beyond current snapshots, schema-v1 runtime or effect-ledger migration, power-loss directory durability, broader multi-process and cross-store coordination, distributed locks and clock-skew handling, and broader production wiring.
+- deferred: real authorized external adapters, admission-history compaction/cleanup or schema-v1 queue migration, worker polling/service operation, general forward-reference graph/cycle handling, authenticated cancellation/pause/resume application, priority admission and time-based aging, broader budgets, checkpoints beyond current snapshots, schema-v1 runtime or effect-ledger migration, power-loss directory durability, broader multi-process and cross-store coordination, distributed locks and clock-skew handling, and broader production wiring.
 
 Ordered connection sequence:
 

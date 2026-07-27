@@ -16,10 +16,21 @@ public final class QueuedWork {
 
     private final WorkItem workItem;
     private final Set<String> dependencyWorkItemIds;
+    private final SchedulerPriority priority;
 
     public QueuedWork(
             WorkItem workItem,
             Collection<String> dependencyWorkItemIds) {
+        this(
+                workItem,
+                dependencyWorkItemIds,
+                SchedulerPriority.NORMAL);
+    }
+
+    public QueuedWork(
+            WorkItem workItem,
+            Collection<String> dependencyWorkItemIds,
+            SchedulerPriority priority) {
         this.workItem = Objects.requireNonNull(
                 workItem, "workItem must not be null");
         Objects.requireNonNull(
@@ -45,6 +56,8 @@ public final class QueuedWork {
         }
         this.dependencyWorkItemIds =
                 Collections.unmodifiableSet(dependencies);
+        this.priority = Objects.requireNonNull(
+                priority, "priority must not be null");
     }
 
     public WorkItem workItem() {
@@ -53,6 +66,10 @@ public final class QueuedWork {
 
     public Set<String> dependencyWorkItemIds() {
         return dependencyWorkItemIds;
+    }
+
+    public SchedulerPriority priority() {
+        return priority;
     }
 
     @Override
@@ -64,12 +81,13 @@ public final class QueuedWork {
             return false;
         }
         return workItem.equals(that.workItem)
-                && dependencyWorkItemIds.equals(that.dependencyWorkItemIds);
+                && dependencyWorkItemIds.equals(that.dependencyWorkItemIds)
+                && priority == that.priority;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(workItem, dependencyWorkItemIds);
+        return Objects.hash(workItem, dependencyWorkItemIds, priority);
     }
 
     private static String canonicalUuid(String value) {
