@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-07-27 - Deliver Submission Manifest Schema V2 Priority Migration
+
+- Verified local `main` and `origin/main` shared base `406ea06` with divergence `0 0`
+  before delivery; no topic branch existed, so no artificial merge commit was created.
+- Fresh strict delivery verification passed 589 tests across 117 suites with zero
+  failures or errors and three existing Windows symbolic-link privilege skips.
+- Committed the implementation, tests, accepted decisions, and synchronized documents
+  as `b6f7505`, then pushed local `main` to `origin/main` without force.
+- Fresh remote inspection confirmed `refs/heads/main` at
+  `b6f75051b4fb1f2bc8bb1a574e5526afec4acc88`.
+
 ## 2026-07-27 - Persist Submission Priority In Manifest Schema V2
 
 - Advanced immutable submission manifests to schema v2 with exact

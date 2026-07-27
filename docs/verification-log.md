@@ -2536,3 +2536,22 @@ Outcome:
 - Fresh `git diff --check` produced no output. No public submission priority input,
   generated-request priority, WorkItem/payload/Tool authority change, dependency
   change, commit, push, merge, release, deployment, or external state change occurred.
+
+## 2026-07-27 - Submission Manifest Schema V2 Main-Branch Delivery
+
+- A fresh `git fetch origin main` established local `main`, `origin/main`, and their
+  merge-base at `406ea06468b690262f3ae08d2f759f82be4e4f1f`; divergence was `0 0`.
+  Because the completed working tree already resided on `main`, no separate topic
+  branch or meaningful merge commit existed.
+- Fresh strict `clean build --no-build-cache --warning-mode all --quiet` passed 589
+  tests across 117 suites: 586 passed, three existing Windows symbolic-link
+  privilege-dependent setup cases skipped, and zero failures or errors occurred.
+- The complete staged diff covered 26 paths with 1,151 insertions and 135 deletions.
+  `git diff --cached --check` passed, every intended tracked and new path was present,
+  and a bounded credential-pattern scan found zero matches.
+- Commit `b6f75051b4fb1f2bc8bb1a574e5526afec4acc88` advanced local `main` and was
+  pushed without force from `406ea06` to `origin/main`.
+- A fresh `git ls-remote origin refs/heads/main` returned
+  `b6f75051b4fb1f2bc8bb1a574e5526afec4acc88`. Force push, history rewrite, merge
+  commit, tag, release, deployment, pull-request mutation, and branch deletion did not
+  occur.
