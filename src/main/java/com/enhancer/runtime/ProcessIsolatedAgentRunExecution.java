@@ -9,6 +9,7 @@ import com.enhancer.bus.ResultPayload;
 import com.enhancer.bus.TransportMessage;
 import com.enhancer.bus.TransportOutcome;
 import com.enhancer.kernel.VerificationStatus;
+import com.enhancer.run.MissingRunRecordException;
 import com.enhancer.run.RunRecord;
 import com.enhancer.run.RunRecordStore;
 import com.enhancer.tool.ReadFileTool;
@@ -43,10 +44,9 @@ import java.util.Optional;
  * record's own status. {@code DurableAgentRunFinalizer} remains the final authority and still
  * derives the runtime terminal state and queue disposition from the record.
  *
- * <p>On re-entry an already-published valid result is returned without launching a second child,
- * so a cycle interrupted after the child published recovers without re-executing. A child that
- * persisted a RunRecord and died before publishing leaves an orphaned record and is re-executed,
- * which is the same at-least-once consequence the in-process worker already accepts.
+ * <p>On re-entry an already-published valid result is returned without launching a second child.
+ * If publication was lost after persistence, the deterministic AgentRun-bound reference is
+ * point-resolved and validated through the same binding checks before execution is skipped.
  */
 public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution {
     private final Path invocationRoot;
@@ -84,6 +84,10 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
         Optional<String> recovered = publishedResult(cycleRoot, workItem);
         if (recovered.isPresent()) {
             return recovered.orElseThrow();
+        }
+        Optional<String> pointRecovered = pointRecoveredResult(dispatch, workItem);
+        if (pointRecovered.isPresent()) {
+            return pointRecovered.orElseThrow();
         }
 
         spoolWork(cycleRoot, workItem);
@@ -253,6 +257,21 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
                     + " but the resolved RunRecord records " + recorded);
         }
         return Optional.of(resultPayload.runRecordReference());
+    }
+
+    private Optional<String> pointRecoveredResult(
+            AgentRunDispatch dispatch,
+            WorkItem workItem) throws IOException {
+        String reference = AgentRunRecordIdentity.reference(
+                dispatch.goalId(), dispatch.agentRunId());
+        RunRecord record;
+        try {
+            record = runRecordStore.resolve(reference).record();
+        } catch (MissingRunRecordException missing) {
+            return Optional.empty();
+        }
+        requireRunRecordBinding(record, workItem);
+        return Optional.of(reference);
     }
 
     private static Optional<Path> soleSpooledMessage(Path spoolRoot, String direction)

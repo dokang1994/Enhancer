@@ -2131,3 +2131,157 @@ Outcome:
 - No rebase, force operation, history rewrite, tag, release, deployment, pull-request
   mutation, or branch deletion occurred. This closeout remains subject to one final
   non-force `main` push and fresh remote-reference verification.
+
+## 2026-07-27 - Orphaned RunRecord Lost-Acknowledgement Assessment
+
+- Inspected the accepted process-isolated result-spool and post-checkpoint cleanup
+  decisions plus `IsolatedWorkerMain`, `ProcessIsolatedAgentRunExecution`,
+  `DurableAgentRunWorker`, and `FileSystemRunRecordStore`.
+- The durable prefix is cycle intent -> child RunRecord persistence -> result-spool
+  publication -> parent RunRecord-reference checkpoint. Existing recovery point-resolves
+  the result after publication and skips execution after checkpointing, but before
+  result publication the stable Goal/AgentRun identities cannot identify the randomly
+  allocated RunRecord without a prohibited store scan.
+- Fresh focused verification ran
+  `ProcessIsolatedAgentRunExecutionTest`, `DurableAgentRunWorkerTest`, and
+  `FileSystemRunRecordStoreIntegrationTest`: 39 tests across three suites passed with
+  zero skips, failures, or errors. The raw JUnit XML remains under
+  `build/test-results/test/`.
+- The assessment classified a second post-persistence sidecar as insufficient because
+  it moves rather than removes the two-write crash window. It selected a deterministic
+  AgentRun-bound RunRecord identity, fail-closed point persistence/resolution, existing
+  record binding validation, and result reconstruction or republication as the bounded
+  follow-up connection.
+- No production code, persistence schema, CLI, runtime behavior, capability maturity,
+  external state, or authority changed.
+
+## 2026-07-27 - Orphaned RunRecord Assessment Closeout Recovery
+
+- The first fresh strict build exposed one aligned document-contract failure:
+  `DecisionLogIndexTest.justifiedByReferencesResolveAgainstTheIndex` rejected two
+  wrapped `CURRENT_TASK.md` decision references as truncated headings. The other 552
+  tests completed without failure, with three existing privilege-dependent Windows
+  symbolic-link setup skips.
+- The interrupted session checkpoint was bound to those malformed task-contract bytes
+  and provided no supported rebind, repair, or abandon operation. With explicit user
+  authority, only the ignored local checkpoint artifact was removed; no Git-tracked
+  source, document change, history, or product data was discarded.
+- After restoring `In Progress`, correcting both references to exact single-line
+  accepted-decision headings, and starting a new task-bound checkpoint, the focused
+  `DecisionLogIndexTest` passed.
+- Fresh `clean build --no-build-cache --warning-mode all --quiet` then passed 553 tests
+  across 111 suites: 550 passed, three existing privilege-dependent Windows
+  symbolic-link setup cases skipped, and zero failures or errors occurred. Strict
+  production and test compilation completed without warnings.
+
+## 2026-07-27 - Deterministic AgentRun-Bound RunRecord Point Recovery
+
+- RED: the focused contract run failed compilation with 11 expected missing-symbol/API
+  errors for `AgentRunRecordIdentity` and caller-identified RunRecord persistence.
+- GREEN: three focused identity/store/process-isolation suites passed 26 tests with no
+  skips, failures, or errors.
+- Expanded runtime verification passed 64 tests across nine suites with no skips,
+  failures, or errors.
+- The recovery fixture launched a real child JVM, forced result-spool publication to
+  fail after deterministic RunRecord persistence, and proved a fresh parent returned
+  the one point-resolved reference without launching another child or creating another
+  RunRecord.
+
+## 2026-07-27 - Deterministic RunRecord Recovery Final Verification
+
+- Fresh `clean build --no-build-cache --warning-mode all --quiet` passed 557 tests
+  across 112 suites: 554 passed, three existing privilege-dependent Windows
+  symbolic-link setup cases skipped, and zero failures or errors occurred.
+- Strict production and test compilation completed without warnings.
+- `git diff --check` passed. The final review found only the intended implementation,
+  tests, accepted decision, and owning architecture/state/roadmap/task/evidence/
+  changelog documents; no commit, push, or external action occurred.
+
+## 2026-07-27 - Remaining Gate 8 Lost-Acknowledgement Assessment
+
+- Inspected the durable worker, dispatcher, runtime lease, finalizer, process-isolated
+  execution, Evidence/RunRecord publication, queue disposition, and checkpoint-clear
+  paths against their focused tests.
+- Intent-before-dispatch, child-persisted RunRecord point recovery, post-reference
+  cleanup/acknowledgement, result recording, terminal queue disposition, and
+  checkpoint-clear replay have deterministic recovery paths. Pre-RunRecord orphan
+  Evidence belongs to retention work and does not create an unrecorded external effect
+  in the supported read-only execution path.
+- The smallest remaining Gate 8-owned evidence gap is one worker-level fixture that
+  expires the lease after RunRecord-reference checkpointing, then proves greater-fence
+  recovery without another execution, RunRecord, or effect outcome. The assessment
+  selected no new production mechanism.
+- The first document-contract run reported one aligned failure because
+  `CURRENT_TASK.md` duplicated a Gate maturity claim owned by `PROJECT_STATE.md`.
+  Removing that duplicate statement required no product or maturity change.
+- The corrected focused run passed 82 tests across nine suites with zero failures or
+  errors; one existing privilege-dependent Windows symbolic-link setup case skipped.
+  Fresh `git diff --check` produced no output.
+- No production code, persistence schema, CLI, capability maturity, authority,
+  external state, commit, push, merge, release, or deployment changed in this
+  assessment increment.
+
+## 2026-07-27 - Worker Lease-Expiry Recovery Fixture
+
+- Added
+  `DurableAgentRunWorkerTest.reLeasesCheckpointedReferenceAfterExecutionLeaseExpiresWithoutExecutingAgain`.
+  The first cycle persists one Verified RunRecord and its checkpoint reference, then
+  advances beyond lease expiry before execution acknowledgement.
+- The fixture was GREEN against the existing production path: recovery observes the
+  AgentRun at `READY`, a fresh worker acquires fence 2 after fence 1, skips the forbidden
+  execution port, records one verified queue disposition, retains exactly one
+  RunRecord and an empty effect ledger, and clears the cycle checkpoint.
+- Fresh `clean build --no-build-cache --warning-mode all --quiet` passed 558 tests
+  across 112 suites: 555 passed, three existing privilege-dependent Windows
+  symbolic-link setup cases skipped, and zero failures or errors occurred. Strict
+  production and test compilation completed without warnings.
+- Fresh `git diff --check` produced no output.
+- No production code, persistence schema, CLI, authority, capability maturity,
+  external state, commit, push, merge, release, or deployment changed in this
+  fixture increment.
+
+## 2026-07-27 - Post-Lease Lost-Acknowledgement Reassessment
+
+- Re-inspected worker result recording, terminal queue disposition, checkpoint
+  clearing, Evidence-before-RunRecord interruption, and unresolved external-effect
+  preparation against their implementation and named tests.
+- Runtime-terminal-before-disposition recovery and terminal disposition replay are
+  already idempotent, while `FileSystemPendingFinalizationStore.clear` is separately
+  idempotent. The smallest missing composition is one worker fixture that persists the
+  terminal queue disposition, fails the immediately following checkpoint clear, and
+  proves fresh-worker convergence without another execution, RunRecord, effect
+  outcome, runtime transition, or queue disposition.
+- Evidence persisted before a RunRecord is retention work in the supported read-only
+  path. A durable `PREPARED` external effect already refuses automatic replay after
+  evidence or terminal-publication failure, so its next connection belongs to the
+  adapter/recovery policy rather than this Scheduler acknowledgement fixture.
+- Focused worker, finalizer, pending-checkpoint, external-effect, and repository
+  document verification passed 60 tests across eight suites with zero failures or
+  errors; one existing privilege-dependent Windows symbolic-link setup case skipped.
+  Fresh `git diff --check` produced no output.
+- No production code, persistence schema, CLI, capability maturity, authority,
+  external state, commit, push, merge, release, or deployment changed in this
+  assessment increment.
+
+## 2026-07-27 - Disposition-Persisted Checkpoint-Clear Recovery Fixture
+
+- Added
+  `DurableAgentRunWorkerTest.recoversTerminalDispositionAfterCheckpointClearFailsWithoutRepeatingWork`.
+  The first worker persists a Verified result and terminal queue disposition, then a
+  fault-injecting `PendingFinalizationStore` fails the immediately following clear and
+  leaves the exact Goal/AgentRun/RunRecord checkpoint intact.
+- A fresh worker with a forbidden execution port reports the existing
+  `VERIFIED_COMPLETED` disposition and clears the intent. The fixture proves one
+  execution, one RunRecord, no effect outcome, and unchanged terminal runtime and queue
+  revisions across recovery.
+- The first focused run failed test compilation because the fixture narrowed the
+  runtime's `long` revision to `int`. Correcting the test-only variable type made the
+  focused fixture GREEN; no production correction was required.
+- Fresh `clean build --no-build-cache --warning-mode all --quiet` passed 559 tests
+  across 112 suites: 556 passed, three existing privilege-dependent Windows
+  symbolic-link setup cases skipped, and zero failures or errors occurred. Strict
+  production and test compilation completed without warnings.
+- Fresh `git diff --check` produced no output.
+- No production code, persistence schema, CLI, authority, capability maturity,
+  external state, commit, push, merge, release, or deployment changed in this fixture
+  increment.

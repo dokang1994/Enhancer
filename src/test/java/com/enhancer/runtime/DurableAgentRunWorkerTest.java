@@ -28,6 +28,7 @@ import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
@@ -422,6 +423,131 @@ class DurableAgentRunWorkerTest {
         assertTrue(s.checkpointStore().findPending().isEmpty());
     }
 
+    @Test
+    void reLeasesCheckpointedReferenceAfterExecutionLeaseExpiresWithoutExecutingAgain()
+            throws Exception {
+        Stores s = stores();
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.create(QUEUE_ID, 8, s.queueStore());
+        queue.enqueue(new QueuedWork(workItem(WORK_ID), List.of()));
+        MutableClock clock =
+                new MutableClock(Instant.parse("2026-07-17T12:00:00Z"));
+        AtomicInteger executions = new AtomicInteger();
+
+        AgentRunExecution expiringExecution = dispatch -> {
+            executions.incrementAndGet();
+            String reference =
+                    s.runRecordStore().persist(runRecord(true)).reference();
+            clock.advance(LEASE.plusSeconds(1));
+            return reference;
+        };
+
+        assertThrows(IllegalStateException.class, () ->
+                worker(s, expiringExecution, clock).runOneCycle(LEASE));
+
+        PendingFinalization pending =
+                s.checkpointStore().findPending().orElseThrow();
+        assertTrue(pending.runRecordReference().isPresent());
+        assertEquals(1, executions.get());
+        assertEquals(1, s.runRecordStore().references().size());
+        DurableAgentRuntime interrupted = DurableAgentRuntime.recover(
+                pending.goalId(), s.runtimeStore(), clock);
+        assertEquals(
+                RuntimeAgentRunStatus.READY,
+                interrupted.agentRun().orElseThrow().status());
+        assertEquals(1, interrupted.lastIssuedFenceToken());
+
+        Optional<WorkItemDisposition> disposition =
+                worker(s, forbiddenExecution(), clock).runOneCycle(LEASE);
+
+        assertEquals(Optional.of(WorkItemDisposition.VERIFIED_COMPLETED), disposition);
+        DurableAgentRuntime recovered = DurableAgentRuntime.recover(
+                pending.goalId(), s.runtimeStore(), clock);
+        assertEquals(
+                RuntimeAgentRunStatus.COMPLETED,
+                recovered.agentRun().orElseThrow().status());
+        assertEquals(2, recovered.lastIssuedFenceToken());
+        assertEquals(1, executions.get());
+        assertEquals(1, s.runRecordStore().references().size());
+        assertTrue(s.effectStore().resolve(pending.goalId()).records().isEmpty());
+        assertEquals(
+                Set.of(WORK_ID),
+                DurableSingleWorkerSchedulerQueue
+                        .recover(QUEUE_ID, s.queueStore())
+                        .completedWorkItemIds());
+        assertTrue(s.checkpointStore().findPending().isEmpty());
+    }
+
+    @Test
+    void recoversTerminalDispositionAfterCheckpointClearFailsWithoutRepeatingWork()
+            throws Exception {
+        Stores s = stores();
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.create(QUEUE_ID, 8, s.queueStore());
+        queue.enqueue(new QueuedWork(workItem(WORK_ID), List.of()));
+        AtomicInteger executions = new AtomicInteger();
+        AtomicInteger clears = new AtomicInteger();
+        PendingFinalizationStore failFirstClear = new PendingFinalizationStore() {
+            @Override
+            public void record(PendingFinalization pending) throws IOException {
+                s.checkpointStore().record(pending);
+            }
+
+            @Override
+            public Optional<PendingFinalization> findPending() throws IOException {
+                return s.checkpointStore().findPending();
+            }
+
+            @Override
+            public void clear() throws IOException {
+                if (clears.incrementAndGet() == 1) {
+                    throw new IOException("simulated checkpoint clear failure");
+                }
+                s.checkpointStore().clear();
+            }
+        };
+        AgentRunExecution execution = dispatch -> {
+            executions.incrementAndGet();
+            return s.runRecordStore().persist(runRecord(true)).reference();
+        };
+
+        assertThrows(IOException.class, () ->
+                worker(s, execution, CLOCK, failFirstClear).runOneCycle(LEASE));
+
+        PendingFinalization pending =
+                s.checkpointStore().findPending().orElseThrow();
+        String reference = pending.runRecordReference().orElseThrow();
+        assertEquals(1, executions.get());
+        assertEquals(List.of(reference), s.runRecordStore().references());
+        DurableAgentRuntime terminal = DurableAgentRuntime.recover(
+                pending.goalId(), s.runtimeStore(), CLOCK);
+        assertEquals(RuntimeGoalStatus.COMPLETED, terminal.goal().status());
+        long terminalRuntimeRevision = terminal.revision();
+        DurableSingleWorkerSchedulerQueue disposed =
+                DurableSingleWorkerSchedulerQueue.recover(QUEUE_ID, s.queueStore());
+        assertEquals(Set.of(WORK_ID), disposed.completedWorkItemIds());
+        long terminalQueueRevision = disposed.revision();
+
+        Optional<WorkItemDisposition> recovered =
+                worker(s, forbiddenExecution()).runOneCycle(LEASE);
+
+        assertEquals(Optional.of(WorkItemDisposition.VERIFIED_COMPLETED), recovered);
+        assertEquals(1, executions.get());
+        assertEquals(List.of(reference), s.runRecordStore().references());
+        assertEquals(
+                terminalRuntimeRevision,
+                DurableAgentRuntime
+                        .recover(pending.goalId(), s.runtimeStore(), CLOCK)
+                        .revision());
+        assertEquals(
+                terminalQueueRevision,
+                DurableSingleWorkerSchedulerQueue
+                        .recover(QUEUE_ID, s.queueStore())
+                        .revision());
+        assertTrue(s.effectStore().resolve(pending.goalId()).records().isEmpty());
+        assertTrue(s.checkpointStore().findPending().isEmpty());
+    }
+
     private MessageEnvelope terminalResultEnvelope(
             WorkItem work, String reference, VerificationStatus status) {
         MessageEnvelope workMessage = work.workMessage();
@@ -515,19 +641,34 @@ class DurableAgentRunWorkerTest {
 
     private DurableAgentRunWorker worker(Stores s, AgentRunExecution execution)
             throws IOException {
+        return worker(s, execution, CLOCK);
+    }
+
+    private DurableAgentRunWorker worker(
+            Stores s,
+            AgentRunExecution execution,
+            Clock clock) throws IOException {
+        return worker(s, execution, clock, s.checkpointStore());
+    }
+
+    private DurableAgentRunWorker worker(
+            Stores s,
+            AgentRunExecution execution,
+            Clock clock,
+            PendingFinalizationStore checkpointStore) throws IOException {
         DurableSingleWorkerSchedulerQueue queue =
                 DurableSingleWorkerSchedulerQueue.recover(QUEUE_ID, s.queueStore());
         return new DurableAgentRunWorker(
-                new DurableAgentRunDispatcher(queue, s.runtimeStore(), CLOCK),
+                new DurableAgentRunDispatcher(queue, s.runtimeStore(), clock),
                 execution,
-                s.checkpointStore(),
+                checkpointStore,
                 new DurableAgentRunFinalizer(
-                        queue, s.runtimeStore(), s.runRecordStore(), CLOCK),
+                        queue, s.runtimeStore(), s.runRecordStore(), clock),
                 s.runtimeStore(),
                 s.effectStore(),
                 AgentRunRetryPolicy.of(2),
                 OWNER_ID,
-                CLOCK);
+                clock);
     }
 
     private Stores stores() {
@@ -630,5 +771,36 @@ class DurableAgentRunWorkerTest {
             FileSystemPendingFinalizationStore checkpointStore,
             FileSystemExternalEffectLedgerStore effectStore,
             Path runtimeRoot) {
+    }
+
+    private static final class MutableClock extends Clock {
+        private Instant current;
+
+        private MutableClock(Instant current) {
+            this.current = current;
+        }
+
+        @Override
+        public ZoneId getZone() {
+            return ZoneOffset.UTC;
+        }
+
+        @Override
+        public Clock withZone(ZoneId zone) {
+            if (!getZone().equals(zone)) {
+                throw new IllegalArgumentException(
+                        "MutableClock supports UTC only");
+            }
+            return this;
+        }
+
+        @Override
+        public Instant instant() {
+            return current;
+        }
+
+        private void advance(Duration duration) {
+            current = current.plus(duration);
+        }
     }
 }

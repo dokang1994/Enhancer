@@ -113,7 +113,12 @@ public final class IsolatedWorkerMain {
                                     EvidenceStoragePolicy.MAX_SUPPORTED_CONTENT_BYTES)),
                     runRecordStore,
                     Clock.systemUTC())
-                    .executeWork(workItem, invocation.goalId(), invocation.agentRunId());
+                    .executeWork(
+                            workItem,
+                            invocation.goalId(),
+                            invocation.agentRunId(),
+                            AgentRunRecordIdentity.recordId(
+                                    invocation.goalId(), invocation.agentRunId()));
             status = runRecordStore.resolve(reference).record().verification().status();
         } catch (IOException | RuntimeException failed) {
             return EXIT_EXECUTION_FAILED;

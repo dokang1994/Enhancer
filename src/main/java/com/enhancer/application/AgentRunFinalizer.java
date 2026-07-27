@@ -45,6 +45,21 @@ public final class AgentRunFinalizer {
     public FinalizedAgentRun finalizeRun(
             AgentRunResult workerRun,
             Optional<VerificationRequest> verificationRequest) throws IOException {
+        return finalizeRun(workerRun, verificationRequest, Optional.empty());
+    }
+
+    public FinalizedAgentRun finalizeRun(
+            AgentRunResult workerRun,
+            Optional<VerificationRequest> verificationRequest,
+            String recordId) throws IOException {
+        Objects.requireNonNull(recordId, "recordId must not be null");
+        return finalizeRun(workerRun, verificationRequest, Optional.of(recordId));
+    }
+
+    private FinalizedAgentRun finalizeRun(
+            AgentRunResult workerRun,
+            Optional<VerificationRequest> verificationRequest,
+            Optional<String> recordId) throws IOException {
         Objects.requireNonNull(workerRun, "workerRun must not be null");
         Objects.requireNonNull(
                 verificationRequest,
@@ -99,7 +114,9 @@ public final class AgentRunFinalizer {
                 workerRun.stopReason(),
                 finalStopReason);
 
-        StoredRunRecord storedRecord = runRecordStore.persist(record);
+        StoredRunRecord storedRecord = recordId.isPresent()
+                ? runRecordStore.persist(recordId.orElseThrow(), record)
+                : runRecordStore.persist(record);
         return new FinalizedAgentRun(
                 finalState,
                 finalStopReason,

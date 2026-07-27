@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### 2026-07-27: Bind Process-Isolated RunRecords To Deterministic AgentRun Identities Before Result Publication
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-27-bind-process-isolated-runrecords-to-deterministic-agentrun-identities-before-result-publication.md)
+
 ### 2026-07-24: Migrate The Pending-Finalization Checkpoint Before Other Gate 8 State
 
 Status: Accepted Decision

@@ -8,6 +8,11 @@ public interface RunRecordStore {
 
     StoredRunRecord persist(RunRecord record) throws IOException;
 
+    default StoredRunRecord persist(String recordId, RunRecord record) throws IOException {
+        throw new IOException(
+                "this RunRecord store does not support caller-supplied identities");
+    }
+
     ResolvedRunRecord resolve(String reference) throws IOException;
 
     List<String> references() throws IOException;

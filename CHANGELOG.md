@@ -1,5 +1,68 @@
 # Changelog
 
+## 2026-07-27 - Verify Recovery After Disposition Before Checkpoint Clear
+
+- Added a worker fixture that forces checkpoint clearing to fail after a verified
+  terminal queue disposition has persisted.
+- Proved a fresh worker reports the existing disposition and clears the retained exact
+  intent without another execution, RunRecord, effect outcome, runtime revision, or
+  queue revision.
+- The recovery fixture passed against the existing production path; no runtime,
+  persistence schema, CLI, authority, or maturity change was required.
+
+## 2026-07-27 - Reassess Lost Acknowledgements After Lease Recovery
+
+- Compared the remaining result, terminal-disposition, checkpoint-clear,
+  Evidence-before-RunRecord, and unresolved-effect interruption prefixes.
+- Selected a worker-level disposition-persisted/checkpoint-clear-failed fixture as the
+  smallest remaining Gate 8-owned evidence connection.
+- Kept orphan Evidence in retention scope and unresolved `PREPARED` effects behind
+  explicit adapter recovery; changed no production behavior, schema, CLI, maturity,
+  authority, or external state.
+
+## 2026-07-27 - Verify Worker Recovery After Lease Expiry
+
+- Added a worker-level fixture that expires the execution lease after the RunRecord
+  reference is checkpointed.
+- Proved fresh-worker reclamation and greater-fence convergence with one execution,
+  one RunRecord, no effect outcome, one verified queue disposition, and checkpoint
+  cleanup.
+- The test was GREEN against the existing production path; no runtime, schema, CLI,
+  authority, or maturity change was required.
+
+## 2026-07-27 - Assess Remaining Gate 8 Lost-Acknowledgement Prefixes
+
+- Mapped interruption prefixes from cycle intent through execution, RunRecord
+  publication, lease reclamation, finalization, queue disposition, and checkpoint
+  clearing against current source and named tests.
+- Confirmed that the remaining smallest Gate 8-owned evidence gap is a worker-level
+  lease-expiry recovery fixture after RunRecord-reference checkpointing.
+- Kept pre-RunRecord orphan Evidence as retention work and terminal-disposition/
+  checkpoint-clear replay as an already idempotent path; changed no production
+  behavior, schema, CLI, maturity, authority, or external state.
+
+## 2026-07-27 - Recover Lost Process-Isolated RunRecord Acknowledgements
+
+- Added deterministic Goal/AgentRun-bound RunRecord identities with atomic exact-replay
+  point persistence and changed-content refusal.
+- Recovered the child-persisted/result-not-published prefix by validating the
+  point-resolved record and skipping duplicate child execution.
+- Added a real child-JVM restart fixture proving one RunRecord and no store scan or
+  second sidecar.
+
+## 2026-07-27 - Assess Orphaned RunRecord Lost Acknowledgement
+
+- Traced the process-isolated recovery order across child RunRecord persistence,
+  result-spool publication, and parent checkpoint reference persistence.
+- Confirmed that recovery is deterministic after result publication or reference
+  checkpointing, but the current random RunRecord identity leaves the earlier
+  child-persisted/result-not-published prefix uncorrelated and re-executable.
+- Selected an AgentRun-derived deterministic RunRecord identity with fail-closed point
+  recovery and result reconstruction/republication as the smallest follow-up
+  connection; rejected both store scanning and a second post-persistence sidecar.
+- Changed no production behavior, durable schema, CLI, capability maturity, authority,
+  or external state.
+
 ## 2026-07-24 - Verify Migrated Scheduler Cycle Recovery
 
 - Added a named real-filesystem integration fixture for the supported

@@ -46,6 +46,30 @@ class FileSystemRunRecordStoreIntegrationTest {
     }
 
     @Test
+    void pointPersistsExactReplayAndRefusesChangedIdentityReuse() throws Exception {
+        String recordId = UUID.randomUUID().toString();
+        FileSystemRunRecordStore store = new FileSystemRunRecordStore(storageRoot);
+        StoredRunRecord first = store.persist(recordId, record());
+        byte[] firstBytes = Files.readAllBytes(
+                storageRoot.resolve(recordId + ".run-record"));
+
+        StoredRunRecord replay = new FileSystemRunRecordStore(storageRoot)
+                .persist(recordId, record());
+
+        assertEquals(first, replay);
+        assertEquals(
+                List.of("run-record/" + recordId),
+                new FileSystemRunRecordStore(storageRoot).references());
+        assertTrue(java.util.Arrays.equals(
+                firstBytes,
+                Files.readAllBytes(storageRoot.resolve(recordId + ".run-record"))));
+        IOException conflict = assertThrows(
+                IOException.class,
+                () -> store.persist(recordId, record("Changed approval")));
+        assertTrue(conflict.getMessage().contains("different RunRecord"));
+    }
+
+    @Test
     void rejectsMissingAndCorruptedRecords() throws Exception {
         FileSystemRunRecordStore store = new FileSystemRunRecordStore(storageRoot);
         StoredRunRecord stored = store.persist(record());
@@ -129,10 +153,14 @@ class FileSystemRunRecordStoreIntegrationTest {
     }
 
     private RunRecord record() {
+        return record("Approved by test owner");
+    }
+
+    private RunRecord record(String approval) {
         ApprovedTask task = new ApprovedTask(
                 "run-record-task",
                 "Persist the run",
-                "Approved by test owner",
+                approval,
                 Set.of("read-file"),
                 "CURRENT_TASK.md");
         ToolRequest request = new ToolRequest(

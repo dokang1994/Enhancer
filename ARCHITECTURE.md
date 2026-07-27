@@ -266,9 +266,19 @@ The adapter promises no ordering across separately spooled messages: the contrac
 
 `ProcessIsolatedAgentRunExecution` is the second production `AgentRunExecution`. Before launch it accepts a pre-existing work entry only after decoding the sole message and matching both `queue("work")` and the complete dispatched envelope; foreign work and several work or result messages fail closed without starting a child. Re-entry checks the result spool first, so an already-published valid result returns without another execution.
 
-A returned envelope is a claim, never authority. Its destination must be exactly `queue("isolated-worker-result")`; correlation, logical-run, causation, payload kind, and task identity must bind to the dispatched work; the reference must resolve in the shared store; and the RunRecord must match the work's task, source document, read-file target, verification-bearing expected digest, and claimed status. `DurableAgentRunFinalizer` remains the final authority and reuses the same task/source binding. Store roots are launcher configuration, not payload data. A child that persists a RunRecord and dies before result publication still leaves an orphan and may be re-executed under the explicit at-least-once contract.
+A returned envelope is a claim, never authority. Its destination must be exactly `queue("isolated-worker-result")`; correlation, logical-run, causation, payload kind, and task identity must bind to the dispatched work; the reference must resolve in the shared store; and the RunRecord must match the work's task, source document, read-file target, verification-bearing expected digest, and claimed status. `DurableAgentRunFinalizer` remains the final authority and reuses the same task/source binding. Store roots are launcher configuration, not payload data.
 
 Per-cycle work/result spools remain until `DurableAgentRunWorker` has persisted the returned RunRecord reference in its cycle-intent checkpoint. The worker then invokes the execution port's idempotent post-checkpoint cleanup before execution acknowledgement. Process-isolated cleanup deletes only the exact Goal/AgentRun invocation tree and an empty Goal parent, never the invocation root, Evidence, or RunRecords. Cleanup failure leaves the checkpoint intact; restart retries cleanup without child re-execution. Failed, corrupt, timed-out, or incomplete execution retains its current spool for recovery or diagnosis, and no time-based cleanup scheduler exists.
+
+The child-persisted/result-not-published recovery window uses one versioned,
+domain-separated RunRecord UUID derived from the already-checkpointed canonical Goal and
+AgentRun identities. `FileSystemRunRecordStore` point-persists that identity, returns an
+exact existing record without rewriting it, and rejects changed-content reuse. Before
+launch, an absent result spool causes the parent to resolve only that deterministic
+reference; a matching record passes the same task/source/target/digest binding checks and
+is returned without another child execution. Missing remains ordinary first execution,
+while corrupt or foreign identity reuse fails closed. No store scan, second sidecar,
+schema migration, cleanup policy, or universal exactly-once claim is added.
 
 ### Gate 7 Runtime Integration Preparation
 

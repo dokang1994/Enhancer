@@ -80,6 +80,24 @@ public final class AgentLoopAgentRunExecution implements AgentRunExecution {
      */
     String executeWork(WorkItem workItem, String goalId, String agentRunId)
             throws IOException {
+        return executeWork(workItem, goalId, agentRunId, Optional.empty());
+    }
+
+    String executeWork(
+            WorkItem workItem,
+            String goalId,
+            String agentRunId,
+            String runRecordId) throws IOException {
+        Objects.requireNonNull(runRecordId, "runRecordId must not be null");
+        return executeWork(
+                workItem, goalId, agentRunId, Optional.of(runRecordId));
+    }
+
+    private String executeWork(
+            WorkItem workItem,
+            String goalId,
+            String agentRunId,
+            Optional<String> runRecordId) throws IOException {
         Objects.requireNonNull(workItem, "workItem must not be null");
         Objects.requireNonNull(goalId, "goalId must not be null");
         Objects.requireNonNull(agentRunId, "agentRunId must not be null");
@@ -124,11 +142,16 @@ public final class AgentLoopAgentRunExecution implements AgentRunExecution {
                                 workerRun.state().lastResult().orElseThrow(),
                                 input.expectedContentSha256()))
                         : Optional.empty();
-        FinalizedAgentRun finalized = new AgentRunFinalizer(
+        AgentRunFinalizer finalizer = new AgentRunFinalizer(
                 new DeterministicReadFileVerifier(evidenceStore),
                 runRecordStore,
-                clock)
-                .finalizeRun(workerRun, verificationRequest);
+                clock);
+        FinalizedAgentRun finalized = runRecordId.isPresent()
+                ? finalizer.finalizeRun(
+                        workerRun,
+                        verificationRequest,
+                        runRecordId.orElseThrow())
+                : finalizer.finalizeRun(workerRun, verificationRequest);
         return finalized.storedRecord().reference();
     }
 

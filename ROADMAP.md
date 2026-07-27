@@ -374,6 +374,12 @@ Status: Integrated
 
 Current increment:
 
+- Contract Verified and Integrated lost-acknowledgement recovery: process-isolated
+  RunRecords use one versioned Goal/AgentRun-derived identity; exact point persistence
+  is replay-safe and changed reuse fails closed. A real child JVM fixture interrupts
+  after record persistence and before result publication, then proves a fresh parent
+  point-resolves the bound record without scanning, duplicate execution, or a second
+  RunRecord.
 - Integrated: the metadata-only immutable `WorkspaceSnapshot` contract with canonical identity, typed source metadata, explicit freshness/availability, deterministic ordering, and bounded observations, connected to the real Context Reader and its downstream consumers;
 - Integrated: the read-only `ProjectBrainView` composing one real snapshot, repository-memory metadata with derived freshness, and real RunRecord provenance under a matching approved task;
 - Integrated: the repository-memory path from a real governed run and really-loaded repository memory through `RepositoryMemorySnapshotCollector` into the composed view, including explicit divergence detection;
@@ -464,10 +470,26 @@ Whole-gate assessment:
   idempotence, and a real migration-to-cycle recovery fixture are named and Integrated.
   The recovered post-RunRecord-reference prefix reaches one verified disposition
   without an invocation spool, additional RunRecord, or changed effect ledger;
-- the smallest remaining Gate 8-owned dependency is a bounded assessment of the broader
-  lost-acknowledgement gap, beginning with the accepted orphaned-RunRecord window between
-  child persistence and result-spool publication. Authenticated controls, production
-  adapters, and multi-agent roles remain owned by Gates 12, 11, and 13 respectively.
+- the orphaned-RunRecord lost-acknowledgement prefix after child persistence and before
+  result-spool publication now recovers through an AgentRun-derived deterministic
+  RunRecord identity, fail-closed point resolution, and binding validation before
+  re-execution. A second sidecar and store scanning remain rejected. Authenticated
+  controls, production adapters, and multi-agent roles remain owned by Gates 12, 11,
+  and 13 respectively.
+- the lease-expiry lost-acknowledgement slice now has named worker-level evidence
+  without a new runtime mechanism: a fixture checkpoints the RunRecord reference,
+  advances beyond lease expiry, observes reclaim to `READY`, and proves fresh-worker
+  greater-fence convergence without another execution, RunRecord, or effect outcome.
+  Terminal disposition replay and checkpoint clearing remain idempotent; orphan
+  Evidence before RunRecord persistence is retention work rather than an unrecorded
+  Gate 8 effect. The composition between terminal disposition and checkpoint clearing
+  now also has named worker-level evidence: after the verified disposition persists,
+  a forced clear failure retains the exact intent and a fresh worker removes it without
+  another execution, RunRecord, effect outcome, runtime transition, or queue revision.
+  Unresolved `PREPARED` external effects remain fail-closed and await their owning
+  adapter/recovery policy. Further whole-gate work returns to the broader gaps already
+  assigned to production adapters, authenticated controls, service operation, and
+  role-based workers rather than inventing another acknowledgement fixture.
 - the first migration boundary is Contract Verified and Integrated: an explicit
   stopped-Scheduler maintenance command losslessly converts only the schema-v1
   pending-finalization checkpoint to schema v2 through validated candidate-first atomic
@@ -489,7 +511,7 @@ Current increment:
 - corrected boundary: fence-checked execution completion persists only `AWAITING_VERIFICATION`; it does not complete the queue, satisfy dependencies, or imply Verified/Completed;
 - Contract Verified: process-isolated execution (connection 3d) connecting the adapter and process lifecycle into a second production `AgentRunExecution`, with exact pre-existing work identity and route checks, distinct zero/one/several result handling, the child running the same Gate 1-4 pipeline through an internal shared seam, and the returned claim checked for route, correlation, payload, task, reference resolution, RunRecord source/target/digest binding, and status agreement before a reference is returned;
 - Integrated sub-path: `DurableAgentRunWorker.processIsolated` selects 3d with the real self-JVM launcher, one shared queue for dispatch/finalization, and the caller-supplied durable stores; a real filesystem integration crosses both spools and the child process through verified queue disposition;
-- retention boundary: the RunRecord reference persists in the cycle-intent checkpoint before the exact Goal/AgentRun spool is retired; cleanup failure retries from that checkpoint without re-execution, while failed/incomplete cycles and the orphaned-RunRecord publication window retain explicit at-least-once semantics;
+- retention boundary: the RunRecord reference persists in the cycle-intent checkpoint before the exact Goal/AgentRun spool is retired; cleanup failure retries from that checkpoint without re-execution, while other failed or incomplete cycles retain explicit at-least-once semantics;
 - Contract Verified and Integrated request path: one real Gate 7 control queue delivers into `RuntimeControlAdmissionHandler`, which binds an exact control envelope to active Goal work and persists it in a bounded, ordered, restart-idempotent Gate 8 ledger before handler success; storage failure uses the bus retry/dead-letter path, while no request applies an unauthenticated transition or changes runtime authority;
 - Contract Verified: one bounded schema-v2 external-effect ledger per Goal persists stable idempotency-keyed semantic intent with adapter identity as evidence-free `PREPARED` and exactly one current-owner/fence-checked, evidence-bound terminal `APPLIED`, `DEDUPLICATED`, `COMPENSATED`, or `REQUIRES_USER_RECOVERY` outcome. Exact replay is revision-free, key/status/evidence rebinding fails closed, schema-v1 artifacts fail explicitly, filesystem history is monotonic and integrity checked, and unresolved preparation survives restart without automatic replay;
 - Contract Verified and Integrated application boundary: `DurableExternalEffectExecutor` composes the fence-checked ledger, one adapter port, and the Evidence Store. It validates stable adapter identity and semantic digest before mutation, persists `PREPARED` before one invocation, persists redacted complete evidence before terminal publication, resolves exact terminal replay without another invocation or revision, and refuses automatic execution from an already prepared record. A named real-filesystem integration connects the runtime lease, ledger, deterministic adapter, and Evidence Store across success, restart replay, and failure prefixes; production external adapters remain Gate 11 work;

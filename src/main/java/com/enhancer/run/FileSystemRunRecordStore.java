@@ -26,6 +26,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.channels.FileChannel;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
@@ -72,17 +73,26 @@ public final class FileSystemRunRecordStore implements RunRecordStore {
 
     @Override
     public StoredRunRecord persist(RunRecord record) throws IOException {
+        return persist(UUID.randomUUID().toString(), record);
+    }
+
+    @Override
+    public StoredRunRecord persist(String recordId, RunRecord record) throws IOException {
+        StoredRunRecord.requireCanonicalUuid(recordId);
         Objects.requireNonNull(record, "record must not be null");
         Files.createDirectories(storageRoot);
         if (!Files.isDirectory(storageRoot, LinkOption.NOFOLLOW_LINKS)) {
             throw new IOException("RunRecord storage root must be a directory");
         }
 
+        Path destination = artifactPath(recordId);
+        if (Files.exists(destination, LinkOption.NOFOLLOW_LINKS)) {
+            return requireExactReplay(recordId, record);
+        }
         byte[] payload = encode(record);
         if (payload.length > MAX_PAYLOAD_BYTES) {
             throw new IOException("RunRecord payload exceeds the supported size limit");
         }
-        String recordId = UUID.randomUUID().toString();
         Instant storedAt = Instant.now().truncatedTo(ChronoUnit.MILLIS);
         byte[] digest = envelopeDigest(storedAt.toEpochMilli(), payload.length, payload);
         ByteBuffer envelope = ByteBuffer.allocate(HEADER_BYTES + payload.length)
@@ -94,7 +104,6 @@ public final class FileSystemRunRecordStore implements RunRecordStore {
         envelope.flip();
 
         Path pending = Files.createTempFile(storageRoot, ".pending-", ".tmp");
-        Path destination = artifactPath(recordId);
         try {
             try (FileChannel channel = FileChannel.open(
                     pending,
@@ -107,6 +116,8 @@ public final class FileSystemRunRecordStore implements RunRecordStore {
             }
             try {
                 Files.move(pending, destination, StandardCopyOption.ATOMIC_MOVE);
+            } catch (FileAlreadyExistsException concurrentPublication) {
+                return requireExactReplay(recordId, record);
             } catch (AtomicMoveNotSupportedException exception) {
                 throw new IOException("atomic RunRecord persistence is not supported", exception);
             }
@@ -120,6 +131,16 @@ public final class FileSystemRunRecordStore implements RunRecordStore {
                 storedAt,
                 payload.length,
                 HexFormat.of().formatHex(digest));
+    }
+
+    private StoredRunRecord requireExactReplay(String recordId, RunRecord expected)
+            throws IOException {
+        ResolvedRunRecord existing = resolve(REFERENCE_PREFIX + recordId);
+        if (!existing.record().equals(expected)) {
+            throw new IOException(
+                    "RunRecord identity already belongs to a different RunRecord");
+        }
+        return existing.metadata();
     }
 
     @Override

@@ -74,6 +74,32 @@ class ProcessIsolatedAgentRunExecutionTest {
     }
 
     @Test
+    void pointRecoversAChildPersistedRecordWhenResultPublicationWasLost()
+            throws IOException {
+        Fixture fixture = Fixture.create(temporaryRoot);
+        Files.createDirectories(fixture.cycleRoot());
+        Path blockedResultSpool =
+                fixture.cycleRoot().resolve(IsolatedWorkerMain.RESULT_SPOOL);
+        Files.writeString(blockedResultSpool, "block result spool\n");
+
+        assertThrows(
+                IOException.class,
+                () -> fixture.execution().execute(fixture.dispatch()));
+        assertEquals(1, fixture.runRecordStore().references().size());
+        Files.delete(blockedResultSpool);
+
+        String recovered = fixture.executionWith(failIfLaunched())
+                .execute(fixture.dispatch());
+
+        assertEquals(
+                AgentRunRecordIdentity.reference(
+                        fixture.dispatch().goalId(),
+                        fixture.dispatch().agentRunId()),
+                recovered);
+        assertEquals(List.of(recovered), fixture.runRecordStore().references());
+    }
+
+    @Test
     void refusesForeignWorkAlreadyInTheCycleBeforeLaunchingAChild() throws IOException {
         Fixture fixture = Fixture.create(temporaryRoot);
         MessageEnvelope expected = fixture.dispatch().workItem().workMessage();

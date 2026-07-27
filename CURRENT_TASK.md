@@ -2,88 +2,69 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Deliver the verified Gate 8 migration-to-cycle recovery increment through a dedicated
-remote branch and `origin/main`.
+Deliver deterministic RunRecord and bounded lost-acknowledgement recovery increments
+through a reviewed commit, remote feature branch, and main.
 
 ## Task ID
 
-deliver-gate-8-migration-cycle-recovery-to-origin-main
+deliver-gate-8-deterministic-runrecord-and-recovery-fixtures
 
 ## Context
 
-The working tree contains the completed migration-connection assessment and its
-follow-up named migration-to-cycle recovery integration fixture. The fixture and
-canonical documentation are freshly verified, and the user explicitly requested
-commit, push, and merge to the main branch.
+The working tree contains the deterministic Goal/AgentRun-bound RunRecord recovery
+implementation, its accepted decision and architecture/state synchronization, plus
+worker-level lease-expiry and disposition-before-checkpoint-clear recovery fixtures.
+Fresh strict verification passed before delivery. The repository is currently on local
+`main`, which matched the last observed `origin/main`.
 
 ## Justified By
 
-- 2026-07-24: Migrate The Pending-Finalization Checkpoint Before Other Gate 8 State
+- 2026-07-27: Bind Process-Isolated RunRecords To Deterministic AgentRun Identities Before Result Publication
 - 2026-07-24: Assess Gate 8 Maturity Against Every Exit Criterion
+- 2026-07-21: Select The Process-Isolated Durable Worker And Retire Spools After Checkpoint
 
 ## Acceptance Criteria
 
-- Confirm the checkpoint is empty, local `main` and freshly fetched `origin/main` share
-  the expected base, and the intended diff contains exactly the six known paths.
-- Run a fresh full strict-lint build and read its complete result before delivery.
-- Create a dedicated delivery branch from the verified `origin/main` base without
-  rebasing, resetting, force-updating, or absorbing unexpected upstream work.
-- Stage and commit exactly the intended test and canonical-document changes with no
-  generated output, ignored artifact, credential, secret, or unrelated user change.
-- Push the delivery branch without force and verify its fetched remote commit.
-- Fast-forward local `main` to the delivery commit, push `main` without force, and
-  verify the remote reference.
-- Append delivery evidence, complete this task, commit the closeout on `main`, push it
-  without force, and require final local `main` and `origin/main` to match.
-- Keep the development-session checkpoint active through every commit, push,
-  fast-forward, and remote-state verification; stabilize and clear it only after the
-  intended final Git state is synchronized.
+- Fetch and verify the current remote base before changing Git history.
+- Review exactly the intended source, tests, accepted decision, and owning documents;
+  exclude generated output, secrets, and unrelated changes.
+- Run a fresh strict build and read its result before committing.
+- Create a dedicated delivery branch, commit the intended increment, and push it
+  without force.
+- Integrate the delivery commit into local `main` without rebasing or rewriting
+  history, push `main` without force, and verify fetched remote references.
+- Append delivery evidence and synchronize the final task/handoff state in a closeout
+  commit on `main`, then verify local and remote `main` match.
+- Keep the development-session checkpoint active through every external delivery step
+  and clear it only after the final intended Git state is verified.
 
 ## Out Of Scope
 
-- Rebase, force push, history rewrite, hard reset, squash, tag, release, deployment,
-  pull-request mutation, branch deletion, or merge commit.
-- Production-code or schema changes, additional recovery behavior, or expansion beyond
-  the already verified six-path increment and delivery closeout.
-- Absorbing upstream divergence, conflicts, unrelated changes, generated build output,
-  credentials, or secrets.
+- Rebase, force push, hard reset, squash, tag, release, deployment, pull-request
+  mutation, branch deletion, or unrelated upstream changes.
+- Additional production behavior, persistence schema, CLI, authority, or maturity
+  changes.
 
 ## Approval
 
 The user explicitly requested commit, push, and merge to the main branch. This grants
-those three otherwise separate external-delivery authorities for this exact increment.
+those external delivery authorities for this exact working-tree increment.
 
 ## Allowed Tools
 
 - read-file
+- verify
+- git
 
 ## Verification
 
-- A fresh fetch confirmed local `main`, `origin/main`, and their merge base at
-  `a7cf138d3987865c3027172516c2f88ef65f8168` with no divergence before delivery.
-- Fresh `clean build --no-build-cache --warning-mode all --quiet` completed under the
-  strict Java 17 build with 553 tests across 111 suites: 550 passed, three existing
-  privilege-dependent Windows symbolic-link setup cases skipped, and zero failures or
-  errors occurred.
-- The delivery review selected exactly the six accepted paths, found no secret pattern
-  or diff-check failure, and recorded implementation commit
-  `abdfcda5e975dd0b8c84f6e5f10344574a1767d7`.
-- The dedicated `feat/gate-8-migration-cycle-recovery` branch was pushed without force
-  and freshly fetched at the implementation commit.
-- Local `main` fast-forwarded to the implementation commit without a merge commit.
-  The non-force push advanced `origin/main`, and a fresh fetch verified local `main`,
-  `origin/main`, and the delivery branch at the implementation commit with a clean
-  working tree.
-- No rebase, force operation, history rewrite, tag, release, deployment, pull-request
-  mutation, or branch deletion occurred. This closeout remains subject to its final
-  non-force `main` push and fresh remote-reference verification.
+Pending fresh delivery verification.
 
 ## Next
 
-After delivery, assess the smallest broader Gate 8 lost-acknowledgement gap, beginning
-with the orphaned-RunRecord window between child persistence and result-spool
-publication.
+After delivery, select the next bounded task from the broader Gate 8 and later-gate
+gaps; do not extend this delivery increment.
