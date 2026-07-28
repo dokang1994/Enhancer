@@ -1,5 +1,64 @@
 # Changelog
 
+## 2026-07-28 - Reassess Gate 8 After The Bounded Service Connection
+
+- Retained whole-Gate 8 at `Specified - Next` after reconciling the Integrated bounded
+  foreground service with every remaining scope item and exit criterion.
+- Identified the next missing supported connection as durable message-bus-to-worker
+  operation jointly owned by Gates 7 and 8.
+- Kept authenticated controls, model/context budgets, Memory runtime, production
+  adapters, and background/supervisor topology with Gates 9 through 13.
+- Confirmed that existing point recovery and expired-lease reclamation do not authorize
+  a general orphan scanner or cleanup/retention policy. Added no runtime behavior, schema,
+  dependency, or authority.
+
+## 2026-07-28 - Connect The Bounded Scheduler Service CLI
+
+- Added the separate foreground `scheduler-service` command over
+  `BoundedSchedulerService`, reusing every explicit process-isolated cycle recovery input
+  and requiring finite total-cycle, consecutive-idle, and idle-wait bounds.
+- Added bounded typed stop/count, queue, and RunRecord output with the existing Scheduler
+  work-failed exit. The invoking thread's interrupt state supplies the local lifecycle
+  stop signal.
+- Added real-filesystem integration evidence for empty bounded idle termination,
+  persisted cycle-intent restart, and expired executing-lease reclamation under the same
+  Goal/AgentRun with a greater fence and one terminal disposition.
+- Added no thread, daemon, supervisor, service checkpoint, authenticated control,
+  queue/admission, broader orphan scanner, external adapter, schema, commit, push,
+  release, or deployment.
+
+## 2026-07-28 - Implement Bounded Scheduler Service Lifecycle Contract
+
+- Added caller-driven `BoundedSchedulerService` over the existing recoverable one-cycle
+  worker with finite total-cycle, consecutive-idle, and idle-wait policy bounds.
+- Added typed stop reasons and exact invoked/verified/idle/failed counts, including local
+  stop checks before each cycle, idle reset after verified work, first-failure stop, and
+  interruption restoration without a later cycle.
+- Added focused RED-to-GREEN contract tests. No thread, supported command/API, durable
+  service progress, authenticated control, external adapter, queue/admission, schema,
+  commit, push, release, or deployment was added.
+
+## 2026-07-28 - Reassess Remaining Gate 8 Connection Gaps
+
+- Reconciled the previous whole-gate assessment with completed priority admission,
+  fairness selection and observability, supported migration, and named
+  lost-acknowledgement recovery evidence.
+- Separated the remaining blockers by owner: Gate 8 service/orphan recovery, Gate 12
+  authenticated controls, Gate 11 production external adapters, Gates 9/10 budgets and
+  Memory runtime, and Gate 13 role-based message workers.
+- Selected no implementation silently because every remaining path changes a materially
+  different authority, operating, or orchestration boundary.
+
+## 2026-07-28 - Surface Scheduler Priority And Fairness Status
+
+- Extended the pure `SchedulerQueueStatus` projection with each admission's persisted
+  `NORMAL`/`EXPEDITED` priority plus the queue's maximum expedited burst, consecutive
+  expedited-claim progress, and optional recovery-preferred identity.
+- Extended bounded `scheduler-status` output with the same read-only selection state and
+  an admission-ordered identity/state/priority prefix.
+- Left queue selection, recovery, execution, schema, authority, polling, commit, push,
+  release, and deployment unchanged.
+
 ## 2026-07-28 - Connect scheduler-submit-generated Optional Priority Input And Output
 
 - Added the same optional `--priority NORMAL|EXPEDITED` input to the generated-input

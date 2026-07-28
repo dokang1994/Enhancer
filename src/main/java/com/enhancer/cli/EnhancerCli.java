@@ -30,6 +30,7 @@ import com.enhancer.run.FinalizedAgentRun;
 import com.enhancer.run.ResolvedRunRecord;
 import com.enhancer.run.RunRecord;
 import com.enhancer.runtime.AgentRunRetryPolicy;
+import com.enhancer.runtime.BoundedSchedulerService;
 import com.enhancer.runtime.DurableAgentRunWorker;
 import com.enhancer.runtime.DurableSingleWorkerSchedulerQueue;
 import com.enhancer.runtime.DurableSubmissionManifest;
@@ -48,6 +49,7 @@ import com.enhancer.runtime.MissingSchedulerQueueStateException;
 import com.enhancer.runtime.PendingFinalizationMigrationResult;
 import com.enhancer.runtime.ExternalEffectStatus;
 import com.enhancer.runtime.SchedulerDrainResult;
+import com.enhancer.runtime.SchedulerServiceResult;
 import com.enhancer.runtime.SchedulerExternalEffectRecoveryStatus;
 import com.enhancer.runtime.SchedulerExternalEffectRecoveryStatusReader;
 import com.enhancer.runtime.SchedulerInvocationRecoveryStatus;
@@ -165,6 +167,9 @@ public final class EnhancerCli {
             }
             if (command instanceof SchedulerDrainCliCommand drain) {
                 return executeSchedulerDrain(drain, stdout);
+            }
+            if (command instanceof SchedulerServiceCliCommand service) {
+                return executeSchedulerService(service, stdout);
             }
             if (command instanceof SchedulerSubmitCliCommand submit) {
                 return executeSchedulerSubmit(submit, stdout);
@@ -627,6 +632,11 @@ public final class EnhancerCli {
                 "queueId=" + status.queueId(),
                 "queueRevision=" + status.revision(),
                 "maxWorkItems=" + status.maxWorkItems(),
+                "maximumExpeditedBurst=" + status.maximumExpeditedBurst(),
+                "consecutiveExpeditedClaims="
+                        + status.consecutiveExpeditedClaims(),
+                "recoveryPreferredWorkItemId="
+                        + status.recoveryPreferredWorkItemId().orElse(""),
                 "totalWorkItems=" + status.workItems().size(),
                 "readyWorkItems=" + status.count(
                         SchedulerQueueStatus.WorkState.READY),
@@ -644,7 +654,8 @@ public final class EnhancerCli {
             SchedulerQueueStatus.WorkStatus work =
                     status.workItems().get(index);
             output.add("workItem." + (index + 1)
-                    + "=" + work.workItemId() + "," + work.state());
+                    + "=" + work.workItemId() + "," + work.state()
+                    + "," + work.priority());
         }
         writeBounded(stdout, String.join("\n", output) + "\n");
         return 0;
@@ -858,6 +869,36 @@ public final class EnhancerCli {
                 "queueRevision=" + queue.revision(),
                 "cyclesInvoked=" + result.cyclesInvoked(),
                 "verifiedCompletedCycles=" + result.verifiedCompleted(),
+                "failedCycles=" + result.failed(),
+                "pendingWorkItems=" + queue.pendingCount(),
+                "completedWorkItems=" + queue.completedWorkItemIds().size(),
+                "failedWorkItems=" + queue.failedWorkItemIds().size(),
+                "runRecords=" + execution.runRecordStore().references().size()) + "\n");
+        return exitCode.code();
+    }
+
+    private int executeSchedulerService(
+            SchedulerServiceCliCommand command,
+            PrintStream stdout) throws IOException {
+        SchedulerExecution execution =
+                schedulerExecution(command, "scheduler-service");
+        SchedulerServiceResult result = new BoundedSchedulerService(
+                execution.worker()).serve(
+                        command.policy(),
+                        command.leaseDuration(),
+                        Thread.currentThread()::isInterrupted);
+        CliExitCode exitCode = result.failed() == 1
+                ? CliExitCode.SCHEDULER_WORK_FAILED
+                : CliExitCode.COMPLETED;
+        DurableSingleWorkerSchedulerQueue queue = execution.queue();
+        writeBounded(stdout, String.join("\n",
+                "status=" + result.stopReason(),
+                "exitCode=" + exitCode.code(),
+                "queueId=" + queue.queueId(),
+                "queueRevision=" + queue.revision(),
+                "cyclesInvoked=" + result.cyclesInvoked(),
+                "verifiedCompletedCycles=" + result.verifiedCompleted(),
+                "idleCycles=" + result.idleCycles(),
                 "failedCycles=" + result.failed(),
                 "pendingWorkItems=" + queue.pendingCount(),
                 "completedWorkItems=" + queue.completedWorkItemIds().size(),

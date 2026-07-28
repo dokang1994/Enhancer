@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -16,6 +17,9 @@ public final class SchedulerQueueStatus {
     private final String queueId;
     private final long revision;
     private final int maxWorkItems;
+    private final int maximumExpeditedBurst;
+    private final int consecutiveExpeditedClaims;
+    private final Optional<String> recoveryPreferredWorkItemId;
     private final List<WorkStatus> workItems;
     private final Map<WorkState, Integer> counts;
 
@@ -23,10 +27,16 @@ public final class SchedulerQueueStatus {
             String queueId,
             long revision,
             int maxWorkItems,
+            int maximumExpeditedBurst,
+            int consecutiveExpeditedClaims,
+            Optional<String> recoveryPreferredWorkItemId,
             List<WorkStatus> workItems) {
         this.queueId = queueId;
         this.revision = revision;
         this.maxWorkItems = maxWorkItems;
+        this.maximumExpeditedBurst = maximumExpeditedBurst;
+        this.consecutiveExpeditedClaims = consecutiveExpeditedClaims;
+        this.recoveryPreferredWorkItemId = recoveryPreferredWorkItemId;
         this.workItems = List.copyOf(workItems);
         EnumMap<WorkState, Integer> projectedCounts =
                 new EnumMap<>(WorkState.class);
@@ -69,12 +79,18 @@ public final class SchedulerQueueStatus {
                 throw new IllegalArgumentException(
                         "Scheduler queue state contains an unclassified admission");
             }
-            projected.add(new WorkStatus(workItemId, workState));
+            projected.add(new WorkStatus(
+                    workItemId,
+                    workState,
+                    admitted.priority()));
         }
         return new SchedulerQueueStatus(
                 state.queueId(),
                 state.revision(),
                 state.maxWorkItems(),
+                state.maximumExpeditedBurst(),
+                state.consecutiveExpeditedClaims(),
+                state.recoveryPreferredWorkItemId(),
                 projected);
     }
 
@@ -88,6 +104,18 @@ public final class SchedulerQueueStatus {
 
     public int maxWorkItems() {
         return maxWorkItems;
+    }
+
+    public int maximumExpeditedBurst() {
+        return maximumExpeditedBurst;
+    }
+
+    public int consecutiveExpeditedClaims() {
+        return consecutiveExpeditedClaims;
+    }
+
+    public Optional<String> recoveryPreferredWorkItemId() {
+        return recoveryPreferredWorkItemId;
     }
 
     public List<WorkStatus> workItems() {
@@ -107,7 +135,10 @@ public final class SchedulerQueueStatus {
         FAILED
     }
 
-    public record WorkStatus(String workItemId, WorkState state) {
+    public record WorkStatus(
+            String workItemId,
+            WorkState state,
+            SchedulerPriority priority) {
         public WorkStatus {
             Objects.requireNonNull(workItemId, "workItemId must not be null");
             try {
@@ -122,6 +153,7 @@ public final class SchedulerQueueStatus {
                         exception);
             }
             Objects.requireNonNull(state, "state must not be null");
+            Objects.requireNonNull(priority, "priority must not be null");
         }
     }
 }

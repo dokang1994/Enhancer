@@ -363,9 +363,12 @@ migrate as a side effect.
 `SchedulerQueueStatus` is the pure read-only projection of one resolved persisted
 snapshot. It preserves admission order and maps the queue-owned status partition to
 `VERIFIED`, `FAILED`, and `ACTIVE`; pending work is `READY` exactly when every dependency
-is in the verified-completion set and `BLOCKED` otherwise. The projection invokes no
-store and cannot recover, claim, complete, fail, or create work. It therefore reports a
-persisted active slot as an observation without claiming that a worker process is live.
+is in the verified-completion set and `BLOCKED` otherwise. Each admission retains its
+exact persisted `NORMAL`/`EXPEDITED` priority, and the queue projection retains the
+maximum expedited burst, consecutive expedited-claim progress, and optional one-shot
+recovery preference that affect selection. The projection invokes no store and cannot
+recover, claim, complete, fail, or create work. It therefore reports persisted selection
+state as observation without predicting a next claim or claiming that a worker is live.
 
 ### Gate 8 Durable Submission Intent And Queue Creation
 
@@ -512,14 +515,38 @@ from the existing queue disposition and per-cycle checkpoint: a terminal item is
 persisted before the following cycle, while an interrupted current cycle resumes through
 the existing checkpoint.
 
+`BoundedSchedulerService` is the caller-driven waiting contract over the same
+`DurableAgentRunWorker.runOneCycle` boundary. `SchedulerServicePolicy` requires finite
+1-through-4096 total-cycle and consecutive-idle limits plus a positive idle wait no
+greater than one hour. The service checks a caller-owned local stop signal before every
+sequential cycle, waits only after a non-terminal idle cycle, resets consecutive-idle
+progress after verified work, and stops on the first failed disposition. A total-cycle
+limit takes precedence when it is reached on the same cycle as the idle limit.
+`SchedulerServiceResult` reports exact invoked, verified, idle, and failed counts with a
+typed stop reason; an interrupted wait restores the thread interrupt flag and returns
+without another cycle. The contract creates no thread or process lifecycle, command or
+API surface, durable service progress, authenticated control authority, queue or work,
+external adapter, or recovery authority beyond the existing per-cycle state. A supported
+service consumer is the separate foreground `scheduler-service` command. It reuses every
+explicit one-cycle composition input plus the finite service policy, supplies the
+invoking thread's interrupt state as the local stop signal, and reports typed counts,
+queue state, and stable exits. Real-filesystem integrations resume a persisted
+cycle-intent prefix and reclaim an expired executing lease under the same Goal/AgentRun
+with a greater fence and one terminal disposition. The CLI creates no thread, daemon,
+supervisor, service checkpoint, queue/admission, or authenticated control authority.
+Durable/supervised background lifecycle and broader orphan discovery/reclamation remain
+later connections.
+
 The separate `scheduler-status` surface resolves one caller-identified queue snapshot
 directly through `FileSystemSchedulerQueueStore`, then formats the runtime-owned
 `SchedulerQueueStatus` projection. An explicit 1-through-48 limit bounds the
-admission-ordered identity/state prefix while counts cover the complete queue. Status
-never calls `DurableSingleWorkerSchedulerQueue.recover`, so inspecting an active snapshot
-cannot requeue work or advance the revision. It reads no runtime, effect, cycle-checkpoint,
-RunRecord, submission, or invocation store; cross-store recovery interpretation remains
-a separate contract.
+admission-ordered identity/state/priority prefix while counts cover the complete queue.
+The bounded output also reports the persisted maximum expedited burst, consecutive
+expedited-claim progress, and optional recovery-preferred identity. Status never calls
+`DurableSingleWorkerSchedulerQueue.recover`, so inspecting an active snapshot cannot
+requeue work, consume the recovery preference, or advance the revision. It reads no
+runtime, effect, cycle-checkpoint, RunRecord, submission, or invocation store;
+cross-store recovery interpretation remains a separate contract.
 
 `SchedulerRecoveryStatus` is that separate read-only cross-store contract. The single
 `PendingFinalization` record is its only join anchor: without it, runtime and RunRecord

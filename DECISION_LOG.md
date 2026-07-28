@@ -11,6 +11,24 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### 2026-07-28: Retain Gate 8 At Specified Next After The Bounded Service Connection
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-28-retain-gate-8-at-specified-next-after-the-bounded-service-connection.md)
+
+### 2026-07-28: Expose Bounded Scheduler Service Polling Through A Foreground CLI With Existing Durable Recovery
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-28-expose-bounded-scheduler-service-polling-through-a-foreground-cli-with-existing-durable-recovery.md)
+
+### 2026-07-28: Bound Scheduler Service Polling With Caller-Owned Lifecycle And Finite Limits
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-28-bound-scheduler-service-polling-with-caller-owned-lifecycle-and-finite-limits.md)
+
 ### 2026-07-27: Deliver Submission Manifest Schema V2 Priority Migration Directly To Main
 
 Status: Accepted Decision

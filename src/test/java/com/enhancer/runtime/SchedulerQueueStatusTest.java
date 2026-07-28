@@ -37,20 +37,59 @@ class SchedulerQueueStatusTest {
         assertEquals(8, status.maxWorkItems());
         assertEquals(List.of(
                 new SchedulerQueueStatus.WorkStatus(
-                        VERIFIED_ID, SchedulerQueueStatus.WorkState.VERIFIED),
+                        VERIFIED_ID,
+                        SchedulerQueueStatus.WorkState.VERIFIED,
+                        SchedulerPriority.NORMAL),
                 new SchedulerQueueStatus.WorkStatus(
-                        FAILED_ID, SchedulerQueueStatus.WorkState.FAILED),
+                        FAILED_ID,
+                        SchedulerQueueStatus.WorkState.FAILED,
+                        SchedulerPriority.NORMAL),
                 new SchedulerQueueStatus.WorkStatus(
-                        ACTIVE_ID, SchedulerQueueStatus.WorkState.ACTIVE),
+                        ACTIVE_ID,
+                        SchedulerQueueStatus.WorkState.ACTIVE,
+                        SchedulerPriority.NORMAL),
                 new SchedulerQueueStatus.WorkStatus(
-                        READY_ID, SchedulerQueueStatus.WorkState.READY),
+                        READY_ID,
+                        SchedulerQueueStatus.WorkState.READY,
+                        SchedulerPriority.NORMAL),
                 new SchedulerQueueStatus.WorkStatus(
-                        BLOCKED_ID, SchedulerQueueStatus.WorkState.BLOCKED)),
+                        BLOCKED_ID,
+                        SchedulerQueueStatus.WorkState.BLOCKED,
+                        SchedulerPriority.NORMAL)),
                 status.workItems());
         for (SchedulerQueueStatus.WorkState state
                 : SchedulerQueueStatus.WorkState.values()) {
             assertEquals(1, status.count(state));
         }
+    }
+
+    @Test
+    void projectsPersistedPriorityFairnessAndRecoverySelectionState() {
+        SingleWorkerSchedulerQueue queue = new SingleWorkerSchedulerQueue(4);
+        queue.enqueue(queued(READY_ID, List.of(), SchedulerPriority.NORMAL));
+        queue.enqueue(queued(ACTIVE_ID, List.of(), SchedulerPriority.EXPEDITED));
+        queue.claimNext();
+        queue.requeueActiveForRecovery();
+
+        SchedulerQueueStatus status =
+                SchedulerQueueStatus.project(queue.snapshot(QUEUE_ID, 3));
+
+        assertEquals(
+                SchedulerQueueState.DEFAULT_MAXIMUM_EXPEDITED_BURST,
+                status.maximumExpeditedBurst());
+        assertEquals(1, status.consecutiveExpeditedClaims());
+        assertEquals(Optional.of(ACTIVE_ID),
+                status.recoveryPreferredWorkItemId());
+        assertEquals(List.of(
+                new SchedulerQueueStatus.WorkStatus(
+                        READY_ID,
+                        SchedulerQueueStatus.WorkState.READY,
+                        SchedulerPriority.NORMAL),
+                new SchedulerQueueStatus.WorkStatus(
+                        ACTIVE_ID,
+                        SchedulerQueueStatus.WorkState.READY,
+                        SchedulerPriority.EXPEDITED)),
+                status.workItems());
     }
 
     @Test
@@ -60,6 +99,11 @@ class SchedulerQueueStatusTest {
 
         assertEquals(0, status.revision());
         assertEquals(4, status.maxWorkItems());
+        assertEquals(
+                SchedulerQueueState.DEFAULT_MAXIMUM_EXPEDITED_BURST,
+                status.maximumExpeditedBurst());
+        assertEquals(0, status.consecutiveExpeditedClaims());
+        assertEquals(Optional.empty(), status.recoveryPreferredWorkItemId());
         assertEquals(List.of(), status.workItems());
         for (SchedulerQueueStatus.WorkState state
                 : SchedulerQueueStatus.WorkState.values()) {
@@ -83,6 +127,13 @@ class SchedulerQueueStatusTest {
     }
 
     private QueuedWork queued(String workItemId, List<String> dependencies) {
+        return queued(workItemId, dependencies, SchedulerPriority.NORMAL);
+    }
+
+    private QueuedWork queued(
+            String workItemId,
+            List<String> dependencies,
+            SchedulerPriority priority) {
         ApprovedTaskRevision taskRevision = new ApprovedTaskRevision(
                 "scheduler-status-test",
                 "CURRENT_TASK.md",
@@ -102,6 +153,7 @@ class SchedulerQueueStatusTest {
                         Set.of("read-file")));
         return new QueuedWork(
                 new WorkItem(workItemId, "read-file-worker", envelope),
-                dependencies);
+                dependencies,
+                priority);
     }
 }

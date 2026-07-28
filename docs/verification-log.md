@@ -2627,3 +2627,133 @@ Outcome:
   diff found zero matches. No new authority, schema change, queue selection or fairness
   change, generic message-admission priority input, dependency change, commit, push, merge,
   release, deployment, or external state change occurred.
+
+## 2026-07-28 - Surface Scheduler Priority And Fairness Status
+
+- Test-first: `SchedulerQueueStatusTest` and
+  `EnhancerCliSchedulerStatusIntegrationTest` were extended before production changes.
+  The focused run failed at `compileTestJava` with the expected missing three-argument
+  `WorkStatus` constructor and missing `maximumExpeditedBurst`,
+  `consecutiveExpeditedClaims`, and `recoveryPreferredWorkItemId` accessors. The failure
+  was classified as aligned with the active task, the accepted priority/fairness/status
+  decisions, Architecture, and existing schema-v3 queue state.
+- The minimum implementation retained every admitted `QueuedWork.priority()` in the pure
+  `SchedulerQueueStatus` projection, copied the three existing persisted queue-level
+  selection fields, and added those fields plus an identity/state/priority prefix to
+  bounded `scheduler-status` output. No store, recovery, claim, selection, execution,
+  schema, authority, or polling behavior changed.
+- The focused GREEN rerun passed 9 tests across
+  `SchedulerQueueStatusTest` (3) and
+  `EnhancerCliSchedulerStatusIntegrationTest` (6), proving mixed priority, all five work
+  states, exact admission order, empty projection, the maximum 48-item bounded prefix,
+  persisted fairness/recovery reporting, and unchanged queue bytes, timestamp, revision,
+  active slot, fairness progress, and recovery preference during inspection.
+- The fresh strict `clean build --no-build-cache --warning-mode all`
+  (`-Dorg.gradle.jvmargs=-Dfile.encoding=UTF-8`) passed 602 tests across 117 suites:
+  599 passed, three existing Windows symbolic-link privilege-dependent setup cases
+  skipped, and zero failures or errors. Production and test compilation emitted no
+  warnings under `-Xlint:all -Werror`.
+- Fresh `git diff --check` produced no output. No dependency, schema, queue-selection,
+  recovery, execution, authority, polling, commit, push, release, deployment, or external
+  state change occurred.
+
+## 2026-07-28 - Reassess Remaining Gate 8 Connection Gaps
+
+- Reconciled the 2026-07-24 whole-gate assessment against current named evidence.
+  Public priority admission, non-recovery fairness selection, read-only priority/fairness
+  observability, the supported migration slice, deterministic child-RunRecord recovery,
+  lease-expiry recovery, and disposition-acknowledgement recovery are no longer missing
+  connections.
+- Reclassified the remaining partial or unsatisfied areas by their owning boundaries:
+  Gate 8 polling/service lifecycle and broader orphan reclamation; Gate 12 authenticated
+  control application; Gate 11 production external-effect adapters; Gates 9/10
+  model/context budgets and Memory runtime; and Gate 13 role-based message workers.
+- No implementation was selected. The existing foreground Scheduler contract explicitly
+  excludes polling/background behavior, authenticated controls change a security
+  boundary, production adapters add external-effect and secret/outbound-data authority,
+  and role-based workers change orchestration topology. Each requires explicit user
+  direction and its own bounded accepted decision.
+- Fresh structural verification ran `DocumentOwnershipTest`,
+  `DecisionLogIndexTest`, `ProjectContextReaderTest`, and
+  `RepositoryTaskPlannerTest`: 19 tests across four suites, 18 passed, one existing
+  Windows symbolic-link privilege-dependent setup case skipped, and zero failures or
+  errors.
+- Fresh `git diff --check` produced no output. No production/test code, runtime behavior,
+  schema, authority, external state, commit, push, release, or deployment changed in the
+  reassessment increment.
+
+## 2026-07-28 - Implement Bounded Scheduler Service Lifecycle Contract
+
+- Test-first: `BoundedSchedulerServiceTest` was added before production types. The focused
+  compile failed with 41 expected missing-symbol errors for the absent service, policy,
+  result, and stop-reason contracts. The failure was classified as aligned with the
+  user-authorized Gate 8 task, accepted decision, Architecture, and existing durable
+  one-cycle worker boundary.
+- The minimum implementation added immutable finite policy bounds (1-4096 total and
+  consecutive-idle cycles, positive idle wait capped at one hour), caller-owned stop
+  checks before every sequential cycle, waiting only after a non-terminal idle result,
+  idle-progress reset after verified work, first-failure stop, interrupt restoration, and
+  typed exact invoked/verified/idle/failed counts. It creates no thread, supported
+  command/API, durable service progress, queue/admission, authenticated control, external
+  adapter, schema, or new recovery authority.
+- The focused GREEN rerun passed all 9 `BoundedSchedulerServiceTest` cases, covering policy
+  and result validation, stop before work and before a later cycle, idle/work/idle reset,
+  first failure, total and consecutive-idle limits without an extra probe or wait, and
+  interrupted waiting without another cycle.
+- The fresh strict `clean build --no-build-cache --warning-mode all`
+  (`-Dorg.gradle.jvmargs=-Dfile.encoding=UTF-8`) passed 611 tests across 118 suites:
+  608 passed, three existing Windows symbolic-link privilege-dependent setup cases
+  skipped, and zero failures or errors. Production and test compilation emitted no
+  warnings under `-Xlint:all -Werror`.
+
+## 2026-07-28 - Connect The Bounded Scheduler Service CLI
+
+- Test-first: `CliArgumentsTest` and
+  `EnhancerCliSchedulerServiceIntegrationTest` were changed before production CLI code.
+  The focused compile failed with the expected two missing-symbol errors for the absent
+  `SchedulerServiceCliCommand`. The RED failure was classified as aligned with the
+  user-authorized Gate 8 task, both accepted bounded-service decisions, Architecture, and
+  the existing process-isolated durable worker composition.
+- The minimum implementation added the separate foreground `scheduler-service` command,
+  reusing every `scheduler-cycle` recovery input and requiring 1-4096 total-cycle and
+  consecutive-idle bounds plus a positive at-most-one-hour idle wait. It runs
+  `BoundedSchedulerService` on the invoking thread, supplies thread interruption as the
+  local stop signal, maps failed work to exit `40`, and reports bounded typed counts,
+  queue state, and RunRecord count.
+- The focused GREEN run passed 32 tests across `CliArgumentsTest`,
+  `EnhancerCliSchedulerServiceIntegrationTest`, and `BoundedSchedulerServiceTest` with
+  zero skips or failures. The real-filesystem process-isolated cases prove empty bounded
+  idle termination, fresh-command recovery from a persisted cycle intent, and
+  reclamation of an expired executing lease under the same Goal/AgentRun with a greater
+  fence, one retained AgentRun, one RunRecord, one verified queue disposition, and a
+  cleared cycle checkpoint.
+- The fresh strict `clean build --no-build-cache --warning-mode all`
+  (`-Dorg.gradle.jvmargs=-Dfile.encoding=UTF-8`) passed 616 tests across 119 suites:
+  613 passed, three existing Windows symbolic-link privilege-dependent setup cases
+  skipped, and zero failures or errors. Production and test compilation emitted no
+  warnings under `-Xlint:all -Werror`.
+- No thread, daemon, supervisor, automatic startup, durable service progress,
+  authenticated control, queue/admission, broader orphan scanner, external adapter,
+  schema, dependency, commit, push, release, deployment, or other external state change
+  was added.
+
+## 2026-07-28 - Reassess Gate 8 After The Bounded Service Connection
+
+- Reconciled every Gate 8 scope item and exit criterion after the Integrated
+  `scheduler-service` connection. The audit retained whole-Gate 8 at
+  `Specified - Next`: the next missing supported connection is durable
+  message-bus-to-worker operation jointly owned by Gates 7 and 8.
+- Existing queue-active recovery, cycle checkpoints, deterministic
+  lost-acknowledgement point resolution, lease expiry, and explicit external-effect
+  outcomes remain the named at-least-once correctness evidence. They do not imply or
+  authorize a general orphan filesystem scanner, cleanup operation, or retention policy.
+- Authenticated control application remains Gate 12; model/context budgets Gate 9;
+  Memory runtime Gate 10; production adapters Gate 11; and background/supervisor topology
+  plus role workers Gate 13.
+- The fresh strict `clean build --no-build-cache --warning-mode all`
+  (`-Dorg.gradle.jvmargs=-Dfile.encoding=UTF-8`) passed 616 tests across 119 suites:
+  613 passed, three existing Windows symbolic-link privilege-dependent setup cases
+  skipped, and zero failures or errors. Production and test compilation emitted no
+  warnings under `-Xlint:all -Werror`.
+- The assessment added no production/test behavior, schema, dependency, authority,
+  release, or deployment.

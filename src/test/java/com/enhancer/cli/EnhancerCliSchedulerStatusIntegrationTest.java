@@ -10,6 +10,7 @@ import com.enhancer.bus.WorkPayload;
 import com.enhancer.runtime.DurableSingleWorkerSchedulerQueue;
 import com.enhancer.runtime.FileSystemSchedulerQueueStore;
 import com.enhancer.runtime.QueuedWork;
+import com.enhancer.runtime.SchedulerPriority;
 import com.enhancer.runtime.SchedulerQueueState;
 import com.enhancer.runtime.WorkItem;
 import com.enhancer.workspace.ApprovedTaskRevision;
@@ -60,6 +61,9 @@ class EnhancerCliSchedulerStatusIntegrationTest {
         assertEquals("0", value(result.stdout(), "exitCode"));
         assertEquals(Long.toString(revisionBefore),
                 value(result.stdout(), "queueRevision"));
+        assertEquals("4", value(result.stdout(), "maximumExpeditedBurst"));
+        assertEquals("0", value(result.stdout(), "consecutiveExpeditedClaims"));
+        assertEquals("", value(result.stdout(), "recoveryPreferredWorkItemId"));
         assertEquals("5", value(result.stdout(), "totalWorkItems"));
         assertEquals("1", value(result.stdout(), "readyWorkItems"));
         assertEquals("1", value(result.stdout(), "blockedWorkItems"));
@@ -68,15 +72,15 @@ class EnhancerCliSchedulerStatusIntegrationTest {
         assertEquals("1", value(result.stdout(), "failedWorkItems"));
         assertEquals("5", value(result.stdout(), "requestedLimit"));
         assertEquals("5", value(result.stdout(), "returnedWorkItems"));
-        assertEquals(VERIFIED_ID + ",VERIFIED",
+        assertEquals(VERIFIED_ID + ",VERIFIED,NORMAL",
                 value(result.stdout(), "workItem.1"));
-        assertEquals(FAILED_ID + ",FAILED",
+        assertEquals(FAILED_ID + ",FAILED,NORMAL",
                 value(result.stdout(), "workItem.2"));
-        assertEquals(ACTIVE_ID + ",ACTIVE",
+        assertEquals(ACTIVE_ID + ",ACTIVE,NORMAL",
                 value(result.stdout(), "workItem.3"));
-        assertEquals(READY_ID + ",READY",
+        assertEquals(READY_ID + ",READY,EXPEDITED",
                 value(result.stdout(), "workItem.4"));
-        assertEquals(BLOCKED_ID + ",BLOCKED",
+        assertEquals(BLOCKED_ID + ",BLOCKED,NORMAL",
                 value(result.stdout(), "workItem.5"));
         assertEquals("", result.stderr());
 
@@ -87,6 +91,49 @@ class EnhancerCliSchedulerStatusIntegrationTest {
         assertEquals(revisionBefore, after.revision());
         assertEquals(ACTIVE_ID,
                 after.activeWork().orElseThrow().workItem().workItemId());
+    }
+
+    @Test
+    void reportsPersistedFairnessAndRecoveryPreferenceWithoutMutation()
+            throws Exception {
+        Path queueRoot = temporaryRoot.resolve("fairness");
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.create(
+                        QUEUE_ID,
+                        4,
+                        new FileSystemSchedulerQueueStore(queueRoot));
+        queue.enqueue(queued(READY_ID, List.of(), SchedulerPriority.NORMAL));
+        queue.enqueue(queued(ACTIVE_ID, List.of(), SchedulerPriority.EXPEDITED));
+        queue.claimNext();
+        DurableSingleWorkerSchedulerQueue.recover(
+                QUEUE_ID,
+                new FileSystemSchedulerQueueStore(queueRoot));
+        Path artifact = artifact(queueRoot, QUEUE_ID);
+        byte[] bytesBefore = Files.readAllBytes(artifact);
+        FileTime modifiedBefore = Files.getLastModifiedTime(artifact);
+        SchedulerQueueState before =
+                new FileSystemSchedulerQueueStore(queueRoot).resolve(QUEUE_ID);
+
+        Captured result = execute(queueRoot, QUEUE_ID, "4");
+
+        assertEquals(0, result.exitCode());
+        assertEquals("4", value(result.stdout(), "maximumExpeditedBurst"));
+        assertEquals("1", value(result.stdout(), "consecutiveExpeditedClaims"));
+        assertEquals(ACTIVE_ID,
+                value(result.stdout(), "recoveryPreferredWorkItemId"));
+        assertEquals(READY_ID + ",READY,NORMAL",
+                value(result.stdout(), "workItem.1"));
+        assertEquals(ACTIVE_ID + ",READY,EXPEDITED",
+                value(result.stdout(), "workItem.2"));
+        assertArrayEquals(bytesBefore, Files.readAllBytes(artifact));
+        assertEquals(modifiedBefore, Files.getLastModifiedTime(artifact));
+        SchedulerQueueState after =
+                new FileSystemSchedulerQueueStore(queueRoot).resolve(QUEUE_ID);
+        assertEquals(before.revision(), after.revision());
+        assertEquals(before.consecutiveExpeditedClaims(),
+                after.consecutiveExpeditedClaims());
+        assertEquals(before.recoveryPreferredWorkItemId(),
+                after.recoveryPreferredWorkItemId());
     }
 
     @Test
@@ -169,7 +216,7 @@ class EnhancerCliSchedulerStatusIntegrationTest {
                         SchedulerStatusCliCommand.MAX_LISTED_WORK_ITEMS),
                 value(result.stdout(), "returnedWorkItems"));
         assertTrue(result.stdout().contains(
-                "workItem.48=00000000-0000-0000-0002-000000000048,READY"));
+                "workItem.48=00000000-0000-0000-0002-000000000048,READY,NORMAL"));
         assertTrue(result.stdout().length()
                 <= EnhancerCli.MAX_DIAGNOSTIC_CHARACTERS);
         assertEquals("", result.stderr());
@@ -190,12 +237,22 @@ class EnhancerCliSchedulerStatusIntegrationTest {
         queue.failActive(FAILED_ID);
         queue.enqueue(queued(ACTIVE_ID, List.of()));
         queue.claimNext();
-        queue.enqueue(queued(READY_ID, List.of(VERIFIED_ID)));
+        queue.enqueue(queued(
+                READY_ID,
+                List.of(VERIFIED_ID),
+                SchedulerPriority.EXPEDITED));
         queue.enqueue(queued(BLOCKED_ID, List.of(FAILED_ID)));
         return queue;
     }
 
     private QueuedWork queued(String workItemId, List<String> dependencies) {
+        return queued(workItemId, dependencies, SchedulerPriority.NORMAL);
+    }
+
+    private QueuedWork queued(
+            String workItemId,
+            List<String> dependencies,
+            SchedulerPriority priority) {
         ApprovedTaskRevision taskRevision = new ApprovedTaskRevision(
                 "scheduler-status-test",
                 "CURRENT_TASK.md",
@@ -215,7 +272,8 @@ class EnhancerCliSchedulerStatusIntegrationTest {
                         Set.of("read-file")));
         return new QueuedWork(
                 new WorkItem(workItemId, "read-file-worker", envelope),
-                dependencies);
+                dependencies,
+                priority);
     }
 
     private Captured execute(Path queueRoot, String queueId, String limit) {
