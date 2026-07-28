@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-07-28 - Connect One Durable Work Spool To The Scheduler
+
+- Added the separate `scheduler-receive-work` point command: one caller-named canonical
+  regular non-symbolic transport artifact is decoded, route/payload checked, and
+  published unchanged through `InProcessMessageBus` to durable Scheduler admission.
+- Added bounded `ADMITTED`/`REPLAYED`, queue revision, WorkItem identity, and priority
+  output. Exact re-receipt is revision-free; changed identity content, foreign routes,
+  non-Work payloads, missing/symbolic points, and corrupt frames fail before admission.
+- Added a real-filesystem integration from `FileSpoolMessageTransport` through the
+  receiver and a separately invoked process-isolated `scheduler-service`, proving one
+  verified completion and no second queue revision, AgentRun, or RunRecord after exact
+  re-receipt.
+- Retained every spool artifact and added no acknowledgement/deletion/rename, scan,
+  queue creation, combined execution wrapper, durable bus journal, schema, dependency,
+  authority, commit, push, release, or deployment.
+
 ## 2026-07-28 - Reassess Gate 8 After The Bounded Service Connection
 
 - Retained whole-Gate 8 at `Specified - Next` after reconciling the Integrated bounded

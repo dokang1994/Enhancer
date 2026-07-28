@@ -464,9 +464,10 @@ Whole-gate assessment:
 - retained at `Specified - Next` after closing the pre-migration assessment's supported
   migration gap, public priority admission, non-recovery priority/fairness selection,
   priority/fairness observability, deterministic child-RunRecord recovery, lease-expiry
-  recovery, disposition-acknowledgement recovery, and the bounded foreground service
-  connection. Remaining blockers are not one interchangeable backlog: Gates 7 and 8
-  jointly lack a supported durable message-bus-to-worker entry point; Gate 12 owns
+  recovery, disposition-acknowledgement recovery, the bounded foreground service
+  connection, and one supported durable spool-to-bus-to-admission point receiver.
+  Remaining blockers are not one interchangeable backlog: Gate 7 still owns durable bus
+  journaling and spool acknowledgement/retention protocol; Gate 12 owns
   authenticated control application; Gate 11 owns production external-effect handling;
   Gates 9 and 10 own model/context budgets and Memory runtime; and Gate 13 owns
   background/supervisor topology and role-based message workers;
@@ -534,6 +535,13 @@ Whole-gate assessment:
 
 Current increment:
 
+- Contract Verified and Integrated point-receive path: `scheduler-receive-work` resolves
+  one explicit retained regular non-symbolic transport artifact, validates its exact
+  queue route and Work payload, publishes the unchanged envelope through the real
+  Message Bus to durable admission, and reports `ADMITTED` or revision-free `REPLAYED`.
+  A separately invoked process-isolated service reaches verified completion; exact
+  re-receipt adds no queue revision, AgentRun, or RunRecord. No spool acknowledgement,
+  scan, queue creation, execution wrapper, or durable bus journal is added;
 - Contract Verified: immutable `WorkItem` admission over one unchanged Gate 7 work envelope, with a distinct canonical identity and bounded required capability but no scheduling or execution behavior;
 - Contract Verified: immutable priority-bearing `QueuedWork` with up to 256 unique dependency identities plus a deterministic run-scoped `SingleWorkerSchedulerQueue` bounded to 4096 admissions, dependency-first validation, admission-ordered priority selection with bounded expedited fairness, one active slot, one-shot exact recovery preference, matching completion, and no authority expansion;
 - Contract Verified: canonical queue identity and single-logical-run binding, immutable schema-v3 queue snapshots retaining every exact priority-bearing ordered admission including terminal work plus bounded burst/progress/recovery-preference state, bounded integrity-checked atomic filesystem persistence, persist-before-exposure admission/claim/disposition/recovery, revision-free exact admission replay, changed-content identity-reuse refusal, explicit ordinary v1/v2 rejection, and exact preferred active-work replay under explicit at-least-once execution semantics;

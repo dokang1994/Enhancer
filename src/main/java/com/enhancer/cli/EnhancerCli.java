@@ -15,6 +15,9 @@ import com.enhancer.brain.TaskJustificationProjector;
 import com.enhancer.context.ProjectContext;
 import com.enhancer.context.ProjectContextReader;
 import com.enhancer.bus.MessageEnvelope;
+import com.enhancer.bus.DeliveryDestination;
+import com.enhancer.bus.FileSpoolMessageTransport;
+import com.enhancer.bus.TransportMessage;
 import com.enhancer.bus.WorkPayload;
 import com.enhancer.loop.AgentLoop;
 import com.enhancer.loop.AgentLoopStopReason;
@@ -36,6 +39,8 @@ import com.enhancer.runtime.DurableSingleWorkerSchedulerQueue;
 import com.enhancer.runtime.DurableSubmissionManifest;
 import com.enhancer.runtime.DurableSubmissionResult;
 import com.enhancer.runtime.DurableWorkSubmissionService;
+import com.enhancer.runtime.DurableWorkMessageReceiveResult;
+import com.enhancer.runtime.DurableWorkMessageReceiver;
 import com.enhancer.runtime.FileSystemAgentRuntimeStateStore;
 import com.enhancer.runtime.FileSystemExternalEffectLedgerStore;
 import com.enhancer.runtime.FileSystemPendingFinalizationStore;
@@ -86,6 +91,8 @@ import com.enhancer.workspace.WorkspaceSourceObservation;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.time.Duration;
 import java.time.Clock;
 import java.time.Instant;
@@ -170,6 +177,9 @@ public final class EnhancerCli {
             }
             if (command instanceof SchedulerServiceCliCommand service) {
                 return executeSchedulerService(service, stdout);
+            }
+            if (command instanceof SchedulerReceiveWorkCliCommand receive) {
+                return executeSchedulerReceiveWork(receive, stdout);
             }
             if (command instanceof SchedulerSubmitCliCommand submit) {
                 return executeSchedulerSubmit(submit, stdout);
@@ -905,6 +915,62 @@ public final class EnhancerCli {
                 "failedWorkItems=" + queue.failedWorkItemIds().size(),
                 "runRecords=" + execution.runRecordStore().references().size()) + "\n");
         return exitCode.code();
+    }
+
+    private int executeSchedulerReceiveWork(
+            SchedulerReceiveWorkCliCommand command,
+            PrintStream stdout) throws IOException {
+        Path spoolRoot = command.transportSpoolRoot();
+        Path messagePath = spoolRoot.resolve(command.messageFile()).normalize();
+        if (!messagePath.getParent().equals(spoolRoot)
+                || !Files.isRegularFile(messagePath, LinkOption.NOFOLLOW_LINKS)) {
+            throw new CliUsageException(
+                    "message-file must name an existing regular non-symbolic transport file");
+        }
+
+        TransportMessage message = FileSpoolMessageTransport.read(messagePath);
+        DeliveryDestination expectedDestination =
+                DeliveryDestination.queue(command.destinationName());
+        if (!message.destination().equals(expectedDestination)) {
+            throw new CliUsageException(
+                    "spooled work message is invalid: destination does not match "
+                            + "the expected queue");
+        }
+        if (!(message.envelope().payload() instanceof WorkPayload)) {
+            throw new CliUsageException(
+                    "spooled work message is invalid: payload must be Work");
+        }
+        DurableSingleWorkerSchedulerQueue queue;
+        try {
+            queue = DurableSingleWorkerSchedulerQueue.recover(
+                    command.queueId(),
+                    new FileSystemSchedulerQueueStore(command.queueRoot()));
+        } catch (MissingSchedulerQueueStateException exception) {
+            throw new CliUsageException(
+                    "queue configuration is invalid: " + safeMessage(exception),
+                    exception);
+        }
+        DurableWorkMessageReceiveResult result;
+        try {
+            result = new DurableWorkMessageReceiver(
+                    expectedDestination,
+                    command.requiredCapability(),
+                    command.priority(),
+                    queue).receive(message);
+        } catch (IllegalArgumentException | IllegalStateException exception) {
+            throw new CliUsageException(
+                    "spooled work message is invalid: " + safeMessage(exception),
+                    exception);
+        }
+        writeBounded(stdout, String.join("\n",
+                "status=" + result.status(),
+                "exitCode=0",
+                "queueId=" + result.queueId(),
+                "queueRevision=" + result.queueRevision(),
+                "messageId=" + message.envelope().messageId(),
+                "workItemId=" + result.workItemId(),
+                "priority=" + result.priority()) + "\n");
+        return 0;
     }
 
     private SchedulerExecution schedulerExecution(

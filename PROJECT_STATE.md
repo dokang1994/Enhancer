@@ -9,8 +9,8 @@
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 260 Java files.
-- Test source: 120 Java files.
+- Production source: 264 Java files.
+- Test source: 122 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -20,6 +20,16 @@ it does not restate which commit published which increment.
 
 ### Contract Verified
 
+- Gate 7-to-Gate 8 durable Work spool point reception under `com.enhancer.runtime` and
+  `com.enhancer.cli`: `scheduler-receive-work` resolves one explicit canonical regular
+  non-symbolic transport file, validates the exact expected queue route and `WorkPayload`,
+  publishes the unchanged envelope through `InProcessMessageBus` to
+  `DurableWorkItemAdmissionHandler`, and reports durable `ADMITTED` or revision-free
+  `REPLAYED`. A real-filesystem integration proves spool send, separate receipt,
+  separately invoked process-isolated service completion, and exact re-receipt without a
+  second queue revision, AgentRun, or RunRecord. It performs no spool acknowledgement,
+  deletion, rename, scan, queue creation, execution, durable bus journaling, or authority
+  expansion.
 - Gate 8 deterministic AgentRun-bound RunRecord point recovery: one versioned
   Goal/AgentRun-derived UUID names the process-isolated attempt's RunRecord.
   `FileSystemRunRecordStore` point-persistence is atomic, exact-replay idempotent, and
@@ -148,6 +158,11 @@ it does not restate which commit published which increment.
 - RunRecord discovery-to-replay CLI path: a named real-filesystem integration persists three integrity-checked RunRecords, fixes their observation order, lists the exact bounded newest-first prefix, and successfully replays a returned reference. Empty-root inspection creates no directory, while a maximum 48-reference fixture stays within bounded output and proves listing does not resolve or suppress artifacts.
 - Gate 8 bounded foreground Scheduler drain CLI: the separate `scheduler-drain` command reuses every `scheduler-cycle` composition input plus `--max-cycles`, recovers one existing durable queue, and runs the real process-isolated Worker only while verified work continues. Bounded output and stable exits distinguish `IDLE`, `FAILED`, and `LIMIT_REACHED` with queue and cycle counts. Named real-filesystem child-process integrations prove two ready/dependency-linked items followed by idle, recovery from a persisted cycle-intent prefix, an exact one-cycle limit leaving later work pending, terminal failure stopping before later work, and missing-queue usage failure without queue creation. Submission remains separate; no polling/service behavior or whole-Gate promotion is added.
 - Gate 8 bounded foreground Scheduler service CLI: the separate `scheduler-service` command reuses every `scheduler-cycle` composition input plus explicit finite total-cycle, consecutive-idle, and idle-wait bounds, runs `BoundedSchedulerService` on the invoking thread, and reports typed stop/count, queue, and RunRecord data with stable exits. Named real-filesystem process-isolated integrations prove empty bounded idle termination, fresh-command recovery from a persisted cycle intent, and reclamation of an expired executing lease under the same Goal/AgentRun with a greater fence, one AgentRun, one RunRecord, and one verified queue disposition. It creates no queue/work, thread, daemon, supervisor, service checkpoint, authenticated control, or broader orphan policy.
+- Gate 7-to-Gate 8 durable Work spool receiver CLI: the separate
+  `scheduler-receive-work` command admits only one explicitly named retained transport
+  artifact through the real Message Bus into one existing durable queue. It reports the
+  effective priority and stable WorkItem identity, preserves the spool for replay, and
+  leaves every execution command separate.
 - Gate 8 durable submission recovery path: one named real-filesystem integration interrupts after durable manifest persistence and after empty queue creation, restarts with fresh store/service instances, and converges each prefix on one exact pending WorkItem. Full exact replay changes no manifest artifact or queue revision; changed envelope content fails before queue mutation, and an existing capacity mismatch is rejected before queue recovery can requeue active work.
 - Gate 8 durable submission CLI: `scheduler-submit` resolves the matching repository-approved active task, captures its repository-memory Workspace snapshot at the explicit occurrence time, and passes one explicit dependency-free work envelope to `DurableWorkSubmissionService`. Every root, identity, queue bound, capability, time, target, and digest remains caller-supplied, plus one optional `--priority NORMAL|EXPEDITED` selecting the Scheduler priority; omission defaults to `NORMAL`, any non-exact value fails usage before mutation, and a replay-conflicting priority fails closed like other changed content. A named real-filesystem CLI integration proves first admission, fresh-instance exact replay without artifact or revision change, changed-content refusal, task mismatch refusal, pending queue state without execution, and the effective-priority input/output/persistence path for both an explicit `EXPEDITED` submission and the defaulted `NORMAL` omission. Bounded output distinguishes `ADMITTED` from `REPLAYED` and reports the effective `priority` on both; no worker, Tool, RunRecord, evidence, cycle, polling, or whole-Gate Operational promotion is added.
 - Gate 8 generated-input submission CLI: the separate `scheduler-submit-generated` command takes one caller-retained submission UUID and the caller-owned intent, generates the queue/correlation/logical-run identities and occurrence time, and captures the repository-memory snapshot only on first use inside the envelope factory. It accepts the same optional `--priority NORMAL|EXPEDITED` input (default `NORMAL`, other values rejected), persists it into the manifest on first use, compares it against the stored manifest on replay before consulting the clock or recapturing context, and reports the effective `priority` in bounded output. A named real-filesystem CLI integration proves first-use generation with the derived identities in bounded output, fresh-instance exact replay without manifest bytes or queue-revision change, conflict fail-closed under the same submission UUID including a changed priority, effective-priority input/output/persistence for an `EXPEDITED` submission and the defaulted `NORMAL` omission, and first-use task-mismatch refusal. No worker, cycle, or polling is added.
@@ -293,17 +308,35 @@ it does not restate which commit published which increment.
 - Delivery Gate 4: Integrated.
 - Delivery Gate 5: Operational.
 - Delivery Gate 6: Integrated by the 2026-07-15 re-scope-and-promotion decision; diagnostics, terminal-session, and active/selected-file observation moved to Gate 12.
-- Delivery Gate 7: Contract Verified after a fresh Integrated maturity assessment. The work-message queue/journal/replay/idempotency path now has a named durable Scheduler-queue consumer, the durable control-request queue path is Integrated, and connection 3d gives `MessageTransport` one named local work/result-spool consumer. Result/handoff flows, authenticated control application, topic, cancellation/cascade-ordering/backpressure, and reliability branches beyond the named control retry/dead-letter path remain contract-only; no durable bus or supported messaging entry point exists.
-- Delivery Gate 8: Specified - Next; `WorkItem` admission, the dependency-ready single-worker queue, durable schema-v3 queue state/exact priority-bearing admission history/restart recovery with queue-scoped local cross-process update serialization, schema-v2 submission-priority intent and exact admission propagation, schema-v2 Goal/AgentRun and retry-decision history, fenced single-owner lease/expiry recovery, durable control-request admission, the bounded fence-checked external-effect ledger, the bounded AgentRun retry decision and durable controller, split RunRecord-backed result/terminal finalization, durable queue terminal disposition, the durable Scheduler worker (3a), the AgentLoop-backed execution port, the `WorkPayload` execution-input extension, the isolated process lifecycle (3b), the local spool adapter (3c), process-isolated execution (3d), durable submission intent/queue creation, the replay-safe generated-input submission boundary, the bounded foreground drain, the bounded caller-driven service lifecycle, the checkpoint-anchored read-only recovery projection, and the correlated external-effect recovery projection are Contract Verified; the filesystem queue lock is also Integrated through a real child-JVM contention path, while the explicit queue and submission-manifest migration CLIs, restart-idempotent durable work-message admission, durable submission recovery and its explicit CLI, the generated-input submission CLI, the durable queue-to-lifecycle dispatch path, verified worker-over-real-execution path, process-isolated durable worker composition, retry-aware replacement execution/recovery, control-request queue-to-state path, the evidence-bound deterministic external-effect executor path, the recovery-only one-cycle CLI, the bounded `scheduler-drain` CLI, the bounded foreground `scheduler-service` CLI, the read-only `scheduler-recovery-status` CLI, and the read-only `scheduler-external-effect-status` CLI are Integrated. The explicit submit-then-separately-cycle operator workflow and the generated-input `scheduler-submit-generated`-then-`scheduler-cycle` workflow are Operational sub-paths with documented recovery and actual-repository smoke runs, while Gate 8 as a whole remains `Specified - Next`. The retry-aware Worker creates the Goal ledger before execution, keeps the queue active across admitted attempts, checkpoints replacement identity before append, and converges to one final disposition. The process-isolated composition uses separate per-cycle work/result spools, the real child launcher, and exact route/envelope/cardinality plus RunRecord task/source/target/digest/status binding. Replay-safe generated-input submission is an Operational sub-path: the `scheduler-submit-generated` command plus a separate `scheduler-cycle` reached `ADMITTED -> VERIFIED_COMPLETED -> REPLAYED -> IDLE` on an actual Enhancer-repository smoke run with documented recovery, while Gate 8 as a whole remains `Specified - Next`. The next missing supported connection is durable message-bus-to-worker operation jointly owned with Gate 7. Production external adapters, authenticated control application, model/context budgets, Memory runtime, background/supervisor topology, and broader production wiring remain owned by Gates 9 through 13.
+- Delivery Gate 7: Contract Verified after a fresh Integrated maturity assessment. The
+  work-message queue/journal/replay/idempotency path now has a named durable
+  Scheduler-queue consumer, the durable control-request queue path is Integrated,
+  connection 3d gives `MessageTransport` one named local work/result-spool consumer, and
+  one supported point receiver carries an explicit retained Work spool through the real
+  bus into durable admission. Result/handoff flows, authenticated control application,
+  topic, cancellation/cascade-ordering/backpressure, durable bus persistence, spool
+  acknowledgement/retention, and reliability branches beyond the named control
+  retry/dead-letter path remain contract-only.
+- Delivery Gate 8: Specified - Next; the previously recorded queue, runtime, execution,
+  recovery, priority, migration, retry, effect, drain, service, and supported CLI
+  sub-path maturities remain unchanged. One retained Gate 7 transport artifact now has a
+  Contract Verified and Integrated point path through the real Message Bus to durable
+  Scheduler admission, with separate process-isolated service completion and
+  duplicate-free exact re-receipt. Durable bus journaling and spool
+  acknowledgement/retention remain Gate 7 protocol work. Production external adapters,
+  authenticated control application, model/context budgets, Memory runtime,
+  background/supervisor topology, and broader production wiring remain owned by Gates 9
+  through 13.
 - Gate 8 remains `Specified - Next` after closing the pre-migration assessment's
   supported-migration, priority-admission, non-recovery fairness-selection, and
   priority/fairness-observability gaps. Durable lifecycle, sequential process-isolated
   execution, recovery inspection, authority preservation, migration-to-cycle recovery,
   deterministic child-RunRecord recovery, lease-expiry recovery, disposition-
   acknowledgement recovery, and several restart/idempotency paths have named evidence.
-  The supported bounded service gap is now closed. Whole-gate blockers remain separated
-  by owner: Gates 7 and 8 jointly lack a supported durable message-bus-to-worker entry
-  point; Gate 12 owns authenticated control application; Gate 11 owns production
+  The supported bounded service and point spool-to-admission gaps are now closed.
+  Whole-gate blockers remain separated by owner: Gate 7 owns durable bus journaling and
+  spool acknowledgement/retention; Gate 12 owns authenticated control application;
+  Gate 11 owns production
   external-effect adapters; Gates 9 and 10 own model/context budgets and Memory runtime;
   and Gate 13 owns background/supervisor topology and role-based workers. Existing
   point recovery and expired-lease reclamation satisfy the accepted correctness

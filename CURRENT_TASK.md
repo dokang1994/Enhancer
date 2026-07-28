@@ -2,53 +2,63 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Reassess whole-Gate 8 maturity after the bounded foreground service integration, classify
-every remaining gap by its owning gate, and synchronize the repository for an authorized
-commit, feature-branch push, main merge, and main push.
+Connect one durable local transport-spool Work message through the real Message Bus into
+existing durable Scheduler admission, expose the point receiver through a separate CLI,
+and prove the separately invoked Scheduler service completes the admitted work.
 
 ## Task ID
 
-reassess-gate8-after-service-integration
+connect-durable-work-spool-to-scheduler-worker
 
 ## Context
 
-The supported `scheduler-service` connection now has finite polling, cycle-intent restart,
-and expired-lease recovery evidence. Whole-gate maturity still depends on distinguishing
-Gate 8 recovery responsibilities from Gate 7 messaging, Gate 9 budgets, Gate 10 Memory,
-Gate 11 adapters, Gate 12 controls, and Gate 13 background/supervisor topology.
+`FileSpoolMessageTransport` durably accepts one routed envelope, but no supported receiver
+publishes that retained artifact through `InProcessMessageBus` into
+`DurableWorkItemAdmissionHandler`. Scheduler execution already has a separate supported
+bounded service and must remain distinct from message receipt.
 
 ## Justified By
 
+- 2026-07-28: Receive One Durable Work Spool Through The Message Bus Before Scheduler Admission
 - 2026-07-28: Retain Gate 8 At Specified Next After The Bounded Service Connection
-- 2026-07-24: Assess Gate 8 Maturity Against Every Exit Criterion
 
 ## Acceptance Criteria
 
-- Every remaining Gate 8 scope item and exit criterion is reconciled against named current
-  evidence after the service integration.
-- Each partial or unsatisfied criterion is assigned to Gate 7, 8, 9, 10, 11, 12, or 13
-  without silently absorbing another gate's authority.
-- Whole-Gate 8 maturity changes only if every criterion has a named supported connection
-  and fresh evidence; otherwise `Specified - Next` is retained with the next connection
-  identified.
-- Structural document tests, the strict full build, diff review, and credential scan pass.
-- The complete accumulated increment is committed on a feature branch, pushed, merged
-  into `main`, and the resulting `main` is pushed as explicitly authorized by the user.
+- `scheduler-receive-work` accepts one explicit spool root and canonical transport
+  filename, expected queue destination, existing queue root/identity, required
+  capability, and optional exact Scheduler priority.
+- The receiver rejects missing, symbolic, corrupt, foreign-destination, and non-Work
+  spool artifacts before queue mutation.
+- The unchanged envelope is published through a real `InProcessMessageBus` queue
+  subscription backed by `DurableWorkItemAdmissionHandler`.
+- Bounded output distinguishes durable `ADMITTED` from exact `REPLAYED` and reports the
+  queue identity/revision, derived WorkItem identity, and effective priority.
+- Focused tests are RED first and cover argument validation, point containment, route and
+  payload refusal, first admission, and exact replay.
+- A real-filesystem integration sends through `FileSpoolMessageTransport`, receives
+  through the supported command, executes through a separate `scheduler-service`, and
+  proves exact re-receipt changes no terminal queue revision and creates no second
+  AgentRun or RunRecord.
+- Existing transport, submit, cycle, drain, and service behavior, schemas, dependencies,
+  and authority remain unchanged; the fresh strict full build passes.
+- The completed increment is committed on a feature branch, pushed, merged into
+  `main`, and the resulting `main` is pushed.
 
 ## Out Of Scope
 
-- New runtime behavior, schema or dependency changes, background daemon/supervisor,
-  broad orphan scanning/cleanup, authenticated controls, model budgets, Memory runtime,
-  production adapters, multi-agent roles, release, or deployment.
+- Spool deletion/rename/acknowledgement, directory scanning, durable bus journal,
+  background consumer, queue creation, combined receive-and-execute wrapper, remote
+  transport, authenticated controls, external adapters, multi-agent roles, schema or
+  dependency changes, release, or deployment.
 
 ## Approval
 
-The user explicitly directed continuation and authorized commit, push, and merge to
-`main` without another confirmation on 2026-07-28.
+The user explicitly directed continuation and authorized commit, feature-branch push,
+merge into `main`, and the resulting `main` push on 2026-07-28.
 
 ## Allowed Tools
 
@@ -59,14 +69,13 @@ The user explicitly directed continuation and authorized commit, push, and merge
 
 ## Verification
 
-- The fresh strict `clean build --no-build-cache --warning-mode all`
-  (`-Dorg.gradle.jvmargs=-Dfile.encoding=UTF-8`) passed 616 tests across 119 suites:
-  613 passed, three existing Windows symbolic-link privilege-dependent setup cases
-  skipped, and zero failures or errors.
-- The assessment retained Gate 8 at `Specified - Next`, identified the next joint Gate
-  7/8 connection, and added no runtime behavior, schema, dependency, or authority.
+Fresh focused tests passed for `DurableWorkMessageReceiverTest`, `CliArgumentsTest`, and
+`EnhancerCliSchedulerReceiveWorkIntegrationTest`. The fresh strict
+`clean build --no-daemon --rerun-tasks` passed 625 tests across 121 suites: 621 passed,
+four Windows symbolic-link privilege-dependent cases skipped, and zero failures or
+errors.
 
 ## Next
 
-Implement the supported durable message-bus-to-worker connection jointly owned by Gates
-7 and 8 only through a separate accepted task.
+Assess whether a durable bus journal or an explicit spool acknowledgement/retention
+protocol is the next Gate 7-owned connection.

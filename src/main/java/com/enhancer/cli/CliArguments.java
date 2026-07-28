@@ -114,6 +114,15 @@ final class CliArguments {
             "max-cycles",
             "max-consecutive-idle-cycles",
             "idle-wait-millis");
+    private static final Set<String> SCHEDULER_RECEIVE_WORK_OPTIONS = Set.of(
+            "transport-spool-root",
+            "message-file",
+            "destination-name",
+            "queue-root",
+            "queue-id",
+            "required-capability");
+    private static final Set<String> SCHEDULER_RECEIVE_WORK_OPTIONAL_OPTIONS =
+            Set.of("priority");
     private static final Set<String> SCHEDULER_SUBMIT_OPTIONS = Set.of(
             "project-root",
             "submission-root",
@@ -166,6 +175,7 @@ final class CliArguments {
                             + "scheduler-external-effect-status, "
                             + "scheduler-invocation-status, scheduler-cycle, "
                             + "scheduler-drain, scheduler-service, "
+                            + "scheduler-receive-work, "
                             + "scheduler-migrate-cycle-checkpoint, "
                             + "scheduler-migrate-queue, "
                             + "scheduler-migrate-submission-manifest, or "
@@ -222,6 +232,11 @@ final class CliArguments {
                     parseOptions(arguments, SCHEDULER_DRAIN_OPTIONS));
             case "scheduler-service" -> parseSchedulerService(
                     parseOptions(arguments, SCHEDULER_SERVICE_OPTIONS));
+            case "scheduler-receive-work" -> parseSchedulerReceiveWork(
+                    parseOptions(
+                            arguments,
+                            SCHEDULER_RECEIVE_WORK_OPTIONS,
+                            SCHEDULER_RECEIVE_WORK_OPTIONAL_OPTIONS));
             case "scheduler-submit" -> parseSchedulerSubmit(
                     parseOptions(
                             arguments,
@@ -502,6 +517,27 @@ final class CliArguments {
                             + SingleWorkerSchedulerQueue.MAX_WORK_ITEMS);
         }
         return parsed;
+    }
+
+    private static SchedulerReceiveWorkCliCommand parseSchedulerReceiveWork(
+            Map<String, String> options) {
+        String file = nonBlank(options.get("message-file"), "message-file");
+        String suffix = ".transport";
+        if (!file.endsWith(suffix)) {
+            throw new CliUsageException(
+                    "message-file must be a canonical UUID transport filename");
+        }
+        canonicalUuid(
+                file.substring(0, file.length() - suffix.length()),
+                "message-file");
+        return new SchedulerReceiveWorkCliCommand(
+                path(options.get("transport-spool-root"), "transport-spool-root"),
+                file,
+                nonBlank(options.get("destination-name"), "destination-name"),
+                path(options.get("queue-root"), "queue-root"),
+                canonicalUuid(options.get("queue-id"), "queue-id"),
+                nonBlank(options.get("required-capability"), "required-capability"),
+                priority(options.get("priority")));
     }
 
     private static SchedulerSubmitCliCommand parseSchedulerSubmit(
