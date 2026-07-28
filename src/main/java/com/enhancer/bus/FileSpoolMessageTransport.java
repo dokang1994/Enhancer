@@ -47,20 +47,34 @@ public final class FileSpoolMessageTransport implements MessageTransport {
 
     @Override
     public TransportOutcome send(TransportMessage message) {
+        return sendWithReference(message).outcome();
+    }
+
+    /**
+     * Sends one hop and returns its exact accepted point name without requiring directory
+     * discovery. The ordinary {@link #send(TransportMessage)} contract remains transport-neutral.
+     */
+    public FileSpoolPublicationOutcome sendWithReference(TransportMessage message) {
         Objects.requireNonNull(message, "message must not be null");
         byte[] frame = CODEC.encode(message);
         try {
             prepareRoot();
             if (pendingMessages() >= backpressurePolicy.maxPendingPublications()) {
-                return refuse(
-                        TransportStatus.BACKPRESSURED,
-                        "spool holds the configured maximum of "
-                                + backpressurePolicy.maxPendingPublications() + " messages");
+                return publication(refuse(
+                                TransportStatus.BACKPRESSURED,
+                                "spool holds the configured maximum of "
+                                        + backpressurePolicy.maxPendingPublications()
+                                        + " messages"),
+                        Optional.empty());
             }
-            spool(frame);
-            return new TransportOutcome(TransportStatus.ACCEPTED, Optional.empty());
+            Path destination = spool(frame);
+            return publication(
+                    TransportOutcome.accepted(),
+                    Optional.of(destination.getFileName().toString()));
         } catch (IOException unusableSpool) {
-            return refuse(TransportStatus.UNAVAILABLE, reason(unusableSpool));
+            return publication(
+                    refuse(TransportStatus.UNAVAILABLE, reason(unusableSpool)),
+                    Optional.empty());
         }
     }
 
@@ -91,7 +105,7 @@ public final class FileSpoolMessageTransport implements MessageTransport {
         }
     }
 
-    private void spool(byte[] frame) throws IOException {
+    private Path spool(byte[] frame) throws IOException {
         ByteBuffer buffer = ByteBuffer.wrap(frame);
         Path pending = Files.createTempFile(spoolRoot, ".pending-", ".tmp");
         Path destination = spoolRoot.resolve(UUID.randomUUID() + FILE_SUFFIX);
@@ -104,10 +118,17 @@ public final class FileSpoolMessageTransport implements MessageTransport {
                 channel.force(true);
             }
             Files.move(pending, destination, StandardCopyOption.ATOMIC_MOVE);
+            return destination;
         } catch (IOException failedPublication) {
             Files.deleteIfExists(pending);
             throw failedPublication;
         }
+    }
+
+    private static FileSpoolPublicationOutcome publication(
+            TransportOutcome outcome,
+            Optional<String> messageFile) {
+        return new FileSpoolPublicationOutcome(outcome, messageFile);
     }
 
     private static TransportOutcome refuse(TransportStatus status, String reason) {

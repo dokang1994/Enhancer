@@ -2783,3 +2783,155 @@ Outcome:
 - No spool acknowledgement/deletion/rename, directory scan, queue creation, combined
   receive-and-execute wrapper, durable bus journal, schema, dependency, authority,
   external effect, commit, push, release, or deployment was added.
+
+## 2026-07-28 - Select Spool Acknowledgement Before Durable Bus Persistence
+
+- Reconciled the implemented point receiver, `FileSpoolMessageTransport` pending-capacity
+  accounting, in-process journal semantics, and durable Scheduler admission. Exact Work
+  admission already persists the unchanged envelope and makes replay revision-free,
+  while the retained `.transport` name continues consuming pending capacity.
+- Selected explicit point acknowledgement as the next Gate 7 connection. The accepted
+  follow-up contract performs exact point resolution and validation, durable admission,
+  then a no-replacement same-directory atomic rename; acknowledged-point re-entry repeats
+  the exact admission check after an uncertain command result.
+- Deferred durable bus persistence because it requires broader publication,
+  subscription, retry/dead-letter, cancellation, recovery-ordering, and truncation
+  contracts and would not itself release the pending transport slot.
+- Fresh structural document and strict full-build evidence is recorded below after the
+  assessment documents are verified.
+- No production/test behavior, spool mutation, cleanup, retention claim, schema,
+  dependency, authority, external state, commit, push, release, or deployment changed.
+
+## 2026-07-28 - Verify The Spool Acknowledgement Priority Assessment
+
+- Fresh `DecisionLogIndexTest` and `RepositoryTaskPlannerTest` structural tests passed
+  after the accepted decision, exact-heading index, completed task, Architecture, Project
+  State, Roadmap, and Changelog were synchronized.
+- The fresh strict `clean build --no-daemon --rerun-tasks` passed 625 tests across 121
+  suites: 621 passed, four Windows symbolic-link privilege-dependent cases skipped, and
+  zero failures or errors. Production and test compilation passed the repository's
+  warning-as-error settings.
+- `git diff --check` produced no output before the focused run. No production/test code,
+  runtime behavior, spool artifact, schema, dependency, authority, external state,
+  commit, push, release, or deployment changed.
+
+## 2026-07-28 - Verify Post-Admission Work Spool Acknowledgement
+
+- Test-first RED: six focused receiver integration tests ran; three failed on the
+  intentionally absent acknowledgement, pending-capacity release, and both-present
+  collision refusal. One Windows symbolic-link setup case skipped. The failures matched
+  the active task and accepted acknowledgement decision.
+- Focused GREEN: `EnhancerCliSchedulerReceiveWorkIntegrationTest` passed all applicable
+  cases after implementing exact pending/acknowledged point resolution, post-admission
+  atomic rename, and acknowledged re-entry. The capacity test was corrected to observe
+  the transport's documented fresh publication filename rather than assume filename
+  reuse.
+- The real-filesystem fixture proves first `ACKNOWLEDGED`, revision-free
+  `ALREADY_ACKNOWLEDGED` replay from retained `.received` evidence, release of a
+  one-message pending capacity bound, and pending-plus-acknowledged collision refusal
+  before active queue recovery.
+- The fresh full `clean build` passed 627 tests across 121 suites: 623 passed, four
+  Windows symbolic-link privilege-dependent cases skipped, and zero failures or errors.
+  Production and test compilation passed the repository's warning-as-error settings.
+- No directory scan, acknowledgement cleanup, retention policy, durable bus journal,
+  queue creation, combined execution, schema, dependency, authority, external effect,
+  commit, push, release, or deployment was added.
+
+## 2026-07-28 - Reassess Gate 7 After Work Spool Acknowledgement
+
+- Repository inspection reconciled the completed acknowledged Work point receiver,
+  `WorkMessagePublisher`, `FileSpoolMessageTransport`, the process-isolated result
+  transport, durable Work and control admission handlers, current production CLI
+  surfaces, and the earlier scope-by-scope Gate 7 maturity assessment.
+- Result, handoff, topic, cancellation, ordering, durable retry/dead-letter recovery,
+  transport publication, durable journal, and retention branches were compared against
+  real upstream/downstream consumers. The accepted selection is governed Work spool
+  publication because its upstream task/snapshot authority and downstream acknowledged
+  point receiver already exist, while its transport backpressure remains unsupported at
+  a production entry point.
+- The first structural run executed 11 tests and found one document-ownership failure:
+  `CURRENT_TASK.md` restated Gate maturity. The statement was removed rather than
+  synchronized. The fresh rerun of `DecisionLogIndexTest`, `DocumentOwnershipTest`, and
+  `RepositoryTaskPlannerTest` passed all 11 tests.
+- The fresh strict `clean build --no-daemon --rerun-tasks --warning-mode all`
+  (`-Dorg.gradle.jvmargs=-Dfile.encoding=UTF-8`) passed 627 tests across 121 suites:
+  623 passed, four Windows symbolic-link privilege-dependent cases skipped, and zero
+  failures or errors. Production and test compilation passed the repository's
+  warning-as-error settings.
+- Current-state drift that still described the Work receiver as retaining pending
+  `.transport` evidence without acknowledgement was corrected in `PROJECT_STATE.md`;
+  prior append-only verification entries were not revised.
+- No production/test behavior, spool artifact, directory scan, cleanup/retention,
+  durable bus persistence, background lifecycle, remote transport, schema, dependency,
+  authority, external effect, commit, push, merge, release, or deployment changed.
+
+## 2026-07-28 - Publish Governed Work Through The Supported Spool Point Path
+
+- Focused RED compilation failed only because
+  `FileSpoolPublicationOutcome`, `sendWithReference`, and
+  `SchedulerSpoolWorkCliCommand` did not yet exist; this matched the active task.
+- Focused transport and CLI argument checks passed after preserving
+  `MessageTransport.send`/`TransportOutcome` and adding the concrete accepted point
+  reference plus explicit bounded publication inputs.
+- The real-filesystem integration passed two cases covering governed task/snapshot/tool/
+  execution-input provenance through publication, separately invoked receipt, durable
+  admission, and atomic acknowledgement, plus backpressure and unavailable refusal
+  without an extra or partial publication.
+- The first strict full build encountered an unrelated Windows `AccessDeniedException`
+  in `DurableAgentRunWorkerTest.recoversAfterAdmittedDecisionPersistence`; its fresh
+  isolated rerun passed.
+- The fresh strict `clean build --no-daemon --rerun-tasks --warning-mode all` then passed
+  632 tests across 122 suites: 628 passed, four Windows symbolic-link
+  privilege-dependent cases skipped, and zero failures or errors.
+- No directory discovery, queue creation, automatic receipt, retry, dead-letter,
+  worker execution, durable bus journal, cleanup/retention, remote transport, persisted
+  schema, dependency, authority, commit, push, merge, release, or deployment was added.
+
+## 2026-07-28 - Reassess Gate 7 After Governed Work Publication
+
+- Repository inspection reconciled the governed Work publisher, concrete accepted point
+  reference, acknowledged point receiver, in-process bus, isolated child Result producer,
+  parent Result/RunRecord validation, durable Worker finalization, and remaining Gate 7
+  scope.
+- Result, Handoff, topic, retry/dead-letter, cancellation, ordering, backpressure,
+  durable-journal, and retention candidates were compared against real
+  upstream/downstream consumers, recovery value, authority, schema, and dependency
+  impact.
+- The selected next increment is the existing isolated-worker Result point because its
+  child producer, file-spool hop, RunRecord, and Worker finalization consumer already
+  exist. Handoff/topic lack production consumers; durable journaling lacks additional
+  consumer/checkpoint/truncation ownership; retention requires separate destructive
+  authority; authenticated control application belongs to Gate 12.
+- Fresh `DecisionLogIndexTest`, `DocumentOwnershipTest`, and
+  `RepositoryTaskPlannerTest` checks passed all 11 tests.
+- The fresh strict `clean build --no-daemon --rerun-tasks --warning-mode all` passed 632
+  tests across 122 suites: 628 passed, four Windows symbolic-link privilege-dependent
+  cases skipped, and zero failures or errors.
+- No production/test behavior, spool mutation, directory scan, cleanup/retention,
+  durable bus persistence, schema, dependency, authority, external effect, commit,
+  push, merge, release, or deployment changed.
+
+## 2026-07-28 - Route Isolated Worker Results Through The Message Bus
+
+- Focused RED ran the foreign Result destination case and failed because the existing
+  parent-side direct comparison reported a wrong destination rather than a real Message
+  Bus `UNROUTED` outcome. The failure matched the active task and accepted decision.
+- The minimum implementation extracted the existing correlation, logical-run,
+  causation, payload, task, RunRecord source/target/digest, and claimed-status validation
+  into `IsolatedResultMessageHandler`.
+- `ProcessIsolatedAgentRunExecution` now publishes the unchanged decoded Result through
+  a fresh `InProcessMessageBus`, subscribes exactly one expected result queue handler,
+  and returns a reference only after exactly one `DELIVERED` outcome. Unrouted, failed,
+  duplicate, or invalid delivery fails closed; handler failures retain their bounded
+  dead-letter reason in the surfaced diagnostic.
+- Focused GREEN passed all 18 `ProcessIsolatedAgentRunExecutionTest` cases, covering the
+  real child/file-spool/bus/handler/RunRecord path, already-published restart re-entry,
+  lost-publication point recovery, and every existing route, identity, payload,
+  RunRecord-binding, and claimed-status refusal.
+- The fresh strict `clean build --no-daemon --rerun-tasks --warning-mode all` passed 632
+  tests across 122 suites: 628 passed, four Windows symbolic-link privilege-dependent
+  cases skipped, and zero failures or errors.
+- No second result protocol, result acknowledgement/deletion, durable bus journal,
+  retry/dead-letter recovery, cancellation, ordering, backpressure policy, Handoff/topic
+  consumer, CLI, remote transport, persisted schema, dependency, runtime/queue authority,
+  commit, push, merge, release, or deployment was added.

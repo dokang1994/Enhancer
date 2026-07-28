@@ -432,8 +432,39 @@ Current increment:
 - promoted after fresh reassessment: all six scope items and all four exit criteria have Contract Verified evidence across 39 focused bus tests, the complete regression, and strict production lint;
 - the provider-neutral transport seam completes the Contract Verified foundation; a concrete adapter remains later Integrated or Operational work rather than a promotion prerequisite;
 - Integrated sub-path: one named real path derives a work envelope from a matching repository-approved task and Gate 6 Workspace snapshot, delivers it through the in-process queue, and admits the unchanged envelope as one Gate 8 `WorkItem` with duplicate-free replay;
-- Integrated maturity assessment completed: the work-message queue/journal/replay/idempotency path is Integrated, but Gate 7 remains Contract Verified because result/control/handoff and non-empty-causation flows, topic and failure/retry/dead-letter/cancellation/cascade-ordering/backpressure branches, and `MessageTransport` have no named real upstream-to-downstream production connection;
-- deferred: any local-process or remote IPC adapter, persistence, threading, and production wiring.
+- Contract Verified and Integrated retained-spool acknowledgement: the supported point
+  receiver resolves exactly one pending `.transport` or deterministic `.received`
+  artifact, validates before queue recovery, atomically acknowledges only after durable
+  admission, supports revision-free acknowledged re-entry, and releases pending
+  transport capacity while retaining evidence;
+- Integrated maturity assessment completed: the governed Work publisher, file-spool
+  transport, point receiver, in-process queue, and durable admission now form a named
+  real upstream-to-downstream production connection, but Gate 7 remains Contract
+  Verified because Control/Handoff Message Bus flows, topic and
+  failure/retry/dead-letter/cancellation/cascade-ordering branches lack named complete
+  production connections;
+- deferred: durable bus persistence, broader local-process or remote IPC adapters,
+  directory consumption, cleanup/retention policy, threading, and broader production
+  wiring.
+
+Implemented bounded connection:
+
+- expose one governed `scheduler-spool-work` publication command over
+  `FileSpoolMessageTransport`, preserving task/snapshot authorization and provenance and
+  reporting only hop-level `ACCEPTED`, `BACKPRESSURED`, or `UNAVAILABLE`;
+- connect its accepted artifact through the separately invoked existing
+  `scheduler-receive-work` path in a named real-filesystem integration;
+- add no directory scan, queue creation, retry, combined receipt/execution, result or
+  handoff flow, durable bus journal, retention policy, or background lifecycle.
+
+Implemented bounded Result connection:
+
+- route the existing process-isolated child Result spool point through a fresh
+  `InProcessMessageBus` queue to an extracted exact Result/RunRecord validation handler;
+- retain the current correlated non-empty-causation envelope, RunRecord binding,
+  restart re-entry, and Worker finalization sequence;
+- add no second result protocol, durable journal, retry/dead-letter recovery,
+  acknowledgement/retention, CLI, schema, dependency, or authority.
 
 Dependencies:
 
@@ -465,9 +496,10 @@ Whole-gate assessment:
   migration gap, public priority admission, non-recovery priority/fairness selection,
   priority/fairness observability, deterministic child-RunRecord recovery, lease-expiry
   recovery, disposition-acknowledgement recovery, the bounded foreground service
-  connection, and one supported durable spool-to-bus-to-admission point receiver.
+  connection, one supported durable spool-to-bus-to-admission point receiver, and
+  post-admission retained-point acknowledgement with exact `.received` re-entry.
   Remaining blockers are not one interchangeable backlog: Gate 7 still owns durable bus
-  journaling and spool acknowledgement/retention protocol; Gate 12 owns
+  journaling, remaining reliability connections, and cleanup/retention policy; Gate 12 owns
   authenticated control application; Gate 11 owns production external-effect handling;
   Gates 9 and 10 own model/context budgets and Memory runtime; and Gate 13 owns
   background/supervisor topology and role-based message workers;
@@ -536,12 +568,16 @@ Whole-gate assessment:
 Current increment:
 
 - Contract Verified and Integrated point-receive path: `scheduler-receive-work` resolves
-  one explicit retained regular non-symbolic transport artifact, validates its exact
-  queue route and Work payload, publishes the unchanged envelope through the real
-  Message Bus to durable admission, and reports `ADMITTED` or revision-free `REPLAYED`.
-  A separately invoked process-isolated service reaches verified completion; exact
-  re-receipt adds no queue revision, AgentRun, or RunRecord. No spool acknowledgement,
-  scan, queue creation, execution wrapper, or durable bus journal is added;
+  exactly one explicit retained regular non-symbolic pending or acknowledged transport
+  artifact, validates its exact queue route and Work payload, publishes the unchanged
+  envelope through the real Message Bus to durable admission, and reports `ADMITTED` or
+  revision-free `REPLAYED` separately from `ACKNOWLEDGED` or
+  `ALREADY_ACKNOWLEDGED`. Pending input moves atomically to deterministic `.received`
+  only after success, acknowledged re-entry performs no second move, and the released
+  pending slot accepts a later send. A separately invoked process-isolated service
+  reaches verified completion; exact re-receipt adds no queue revision, AgentRun, or
+  RunRecord. No scan, cleanup, retention policy, queue creation, execution wrapper, or
+  durable bus journal is added;
 - Contract Verified: immutable `WorkItem` admission over one unchanged Gate 7 work envelope, with a distinct canonical identity and bounded required capability but no scheduling or execution behavior;
 - Contract Verified: immutable priority-bearing `QueuedWork` with up to 256 unique dependency identities plus a deterministic run-scoped `SingleWorkerSchedulerQueue` bounded to 4096 admissions, dependency-first validation, admission-ordered priority selection with bounded expedited fairness, one active slot, one-shot exact recovery preference, matching completion, and no authority expansion;
 - Contract Verified: canonical queue identity and single-logical-run binding, immutable schema-v3 queue snapshots retaining every exact priority-bearing ordered admission including terminal work plus bounded burst/progress/recovery-preference state, bounded integrity-checked atomic filesystem persistence, persist-before-exposure admission/claim/disposition/recovery, revision-free exact admission replay, changed-content identity-reuse refusal, explicit ordinary v1/v2 rejection, and exact preferred active-work replay under explicit at-least-once execution semantics;

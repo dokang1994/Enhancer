@@ -2,80 +2,70 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Connect one durable local transport-spool Work message through the real Message Bus into
-existing durable Scheduler admission, expose the point receiver through a separate CLI,
-and prove the separately invoked Scheduler service completes the admitted work.
+Deliver the completed governed Work spool publication, acknowledgement, Gate 7
+assessment, and isolated Result Message Bus connection through one reviewed commit on
+`main`, synchronize with the remote, and push the resulting `main` to `origin/main`.
 
 ## Task ID
 
-connect-durable-work-spool-to-scheduler-worker
+deliver-gate-7-work-and-result-connections
 
 ## Context
 
-`FileSpoolMessageTransport` durably accepts one routed envelope, but no supported receiver
-publishes that retained artifact through `InProcessMessageBus` into
-`DurableWorkItemAdmissionHandler`. Scheduler execution already has a separate supported
-bounded service and must remain distinct from message receipt.
+The completed local increments are verified but uncommitted on `main`. The user has now
+explicitly authorized commit, push, and merge to `origin/main`.
 
 ## Justified By
 
-- 2026-07-28: Receive One Durable Work Spool Through The Message Bus Before Scheduler Admission
-- 2026-07-28: Retain Gate 8 At Specified Next After The Bounded Service Connection
+- 2026-07-28: Route The Existing Isolated Worker Result Point Through The Message Bus Next
+- 2026-07-28: Expose Governed Work Spool Publication Before Other Gate 7 Reliability Branches
+- 2026-07-28: Acknowledge Retained Work Spools Before Persisting The Message Bus Journal
 
 ## Acceptance Criteria
 
-- `scheduler-receive-work` accepts one explicit spool root and canonical transport
-  filename, expected queue destination, existing queue root/identity, required
-  capability, and optional exact Scheduler priority.
-- The receiver rejects missing, symbolic, corrupt, foreign-destination, and non-Work
-  spool artifacts before queue mutation.
-- The unchanged envelope is published through a real `InProcessMessageBus` queue
-  subscription backed by `DurableWorkItemAdmissionHandler`.
-- Bounded output distinguishes durable `ADMITTED` from exact `REPLAYED` and reports the
-  queue identity/revision, derived WorkItem identity, and effective priority.
-- Focused tests are RED first and cover argument validation, point containment, route and
-  payload refusal, first admission, and exact replay.
-- A real-filesystem integration sends through `FileSpoolMessageTransport`, receives
-  through the supported command, executes through a separate `scheduler-service`, and
-  proves exact re-receipt changes no terminal queue revision and creates no second
-  AgentRun or RunRecord.
-- Existing transport, submit, cycle, drain, and service behavior, schemas, dependencies,
-  and authority remain unchanged; the fresh strict full build passes.
-- The completed increment is committed on a feature branch, pushed, merged into
-  `main`, and the resulting `main` is pushed.
+- Reconcile the empty checkpoint, complete working-tree diff, current branch, local
+  HEAD, and freshly fetched `origin/main`.
+- Preserve all verified scoped implementation, tests, decisions, and owned document
+  updates in one non-amending commit.
+- If the remote advanced, integrate it without discarding local or remote history and
+  rerun proportionate verification after integration.
+- Ensure the intended final branch is `main`; avoid a meaningless merge commit when the
+  work is already directly on `main`.
+- Push `main` to `origin/main` and verify the local HEAD, remote-tracking ref, and remote
+  branch resolve to the same commit.
+- Keep the development checkpoint through commit, remote synchronization, push, and
+  final Git verification, then mark it stable and clear it.
 
 ## Out Of Scope
 
-- Spool deletion/rename/acknowledgement, directory scanning, durable bus journal,
-  background consumer, queue creation, combined receive-and-execute wrapper, remote
-  transport, authenticated controls, external adapters, multi-agent roles, schema or
-  dependency changes, release, or deployment.
+History rewrite, force push, destructive reset, release, tag, deployment, pull request,
+remote issue/comment, schema or dependency change, new production/test behavior, or
+unrelated cleanup.
 
 ## Approval
 
-The user explicitly directed continuation and authorized commit, feature-branch push,
-merge into `main`, and the resulting `main` push on 2026-07-28.
+The user explicitly requested commit, push, and merge to `origin/main`.
 
 ## Allowed Tools
 
 - read-file
-- write-code
 - write-docs
 - verify
+- git-fetch
+- git-add
+- git-commit
+- git-merge
+- git-push
 
 ## Verification
 
-Fresh focused tests passed for `DurableWorkMessageReceiverTest`, `CliArgumentsTest`, and
-`EnhancerCliSchedulerReceiveWorkIntegrationTest`. The fresh strict
-`clean build --no-daemon --rerun-tasks` passed 625 tests across 121 suites: 621 passed,
-four Windows symbolic-link privilege-dependent cases skipped, and zero failures or
-errors.
+Pending delivery verification.
 
 ## Next
 
-Assess whether a durable bus journal or an explicit spool acknowledgement/retention
-protocol is the next Gate 7-owned connection.
+After delivery, reassess the remaining Gate 7 Control, Handoff, topic, reliability,
+durable-journal, and retention branches.

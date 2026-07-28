@@ -1,18 +1,18 @@
 package com.enhancer.runtime;
 
 import com.enhancer.bus.BackpressurePolicy;
+import com.enhancer.bus.DeadLetter;
 import com.enhancer.bus.DeliveryDestination;
+import com.enhancer.bus.DeliveryOutcome;
+import com.enhancer.bus.DeliveryStatus;
 import com.enhancer.bus.FileSpoolMessageTransport;
+import com.enhancer.bus.InProcessMessageBus;
 import com.enhancer.bus.MessageEnvelope;
-import com.enhancer.bus.MessagePayload;
-import com.enhancer.bus.ResultPayload;
 import com.enhancer.bus.TransportMessage;
 import com.enhancer.bus.TransportOutcome;
-import com.enhancer.kernel.VerificationStatus;
 import com.enhancer.run.MissingRunRecordException;
 import com.enhancer.run.RunRecord;
 import com.enhancer.run.RunRecordStore;
-import com.enhancer.tool.ReadFileTool;
 import java.io.IOException;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileVisitResult;
@@ -224,39 +224,28 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
             return Optional.empty();
         }
         TransportMessage message = FileSpoolMessageTransport.read(spooled.orElseThrow());
-        if (!message.destination().equals(
-                DeliveryDestination.queue(IsolatedWorkerMain.RESULT_DESTINATION))) {
-            throw new IOException("the result message has the wrong destination");
+        DeliveryDestination destination =
+                DeliveryDestination.queue(IsolatedWorkerMain.RESULT_DESTINATION);
+        IsolatedResultMessageHandler handler =
+                new IsolatedResultMessageHandler(workItem, runRecordStore);
+        InProcessMessageBus bus = new InProcessMessageBus();
+        bus.subscribe(destination, "isolated-result-validator", handler);
+        List<DeliveryOutcome> outcomes =
+                bus.publish(message.destination(), message.envelope());
+        if (outcomes.size() != 1
+                || outcomes.get(0).status() != DeliveryStatus.DELIVERED) {
+            DeliveryStatus status = outcomes.size() == 1
+                    ? outcomes.get(0).status()
+                    : null;
+            String reason = bus.deadLetters().stream()
+                    .findFirst()
+                    .map(DeadLetter::reason)
+                    .orElse("no handler reason");
+            throw new IOException("the result Message Bus delivery was "
+                    + (status == null ? "INVALID" : status)
+                    + " (" + reason + ")");
         }
-        MessageEnvelope work = workItem.workMessage();
-        MessageEnvelope result = message.envelope();
-
-        requireEqual(work.correlationId(), result.correlationId(), "correlation identity");
-        requireEqual(work.logicalRunId(), result.logicalRunId(), "logical run identity");
-        requireEqual(
-                work.messageId(),
-                result.causationId().orElseThrow(() -> new IOException(
-                        "the result envelope names no causation identity")),
-                "causation identity");
-
-        MessagePayload payload = result.payload();
-        if (!(payload instanceof ResultPayload resultPayload)) {
-            throw new IOException("the result envelope does not carry a ResultPayload");
-        }
-        requireEqual(
-                workItem.taskRevision().taskId(), resultPayload.taskId(), "task identity");
-
-        RunRecord record = runRecordStore
-                .resolve(resultPayload.runRecordReference())
-                .record();
-        requireRunRecordBinding(record, workItem);
-        VerificationStatus recorded = record.verification().status();
-        if (recorded != resultPayload.verificationStatus()) {
-            throw new IOException("the child claimed verification status "
-                    + resultPayload.verificationStatus()
-                    + " but the resolved RunRecord records " + recorded);
-        }
-        return Optional.of(resultPayload.runRecordReference());
+        return handler.acceptedReference();
     }
 
     private Optional<String> pointRecoveredResult(
@@ -270,7 +259,7 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
         } catch (MissingRunRecordException missing) {
             return Optional.empty();
         }
-        requireRunRecordBinding(record, workItem);
+        IsolatedResultMessageHandler.requireRunRecordBinding(record, workItem);
         return Optional.of(reference);
     }
 
@@ -294,58 +283,10 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
         }
     }
 
-    private static void requireRunRecordBinding(RunRecord record, WorkItem workItem)
-            throws IOException {
-        try {
-            DurableAgentRunFinalizer.requireBinding(record, workItem);
-        } catch (IllegalArgumentException mismatch) {
-            throw new IOException(mismatch.getMessage(), mismatch);
-        }
-
-        ExecutionInput expected = executionInput(workItem);
-        if (!record.toolRequest().toolName().equals(ReadFileTool.NAME)) {
-            throw new IOException(
-                    "the RunRecord Tool request does not match isolated execution");
-        }
-        String target = record.toolRequest()
-                .arguments()
-                .get(ReadFileTool.PATH_ARGUMENT);
-        if (!expected.targetPath().equals(target)) {
-            throw new IOException(
-                    "the RunRecord execution target does not match the dispatched work");
-        }
-        if (record.verification().status() != VerificationStatus.NOT_PERFORMED
-                && !record.expectedContentSha256()
-                        .equals(Optional.of(expected.expectedContentSha256()))) {
-            throw new IOException(
-                    "the RunRecord expected digest does not match the dispatched work");
-        }
-    }
-
-    private static ExecutionInput executionInput(WorkItem workItem) {
-        return workItem.executionInput()
-                .map(declared -> new ExecutionInput(
-                        declared.targetPath(),
-                        declared.expectedContentSha256()))
-                .orElseGet(() -> new ExecutionInput(
-                        workItem.taskRevision().sourceDocument(),
-                        workItem.taskRevision().sourceSha256()));
-    }
-
-    private static void requireEqual(String expected, String actual, String label)
-            throws IOException {
-        if (!expected.equals(actual)) {
-            throw new IOException("the result envelope's " + label
-                    + " does not match the dispatched work");
-        }
-    }
-
     private static Path absolute(Path path, String name) {
         return Objects.requireNonNull(path, name + " must not be null")
                 .toAbsolutePath()
                 .normalize();
     }
 
-    private record ExecutionInput(String targetPath, String expectedContentSha256) {
-    }
 }

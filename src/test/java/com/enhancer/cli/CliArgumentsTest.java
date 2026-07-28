@@ -453,6 +453,41 @@ class CliArgumentsTest {
     }
 
     @Test
+    void parsesEveryExplicitSchedulerWorkSpoolPublicationInput() {
+        SchedulerSpoolWorkCliCommand publish =
+                (SchedulerSpoolWorkCliCommand) CliArguments.parse(
+                        schedulerSpoolWorkArguments("8", "2026-07-28T09:00:00Z"));
+
+        assertEquals(temporaryRoot.resolve("project").toAbsolutePath().normalize(),
+                publish.projectRoot());
+        assertEquals(temporaryRoot.resolve("spool").toAbsolutePath().normalize(),
+                publish.transportSpoolRoot());
+        assertEquals("scheduler-work", publish.destinationName());
+        assertEquals("spool-work-test", publish.taskId());
+        assertEquals(8, publish.maxPendingPublications());
+        assertEquals("00000000-0000-0000-0000-000000000731", publish.messageId());
+        assertEquals("spool-correlation", publish.correlationId());
+        assertEquals("spool-logical-run", publish.logicalRunId());
+        assertEquals("spool-cli-test", publish.producer());
+        assertEquals(Instant.parse("2026-07-28T09:00:00Z"), publish.occurredAt());
+        assertEquals("target.txt", publish.targetPath());
+        assertEquals("a".repeat(64), publish.expectedSha256());
+    }
+
+    @Test
+    void rejectsMalformedSchedulerWorkSpoolPublicationInputs() {
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(new String[] {
+                "scheduler-spool-work", "--project-root", temporaryRoot.toString()
+        }));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(
+                schedulerSpoolWorkArguments("0", "2026-07-28T09:00:00Z")));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(
+                schedulerSpoolWorkArguments("4097", "2026-07-28T09:00:00Z")));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(
+                schedulerSpoolWorkArguments("8", "not-an-instant")));
+    }
+
+    @Test
     void parsesEveryExplicitSchedulerSubmitInput() {
         SchedulerSubmitCliCommand submit = (SchedulerSubmitCliCommand) CliArguments.parse(
                 schedulerSubmitArguments("8", "2026-07-22T16:00:00Z"));
@@ -694,6 +729,26 @@ class CliArgumentsTest {
                 "--queue-id", "00000000-0000-0000-0000-000000000722",
                 "--required-capability", "read-file-worker",
                 "--priority", "EXPEDITED"
+        };
+    }
+
+    private String[] schedulerSpoolWorkArguments(
+            String maxPendingPublications,
+            String occurredAt) {
+        return new String[] {
+                "scheduler-spool-work",
+                "--project-root", temporaryRoot.resolve("project").toString(),
+                "--transport-spool-root", temporaryRoot.resolve("spool").toString(),
+                "--destination-name", "scheduler-work",
+                "--task-id", "spool-work-test",
+                "--max-pending-publications", maxPendingPublications,
+                "--message-id", "00000000-0000-0000-0000-000000000731",
+                "--correlation-id", "spool-correlation",
+                "--logical-run-id", "spool-logical-run",
+                "--producer", "spool-cli-test",
+                "--occurred-at", occurredAt,
+                "--target-path", "target.txt",
+                "--expected-sha256", "a".repeat(64)
         };
     }
 

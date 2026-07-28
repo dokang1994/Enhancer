@@ -1,5 +1,84 @@
 # Changelog
 
+## 2026-07-28 - Route Isolated Worker Results Through The Message Bus
+
+- Extracted exact isolated Result and RunRecord validation into a bounded queue handler
+  with no persistence, execution, finalization, or cleanup authority.
+- Routed the unchanged decoded Result through a fresh `InProcessMessageBus` and returned
+  the reference only after exactly one `DELIVERED` outcome.
+- Preserved child production, file-spool format, restart re-entry, RunRecord authority,
+  and all existing foreign-route/identity/payload/binding/status refusals.
+- Focused coverage passed all 18 isolated-execution cases, and the fresh strict full
+  build passed 632 tests across 122 suites with four Windows privilege-dependent skips
+  and no failures.
+
+## 2026-07-28 - Select The Existing Isolated Result Path As The Next Gate 7 Connection
+
+- Reassessed remaining Result, Handoff, topic, reliability, durable-journal, and
+  retention branches after governed Work publication.
+- Selected the existing isolated-worker Result producer/spool/RunRecord/finalizer path
+  for a bounded Message Bus queue connection with no new store, schema, or authority.
+- Corrected current maturity text that still described `MessageTransport` as lacking a
+  named real production connection after the governed publisher was implemented.
+- Fresh structural checks passed all 11 tests, and the strict full build passed 632
+  tests across 122 suites with four Windows privilege-dependent skips and no failures.
+
+## 2026-07-28 - Publish Governed Work Through The Supported Spool Point Path
+
+- Added `scheduler-spool-work` to construct one active-task-authorized,
+  repository-snapshot-bound Work envelope and publish it through
+  `FileSpoolMessageTransport`.
+- Preserved the transport-neutral outcome while returning the accepted canonical point
+  filename from the concrete adapter, so the separate receiver needs no directory scan.
+- Connected publication to separate receipt, durable admission, and atomic
+  acknowledgement in a real-filesystem integration; covered backpressure and unavailable
+  refusal without extra or partial files.
+- The fresh strict full build passed 632 tests across 122 suites: 628 passed, four
+  Windows symbolic-link privilege-dependent cases skipped, and zero failures or errors.
+
+## 2026-07-28 - Select Governed Work Spool Publication As The Next Gate 7 Connection
+
+- Reassessed result, handoff, topic, retry/dead-letter, cancellation, ordering,
+  backpressure, transport-publication, durable-journal, and retention branches after
+  post-admission Work spool acknowledgement.
+- Selected a separate governed `scheduler-spool-work` publication path whose accepted
+  artifact is consumed by the existing acknowledged point receiver and whose output
+  preserves hop-level `ACCEPTED`/`BACKPRESSURED`/`UNAVAILABLE` semantics.
+- Deferred branches without a current owning consumer and kept directory scanning,
+  cleanup/retention, durable bus persistence, background lifecycle, remote transport,
+  schema, dependency, authority, commit, push, merge, release, and deployment out of the
+  assessment.
+- Corrected current-state descriptions that still said the completed point receiver
+  retained pending `.transport` evidence without acknowledgement.
+
+## 2026-07-28 - Acknowledge Durable Work Spools After Admission
+
+- Extended `scheduler-receive-work` to resolve exactly one pending `.transport` point
+  or deterministic same-root `.received` point before queue recovery.
+- Added post-admission same-directory atomic acknowledgement without replacement or
+  fallback, exact acknowledged-point re-entry, separate spool status output, and
+  pending-capacity release while retaining acknowledgement evidence.
+- Added real-filesystem RED-to-GREEN coverage for first acknowledgement, exact replay,
+  capacity release, ambiguous-point refusal before active-queue recovery, and symbolic
+  acknowledged-point refusal.
+- The fresh full build passed 627 tests across 121 suites: 623 passed, four Windows
+  symbolic-link privilege-dependent cases skipped, and zero failures or errors.
+- Added no directory scan, cleanup, retention policy, durable bus journal, queue
+  creation, combined execution, schema, dependency, authority, commit, push, release,
+  or deployment.
+
+## 2026-07-28 - Select Spool Acknowledgement Before Durable Bus Persistence
+
+- Compared the two remaining Gate 7 recovery connections after the supported Work point
+  receiver and selected explicit retained-spool acknowledgement first.
+- Defined a follow-up same-root atomic pending-to-acknowledged rename only after durable
+  admission, acknowledged-point re-entry after a lost result, exact route/payload
+  revalidation, and pending-capacity release.
+- Deferred durable bus journaling until publication, subscription, retry, dead-letter,
+  cancellation, recovery ordering, and truncation have named consumers and policy.
+- Added no production/test behavior, spool mutation, cleanup, retention claim, schema,
+  dependency, authority, commit, push, release, or deployment.
+
 ## 2026-07-28 - Deliver The Durable Work Spool Receiver
 
 - Committed the completed receiver increment on

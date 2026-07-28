@@ -252,20 +252,49 @@ The adapter owns publication only: a temporary file published by atomic move int
 
 `DurableWorkMessageReceiver` is the bounded receiving connection between the local spool,
 the real `InProcessMessageBus`, and durable Scheduler admission. The supported
-`scheduler-receive-work` command resolves one caller-named canonical `.transport` file
-under an explicit spool root, requires a regular non-symbolic point artifact, decodes the
-unchanged route and envelope, requires an exact expected queue destination and
-`WorkPayload`, and publishes it to one queue subscription backed by
-`DurableWorkItemAdmissionHandler`.
+`scheduler-receive-work` takes one caller-named canonical `.transport` filename under an
+explicit spool root and resolves exactly one regular non-symbolic pending point or its
+deterministic same-root `.received` point. It decodes the unchanged route and envelope,
+requires an exact expected queue destination and `WorkPayload`, and publishes it to one
+queue subscription backed by `DurableWorkItemAdmissionHandler`.
 
 Success is reported only after that handler reaches the existing durable queue.
 `ADMITTED` means the queue revision advanced; `REPLAYED` means the exact derived WorkItem
 was already present and no revision changed. A reused message identity with changed
-content fails closed. The receiver does not delete, rename, acknowledge, scan, order, or
-dead-letter spool files, create a queue, execute work, or add a durable bus journal.
-Execution remains a separate `scheduler-cycle`, `scheduler-drain`, or
-`scheduler-service` invocation, while the retained artifact is the caller's exact replay
-point after uncertain acknowledgement.
+content fails closed. After successful durable admission, a pending point moves by
+same-directory `ATOMIC_MOVE`, without replacement or fallback, to `.received`; an
+already-acknowledged point repeats exact admission and performs no second move. Output
+separates `ADMITTED`/`REPLAYED` from `ACKNOWLEDGED`/`ALREADY_ACKNOWLEDGED`.
+Pre-admission failure leaves pending evidence, acknowledged re-entry is revision-free,
+and `.received` no longer consumes the transport's pending-capacity count.
+
+The receiver does not scan, order, dead-letter, or automatically delete spool files,
+create a queue, execute work, or add a durable bus journal. Execution remains a separate
+`scheduler-cycle`, `scheduler-drain`, or `scheduler-service` invocation. Acknowledged
+evidence remains retained; automatic cleanup, a global retention bound, directory
+consumption, and durable bus journal/subscription recovery remain separate unimplemented
+contracts.
+
+The governed Work-spool publisher supplies the upstream half of this supported path.
+`scheduler-spool-work` derives one Work envelope only from the
+governed active task, repository-memory Workspace snapshot, and explicit caller metadata,
+then sends it through `FileSpoolMessageTransport` to an explicit queue destination. Its
+terminal status is only the transport hop's `ACCEPTED`, `BACKPRESSURED`, or
+`UNAVAILABLE`. The concrete adapter returns the one accepted canonical point filename
+without changing the transport-neutral outcome contract or scanning; the existing
+separately invoked point receiver remains the downstream delivery/admission boundary.
+The command adds no scan, queue creation, retry, receipt, acknowledgement, worker
+execution, durable bus journal, or new authority.
+
+The bounded Result connection reuses the process-isolated worker's existing child
+producer, explicit result spool point, RunRecord, and Worker finalization consumer.
+`ProcessIsolatedAgentRunExecution` routes the decoded unchanged Result envelope through
+a fresh `InProcessMessageBus` to one extracted exact-validation queue handler before
+returning the reference. Only one `DELIVERED` outcome may expose the validated
+reference; `UNROUTED`, handler failure, duplicate, or invalid outcome fails closed.
+The handler has no persistence, execution,
+finalization, cleanup, journal, retry, or runtime authority; transport acceptance,
+delivery, RunRecord validation, and durable finalization remain separate.
 
 #### Isolated Worker Process
 

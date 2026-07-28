@@ -11,6 +11,30 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### 2026-07-28: Route The Existing Isolated Worker Result Point Through The Message Bus Next
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-28-route-the-existing-isolated-worker-result-point-through-the-message-bus-next.md)
+
+### 2026-07-28: Return The Accepted File Spool Point Without Directory Discovery
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-28-return-the-accepted-file-spool-point-without-directory-discovery.md)
+
+### 2026-07-28: Expose Governed Work Spool Publication Before Other Gate 7 Reliability Branches
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-28-expose-governed-work-spool-publication-before-other-gate-7-reliability-branches.md)
+
+### 2026-07-28: Acknowledge Retained Work Spools Before Persisting The Message Bus Journal
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-28-acknowledge-retained-work-spools-before-persisting-the-message-bus-journal.md)
+
 ### 2026-07-28: Receive One Durable Work Spool Through The Message Bus Before Scheduler Admission
 
 Status: Accepted Decision

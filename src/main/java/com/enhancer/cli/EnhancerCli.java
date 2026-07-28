@@ -15,8 +15,10 @@ import com.enhancer.brain.TaskJustificationProjector;
 import com.enhancer.context.ProjectContext;
 import com.enhancer.context.ProjectContextReader;
 import com.enhancer.bus.MessageEnvelope;
+import com.enhancer.bus.BackpressurePolicy;
 import com.enhancer.bus.DeliveryDestination;
 import com.enhancer.bus.FileSpoolMessageTransport;
+import com.enhancer.bus.FileSpoolPublicationOutcome;
 import com.enhancer.bus.TransportMessage;
 import com.enhancer.bus.WorkPayload;
 import com.enhancer.loop.AgentLoop;
@@ -93,6 +95,7 @@ import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.time.Clock;
 import java.time.Instant;
@@ -107,6 +110,7 @@ public final class EnhancerCli {
     public static final int MAX_DIAGNOSTIC_CHARACTERS = 4096;
 
     private static final Duration TOOL_TIMEOUT = Duration.ofSeconds(5);
+    private static final String ACKNOWLEDGED_SPOOL_SUFFIX = ".received";
     private static final int MAX_ITERATIONS = 5;
     private static final int STAGNATION_THRESHOLD = 3;
     private final BrainComposer brainComposer;
@@ -180,6 +184,9 @@ public final class EnhancerCli {
             }
             if (command instanceof SchedulerReceiveWorkCliCommand receive) {
                 return executeSchedulerReceiveWork(receive, stdout);
+            }
+            if (command instanceof SchedulerSpoolWorkCliCommand publish) {
+                return executeSchedulerSpoolWork(publish, stdout);
             }
             if (command instanceof SchedulerSubmitCliCommand submit) {
                 return executeSchedulerSubmit(submit, stdout);
@@ -921,14 +928,11 @@ public final class EnhancerCli {
             SchedulerReceiveWorkCliCommand command,
             PrintStream stdout) throws IOException {
         Path spoolRoot = command.transportSpoolRoot();
-        Path messagePath = spoolRoot.resolve(command.messageFile()).normalize();
-        if (!messagePath.getParent().equals(spoolRoot)
-                || !Files.isRegularFile(messagePath, LinkOption.NOFOLLOW_LINKS)) {
-            throw new CliUsageException(
-                    "message-file must name an existing regular non-symbolic transport file");
-        }
+        WorkSpoolPoint spoolPoint =
+                resolveWorkSpoolPoint(spoolRoot, command.messageFile());
 
-        TransportMessage message = FileSpoolMessageTransport.read(messagePath);
+        TransportMessage message =
+                FileSpoolMessageTransport.read(spoolPoint.messagePath());
         DeliveryDestination expectedDestination =
                 DeliveryDestination.queue(command.destinationName());
         if (!message.destination().equals(expectedDestination)) {
@@ -962,15 +966,118 @@ public final class EnhancerCli {
                     "spooled work message is invalid: " + safeMessage(exception),
                     exception);
         }
+        String spoolStatus = "ALREADY_ACKNOWLEDGED";
+        if (!spoolPoint.acknowledged()) {
+            if (Files.exists(
+                    spoolPoint.acknowledgedPath(),
+                    LinkOption.NOFOLLOW_LINKS)) {
+                throw new IOException(
+                        "acknowledged spool path appeared before acknowledgement");
+            }
+            Files.move(
+                    spoolPoint.messagePath(),
+                    spoolPoint.acknowledgedPath(),
+                    StandardCopyOption.ATOMIC_MOVE);
+            spoolStatus = "ACKNOWLEDGED";
+        }
         writeBounded(stdout, String.join("\n",
                 "status=" + result.status(),
+                "spoolStatus=" + spoolStatus,
                 "exitCode=0",
                 "queueId=" + result.queueId(),
                 "queueRevision=" + result.queueRevision(),
                 "messageId=" + message.envelope().messageId(),
                 "workItemId=" + result.workItemId(),
-                "priority=" + result.priority()) + "\n");
+                "priority=" + result.priority(),
+                "acknowledgedFile="
+                        + spoolPoint.acknowledgedPath().getFileName()) + "\n");
         return 0;
+    }
+
+    private int executeSchedulerSpoolWork(
+            SchedulerSpoolWorkCliCommand command,
+            PrintStream stdout) {
+        GovernedRunInputs inputs = governedRunInputs(
+                command.projectRoot(), command.taskId());
+        WorkspaceSnapshot snapshot;
+        FileSpoolPublicationOutcome publication;
+        try {
+            snapshot = new RepositoryMemorySnapshotCollector().collect(
+                    command.projectRoot(),
+                    command.occurredAt(),
+                    inputs.approvedTask(),
+                    inputs.repositoryMemory());
+            MessageEnvelope envelope = new MessageEnvelope(
+                    command.messageId(),
+                    command.correlationId(),
+                    Optional.empty(),
+                    command.logicalRunId(),
+                    command.producer(),
+                    command.occurredAt(),
+                    new WorkPayload(
+                            snapshot.approvedTaskRevision(),
+                            snapshot.snapshotId(),
+                            inputs.approvedTask().allowedTools(),
+                            Optional.of(new WorkPayload.ExecutionInput(
+                                    command.targetPath(),
+                                    command.expectedSha256()))));
+            publication = new FileSpoolMessageTransport(
+                    command.transportSpoolRoot(),
+                    BackpressurePolicy.of(command.maxPendingPublications()))
+                    .sendWithReference(new TransportMessage(
+                            DeliveryDestination.queue(command.destinationName()),
+                            envelope));
+        } catch (IllegalArgumentException exception) {
+            throw new CliUsageException(
+                    "scheduler-spool-work input is invalid: "
+                            + safeMessage(exception),
+                    exception);
+        }
+        String messageFile = publication.messageFile().orElse("");
+        String reason = publication.outcome().reason().orElse("");
+        writeBounded(stdout, String.join("\n",
+                "status=" + publication.outcome().status(),
+                "exitCode=0",
+                "messageFile=" + messageFile,
+                "reason=" + reason,
+                "workspaceSnapshotId=" + snapshot.snapshotId()) + "\n");
+        return 0;
+    }
+
+    private WorkSpoolPoint resolveWorkSpoolPoint(
+            Path spoolRoot,
+            String messageFile) {
+        Path messagePath = spoolRoot.resolve(messageFile).normalize();
+        Path acknowledgedPath = spoolRoot.resolve(
+                messageFile.substring(
+                        0,
+                        messageFile.length()
+                                - FileSpoolMessageTransport.FILE_SUFFIX.length())
+                        + ACKNOWLEDGED_SPOOL_SUFFIX).normalize();
+        if (!messagePath.getParent().equals(spoolRoot)
+                || !acknowledgedPath.getParent().equals(spoolRoot)) {
+            throw new CliUsageException(
+                    "message-file must name a same-root transport spool point");
+        }
+        boolean messageExists =
+                Files.exists(messagePath, LinkOption.NOFOLLOW_LINKS);
+        boolean acknowledgedExists =
+                Files.exists(acknowledgedPath, LinkOption.NOFOLLOW_LINKS);
+        if (messageExists == acknowledgedExists) {
+            throw new CliUsageException(
+                    "message-file must resolve exactly one pending or acknowledged "
+                            + "transport spool point");
+        }
+        Path resolvedPath = messageExists ? messagePath : acknowledgedPath;
+        if (!Files.isRegularFile(resolvedPath, LinkOption.NOFOLLOW_LINKS)) {
+            throw new CliUsageException(
+                    "message-file must resolve to a regular non-symbolic transport "
+                            + "spool point");
+        }
+        return new WorkSpoolPoint(
+                resolvedPath,
+                acknowledgedPath,
+                acknowledgedExists);
     }
 
     private SchedulerExecution schedulerExecution(
@@ -1182,6 +1289,12 @@ public final class EnhancerCli {
             DurableSingleWorkerSchedulerQueue queue,
             DurableAgentRunWorker worker,
             FileSystemRunRecordStore runRecordStore) {
+    }
+
+    private record WorkSpoolPoint(
+            Path messagePath,
+            Path acknowledgedPath,
+            boolean acknowledged) {
     }
 
     @FunctionalInterface

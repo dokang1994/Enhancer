@@ -27,6 +27,23 @@ class FileSpoolMessageTransportTest {
     Path temporaryRoot;
 
     @Test
+    void returnsTheAcceptedPointReferenceWithoutChangingTheNeutralOutcome() throws IOException {
+        Path spool = temporaryRoot.resolve("referenced-spool");
+        FileSpoolMessageTransport transport =
+                new FileSpoolMessageTransport(spool, BackpressurePolicy.standard());
+        TransportMessage message =
+                new TransportMessage(DeliveryDestination.queue("work"), envelope(workPayload()));
+
+        FileSpoolPublicationOutcome publication = transport.sendWithReference(message);
+
+        assertEquals(TransportOutcome.accepted(), publication.outcome());
+        assertTrue(publication.messageFile().isPresent());
+        Path point = spool.resolve(publication.messageFile().orElseThrow());
+        assertTrue(Files.isRegularFile(point));
+        assertEquals(message, FileSpoolMessageTransport.read(point));
+    }
+
+    @Test
     void roundTripsEveryPayloadKindWithoutChangingRouteOrEnvelope() throws IOException {
         Path spool = temporaryRoot.resolve("spool");
         FileSpoolMessageTransport transport =

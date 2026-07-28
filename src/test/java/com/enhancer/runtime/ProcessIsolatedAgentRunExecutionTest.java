@@ -200,7 +200,7 @@ class ProcessIsolatedAgentRunExecutionTest {
         IOException refused = assertThrows(
                 IOException.class,
                 () -> fixture.executionWith(failIfLaunched()).execute(fixture.dispatch()));
-        assertTrue(refused.getMessage().contains("destination"), refused.getMessage());
+        assertTrue(refused.getMessage().contains("UNROUTED"), refused.getMessage());
     }
 
     @Test

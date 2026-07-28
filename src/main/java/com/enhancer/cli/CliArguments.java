@@ -1,6 +1,7 @@
 package com.enhancer.cli;
 
 import com.enhancer.runtime.AgentRunLease;
+import com.enhancer.bus.BackpressurePolicy;
 import com.enhancer.runtime.AgentRunRetryPolicy;
 import com.enhancer.runtime.IsolatedWorkerLauncher;
 import com.enhancer.runtime.SchedulerPriority;
@@ -123,6 +124,19 @@ final class CliArguments {
             "required-capability");
     private static final Set<String> SCHEDULER_RECEIVE_WORK_OPTIONAL_OPTIONS =
             Set.of("priority");
+    private static final Set<String> SCHEDULER_SPOOL_WORK_OPTIONS = Set.of(
+            "project-root",
+            "transport-spool-root",
+            "destination-name",
+            "task-id",
+            "max-pending-publications",
+            "message-id",
+            "correlation-id",
+            "logical-run-id",
+            "producer",
+            "occurred-at",
+            "target-path",
+            "expected-sha256");
     private static final Set<String> SCHEDULER_SUBMIT_OPTIONS = Set.of(
             "project-root",
             "submission-root",
@@ -175,7 +189,7 @@ final class CliArguments {
                             + "scheduler-external-effect-status, "
                             + "scheduler-invocation-status, scheduler-cycle, "
                             + "scheduler-drain, scheduler-service, "
-                            + "scheduler-receive-work, "
+                            + "scheduler-receive-work, scheduler-spool-work, "
                             + "scheduler-migrate-cycle-checkpoint, "
                             + "scheduler-migrate-queue, "
                             + "scheduler-migrate-submission-manifest, or "
@@ -237,6 +251,8 @@ final class CliArguments {
                             arguments,
                             SCHEDULER_RECEIVE_WORK_OPTIONS,
                             SCHEDULER_RECEIVE_WORK_OPTIONAL_OPTIONS));
+            case "scheduler-spool-work" -> parseSchedulerSpoolWork(
+                    parseOptions(arguments, SCHEDULER_SPOOL_WORK_OPTIONS));
             case "scheduler-submit" -> parseSchedulerSubmit(
                     parseOptions(
                             arguments,
@@ -538,6 +554,36 @@ final class CliArguments {
                 canonicalUuid(options.get("queue-id"), "queue-id"),
                 nonBlank(options.get("required-capability"), "required-capability"),
                 priority(options.get("priority")));
+    }
+
+    private static SchedulerSpoolWorkCliCommand parseSchedulerSpoolWork(
+            Map<String, String> options) {
+        long maximum = positiveLong(
+                options.get("max-pending-publications"),
+                "max-pending-publications");
+        if (maximum > BackpressurePolicy.MAX_PENDING_PUBLICATIONS) {
+            throw new CliUsageException(
+                    "max-pending-publications must not exceed "
+                            + BackpressurePolicy.MAX_PENDING_PUBLICATIONS);
+        }
+        String digest = options.get("expected-sha256");
+        if (!SHA_256.matcher(digest).matches()) {
+            throw new CliUsageException(
+                    "expected-sha256 must be 64 lowercase hexadecimal characters");
+        }
+        return new SchedulerSpoolWorkCliCommand(
+                path(options.get("project-root"), "project-root"),
+                path(options.get("transport-spool-root"), "transport-spool-root"),
+                nonBlank(options.get("destination-name"), "destination-name"),
+                nonBlank(options.get("task-id"), "task-id"),
+                (int) maximum,
+                canonicalUuid(options.get("message-id"), "message-id"),
+                nonBlank(options.get("correlation-id"), "correlation-id"),
+                nonBlank(options.get("logical-run-id"), "logical-run-id"),
+                nonBlank(options.get("producer"), "producer"),
+                instant(options.get("occurred-at"), "occurred-at"),
+                nonBlank(options.get("target-path"), "target-path"),
+                digest);
     }
 
     private static SchedulerSubmitCliCommand parseSchedulerSubmit(

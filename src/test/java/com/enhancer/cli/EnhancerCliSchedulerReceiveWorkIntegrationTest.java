@@ -1,6 +1,7 @@
 package com.enhancer.cli;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
@@ -65,7 +66,13 @@ class EnhancerCliSchedulerReceiveWorkIntegrationTest {
         Execution admitted = receive(layout, messageFile);
         assertEquals(0, admitted.exitCode());
         assertTrue(admitted.stdout().contains("status=ADMITTED"));
+        assertTrue(admitted.stdout().contains("spoolStatus=ACKNOWLEDGED"));
+        assertTrue(admitted.stdout().contains(
+                "acknowledgedFile=" + acknowledgedFile(messageFile)));
         assertTrue(admitted.stdout().contains("priority=EXPEDITED"));
+        assertFalse(Files.exists(layout.spoolRoot().resolve(messageFile)));
+        assertTrue(Files.isRegularFile(
+                layout.spoolRoot().resolve(acknowledgedFile(messageFile))));
         Execution service = service(layout);
         assertEquals(0, service.exitCode());
         assertTrue(service.stdout().contains("verifiedCompletedCycles=1"));
@@ -85,6 +92,9 @@ class EnhancerCliSchedulerReceiveWorkIntegrationTest {
         Execution replayed = receive(layout, messageFile);
         assertEquals(0, replayed.exitCode());
         assertTrue(replayed.stdout().contains("status=REPLAYED"));
+        assertTrue(replayed.stdout().contains("spoolStatus=ALREADY_ACKNOWLEDGED"));
+        assertTrue(replayed.stdout().contains(
+                "acknowledgedFile=" + acknowledgedFile(messageFile)));
         assertEquals(completedRevision, recoverQueue(layout).revision());
         assertEquals(1, new FileSystemRunRecordStore(layout.recordRoot())
                 .references().size());
@@ -94,7 +104,35 @@ class EnhancerCliSchedulerReceiveWorkIntegrationTest {
                         goalId,
                         new FileSystemAgentRuntimeStateStore(layout.runtimeRoot()),
                         Clock.systemUTC()).agentRuns().size());
-        assertTrue(Files.isRegularFile(layout.spoolRoot().resolve(messageFile)));
+        assertFalse(Files.exists(layout.spoolRoot().resolve(messageFile)));
+        assertTrue(Files.isRegularFile(
+                layout.spoolRoot().resolve(acknowledgedFile(messageFile))));
+    }
+
+    @Test
+    void acknowledgementReleasesPendingTransportCapacity() throws Exception {
+        Layout layout = layout("capacity");
+        DurableSingleWorkerSchedulerQueue.create(
+                QUEUE_ID,
+                8,
+                new FileSystemSchedulerQueueStore(layout.queueRoot()));
+        FileSpoolMessageTransport transport = new FileSpoolMessageTransport(
+                layout.spoolRoot(), BackpressurePolicy.of(1));
+        TransportMessage message = new TransportMessage(
+                DeliveryDestination.queue(DESTINATION),
+                workMessage("c".repeat(64)));
+        assertEquals(TransportStatus.ACCEPTED, transport.send(message).status());
+        String messageFile = onlyTransportFile(layout.spoolRoot());
+
+        assertEquals(0, receive(layout, messageFile).exitCode());
+        assertFalse(Files.exists(layout.spoolRoot().resolve(messageFile)));
+        assertTrue(Files.isRegularFile(
+                layout.spoolRoot().resolve(acknowledgedFile(messageFile))));
+        assertEquals(TransportStatus.ACCEPTED, transport.send(message).status());
+        String nextMessageFile = onlyTransportFile(layout.spoolRoot());
+        assertFalse(nextMessageFile.equals(messageFile));
+        assertTrue(Files.isRegularFile(
+                layout.spoolRoot().resolve(nextMessageFile)));
     }
 
     @Test
@@ -134,7 +172,9 @@ class EnhancerCliSchedulerReceiveWorkIntegrationTest {
         Files.writeString(target, "target", StandardCharsets.UTF_8);
         String name = "00000000-0000-0000-0000-000000000735.transport";
         try {
-            Files.createSymbolicLink(layout.spoolRoot().resolve(name), target);
+            Files.createSymbolicLink(
+                    layout.spoolRoot().resolve(acknowledgedFile(name)),
+                    target);
         } catch (UnsupportedOperationException | FileSystemException unavailable) {
             assumeTrue(false, "symbolic links are unavailable");
         }
@@ -142,6 +182,41 @@ class EnhancerCliSchedulerReceiveWorkIntegrationTest {
         assertEquals(2, receive(layout, name).exitCode());
         assertEquals(0, queue.revision());
         assertEquals(0, queue.pendingCount());
+    }
+
+    @Test
+    void rejectsPendingAndAcknowledgedCollisionBeforeRecoveringAnActiveQueue()
+            throws Exception {
+        Layout layout = layout("collision-before-recovery");
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.create(
+                        QUEUE_ID,
+                        8,
+                        new FileSystemSchedulerQueueStore(layout.queueRoot()));
+        new DurableWorkItemAdmissionHandler("read-file-worker", queue)
+                .handle(workMessage("c".repeat(64)));
+        queue.claimNext().orElseThrow();
+        long activeRevision = queue.revision();
+        FileSpoolMessageTransport transport = new FileSpoolMessageTransport(
+                layout.spoolRoot(), BackpressurePolicy.standard());
+        assertEquals(
+                TransportStatus.ACCEPTED,
+                transport.send(new TransportMessage(
+                        DeliveryDestination.queue(DESTINATION),
+                        workMessage("c".repeat(64)))).status());
+        String messageFile = onlyTransportFile(layout.spoolRoot());
+        Files.copy(
+                layout.spoolRoot().resolve(messageFile),
+                layout.spoolRoot().resolve(acknowledgedFile(messageFile)));
+
+        assertEquals(2, receive(layout, messageFile).exitCode());
+        var unchanged = new FileSystemSchedulerQueueStore(layout.queueRoot())
+                .resolve(QUEUE_ID);
+        assertEquals(activeRevision, unchanged.revision());
+        assertTrue(unchanged.activeWork().isPresent());
+        assertTrue(Files.isRegularFile(layout.spoolRoot().resolve(messageFile)));
+        assertTrue(Files.isRegularFile(
+                layout.spoolRoot().resolve(acknowledgedFile(messageFile))));
     }
 
     @Test
@@ -268,6 +343,13 @@ class EnhancerCliSchedulerReceiveWorkIntegrationTest {
             String name = matches.get(0).getFileName().toString();
             return name.substring(0, name.length() - ".agent-runtime".length());
         }
+    }
+
+    private String acknowledgedFile(String messageFile) {
+        return messageFile.substring(
+                0,
+                messageFile.length() - FileSpoolMessageTransport.FILE_SUFFIX.length())
+                + ".received";
     }
 
     private String writeTarget(Path projectRoot, String content) throws Exception {
