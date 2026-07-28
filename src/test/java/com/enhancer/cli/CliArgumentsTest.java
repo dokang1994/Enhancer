@@ -381,6 +381,41 @@ class CliArgumentsTest {
     }
 
     @Test
+    void parsesSchedulerServiceAsOneFiniteExtensionOfCycleInputs() {
+        SchedulerServiceCliCommand service =
+                (SchedulerServiceCliCommand) CliArguments.parse(
+                        schedulerServiceArguments("8", "3", "250"));
+
+        assertEquals(8, service.policy().maxCycles());
+        assertEquals(3, service.policy().maxConsecutiveIdleCycles());
+        assertEquals(Duration.ofMillis(250), service.policy().idleWait());
+        assertEquals("00000000-0000-0000-0000-000000000801", service.queueId());
+        assertEquals(2, service.maxAttempts());
+        assertEquals(Duration.ofMinutes(5), service.leaseDuration());
+        assertEquals(Duration.ofSeconds(20), service.processTimeout());
+    }
+
+    @Test
+    void rejectsMissingAndOutOfRangeSchedulerServicePolicy() {
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(new String[] {
+                "scheduler-service", "--project-root", temporaryRoot.toString()
+        }));
+        assertThrows(CliUsageException.class, () ->
+                CliArguments.parse(schedulerServiceArguments("0", "3", "250")));
+        assertThrows(CliUsageException.class, () ->
+                CliArguments.parse(schedulerServiceArguments("4097", "3", "250")));
+        assertThrows(CliUsageException.class, () ->
+                CliArguments.parse(schedulerServiceArguments("8", "0", "250")));
+        assertThrows(CliUsageException.class, () ->
+                CliArguments.parse(schedulerServiceArguments("8", "4097", "250")));
+        assertThrows(CliUsageException.class, () ->
+                CliArguments.parse(schedulerServiceArguments("8", "3", "0")));
+        assertThrows(CliUsageException.class, () ->
+                CliArguments.parse(schedulerServiceArguments(
+                        "8", "3", "3600001")));
+    }
+
+    @Test
     void parsesEveryExplicitSchedulerSubmitInput() {
         SchedulerSubmitCliCommand submit = (SchedulerSubmitCliCommand) CliArguments.parse(
                 schedulerSubmitArguments("8", "2026-07-22T16:00:00Z"));
@@ -593,6 +628,22 @@ class CliArgumentsTest {
         drain[cycle.length] = "--max-cycles";
         drain[cycle.length + 1] = maxCycles;
         return drain;
+    }
+
+    private String[] schedulerServiceArguments(
+            String maxCycles,
+            String maxConsecutiveIdleCycles,
+            String idleWaitMillis) {
+        String[] cycle = schedulerCycleArguments("2", "300000", "20000");
+        cycle[0] = "scheduler-service";
+        String[] service = Arrays.copyOf(cycle, cycle.length + 6);
+        service[cycle.length] = "--max-cycles";
+        service[cycle.length + 1] = maxCycles;
+        service[cycle.length + 2] = "--max-consecutive-idle-cycles";
+        service[cycle.length + 3] = maxConsecutiveIdleCycles;
+        service[cycle.length + 4] = "--idle-wait-millis";
+        service[cycle.length + 5] = idleWaitMillis;
+        return service;
     }
 
     private String[] schedulerSubmitArguments(String maxWorkItems, String occurredAt) {

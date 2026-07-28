@@ -462,10 +462,18 @@ Status: Specified - Next
 Whole-gate assessment:
 
 - retained at `Specified - Next` after closing the pre-migration assessment's supported
-  migration gap and the first non-recovery priority/fairness connection because
-  authenticated control application, priority admission,
-  role-based message workers, broader lost-acknowledgement recovery, and production
-  external-effect handling still lack named current connections;
+  migration gap, public priority admission, non-recovery priority/fairness selection,
+  priority/fairness observability, deterministic child-RunRecord recovery, lease-expiry
+  recovery, disposition-acknowledgement recovery, and the bounded foreground service
+  connection. Remaining blockers are not one interchangeable backlog: Gates 7 and 8
+  jointly lack a supported durable message-bus-to-worker entry point; Gate 12 owns
+  authenticated control application; Gate 11 owns production external-effect handling;
+  Gates 9 and 10 own model/context budgets and Memory runtime; and Gate 13 owns
+  background/supervisor topology and role-based message workers;
+- existing queue-active, checkpoint, deterministic lost-acknowledgement point, and
+  expired-lease recovery satisfy the accepted at-least-once correctness prefixes. A
+  general orphan inventory or cleanup feature is not silently required and would need a
+  separate scan-bound, retention, authority, and cross-store consistency decision;
 - the first supported migration connection now satisfies its bounded exit-criterion
   slice: exact lossless conversion, explicit maintenance, failure preservation,
   idempotence, and a real migration-to-cycle recovery fixture are named and Integrated.
@@ -556,13 +564,18 @@ Current increment:
 - Operational sub-path: the generated-input operator workflow invokes `scheduler-submit-generated` and then a separate `scheduler-cycle` over the derived queue identity. A named real-filesystem CLI integration plus an actual Enhancer-repository smoke run reading `README.md` prove `ADMITTED -> VERIFIED_COMPLETED -> REPLAYED -> IDLE` with identical replay occurrence time and Workspace snapshot, one retained manifest, one RunRecord, and no duplicate execution; recovery is documented in the README alongside the explicit workflow, without a wrapper or polling;
 - Contract Verified and Integrated foreground-drain prerequisite: each local filesystem queue update uses one stable non-blocking queue-scoped operating-system lock across resolve, revision/history validation, and atomic publication. Contention fails typed without waiting, lock artifacts carry no queue state or authority, and real child-JVM plus stale-writer tests prove that a committed transition cannot be overwritten;
 - Contract Verified and Integrated bounded foreground connection: `ForegroundSchedulerDrain` and the separate `scheduler-drain` command reuse the existing process-isolated one-cycle recovery boundary over one existing queue, continue only after verified completion, and stop on the first idle result, failed disposition, or explicit at-most-4096 cycle limit. Focused contract tests pin exact stop/count semantics, while real-filesystem child-process integrations cover multiple ready and dependency-linked items, an interrupted per-cycle checkpoint, the configured limit, terminal failure, and a missing queue. The connection does not create or admit work, merge submission with execution, sleep, wait, poll for future work, daemonize, apply controls, or add another progress store;
+- Contract Verified bounded service lifecycle: caller-driven `BoundedSchedulerService` reuses the durable one-cycle worker under finite total-cycle, consecutive-idle, and idle-wait limits; checks a local stop signal before every sequential cycle; waits only between bounded idle results; resets idle progress after verified work; stops on the first failure; restores interruption; and returns exact typed stop counts. It creates no thread, supported entry point, durable service progress, authenticated control, queue/admission, external adapter, or additional recovery authority;
+- Integrated bounded foreground service connection: the separate `scheduler-service` command reuses every explicit process-isolated one-cycle recovery input and adds finite total-cycle, consecutive-idle, and idle-wait policy inputs. It runs on the invoking thread, uses that thread's interrupt state as its local stop signal, and reports bounded typed counts plus queue and RunRecord status. Named real-filesystem integrations resume a persisted cycle intent and reclaim an expired executing lease under the same Goal/AgentRun with a greater fence, one AgentRun, one RunRecord, and one verified disposition. No thread, daemon, supervisor, service checkpoint, authenticated control, queue/admission, or general orphan scanner is added;
 - Contract Verified and Integrated read-only queue inspection: pure `SchedulerQueueStatus`
   preserves admission order and classifies each persisted admission as ready, blocked,
-  active, verified, or failed; the separate `scheduler-status` command resolves the
-  snapshot without recovery and reports complete counts plus an at-most-48 item prefix.
-  Real-filesystem integration proves all five states and that inspection changes no
-  artifact bytes, timestamp, revision, or active slot, while missing and corrupt queues
-  retain configuration/internal failure separation;
+  active, verified, or failed while retaining its exact priority and the queue's persisted
+  maximum expedited burst, consecutive expedited progress, and optional recovery
+  preference; the separate `scheduler-status` command resolves the snapshot without
+  recovery and reports complete counts plus an at-most-48 identity/state/priority prefix.
+  Real-filesystem integration proves mixed priority, all five states, and that inspection
+  changes no artifact bytes, timestamp, revision, active slot, fairness progress, or
+  recovery preference, while missing and corrupt queues retain configuration/internal
+  failure separation;
 - Contract Verified and Integrated read-only recovery inspection:
   `SchedulerRecoveryStatus` and `scheduler-recovery-status` use the single cycle
   checkpoint as the only Goal/AgentRun/RunRecord join anchor, classify nine durable
@@ -599,7 +612,7 @@ Current increment:
   or additional RunRecord/effect outcome, preserves the effect artifact bytes, and
   clears the checkpoint. This satisfies the supported-migration fixture slice without a
   second schema migration or whole-gate promotion;
-- deferred: real authorized external adapters, admission-history compaction/cleanup or schema-v1 queue migration, worker polling/service operation, general forward-reference graph/cycle handling, authenticated cancellation/pause/resume application, time-based aging, broader budgets, checkpoints beyond current snapshots, schema-v1 runtime or effect-ledger migration, power-loss directory durability, broader multi-process and cross-store coordination, distributed locks and clock-skew handling, and broader production wiring.
+- deferred: the supported durable message-bus-to-worker connection, real authorized external adapters, admission-history compaction/cleanup or schema-v1 queue migration, general orphan inventory/cleanup with an explicit retention and scan policy, general forward-reference graph/cycle handling, authenticated cancellation/pause/resume application, background/supervisor topology, time-based aging, broader budgets, checkpoints beyond current snapshots, schema-v1 runtime or effect-ledger migration, power-loss directory durability, broader multi-process and cross-store coordination, distributed locks and clock-skew handling, and broader production wiring.
 
 Ordered connection sequence:
 

@@ -146,13 +146,18 @@ does not execute the work; invoke `scheduler-cycle` separately.
 
 `--limit` must be from `1` through `48`. The command reports complete counts for
 `READY`, `BLOCKED`, `ACTIVE`, `VERIFIED`, and `FAILED` work plus an admission-ordered
-bounded identity/state prefix. It exits `0` with `AVAILABLE` or `EMPTY`; a missing queue
-is configuration exit `2`, and corrupt state is internal exit `70`.
+bounded identity/state/priority prefix. It also reports `maximumExpeditedBurst`,
+`consecutiveExpeditedClaims`, and the optional `recoveryPreferredWorkItemId` exactly as
+persisted, so the operator can inspect the selection inputs without consuming them. It
+exits `0` with `AVAILABLE` or `EMPTY`; a missing queue is configuration exit `2`, and
+corrupt state is internal exit `70`.
 
 Inspection never calls queue recovery, creates no missing root, and reads no runtime,
 effect, checkpoint, RunRecord, submission, or invocation store. `ACTIVE` means only that
 the persisted queue snapshot contains an active slot; it does not prove that a worker is
 currently alive. Use the execution commands and their retained roots for recovery.
+The reported fairness and recovery fields describe the persisted snapshot only; they do
+not predict which item a later claim will select.
 
 ## Inspect Durable Scheduler Recovery Status
 
@@ -301,19 +306,42 @@ The command continues only after `VERIFIED_COMPLETED`. `FAILED` exits `40`; `IDL
 another drain requires a new explicit operator invocation. Preserve every named root
 when reinvoking after interruption so the existing per-cycle checkpoint can recover.
 
+## Run The Bounded Scheduler Service
+
+`scheduler-service` uses the same explicit recovery inputs as `scheduler-cycle` and runs
+the finite service lifecycle on the invoking foreground thread. It may wait and check the
+existing queue again, but it does not create a queue, submit work, daemonize, create a
+thread, or persist separate service progress:
+
+```powershell
+.\scripts\gradle.ps1 run --args="scheduler-service --project-root C:\Enhancer --queue-root C:\Enhancer\.enhancer\queue --queue-id <canonical-queue-uuid> --runtime-root C:\Enhancer\.enhancer\runtime --external-effect-root C:\Enhancer\.enhancer\effects --cycle-checkpoint-root C:\Enhancer\.enhancer\scheduler-checkpoint --evidence-root C:\Enhancer\.enhancer\evidence --run-record-root C:\Enhancer\.enhancer\run-records --invocation-root C:\Enhancer\.enhancer\invocations --owner-id local-scheduler --max-attempts 2 --lease-millis 300000 --process-timeout-millis 30000 --max-cycles 64 --max-consecutive-idle-cycles 8 --idle-wait-millis 1000"
+```
+
+Both cycle limits must be from `1` through `4096`. `--idle-wait-millis` must be positive
+and no greater than `3600000`. The bounded status is `STOP_REQUESTED`, `INTERRUPTED`,
+`FAILED`, `CYCLE_LIMIT`, or `IDLE_LIMIT`; a total-cycle limit wins when both limits are
+reached on the same idle cycle. `FAILED` exits `40`; every other bounded stop exits `0`.
+The invoking thread's interrupt state is the local lifecycle stop signal, not an
+authenticated pause/resume/cancel control. Console termination behavior remains
+platform- and supervisor-dependent, so preserve every named root and reinvoke the same
+command after an uncertain stop. The durable cycle checkpoint and runtime lease/fence
+recover interrupted or expired work; no service-level checkpoint exists.
+
 ## Run The Explicit Two-Command Scheduler Workflow
 
-The supported operator workflow keeps submission separate from either execution command.
-There is no submission-and-execution wrapper and no polling loop:
+The supported operator workflow keeps submission separate from every execution command.
+There is no submission-and-execution wrapper; polling occurs only through an explicit
+finite `scheduler-service` invocation:
 
 1. Choose and retain every `scheduler-submit` argument before the first invocation.
 2. Invoke `scheduler-submit` and stop if it exits nonzero. `ADMITTED` and `REPLAYED` both
    mean the exact work is durably present; neither status executes it.
-3. After separately deciding to execute, invoke `scheduler-cycle` for exactly one cycle
-   or `scheduler-drain` for a bounded sequence, using the same `--project-root`,
-   `--queue-root`, and `--queue-id`. Preserve every execution-specific root for recovery.
-4. Interpret the execution result independently. A cycle or another bounded drain occurs
-   only through another explicit operator action.
+3. After separately deciding to execute, invoke `scheduler-cycle` for exactly one cycle,
+   `scheduler-drain` for immediately-ready work, or `scheduler-service` for bounded idle
+   polling, using the same `--project-root`, `--queue-root`, and `--queue-id`. Preserve
+   every execution-specific root for recovery.
+4. Interpret the execution result independently. Another command invocation occurs only
+   through another explicit operator action.
 
 The queue root and identity are the handoff between the commands. Submission roots and
 all submission identities/time must be retained for exact replay. Runtime, effect,
@@ -326,16 +354,19 @@ fails closed.
 | Observed state | Operator action |
 |---|---|
 | Submission interrupted or produced no trusted result | Reinvoke `scheduler-submit` with every original argument against the unchanged governed project. Accept `ADMITTED` or `REPLAYED`; do not invoke the cycle while submission remains an error. |
-| `ADMITTED` or `REPLAYED` | The work is durable but not necessarily executed. Use `scheduler-status` when queue inspection is needed, then invoke `scheduler-cycle` or `scheduler-drain` separately only when execution is intended. |
+| `ADMITTED` or `REPLAYED` | The work is durable but not necessarily executed. Use `scheduler-status` when queue inspection is needed, then invoke `scheduler-cycle`, `scheduler-drain`, or the finite `scheduler-service` separately only when execution is intended. |
 | Queue inspection, recovery, cycle, or drain reports unsupported queue schema v2 | Stop every Scheduler process using that queue root and identity. Run `scheduler-migrate-queue` once with the retained root and queue UUID. Restart and reinvoke only after `MIGRATED` or `ALREADY_CURRENT`; on exit `70`, retain the unchanged source and do not execute the queue. |
 | Cycle, drain, or recovery inspection reports an unsupported pending-finalization schema | Stop every Scheduler process using that cycle-checkpoint root. Run `scheduler-migrate-cycle-checkpoint` once against the retained root. Restart and reinvoke recovery only after `MIGRATED` or `ALREADY_CURRENT`; on exit `70`, retain the unchanged source and do not execute the cycle. |
-| Cycle or drain interrupted or exits `70` | Preserve the queue and every execution root. Run `scheduler-recovery-status` with those retained roots to identify the durable prefix without changing it. When it reports a Goal, run `scheduler-external-effect-status` before considering retry so prepared, user-recovery, applied/deduplicated, and compensated histories remain explicit; if a RunRecord reference is present, inspect it with `replay`. Correct only the reported environmental problem, then reinvoke the same execution command so the worker checkpoint can recover. Do not resubmit work to repair execution. |
+| Cycle, drain, or service interrupted or exits `70` | Preserve the queue and every execution root. Run `scheduler-recovery-status` with those retained roots to identify the durable prefix without changing it. When it reports a Goal, run `scheduler-external-effect-status` before considering retry so prepared, user-recovery, applied/deduplicated, and compensated histories remain explicit; if a RunRecord reference is present, inspect it with `replay`. Correct only the reported environmental problem, then reinvoke the same execution command so the worker checkpoint and lease/fence can recover. Do not resubmit work to repair execution. |
 | Cycle reports `VERIFIED_COMPLETED` | The WorkItem is terminally verified. Exact submission replay remains a no-op, and a later cycle for an otherwise empty queue reports `IDLE`. |
 | Cycle reports `FAILED` and exits `40` | The WorkItem is terminally failed. Discover retained evidence with `run-record-list`, inspect a selected record with `replay`, and retain runtime state; resubmitting the same identity is not a retry. New work requires separately approved inputs and a new message identity. |
 | Cycle reports `IDLE` | No ready work was executed. Do not loop automatically; use `scheduler-status` to distinguish an empty queue from blocked work and verify the queue root/identity and preceding submission result. |
 | Drain reports `LIMIT_REACHED` | The requested number of cycles completed, but ready work may remain. Use `scheduler-status`, then explicitly invoke another cycle or drain only when intended. |
 | Drain reports `FAILED` and exits `40` | The first terminal work failure stopped the drain. Use `run-record-list` and `replay` to inspect retained RunRecord evidence alongside runtime state before deciding whether separately approved new work is required. |
 | Drain reports `IDLE` | The final cycle found no ready work. The command does not wait for later submissions or blocked dependencies to become ready. |
+| Service reports `CYCLE_LIMIT` or `IDLE_LIMIT` | The finite service invocation ended normally. `CYCLE_LIMIT` does not prove the queue is empty; inspect with `scheduler-status` before a separately authorized next invocation. |
+| Service reports `STOP_REQUESTED` or `INTERRUPTED` | The local foreground lifecycle stopped without adding authenticated control state. Preserve all roots and inspect recovery status before reinvoking if a cycle may have been interrupted. |
+| Service reports `FAILED` and exits `40` | The first terminal work failure stopped the service. Inspect retained RunRecord and runtime evidence before deciding on separately approved new work. |
 
 ## Submit Generated-Input Scheduler Work
 

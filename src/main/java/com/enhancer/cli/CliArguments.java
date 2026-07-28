@@ -4,6 +4,7 @@ import com.enhancer.runtime.AgentRunLease;
 import com.enhancer.runtime.AgentRunRetryPolicy;
 import com.enhancer.runtime.IsolatedWorkerLauncher;
 import com.enhancer.runtime.SchedulerPriority;
+import com.enhancer.runtime.SchedulerServicePolicy;
 import com.enhancer.runtime.SingleWorkerSchedulerQueue;
 import com.enhancer.session.DevelopmentSessionCheckpointState;
 import java.nio.file.InvalidPathException;
@@ -96,6 +97,23 @@ final class CliArguments {
             "lease-millis",
             "process-timeout-millis",
             "max-cycles");
+    private static final Set<String> SCHEDULER_SERVICE_OPTIONS = Set.of(
+            "project-root",
+            "queue-root",
+            "queue-id",
+            "runtime-root",
+            "external-effect-root",
+            "cycle-checkpoint-root",
+            "evidence-root",
+            "run-record-root",
+            "invocation-root",
+            "owner-id",
+            "max-attempts",
+            "lease-millis",
+            "process-timeout-millis",
+            "max-cycles",
+            "max-consecutive-idle-cycles",
+            "idle-wait-millis");
     private static final Set<String> SCHEDULER_SUBMIT_OPTIONS = Set.of(
             "project-root",
             "submission-root",
@@ -147,7 +165,7 @@ final class CliArguments {
                             + "scheduler-recovery-status, "
                             + "scheduler-external-effect-status, "
                             + "scheduler-invocation-status, scheduler-cycle, "
-                            + "scheduler-drain, "
+                            + "scheduler-drain, scheduler-service, "
                             + "scheduler-migrate-cycle-checkpoint, "
                             + "scheduler-migrate-queue, "
                             + "scheduler-migrate-submission-manifest, or "
@@ -202,6 +220,8 @@ final class CliArguments {
                     parseOptions(arguments, SCHEDULER_CYCLE_OPTIONS));
             case "scheduler-drain" -> parseSchedulerDrain(
                     parseOptions(arguments, SCHEDULER_DRAIN_OPTIONS));
+            case "scheduler-service" -> parseSchedulerService(
+                    parseOptions(arguments, SCHEDULER_SERVICE_OPTIONS));
             case "scheduler-submit" -> parseSchedulerSubmit(
                     parseOptions(
                             arguments,
@@ -434,6 +454,54 @@ final class CliArguments {
                 cycle.leaseDuration(),
                 cycle.processTimeout(),
                 (int) maxCycles);
+    }
+
+    private static SchedulerServiceCliCommand parseSchedulerService(
+            Map<String, String> options) {
+        SchedulerCycleCliCommand cycle = parseSchedulerCycle(options);
+        long maxCycles = boundedSchedulerServiceValue(
+                options.get("max-cycles"), "max-cycles");
+        long maxConsecutiveIdleCycles = boundedSchedulerServiceValue(
+                options.get("max-consecutive-idle-cycles"),
+                "max-consecutive-idle-cycles");
+        long idleWaitMillis = positiveLong(
+                options.get("idle-wait-millis"), "idle-wait-millis");
+        if (idleWaitMillis > SchedulerServicePolicy.MAX_IDLE_WAIT.toMillis()) {
+            throw new CliUsageException(
+                    "idle-wait-millis must not exceed "
+                            + SchedulerServicePolicy.MAX_IDLE_WAIT.toMillis());
+        }
+        SchedulerServicePolicy policy = new SchedulerServicePolicy(
+                (int) maxCycles,
+                (int) maxConsecutiveIdleCycles,
+                Duration.ofMillis(idleWaitMillis));
+        return new SchedulerServiceCliCommand(
+                cycle.projectRoot(),
+                cycle.queueRoot(),
+                cycle.queueId(),
+                cycle.runtimeRoot(),
+                cycle.externalEffectRoot(),
+                cycle.cycleCheckpointRoot(),
+                cycle.evidenceRoot(),
+                cycle.runRecordRoot(),
+                cycle.invocationRoot(),
+                cycle.ownerId(),
+                cycle.maxAttempts(),
+                cycle.leaseDuration(),
+                cycle.processTimeout(),
+                policy);
+    }
+
+    private static long boundedSchedulerServiceValue(
+            String value,
+            String name) {
+        long parsed = positiveLong(value, name);
+        if (parsed > SingleWorkerSchedulerQueue.MAX_WORK_ITEMS) {
+            throw new CliUsageException(
+                    name + " must not exceed "
+                            + SingleWorkerSchedulerQueue.MAX_WORK_ITEMS);
+        }
+        return parsed;
     }
 
     private static SchedulerSubmitCliCommand parseSchedulerSubmit(

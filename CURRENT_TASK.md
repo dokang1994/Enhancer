@@ -2,84 +2,71 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Connect the same optional `NORMAL`/`EXPEDITED` priority input and effective-priority output
-to the generated-input `scheduler-submit-generated` CLI command, with generated replay
-comparing the caller-owned requested priority against the stored manifest before consulting
-the clock or recapturing repository context, without adding new authority, schema change,
-queue selection change, or execution.
+Reassess whole-Gate 8 maturity after the bounded foreground service integration, classify
+every remaining gap by its owning gate, and synchronize the repository for an authorized
+commit, feature-branch push, main merge, and main push.
 
 ## Task ID
 
-connect-scheduler-submit-generated-priority-input-and-output
+reassess-gate8-after-service-integration
 
 ## Context
 
-The immediately preceding increment connected an optional `--priority` input and
-effective-priority output to the explicit `scheduler-submit` command. Submission manifest
-schema v2 already persists the priority and `DurableWorkSubmissionService` already
-propagates it, so the generated-input command only needed the same caller-owned input,
-first-use persistence, replay comparison, and output. The generated command previously
-always admitted `NORMAL`.
+The supported `scheduler-service` connection now has finite polling, cycle-intent restart,
+and expired-lease recovery evidence. Whole-gate maturity still depends on distinguishing
+Gate 8 recovery responsibilities from Gate 7 messaging, Gate 9 budgets, Gate 10 Memory,
+Gate 11 adapters, Gate 12 controls, and Gate 13 background/supervisor topology.
 
 ## Justified By
 
-- 2026-07-27: Persist Requested Scheduler Priority In Submission Manifest Before Exposing Admission Input
+- 2026-07-28: Retain Gate 8 At Specified Next After The Bounded Service Connection
+- 2026-07-24: Assess Gate 8 Maturity Against Every Exit Criterion
 
 ## Acceptance Criteria
 
-- `scheduler-submit-generated` accepts one optional `--priority NORMAL|EXPEDITED`; omission
-  defaults to `NORMAL`, any other value fails usage before manifest or queue mutation.
-- First use persists the caller-owned priority in the generated manifest; a replay under
-  the same submission UUID with a different priority fails closed before the clock or
-  repository context is consulted.
-- Bounded output reports the effective `priority` on both `ADMITTED` and `REPLAYED`.
-- The generic message-admission `NORMAL` default, queue selection and fairness, schema,
-  authority, and dependencies are unchanged.
+- Every remaining Gate 8 scope item and exit criterion is reconciled against named current
+  evidence after the service integration.
+- Each partial or unsatisfied criterion is assigned to Gate 7, 8, 9, 10, 11, 12, or 13
+  without silently absorbing another gate's authority.
+- Whole-Gate 8 maturity changes only if every criterion has a named supported connection
+  and fresh evidence; otherwise `Specified - Next` is retained with the next connection
+  identified.
+- Structural document tests, the strict full build, diff review, and credential scan pass.
+- The complete accumulated increment is committed on a feature branch, pushed, merged
+  into `main`, and the resulting `main` is pushed as explicitly authorized by the user.
 
 ## Out Of Scope
 
-- Generic message-admission priority input, priority policy or defaults change, queue
-  selection or fairness change, schema change, new authority, execution, polling, Gate 9,
-  release, or deployment.
+- New runtime behavior, schema or dependency changes, background daemon/supervisor,
+  broad orphan scanning/cleanup, authenticated controls, model budgets, Memory runtime,
+  production adapters, multi-agent roles, release, or deployment.
 
 ## Approval
 
-The user explicitly asked to continue the project on 2026-07-28. This increment is the
-generated-input half of the CLI connection already authorized by the accepted
-priority-persistence decision.
+The user explicitly directed continuation and authorized commit, push, and merge to
+`main` without another confirmation on 2026-07-28.
 
 ## Allowed Tools
 
 - read-file
+- write-code
+- write-docs
+- verify
 
 ## Verification
 
-Acceptance was satisfied test-first. Two `CliArgumentsTest`, two
-`GeneratedInputSubmissionServiceTest`, and three
-`EnhancerCliSchedulerGeneratedSubmitIntegrationTest` cases were written first and failed to
-compile on the absent `GeneratedSubmitCliCommand.priority()` and the eight-argument
-`GeneratedSubmissionRequest`; after the minimal implementation the targeted reruns passed,
-proving first-use `EXPEDITED` persists an `EXPEDITED` manifest and prints
-`priority=EXPEDITED` on `ADMITTED` and exact `REPLAYED`, omission persists and prints
-`NORMAL`, a same-UUID replay with a different priority fails closed before the envelope
-factory runs (exit `2`, no manifest or queue-revision change), and lowercase/unknown values
-are rejected.
-
-The full strict `clean build --no-build-cache --warning-mode all` (encoding supplied
-through `-Dorg.gradle.jvmargs=-Dfile.encoding=UTF-8`) passed 600 tests across 117 suites:
-597 passed, three existing Windows symbolic-link privilege-dependent setup cases skipped,
-and zero failures or errors, with no compiler warnings under `-Xlint:all -Werror`.
-`git diff --check` produced no output and a bounded credential scan found zero matches.
-Append-only evidence is in `docs/verification-log.md`.
+- The fresh strict `clean build --no-build-cache --warning-mode all`
+  (`-Dorg.gradle.jvmargs=-Dfile.encoding=UTF-8`) passed 616 tests across 119 suites:
+  613 passed, three existing Windows symbolic-link privilege-dependent setup cases
+  skipped, and zero failures or errors.
+- The assessment retained Gate 8 at `Specified - Next`, identified the next joint Gate
+  7/8 connection, and added no runtime behavior, schema, dependency, or authority.
 
 ## Next
 
-The explicit and generated submission commands now both expose priority. Select the next
-Scheduler increment from the roadmap's still-deferred selection work, for example
-`scheduler-status`/`scheduler-recovery-status` surfacing the effective queue priority and
-fairness state so an operator can observe how admitted priority affects selection, without
-adding queue selection change, new authority, execution, or polling.
+Implement the supported durable message-bus-to-worker connection jointly owned by Gates
+7 and 8 only through a separate accepted task.
