@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-28 - Deliver The Durable Work Spool Receiver
+
+- Committed the completed receiver increment on
+  `feat/gate-8-durable-work-spool-receiver` as `3f59aeb`, pushed that branch, and merged
+  it into `main` through merge commit `1481223`.
+- Pushed the merged `main` to `origin/main` after confirming the remote base was
+  unchanged.
+
 ## 2026-07-28 - Connect One Durable Work Spool To The Scheduler
 
 - Added the separate `scheduler-receive-work` point command: one caller-named canonical
