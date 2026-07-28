@@ -248,6 +248,25 @@ The wire format belongs to `MessageEnvelopeCodec`, not the adapter: the frame is
 
 The adapter owns publication only: a temporary file published by atomic move into its own freshly generated name, so resending an envelope never overwrites an earlier hop and a reader never observes a partial message.
 
+#### Durable Work Spool Point Receiver
+
+`DurableWorkMessageReceiver` is the bounded receiving connection between the local spool,
+the real `InProcessMessageBus`, and durable Scheduler admission. The supported
+`scheduler-receive-work` command resolves one caller-named canonical `.transport` file
+under an explicit spool root, requires a regular non-symbolic point artifact, decodes the
+unchanged route and envelope, requires an exact expected queue destination and
+`WorkPayload`, and publishes it to one queue subscription backed by
+`DurableWorkItemAdmissionHandler`.
+
+Success is reported only after that handler reaches the existing durable queue.
+`ADMITTED` means the queue revision advanced; `REPLAYED` means the exact derived WorkItem
+was already present and no revision changed. A reused message identity with changed
+content fails closed. The receiver does not delete, rename, acknowledge, scan, order, or
+dead-letter spool files, create a queue, execute work, or add a durable bus journal.
+Execution remains a separate `scheduler-cycle`, `scheduler-drain`, or
+`scheduler-service` invocation, while the retained artifact is the caller's exact replay
+point after uncertain acknowledgement.
+
 #### Isolated Worker Process
 
 `IsolatedWorkerLauncher` is the process lifecycle half of connection 3. It runs one worker in a child process and returns a typed `IsolatedWorkerOutcome`: `COMPLETED` carries an exit code, while `TIMED_OUT` and `START_FAILED` carry a bounded reason and no exit code, so a destroyed or unstartable child can never present a code that reads as a clean exit.

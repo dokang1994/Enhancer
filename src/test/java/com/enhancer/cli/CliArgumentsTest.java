@@ -416,6 +416,43 @@ class CliArgumentsTest {
     }
 
     @Test
+    void parsesOneExplicitSchedulerWorkSpoolReceiver() {
+        SchedulerReceiveWorkCliCommand receive =
+                (SchedulerReceiveWorkCliCommand) CliArguments.parse(
+                        schedulerReceiveWorkArguments());
+
+        assertEquals(
+                temporaryRoot.resolve("spool").toAbsolutePath().normalize(),
+                receive.transportSpoolRoot());
+        assertEquals(
+                "00000000-0000-0000-0000-000000000721.transport",
+                receive.messageFile());
+        assertEquals("scheduler-work", receive.destinationName());
+        assertEquals(
+                temporaryRoot.resolve("queue").toAbsolutePath().normalize(),
+                receive.queueRoot());
+        assertEquals(
+                "00000000-0000-0000-0000-000000000722",
+                receive.queueId());
+        assertEquals("read-file-worker", receive.requiredCapability());
+        assertEquals(SchedulerPriority.EXPEDITED, receive.priority());
+    }
+
+    @Test
+    void rejectsMissingAndNonCanonicalSchedulerWorkSpoolReceiverInputs() {
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(new String[] {
+                "scheduler-receive-work", "--transport-spool-root",
+                temporaryRoot.toString()
+        }));
+        String[] traversal = schedulerReceiveWorkArguments();
+        traversal[4] = "..\\00000000-0000-0000-0000-000000000721.transport";
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(traversal));
+        String[] upperCase = schedulerReceiveWorkArguments();
+        upperCase[4] = "00000000-0000-0000-0000-00000000072A.transport";
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(upperCase));
+    }
+
+    @Test
     void parsesEveryExplicitSchedulerSubmitInput() {
         SchedulerSubmitCliCommand submit = (SchedulerSubmitCliCommand) CliArguments.parse(
                 schedulerSubmitArguments("8", "2026-07-22T16:00:00Z"));
@@ -644,6 +681,20 @@ class CliArgumentsTest {
         service[cycle.length + 4] = "--idle-wait-millis";
         service[cycle.length + 5] = idleWaitMillis;
         return service;
+    }
+
+    private String[] schedulerReceiveWorkArguments() {
+        return new String[] {
+                "scheduler-receive-work",
+                "--transport-spool-root", temporaryRoot.resolve("spool").toString(),
+                "--message-file",
+                "00000000-0000-0000-0000-000000000721.transport",
+                "--destination-name", "scheduler-work",
+                "--queue-root", temporaryRoot.resolve("queue").toString(),
+                "--queue-id", "00000000-0000-0000-0000-000000000722",
+                "--required-capability", "read-file-worker",
+                "--priority", "EXPEDITED"
+        };
     }
 
     private String[] schedulerSubmitArguments(String maxWorkItems, String occurredAt) {

@@ -10,7 +10,7 @@ Enhancer는 AI Development Operating System을 만드는 Self-hosting 프로젝�
 
 ## Current Development Maturity
 
-Enhancer today covers authority-preserving planning, bounded read-only Tool execution, durable integrity-checked evidence, Tool-result-driven Agent Loop transitions, sequential independent verification, and replayable RunRecords, exposed as a narrow vertical slice through a local CLI. Workspace and Project Brain sit above that: every governed run reports its snapshot identity, observations (documents, prior run records, the run target, and Git state), memory freshness, and bounded graph/impact counts. Diagnostics, terminal, and selection observation belong to the Gate 12 interfaces that own those sources. A reference-only message envelope and deterministic in-process delivery, including finite non-blocking pending-queue backpressure, sit alongside a transport-neutral IPC interface and a local file-spool adapter used by the process-isolated Scheduler worker; there is no supported general-purpose message-bus entry point. The executable context reads `.ai/` before the canonical root documents, and the deterministic Planner is tested against the current Enhancer Delivery Gate Roadmap.
+Enhancer today covers authority-preserving planning, bounded read-only Tool execution, durable integrity-checked evidence, Tool-result-driven Agent Loop transitions, sequential independent verification, and replayable RunRecords, exposed as a narrow vertical slice through a local CLI. Workspace and Project Brain sit above that: every governed run reports its snapshot identity, observations (documents, prior run records, the run target, and Git state), memory freshness, and bounded graph/impact counts. Diagnostics, terminal, and selection observation belong to the Gate 12 interfaces that own those sources. A reference-only message envelope and deterministic in-process delivery, including finite non-blocking pending-queue backpressure, sit alongside a transport-neutral IPC interface, a local file-spool adapter, and one supported point receiver that carries an explicitly named retained Work message through the bus into an existing durable Scheduler queue; there is no directory-scanning or general-purpose durable message-bus service. The executable context reads `.ai/` before the canonical root documents, and the deterministic Planner is tested against the current Enhancer Delivery Gate Roadmap.
 
 Enhancer is not yet the broader event-driven AI Development OS: LLM, production messaging, and multi-agent capabilities remain future gates. **Current gate maturity is in `PROJECT_STATE.md`** and the evidence behind it in `docs/verification-log.md`; this README does not restate it.
 
@@ -305,6 +305,23 @@ The command continues only after `VERIFIED_COMPLETED`. `FAILED` exits `40`; `IDL
 `LIMIT_REACHED` exit `0`. `LIMIT_REACHED` does not prove that the queue is empty, so
 another drain requires a new explicit operator invocation. Preserve every named root
 when reinvoking after interruption so the existing per-cycle checkpoint can recover.
+
+## Receive One Durable Work Spool
+
+`scheduler-receive-work` point-resolves one retained transport artifact and publishes its
+unchanged Work envelope through the real Message Bus into an existing durable Scheduler
+queue. It does not scan or acknowledge the spool, create a queue, or execute work:
+
+```powershell
+.\scripts\gradle.ps1 run --args="scheduler-receive-work --transport-spool-root C:\Enhancer\.enhancer\transport --message-file <canonical-message-file>.transport --destination-name scheduler-work --queue-root C:\Enhancer\.enhancer\queue --queue-id <canonical-queue-uuid> --required-capability read-file-worker --priority NORMAL"
+```
+
+The named file must be a canonical UUID plus `.transport`, a regular non-symbolic file
+directly under the explicit spool root, and must contain the exact expected queue route
+and a `WorkPayload`. `ADMITTED` means durable queue admission advanced its revision;
+`REPLAYED` means the exact WorkItem was already durably admitted. Keep the spool file for
+uncertain-result replay. Invoke `scheduler-cycle`, `scheduler-drain`, or
+`scheduler-service` separately only when execution is intended.
 
 ## Run The Bounded Scheduler Service
 

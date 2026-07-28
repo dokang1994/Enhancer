@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### 2026-07-28: Receive One Durable Work Spool Through The Message Bus Before Scheduler Admission
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-28-receive-one-durable-work-spool-through-the-message-bus-before-scheduler-admission.md)
+
 ### 2026-07-28: Retain Gate 8 At Specified Next After The Bounded Service Connection
 
 Status: Accepted Decision

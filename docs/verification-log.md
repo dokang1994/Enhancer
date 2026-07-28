@@ -2757,3 +2757,29 @@ Outcome:
   warnings under `-Xlint:all -Werror`.
 - The assessment added no production/test behavior, schema, dependency, authority,
   release, or deployment.
+
+## 2026-07-28 - Connect One Durable Work Spool Through The Bus To Scheduler Admission
+
+- Test-first: the focused compile failed on the missing
+  `DurableWorkMessageReceiver`, receive result/status, and
+  `SchedulerReceiveWorkCliCommand` contracts. The failure was aligned with the active
+  task and accepted point-receiver decision. A test-store checked-exception signature
+  was then corrected without changing the production contract.
+- The focused GREEN tests passed for `DurableWorkMessageReceiverTest` and
+  `CliArgumentsTest`, covering exact route and Work-payload refusal, first durable
+  admission, exact replay without revision, changed-content identity reuse, canonical
+  point arguments, and priority.
+- `EnhancerCliSchedulerReceiveWorkIntegrationTest` passed on a real filesystem. It sent
+  through `FileSpoolMessageTransport`, received through the supported command and real
+  Message Bus, completed through a separately invoked process-isolated
+  `scheduler-service`, and proved exact re-receipt retained one terminal queue revision,
+  one AgentRun, and one RunRecord. Missing and corrupt point artifacts were refused
+  before queue mutation; the symbolic-link case was skipped where Windows did not grant
+  link creation.
+- The fresh strict `clean build --no-daemon --rerun-tasks` passed 625 tests across 121
+  suites: 621 passed, four Windows symbolic-link privilege-dependent cases skipped, and
+  zero failures or errors. Production and test compilation passed the repository's
+  warning-as-error settings.
+- No spool acknowledgement/deletion/rename, directory scan, queue creation, combined
+  receive-and-execute wrapper, durable bus journal, schema, dependency, authority,
+  external effect, commit, push, release, or deployment was added.
