@@ -2,53 +2,55 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Deliver the completed governed Work spool publication, acknowledgement, Gate 7
-assessment, and isolated Result Message Bus connection through one reviewed commit on
-`main`, synchronize with the remote, and push the resulting `main` to `origin/main`.
+Deliver the completed Control spool receiver/publisher, isolated-worker Work Message Bus
+ingress, Gate 7 reassessment, and Gate 8 maturity reassessment through a reviewed commit
+on `main`, integrate the latest remote `main`, and push the resulting branch.
 
 ## Task ID
 
-deliver-gate-7-work-and-result-connections
+deliver-control-work-and-gate-8-assessment
 
 ## Context
 
-The completed local increments are verified but uncommitted on `main`. The user has now
-explicitly authorized commit, push, and merge to `origin/main`.
+The completed local increments are verified but intentionally uncommitted on `main`.
+The user has now explicitly authorized commit, push, and integration with remote `main`.
 
 ## Justified By
 
-- 2026-07-28: Route The Existing Isolated Worker Result Point Through The Message Bus Next
-- 2026-07-28: Expose Governed Work Spool Publication Before Other Gate 7 Reliability Branches
-- 2026-07-28: Acknowledge Retained Work Spools Before Persisting The Message Bus Journal
+- 2026-07-29: Receive One Control Spool Through The Message Bus Into Durable Request State
+- 2026-07-29: Publish Untrusted Control Intent From Existing Goal State
+- 2026-07-29: Route Isolated Worker Work Through The Message Bus Before More Gate 7 Infrastructure
+- 2026-07-29: Stop Adding Unowned Gate 7 Connections And Reassess Gate 8
+- 2026-07-29: Retain Gate 8 And Specify Explicit Runtime Events Next
 
 ## Acceptance Criteria
 
 - Reconcile the empty checkpoint, complete working-tree diff, current branch, local
   HEAD, and freshly fetched `origin/main`.
-- Preserve all verified scoped implementation, tests, decisions, and owned document
-  updates in one non-amending commit.
+- Preserve all completed production, test, decision, and owned-document changes in one
+  non-amending commit.
 - If the remote advanced, integrate it without discarding local or remote history and
   rerun proportionate verification after integration.
 - Ensure the intended final branch is `main`; avoid a meaningless merge commit when the
   work is already directly on `main`.
-- Push `main` to `origin/main` and verify the local HEAD, remote-tracking ref, and remote
-  branch resolve to the same commit.
-- Keep the development checkpoint through commit, remote synchronization, push, and
-  final Git verification, then mark it stable and clear it.
+- Push `main` to `origin/main` and verify local HEAD, remote-tracking `main`, and the
+  remote branch resolve to the same commit.
+- Keep the checkpoint through commit, remote integration, push, and final Git
+  verification, then mark it stable and clear it.
 
 ## Out Of Scope
 
 History rewrite, force push, destructive reset, release, tag, deployment, pull request,
-remote issue/comment, schema or dependency change, new production/test behavior, or
+remote issue/comment, new production/test behavior, schema or dependency change, or
 unrelated cleanup.
 
 ## Approval
 
-The user explicitly requested commit, push, and merge to `origin/main`.
+The user explicitly requested commit, push, and merge to `main`.
 
 ## Allowed Tools
 
@@ -63,19 +65,15 @@ The user explicitly requested commit, push, and merge to `origin/main`.
 
 ## Verification
 
-Verified on 2026-07-28.
-
-- The development checkpoint was empty before delivery and the complete staged diff
-  passed `git diff --cached --check`.
-- Fresh `git fetch origin main` showed local HEAD and `origin/main` both at `18a5ee7`
-  with zero commits on either side, so no merge commit was necessary.
-- Commit `974276e` preserved the verified scoped implementation, tests, decisions, and
-  owned document updates without amending or rewriting history.
-- `git push origin main:main` advanced `origin/main` from `18a5ee7` to `974276e`.
-- A fresh remote query resolved `refs/heads/main` to the exact local commit
-  `974276ef2c51b9fa7ec506768f21b323b15c6438`.
+Fresh pre-delivery `clean build --no-daemon --rerun-tasks --warning-mode all` passed
+644 tests across 127 suites: 640 passed, four Windows privilege-dependent symbolic-link
+cases skipped, and zero failures or errors. `git diff --check` passed. Fresh fetch found
+local HEAD and `origin/main` both at `3ee633b1acd8b48372c6a6f87cc7f5e3d4d58e7a`
+with zero commits on either side, so no pre-commit merge is required. Commit, push, and
+post-push identity verification remain pending.
 
 ## Next
 
-After delivery, reassess the remaining Gate 7 Control, Handoff, topic, reliability,
-durable-journal, and retention branches.
+After delivery, specify the bounded Gate 8 runtime-event taxonomy,
+identity/provenance, persistence, and publication ownership for retry, stagnation,
+timeout, cancellation, verification, and completion.

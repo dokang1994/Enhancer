@@ -327,6 +327,44 @@ the original `.transport` input name for uncertain-result replay. Invoke
 `scheduler-cycle`, `scheduler-drain`, or `scheduler-service` separately only when
 execution is intended.
 
+## Receive One Durable Control Spool
+
+`scheduler-spool-control` derives one untrusted Control intent from an existing active
+Goal with a current non-terminal AgentRun and publishes it to one explicit local spool:
+
+```powershell
+.\scripts\gradle.ps1 run --args="scheduler-spool-control --runtime-root C:\Enhancer\.enhancer\runtime --goal-id <canonical-goal-uuid> --transport-spool-root C:\Enhancer\.enhancer\transport --destination-name runtime-controls --max-pending-publications 256 --message-id <new-canonical-message-uuid> --producer local-operator --occurred-at 2026-07-29T04:00:00Z --signal PAUSE --reason review-before-continuing"
+```
+
+The command reads runtime state directly and never performs runtime recovery or lease
+reclamation. Correlation, logical-run, and causation come only from the Goal's retained
+Work envelope; the caller owns the new message identity, producer, time, signal, and
+reason. `ACCEPTED` means only that the file-spool hop retained the intent and returns
+its exact `messageFile`. `BACKPRESSURED` and `UNAVAILABLE` return no point and create no
+durable request. `CANCEL`, `PAUSE`, and `RESUME` remain untrusted data.
+
+Pass an accepted filename to the separate receiver. `scheduler-receive-control`
+point-resolves one retained transport artifact, publishes
+its unchanged Control envelope through the real Message Bus, persists the exact request
+in an existing active Goal ledger, and acknowledges the point only after persistence:
+
+```powershell
+.\scripts\gradle.ps1 run --args="scheduler-receive-control --transport-spool-root C:\Enhancer\.enhancer\transport --message-file <canonical-message-file>.transport --destination-name runtime-controls --runtime-root C:\Enhancer\.enhancer\runtime --goal-id <canonical-goal-uuid>"
+```
+
+The input name must be a canonical UUID plus `.transport`. Exactly one regular
+non-symbolic pending file or deterministic same-root `.received` file must exist and
+carry the expected queue route plus a `ControlPayload` bound to that Goal's current Work.
+`RECORDED` means the durable request revision advanced; `REPLAYED` means the exact
+request was already present. `ACKNOWLEDGED` reports the post-persistence atomic move,
+while `ALREADY_ACKNOWLEDGED` reports exact retained-point re-entry. Use the original
+`.transport` input name after an uncertain result. A missing Goal or invalid request
+leaves a pending point unacknowledged.
+
+These commands publish and record untrusted intent only. They do not authenticate or
+apply cancel, pause, or resume, call Message Bus cancellation, interrupt a worker,
+reclaim a lease, or mutate the Scheduler queue.
+
 ## Run The Bounded Scheduler Service
 
 `scheduler-service` uses the same explicit recovery inputs as `scheduler-cycle` and runs

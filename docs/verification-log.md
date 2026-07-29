@@ -2935,3 +2935,261 @@ Outcome:
   retry/dead-letter recovery, cancellation, ordering, backpressure policy, Handoff/topic
   consumer, CLI, remote transport, persisted schema, dependency, runtime/queue authority,
   commit, push, merge, release, or deployment was added.
+
+## 2026-07-29 - Reassess Remaining Gate 7 Connections
+
+- Repository and decision inspection mapped the remaining Control, Handoff, topic,
+  reliability, durable-journal, and retention branches to their implemented contracts,
+  real collaborators, missing production connections, and owning gates.
+- Control already has a durable Gate 8 request consumer and a named retry/dead-letter
+  failure connection, while authenticated application remains Gate 12. Handoff remains
+  Gate 13 work, topic lacks an accepted producer/consumer catalog, and cancellation,
+  cascade ordering, and pending-queue backpressure lack named production flows.
+- Durable journaling remains blocked on subscription checkpoints, truncation ownership,
+  additional durable consumers, and cross-store recovery ordering. Retention requires a
+  separate bounded cleanup policy and destructive authority.
+- The selected next connection is an explicit local Control spool point through the real
+  Message Bus into the existing durable Goal request ledger, with atomic acknowledgement
+  only after persistence and no application of unauthenticated control authority.
+- The first structural run executed 19 focused tests and correctly failed one
+  `DocumentOwnershipTest` case because `CURRENT_TASK.md` duplicated Gate 7 maturity.
+  The duplicate was removed rather than synchronized.
+- Fresh `DecisionLogIndexTest`, `DocumentOwnershipTest`,
+  `RepositoryTaskPlannerTest`, and `ProjectContextReaderTest` verification then passed
+  19 tests across four suites with one privilege-dependent Windows symbolic-link setup
+  skip and zero failures or errors. `git diff --check` also passed.
+- No production/test behavior, spool mutation, runtime state, queue state, durable bus
+  store, cleanup/deletion, schema, dependency, authenticated authority, commit, push,
+  release, deployment, or remote state changed.
+
+## 2026-07-29 - Receive One Control Spool Into Durable Request State
+
+- Focused RED failed at test compilation with ten missing-symbol errors because
+  `DurableControlMessageReceiver`, `DurableControlMessageReceiveResult`, and
+  `DurableControlMessageReceiveStatus` did not yet exist. The failure matched the active
+  task, accepted decision, Architecture, and existing runtime settings.
+- The minimum receiver validates the exact queue route and `ControlPayload` before
+  runtime resolution, publishes through a fresh `InProcessMessageBus` subscription
+  backed by `RuntimeControlAdmissionHandler`, and reports `RECORDED` only when the
+  durable Goal revision advances; exact replay reports `REPLAYED` without a revision.
+- The supported `scheduler-receive-control` command resolves one explicit pending or
+  acknowledged point, reuses the Work receiver's regular/non-symbolic point checks and
+  same-directory atomic acknowledgement, and moves a pending file only after the durable
+  request exists.
+- Named real-filesystem coverage proves spool publication, real bus delivery, durable
+  request persistence, atomic acknowledgement, exact acknowledged re-entry, ambiguous
+  point refusal before mutation, and missing-Goal refusal with the pending point
+  retained. Unit coverage proves foreign route/payload refusal and changed-content
+  identity reuse failure.
+- Focused GREEN plus adjacent Work receiver, Control admission, and CLI argument
+  regression passed 39 tests across five suites: 38 passed, one Windows
+  privilege-dependent symbolic-link setup skipped, and zero failures or errors.
+- The first strict full-build invocation reached test compilation but exceeded the
+  initial 120-second tool limit and emitted no test-result XML, so it was not counted as
+  success.
+- A fresh `clean build --no-daemon --rerun-tasks --warning-mode all` then completed in
+  2m 3s and passed 638 tests across 124 suites: 634 passed, four Windows
+  privilege-dependent symbolic-link cases skipped, and zero failures or errors.
+- No Control authentication/application, bus cancellation, worker interruption, lease
+  reclamation, Scheduler queue mutation, governed Control producer, directory
+  consumption, cleanup/deletion, durable bus journal, Handoff/topic behavior, schema,
+  dependency, commit, push, release, deployment, or remote state was added.
+
+## 2026-07-29 - Select An Untrusted Control Intent Publisher
+
+- Repository inspection confirmed that `AgentRuntimeStateStore.resolve` reads one
+  existing Goal without invoking `DurableAgentRuntime` recovery or lease reclamation,
+  and that the retained Work envelope already owns the exact correlation, logical-run,
+  and causal message binding required by a Control envelope.
+- The selected next increment is a separate `scheduler-spool-control` command restricted
+  to an `ACTIVE` Goal with a current non-terminal AgentRun. Caller input supplies only
+  the new message identity, producer, occurrence time, signal, and reason; publication
+  remains untrusted intent and transport acceptance only.
+- Handoff and topic still lack production consumers, cancellation/cascade/backpressure
+  still lack named application flows, durable journaling still lacks checkpoint and
+  truncation ownership, and retention still requires destructive cleanup authority.
+- An initial verification invocation used three incorrect test package paths and
+  therefore ran only `ProjectContextReaderTest`; it was not counted as the required
+  structural result.
+- The corrected fresh structural verification passed 19 tests across
+  `DecisionLogIndexTest`, `DocumentOwnershipTest`, `RepositoryTaskPlannerTest`, and
+  `ProjectContextReaderTest`: 18 passed, one Windows privilege-dependent symbolic-link
+  setup skipped, and zero failures or errors. `git diff --check` also passed.
+- No production/test behavior, runtime or spool mutation, authentication/application,
+  lease recovery, queue/worker state, durable journal, cleanup/deletion, schema,
+  dependency, commit, push, release, deployment, or remote state was added.
+
+## 2026-07-29 - Publish Untrusted Control Intent From Goal State
+
+- Focused RED failed at test compilation with six missing-symbol errors because
+  `ControlSpoolPublisher` did not exist. The failure matched the active task, accepted
+  decision, Architecture, and repository settings.
+- The minimum publisher directly resolves `AgentRuntimeStateStore`, requires an
+  `ACTIVE` Goal with a current non-terminal AgentRun, derives correlation, logical-run,
+  and causation from the exact retained Work envelope, and sends caller-owned intent
+  metadata through `FileSpoolMessageTransport`.
+- The supported `scheduler-spool-control` command reports only hop-level status and an
+  accepted point filename. Missing/inactive runtime is a bounded configuration failure;
+  backpressure creates no second point or durable request.
+- Named real-filesystem coverage passes the accepted point to the separate existing
+  `scheduler-receive-control` command and proves exact binding, real Message Bus
+  delivery, durable request persistence, and atomic acknowledgement without applying
+  the signal.
+- Focused GREEN passed five tests. Adjacent Control publisher/receiver/admission,
+  Work-spool, and CLI regression passed 40 tests across seven suites with no skips,
+  failures, or errors.
+- The fresh strict `clean build --no-daemon --rerun-tasks --warning-mode all` completed
+  in 1m 33s and passed 643 tests across 126 suites: 639 passed, four Windows
+  privilege-dependent symbolic-link cases skipped, and zero failures or errors.
+- No authentication/application, bus cancellation, runtime recovery, lease reclamation,
+  worker interruption, Scheduler queue mutation, directory scan/consumption,
+  automatic retry timing, durable bus journal, cleanup/deletion/retention, Handoff/topic
+  behavior, schema, dependency, commit, push, release, deployment, or remote state was
+  added.
+
+## 2026-07-29 - Verify Synchronized Control Publisher Documents
+
+- Fresh `DecisionLogIndexTest`, `DocumentOwnershipTest`,
+  `RepositoryTaskPlannerTest`, and `ProjectContextReaderTest` verification passed 19
+  tests across four suites: 18 passed, one Windows privilege-dependent symbolic-link
+  setup skipped, and zero failures or errors.
+- `git diff --check` passed after implementation-state, task, roadmap, architecture,
+  README, changelog, and verification documents were synchronized.
+
+## 2026-07-29 - Defer Unowned Gate 7 Branches And Select Isolated Work Ingress
+
+- Production-call inspection found no topic destination, `HandoffPayload`,
+  dead-letter re-delivery, Message Bus cancellation, or re-entrant pending-queue
+  reliability caller outside Gate 7 contract tests.
+- Directory consumption still requires discovery/claim/ordering/concurrency/restart
+  policy; durable journaling still requires subscriber checkpoints, truncation, and
+  cross-store recovery ownership; retention still requires destructive cleanup and
+  audit/replay authority.
+- The selected next connection is the existing isolated-worker Work point: the parent
+  producer, exact queue-addressed spool, child execution consumer, and bounded
+  Goal/AgentRun invocation namespace already exist, while the child currently calls
+  execution directly after transport decode.
+- The next implementation will route that unchanged message through a fresh real
+  Message Bus queue, require exactly one `DELIVERED` result, and make a foreign route
+  `UNROUTED` before execution or Result publication without adding another protocol or
+  reliability policy.
+- The first structural run executed 19 tests and correctly failed one
+  `DocumentOwnershipTest` because `CURRENT_TASK.md` duplicated Gate 7 maturity. The
+  duplicate was removed rather than synchronized.
+- Corrected fresh `DecisionLogIndexTest`, `DocumentOwnershipTest`,
+  `RepositoryTaskPlannerTest`, and `ProjectContextReaderTest` verification passed 19
+  tests across four suites: 18 passed, one Windows privilege-dependent symbolic-link
+  setup skipped, and zero failures or errors. `git diff --check` also passed.
+- No production/test behavior, message delivery, execution, RunRecord/evidence state,
+  spool mutation, durable journal, scan, cleanup/deletion, schema, dependency, authority,
+  commit, push, release, deployment, or remote state changed.
+
+## 2026-07-29 - Prepare Session Handoff After Gate 7 Reassessment
+
+- `SESSION_HANDOFF.md` now records the intentionally uncommitted working tree, confirms
+  the selected isolated-worker Work-ingress implementation has not started, and gives
+  the required next-session recovery entry point without duplicating canonical state or
+  verification evidence.
+- Fresh structural verification passed 19 tests across four suites: 18 passed, one
+  Windows privilege-dependent symbolic-link setup skipped, and zero failures or errors.
+- `git diff --check` passed and the complete changed-path inventory was reviewed.
+- No production/test behavior, implementation task, commit, push, release, deployment,
+  cleanup, deletion, or remote state changed during session close.
+
+## 2026-07-29 - Route Isolated Worker Work Through The Message Bus
+
+- The focused RED `IsolatedWorkerMainTest` failed exactly as intended: a decoded Work
+  transport message addressed to `queue("foreign-work")` returned child exit `0`
+  instead of `EXIT_EXECUTION_FAILED`, proving the child ignored the carried destination,
+  executed directly, persisted a RunRecord, and published a Result.
+- The RED failure matched the active task, accepted decision, Architecture, and current
+  repository settings. The minimum implementation extracted
+  `IsolatedWorkMessageHandler` and published the unchanged decoded message through one
+  fresh `InProcessMessageBus` with exactly one `queue("work")` subscription.
+- The first GREEN invocation reached production compilation and failed because
+  `IsolatedWorkerMain` still caught a checked `IOException` that the extracted bus
+  boundary no longer threw directly. Removing only that unreachable catch restored the
+  existing runtime failure mapping without changing behavior or scope.
+- Focused GREEN then passed all 19 tests across `IsolatedWorkerMainTest` and
+  `ProcessIsolatedAgentRunExecutionTest`. The valid real child/file-spool/Message
+  Bus/Gate 1-4/RunRecord/Result path remained intact, and the foreign Work route became
+  `UNROUTED` before RunRecord or Result artifact creation.
+- The adjacent real-filesystem `FileSystemAgentLoopWorkerIntegrationTest` passed all
+  four tests, preserving durable process-isolated Worker completion and failure
+  behavior.
+- The fresh strict
+  `clean build --no-daemon --rerun-tasks --warning-mode all` passed 644 tests across
+  127 suites: 640 passed, four Windows privilege-dependent symbolic-link cases skipped,
+  and zero failures or errors.
+- No retry/dead-letter policy, cancellation, topic, Handoff, second Work protocol,
+  durable bus state, directory discovery, cleanup/deletion/retention, schema,
+  dependency, authority, commit, push, release, deployment, or remote state was added.
+
+## 2026-07-29 - Verify Synchronized Isolated Worker Work-Ingress Documents
+
+- Fresh `DecisionLogIndexTest`, `DocumentOwnershipTest`,
+  `RepositoryTaskPlannerTest`, and `ProjectContextReaderTest` verification passed 19
+  tests across four suites: 18 passed, one Windows privilege-dependent symbolic-link
+  setup skipped, and zero failures or errors.
+- `git diff --check` passed after architecture, state, roadmap, task, handoff,
+  verification, and changelog documents were synchronized.
+
+## 2026-07-29 - Stop Adding Unowned Gate 7 Connections And Select Gate 8 Reassessment
+
+- Production-call inspection found no topic destination, `HandoffPayload`, Message Bus
+  cancellation, dead-letter re-delivery, or re-entrant publication caller outside the
+  Gate 7 contract implementation and tests.
+- The real Work and Control point receivers create fresh buses around existing durable
+  consumers, while retained spool points already own restart recovery. Adding ephemeral
+  dead-letter state would not create a durable recovery fact.
+- Durable journaling still requires stable subscriber identities, per-consumer
+  checkpoints, truncation/compaction ownership, and cross-store recovery ordering.
+  Directory consumption still requires discovery, claim, ordering, concurrent-consumer,
+  partial-progress, and restart policy. Retention still requires bounded destructive
+  authority plus audit and replay consequences.
+- The accepted decision keeps Gate 7 at its current maturity, defers unowned branches
+  to their real Gate 12 or Gate 13 owner or a later accepted durability/retention
+  policy, and selects a fresh Gate 8 exit-criterion reassessment.
+- The first structural run executed 19 tests and correctly failed one
+  `DocumentOwnershipTest` because `CURRENT_TASK.md` duplicated the Gate 7 maturity fact.
+  The duplicate was removed rather than synchronized.
+- Corrected fresh `DecisionLogIndexTest`, `DocumentOwnershipTest`,
+  `RepositoryTaskPlannerTest`, and `ProjectContextReaderTest` verification passed 19
+  tests across four suites: 18 passed, one Windows privilege-dependent symbolic-link
+  setup skipped, and zero failures or errors. `git diff --check` also passed.
+- No production/test behavior, bus or spool mutation, durable journal, scan,
+  cleanup/deletion/retention, schema, dependency, authenticated control, multi-agent
+  behavior, authority, commit, push, release, deployment, or remote state changed.
+
+## 2026-07-29 - Reassess Gate 8 After Isolated Work Message Bus Ingress
+
+- Every Gate 8 scope item and exit criterion was mapped to a named production connection
+  or an exact missing integration and owning delivery gate.
+- The process-isolated Work and Result paths now both cross real Message Bus queues,
+  satisfying the supported single-agent worker-communication criterion.
+- Durable interruption/restart recovery, scheduling authority preservation, supported
+  duplicate/lost-acknowledgement/lease-expiry/migration fixtures, and explicit
+  external-effect outcomes retain named evidence.
+- The bounded single-agent Scheduler/runtime foundation is Integrated, while the whole
+  gate remains `Specified - Next`: Gate 8 still owns the explicit runtime-event contract,
+  and Gates 9 through 13 own budgets, Memory, authenticated control application,
+  production adapters, and role workers.
+- Fresh `DecisionLogIndexTest`, `DocumentOwnershipTest`,
+  `RepositoryTaskPlannerTest`, and `ProjectContextReaderTest` verification passed 19
+  tests across four suites: 18 passed, one Windows privilege-dependent symbolic-link
+  setup skipped, and zero failures or errors. `git diff --check` passed.
+- No production/test behavior, schema, dependency, control application, model or context
+  budget, Memory behavior, external adapter, background or role worker, authority,
+  commit, push, release, deployment, or remote state changed.
+
+## 2026-07-29 - Pre-Delivery Verification For Control Work And Gate 8 Assessment
+
+- Fresh `git fetch origin main --prune` found local HEAD and `origin/main` both at
+  `3ee633b1acd8b48372c6a6f87cc7f5e3d4d58e7a`, with zero commits on either side; no
+  pre-commit merge is required.
+- Fresh strict `clean build --no-daemon --rerun-tasks --warning-mode all` passed 644
+  tests across 127 suites: 640 passed, four Windows privilege-dependent symbolic-link
+  cases skipped, and zero failures or errors.
+- `git diff --check` passed before staging.
+- Commit, push, and post-push identity verification remain pending and are not inferred
+  from this pre-delivery evidence.

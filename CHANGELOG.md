@@ -1,5 +1,76 @@
 # Changelog
 
+## 2026-07-29 - Retain Gate 8 And Select Explicit Runtime Events
+
+- Reassessed every Gate 8 scope item and exit criterion after both process-isolated Work
+  and Result crossed real Message Bus queues.
+- Classified the bounded single-agent Scheduler/runtime foundation as Integrated while
+  retaining the whole gate at `Specified - Next`.
+- Confirmed durable interruption recovery, authority preservation, supported
+  duplicate/lost-ack/lease/migration recovery, and recorded external-effect outcomes.
+- Assigned budgets, Memory, authenticated controls, production adapters, and role
+  workers to Gates 9 through 13 and selected the Gate 8-owned explicit runtime-event
+  contract as the next bounded task.
+
+## 2026-07-29 - Stop Adding Unowned Gate 7 Connections
+
+- Reassessed every remaining Gate 7 topic, Handoff, reliability, durable-journal,
+  directory-consumption, and retention branch after isolated child Work ingress.
+- Confirmed that no production owner exists for topic, Handoff, cancellation,
+  dead-letter re-delivery, re-entrant ordering, or in-process pending backpressure.
+- Deferred durable journaling, directory consumption, and retention until their
+  checkpoint/compaction, claim/restart, cleanup-authority, and audit/replay policies are
+  accepted.
+- Kept Gate 7 at Contract Verified and selected a fresh Gate 8 maturity reassessment
+  using the current process-isolated Work/Result Message Bus evidence.
+
+## 2026-07-29 - Route Isolated Worker Work Through The Message Bus
+
+- Added `IsolatedWorkMessageHandler` to construct the exact parent-identified WorkItem,
+  invoke the unchanged Gate 1-4 execution boundary, and expose the persisted RunRecord
+  reference/status only after handler success.
+- Routed the decoded child Work transport message through a fresh
+  `InProcessMessageBus` queue and required exactly one `DELIVERED` outcome before Result
+  publication.
+- Made a foreign Work destination reach `UNROUTED` before execution, RunRecord
+  persistence, or Result publication while preserving the existing child exit codes,
+  spool format, identities, evidence, RunRecord, restart, and parent Result-validation
+  contracts.
+- Focused and adjacent process-isolated verification passed 23 tests with no skips,
+  failures, or errors. The fresh strict full build passed 644 tests across 127 suites:
+  640 passed, four Windows privilege-dependent symbolic-link cases skipped, and zero
+  failures or errors.
+
+## 2026-07-29 - Publish Goal-Bound Control Intent Without Applying It
+
+- Added `ControlSpoolPublisher` and `scheduler-spool-control` to read one existing
+  active/non-terminal Goal without recovery and derive correlation, logical-run, and
+  causation solely from its retained Work envelope.
+- Preserved caller ownership of the new message identity, producer, occurrence time,
+  signal, and reason while reporting only file-spool `ACCEPTED`, `BACKPRESSURED`, or
+  `UNAVAILABLE`.
+- Connected the accepted point to the separate existing Control receiver in a named
+  real-filesystem integration, proving exact durable request admission and atomic
+  acknowledgement without authentication or application.
+- Focused and adjacent regression passed 40 tests, and the fresh strict full build
+  passed 643 tests across 126 suites: 639 passed, four Windows privilege-dependent
+  symbolic-link cases skipped, and zero failures or errors.
+
+## 2026-07-29 - Receive Durable Control Spools Without Applying Them
+
+- Added `scheduler-receive-control` for one explicitly named pending or acknowledged
+  local transport point.
+- Connected the unchanged `ControlPayload` through the real Message Bus to the existing
+  durable Goal request ledger, distinguishing newly recorded intent from exact
+  revision-free replay.
+- Reused the Work receiver's exact point validation and same-directory atomic
+  acknowledgement pattern, moving a pending point only after durable persistence.
+- Kept Control authentication, application, bus cancellation, worker interruption,
+  lease or queue mutation, directory consumption, cleanup, and durable journaling out
+  of the connection.
+- The fresh strict full build passed 638 tests across 124 suites: 634 passed, four
+  Windows privilege-dependent symbolic-link cases skipped, and zero failures or errors.
+
 ## 2026-07-28 - Route Isolated Worker Results Through The Message Bus
 
 - Extracted exact isolated Result and RunRecord validation into a bounded queue handler

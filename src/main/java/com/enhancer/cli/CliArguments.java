@@ -2,6 +2,7 @@ package com.enhancer.cli;
 
 import com.enhancer.runtime.AgentRunLease;
 import com.enhancer.bus.BackpressurePolicy;
+import com.enhancer.bus.ControlSignal;
 import com.enhancer.runtime.AgentRunRetryPolicy;
 import com.enhancer.runtime.IsolatedWorkerLauncher;
 import com.enhancer.runtime.SchedulerPriority;
@@ -124,6 +125,12 @@ final class CliArguments {
             "required-capability");
     private static final Set<String> SCHEDULER_RECEIVE_WORK_OPTIONAL_OPTIONS =
             Set.of("priority");
+    private static final Set<String> SCHEDULER_RECEIVE_CONTROL_OPTIONS = Set.of(
+            "transport-spool-root",
+            "message-file",
+            "destination-name",
+            "runtime-root",
+            "goal-id");
     private static final Set<String> SCHEDULER_SPOOL_WORK_OPTIONS = Set.of(
             "project-root",
             "transport-spool-root",
@@ -137,6 +144,17 @@ final class CliArguments {
             "occurred-at",
             "target-path",
             "expected-sha256");
+    private static final Set<String> SCHEDULER_SPOOL_CONTROL_OPTIONS = Set.of(
+            "runtime-root",
+            "goal-id",
+            "transport-spool-root",
+            "destination-name",
+            "max-pending-publications",
+            "message-id",
+            "producer",
+            "occurred-at",
+            "signal",
+            "reason");
     private static final Set<String> SCHEDULER_SUBMIT_OPTIONS = Set.of(
             "project-root",
             "submission-root",
@@ -189,7 +207,8 @@ final class CliArguments {
                             + "scheduler-external-effect-status, "
                             + "scheduler-invocation-status, scheduler-cycle, "
                             + "scheduler-drain, scheduler-service, "
-                            + "scheduler-receive-work, scheduler-spool-work, "
+                            + "scheduler-receive-work, scheduler-receive-control, "
+                            + "scheduler-spool-work, scheduler-spool-control, "
                             + "scheduler-migrate-cycle-checkpoint, "
                             + "scheduler-migrate-queue, "
                             + "scheduler-migrate-submission-manifest, or "
@@ -251,8 +270,14 @@ final class CliArguments {
                             arguments,
                             SCHEDULER_RECEIVE_WORK_OPTIONS,
                             SCHEDULER_RECEIVE_WORK_OPTIONAL_OPTIONS));
+            case "scheduler-receive-control" -> parseSchedulerReceiveControl(
+                    parseOptions(
+                            arguments,
+                            SCHEDULER_RECEIVE_CONTROL_OPTIONS));
             case "scheduler-spool-work" -> parseSchedulerSpoolWork(
                     parseOptions(arguments, SCHEDULER_SPOOL_WORK_OPTIONS));
+            case "scheduler-spool-control" -> parseSchedulerSpoolControl(
+                    parseOptions(arguments, SCHEDULER_SPOOL_CONTROL_OPTIONS));
             case "scheduler-submit" -> parseSchedulerSubmit(
                     parseOptions(
                             arguments,
@@ -537,15 +562,7 @@ final class CliArguments {
 
     private static SchedulerReceiveWorkCliCommand parseSchedulerReceiveWork(
             Map<String, String> options) {
-        String file = nonBlank(options.get("message-file"), "message-file");
-        String suffix = ".transport";
-        if (!file.endsWith(suffix)) {
-            throw new CliUsageException(
-                    "message-file must be a canonical UUID transport filename");
-        }
-        canonicalUuid(
-                file.substring(0, file.length() - suffix.length()),
-                "message-file");
+        String file = canonicalTransportFile(options.get("message-file"));
         return new SchedulerReceiveWorkCliCommand(
                 path(options.get("transport-spool-root"), "transport-spool-root"),
                 file,
@@ -554,6 +571,29 @@ final class CliArguments {
                 canonicalUuid(options.get("queue-id"), "queue-id"),
                 nonBlank(options.get("required-capability"), "required-capability"),
                 priority(options.get("priority")));
+    }
+
+    private static SchedulerReceiveControlCliCommand parseSchedulerReceiveControl(
+            Map<String, String> options) {
+        return new SchedulerReceiveControlCliCommand(
+                path(options.get("transport-spool-root"), "transport-spool-root"),
+                canonicalTransportFile(options.get("message-file")),
+                nonBlank(options.get("destination-name"), "destination-name"),
+                path(options.get("runtime-root"), "runtime-root"),
+                canonicalUuid(options.get("goal-id"), "goal-id"));
+    }
+
+    private static String canonicalTransportFile(String value) {
+        String file = nonBlank(value, "message-file");
+        String suffix = ".transport";
+        if (!file.endsWith(suffix)) {
+            throw new CliUsageException(
+                    "message-file must be a canonical UUID transport filename");
+        }
+        canonicalUuid(
+                file.substring(0, file.length() - suffix.length()),
+                "message-file");
+        return file;
     }
 
     private static SchedulerSpoolWorkCliCommand parseSchedulerSpoolWork(
@@ -584,6 +624,36 @@ final class CliArguments {
                 instant(options.get("occurred-at"), "occurred-at"),
                 nonBlank(options.get("target-path"), "target-path"),
                 digest);
+    }
+
+    private static SchedulerSpoolControlCliCommand parseSchedulerSpoolControl(
+            Map<String, String> options) {
+        long maximum = positiveLong(
+                options.get("max-pending-publications"),
+                "max-pending-publications");
+        if (maximum > BackpressurePolicy.MAX_PENDING_PUBLICATIONS) {
+            throw new CliUsageException(
+                    "max-pending-publications must not exceed "
+                            + BackpressurePolicy.MAX_PENDING_PUBLICATIONS);
+        }
+        ControlSignal signal;
+        try {
+            signal = ControlSignal.valueOf(options.get("signal"));
+        } catch (IllegalArgumentException exception) {
+            throw new CliUsageException(
+                    "signal must be CANCEL, PAUSE, or RESUME", exception);
+        }
+        return new SchedulerSpoolControlCliCommand(
+                path(options.get("runtime-root"), "runtime-root"),
+                canonicalUuid(options.get("goal-id"), "goal-id"),
+                path(options.get("transport-spool-root"), "transport-spool-root"),
+                nonBlank(options.get("destination-name"), "destination-name"),
+                (int) maximum,
+                canonicalUuid(options.get("message-id"), "message-id"),
+                nonBlank(options.get("producer"), "producer"),
+                instant(options.get("occurred-at"), "occurred-at"),
+                signal,
+                nonBlank(options.get("reason"), "reason"));
     }
 
     private static SchedulerSubmitCliCommand parseSchedulerSubmit(

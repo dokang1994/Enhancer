@@ -1,0 +1,218 @@
+package com.enhancer.cli;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.enhancer.bus.BackpressurePolicy;
+import com.enhancer.bus.ControlPayload;
+import com.enhancer.bus.ControlSignal;
+import com.enhancer.bus.DeliveryDestination;
+import com.enhancer.bus.FileSpoolMessageTransport;
+import com.enhancer.bus.MessageEnvelope;
+import com.enhancer.bus.TransportMessage;
+import com.enhancer.bus.WorkPayload;
+import com.enhancer.runtime.DurableAgentRuntime;
+import com.enhancer.runtime.FileSystemAgentRuntimeStateStore;
+import com.enhancer.runtime.RuntimeAgentRunStatus;
+import com.enhancer.runtime.RuntimeGoalStatus;
+import com.enhancer.runtime.WorkItem;
+import com.enhancer.workspace.ApprovedTaskRevision;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Clock;
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+class EnhancerCliSchedulerReceiveControlIntegrationTest {
+    private static final String GOAL_ID =
+            "00000000-0000-0000-0000-000000000811";
+    private static final String AGENT_RUN_ID =
+            "00000000-0000-0000-0000-000000000812";
+    private static final String WORK_ITEM_ID =
+            "00000000-0000-0000-0000-000000000813";
+    private static final String WORK_MESSAGE_ID =
+            "00000000-0000-0000-0000-000000000814";
+    private static final String CONTROL_MESSAGE_ID =
+            "00000000-0000-0000-0000-000000000815";
+    private static final String DESTINATION = "runtime-controls";
+
+    @TempDir
+    Path temporaryRoot;
+
+    @Test
+    void receivesPersistsAcknowledgesAndExactlyReplaysOneControlPoint()
+            throws Exception {
+        Path runtimeRoot = temporaryRoot.resolve("runtime");
+        Path spoolRoot = temporaryRoot.resolve("spool");
+        FileSystemAgentRuntimeStateStore store = activeRuntime(runtimeRoot);
+        MessageEnvelope control = controlMessage();
+        String messageFile = new FileSpoolMessageTransport(
+                        spoolRoot, BackpressurePolicy.of(1))
+                .sendWithReference(new TransportMessage(
+                        DeliveryDestination.queue(DESTINATION), control))
+                .messageFile()
+                .orElseThrow();
+
+        Execution recorded = execute(spoolRoot, runtimeRoot, messageFile);
+
+        assertEquals(0, recorded.exitCode());
+        assertTrue(recorded.stdout().contains("status=RECORDED"));
+        assertTrue(recorded.stdout().contains("spoolStatus=ACKNOWLEDGED"));
+        assertTrue(recorded.stdout().contains("goalId=" + GOAL_ID));
+        assertTrue(recorded.stdout().contains("messageId=" + CONTROL_MESSAGE_ID));
+        assertTrue(recorded.stdout().contains("signal=PAUSE"));
+        Path acknowledged = spoolRoot.resolve(
+                messageFile.replace(".transport", ".received"));
+        assertFalse(Files.exists(spoolRoot.resolve(messageFile)));
+        assertTrue(Files.isRegularFile(acknowledged));
+        DurableAgentRuntime afterRecord = DurableAgentRuntime.recover(
+                GOAL_ID, store, Clock.systemUTC());
+        long revision = afterRecord.revision();
+        assertEquals(List.of(control), afterRecord.controlRequests());
+        assertEquals(RuntimeGoalStatus.ACTIVE, afterRecord.goal().status());
+        assertEquals(RuntimeAgentRunStatus.READY,
+                afterRecord.agentRun().orElseThrow().status());
+
+        Execution replayed = execute(spoolRoot, runtimeRoot, messageFile);
+
+        assertEquals(0, replayed.exitCode());
+        assertTrue(replayed.stdout().contains("status=REPLAYED"));
+        assertTrue(replayed.stdout().contains(
+                "spoolStatus=ALREADY_ACKNOWLEDGED"));
+        DurableAgentRuntime afterReplay = DurableAgentRuntime.recover(
+                GOAL_ID, store, Clock.systemUTC());
+        assertEquals(revision, afterReplay.revision());
+        assertEquals(List.of(control), afterReplay.controlRequests());
+        assertFalse(Files.exists(spoolRoot.resolve(messageFile)));
+        assertTrue(Files.isRegularFile(acknowledged));
+    }
+
+    @Test
+    void ambiguousPointFailsBeforeRuntimeMutation() throws Exception {
+        Path runtimeRoot = temporaryRoot.resolve("ambiguous-runtime");
+        Path spoolRoot = temporaryRoot.resolve("ambiguous-spool");
+        FileSystemAgentRuntimeStateStore store = activeRuntime(runtimeRoot);
+        String messageFile = new FileSpoolMessageTransport(
+                        spoolRoot, BackpressurePolicy.standard())
+                .sendWithReference(new TransportMessage(
+                        DeliveryDestination.queue(DESTINATION), controlMessage()))
+                .messageFile()
+                .orElseThrow();
+        Files.copy(
+                spoolRoot.resolve(messageFile),
+                spoolRoot.resolve(messageFile.replace(".transport", ".received")));
+        long revision = store.resolve(GOAL_ID).revision();
+
+        Execution execution = execute(spoolRoot, runtimeRoot, messageFile);
+
+        assertEquals(CliExitCode.USAGE_OR_CONFIGURATION.code(), execution.exitCode());
+        assertTrue(execution.stderr().contains(
+                "must resolve exactly one pending or acknowledged"));
+        assertEquals(revision, store.resolve(GOAL_ID).revision());
+        assertEquals(List.of(), store.resolve(GOAL_ID).controlRequests());
+    }
+
+    @Test
+    void missingGoalLeavesThePendingControlPointUnacknowledged() throws Exception {
+        Path runtimeRoot = temporaryRoot.resolve("missing-runtime");
+        Path spoolRoot = temporaryRoot.resolve("missing-spool");
+        String messageFile = new FileSpoolMessageTransport(
+                        spoolRoot, BackpressurePolicy.standard())
+                .sendWithReference(new TransportMessage(
+                        DeliveryDestination.queue(DESTINATION), controlMessage()))
+                .messageFile()
+                .orElseThrow();
+
+        Execution execution = execute(spoolRoot, runtimeRoot, messageFile);
+
+        assertEquals(CliExitCode.USAGE_OR_CONFIGURATION.code(), execution.exitCode());
+        assertTrue(execution.stderr().contains(
+                "runtime configuration is invalid"));
+        assertTrue(Files.isRegularFile(spoolRoot.resolve(messageFile)));
+        assertFalse(Files.exists(spoolRoot.resolve(
+                messageFile.replace(".transport", ".received"))));
+    }
+
+    private FileSystemAgentRuntimeStateStore activeRuntime(Path runtimeRoot)
+            throws Exception {
+        FileSystemAgentRuntimeStateStore store =
+                new FileSystemAgentRuntimeStateStore(runtimeRoot);
+        DurableAgentRuntime runtime = DurableAgentRuntime.create(
+                GOAL_ID, workItem(), store, Clock.systemUTC());
+        runtime.beginAgentRun(AGENT_RUN_ID);
+        runtime.markReady(AGENT_RUN_ID);
+        return store;
+    }
+
+    private Execution execute(
+            Path spoolRoot,
+            Path runtimeRoot,
+            String messageFile) throws Exception {
+        ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+        ByteArrayOutputStream stderr = new ByteArrayOutputStream();
+        int exitCode;
+        try (PrintStream out = new PrintStream(
+                        stdout, true, StandardCharsets.UTF_8);
+                PrintStream err = new PrintStream(
+                        stderr, true, StandardCharsets.UTF_8)) {
+            exitCode = new EnhancerCli().execute(new String[] {
+                    "scheduler-receive-control",
+                    "--transport-spool-root", spoolRoot.toString(),
+                    "--message-file", messageFile,
+                    "--destination-name", DESTINATION,
+                    "--runtime-root", runtimeRoot.toString(),
+                    "--goal-id", GOAL_ID
+            }, out, err);
+        }
+        return new Execution(
+                exitCode,
+                stdout.toString(StandardCharsets.UTF_8),
+                stderr.toString(StandardCharsets.UTF_8));
+    }
+
+    private static WorkItem workItem() {
+        return new WorkItem(
+                WORK_ITEM_ID,
+                "runtime-worker",
+                workMessage());
+    }
+
+    private static MessageEnvelope workMessage() {
+        return new MessageEnvelope(
+                WORK_MESSAGE_ID,
+                "control-cli-correlation",
+                Optional.empty(),
+                "control-cli-logical-run",
+                "control-cli-test",
+                Instant.parse("2026-07-29T01:30:00Z"),
+                new WorkPayload(
+                        new ApprovedTaskRevision(
+                                "connect-control-spool-to-durable-runtime-request",
+                                "CURRENT_TASK.md",
+                                "a".repeat(64)),
+                        "b".repeat(64),
+                        Set.of("read-file")));
+    }
+
+    private static MessageEnvelope controlMessage() {
+        return new MessageEnvelope(
+                CONTROL_MESSAGE_ID,
+                "control-cli-correlation",
+                Optional.of(WORK_MESSAGE_ID),
+                "control-cli-logical-run",
+                "untrusted-control-cli-test",
+                Instant.parse("2026-07-29T02:00:00Z"),
+                new ControlPayload(ControlSignal.PAUSE, "record only"));
+    }
+
+    private record Execution(int exitCode, String stdout, String stderr) {
+    }
+}

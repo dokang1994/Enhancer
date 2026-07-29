@@ -11,6 +11,36 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### 2026-07-29: Retain Gate 8 And Specify Explicit Runtime Events Next
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-29-retain-gate-8-and-specify-explicit-runtime-events-next.md)
+
+### 2026-07-29: Stop Adding Unowned Gate 7 Connections And Reassess Gate 8
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-29-stop-adding-unowned-gate-7-connections-and-reassess-gate-8.md)
+
+### 2026-07-29: Route Isolated Worker Work Through The Message Bus Before More Gate 7 Infrastructure
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-29-route-isolated-worker-work-through-the-message-bus-before-more-gate-7-infrastructure.md)
+
+### 2026-07-29: Publish Untrusted Control Intent From Existing Goal State
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-29-publish-untrusted-control-intent-from-existing-goal-state.md)
+
+### 2026-07-29: Receive One Control Spool Through The Message Bus Into Durable Request State
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-29-receive-one-control-spool-through-the-message-bus-into-durable-request-state.md)
+
 ### 2026-07-28: Route The Existing Isolated Worker Result Point Through The Message Bus Next
 
 Status: Accepted Decision

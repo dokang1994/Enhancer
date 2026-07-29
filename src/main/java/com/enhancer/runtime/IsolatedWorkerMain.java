@@ -3,7 +3,10 @@ package com.enhancer.runtime;
 import com.enhancer.bus.BackpressurePolicy;
 import com.enhancer.bus.CorruptedSpooledMessageException;
 import com.enhancer.bus.DeliveryDestination;
+import com.enhancer.bus.DeliveryOutcome;
+import com.enhancer.bus.DeliveryStatus;
 import com.enhancer.bus.FileSpoolMessageTransport;
+import com.enhancer.bus.InProcessMessageBus;
 import com.enhancer.bus.MessageEnvelope;
 import com.enhancer.bus.ResultPayload;
 import com.enhancer.bus.TransportMessage;
@@ -96,36 +99,49 @@ public final class IsolatedWorkerMain {
             return EXIT_WORK_UNREADABLE;
         }
 
-        String reference;
-        VerificationStatus status;
+        IsolatedWorkMessageHandler.Result result;
         try {
             RunRecordStore runRecordStore =
                     new FileSystemRunRecordStore(invocation.runRecordRoot());
-            WorkItem workItem = new WorkItem(
-                    invocation.workItemId(),
-                    invocation.requiredCapability(),
-                    work.envelope());
-            reference = new AgentLoopAgentRunExecution(
+            AgentLoopAgentRunExecution execution = new AgentLoopAgentRunExecution(
                     invocation.projectRoot(),
                     new FileSystemEvidenceStore(
                             invocation.evidenceRoot(),
                             new EvidenceStoragePolicy(
                                     EvidenceStoragePolicy.MAX_SUPPORTED_CONTENT_BYTES)),
                     runRecordStore,
-                    Clock.systemUTC())
-                    .executeWork(
-                            workItem,
-                            invocation.goalId(),
-                            invocation.agentRunId(),
-                            AgentRunRecordIdentity.recordId(
-                                    invocation.goalId(), invocation.agentRunId()));
-            status = runRecordStore.resolve(reference).record().verification().status();
-        } catch (IOException | RuntimeException failed) {
+                    Clock.systemUTC());
+            IsolatedWorkMessageHandler handler = new IsolatedWorkMessageHandler(
+                    invocation.workItemId(),
+                    invocation.requiredCapability(),
+                    invocation.goalId(),
+                    invocation.agentRunId(),
+                    execution,
+                    runRecordStore);
+            InProcessMessageBus bus = new InProcessMessageBus();
+            bus.subscribe(
+                    DeliveryDestination.queue(WORK_SPOOL),
+                    "isolated-work-executor",
+                    handler);
+            List<DeliveryOutcome> outcomes =
+                    bus.publish(work.destination(), work.envelope());
+            if (outcomes.size() != 1
+                    || outcomes.get(0).status() != DeliveryStatus.DELIVERED) {
+                return EXIT_EXECUTION_FAILED;
+            }
+            result = handler.acceptedResult().orElseThrow(
+                    () -> new IllegalStateException(
+                            "the delivered isolated work exposed no result"));
+        } catch (RuntimeException failed) {
             return EXIT_EXECUTION_FAILED;
         }
 
         try {
-            return publishResult(invocation, work, reference, status)
+            return publishResult(
+                            invocation,
+                            work,
+                            result.reference(),
+                            result.status())
                     ? EXIT_RESULT_PUBLISHED
                     : EXIT_RESULT_NOT_PUBLISHED;
         } catch (RuntimeException unpublishable) {

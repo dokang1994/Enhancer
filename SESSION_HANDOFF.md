@@ -10,10 +10,18 @@ the active task in `CURRENT_TASK.md`, and delivery history in `CHANGELOG.md` and
 
 ## Updated At
 
-2026-07-28
+2026-07-29
 
 ## Session-Only State
 
-- No continuation fact is held only in this handoff. Use `CURRENT_TASK.md` for the
-  active and subsequent task, `PROJECT_STATE.md` for current capability maturity,
-  `docs/verification-log.md` for evidence, and Git for branch and delivery history.
+- The working tree is intentionally uncommitted. It contains the completed bounded
+  Control receiver, untrusted Control publisher, post-Control Gate 7 reassessment, and
+  isolated-worker Work Message Bus ingress increments, plus the post-ingress decision
+  to stop adding unowned Gate 7 connections and the Gate 8 maturity reassessment.
+  No commit or push was authorized.
+- Begin the next session with the repository-required reading order and
+  `checkpoint-show`, then reconcile `CURRENT_TASK.md`, `git status`, and the complete
+  diff. The session-close checkpoint is expected to be empty after this handoff is
+  verified and cleared.
+- Verification details and the one corrected document-ownership failure are recorded
+  only in `docs/verification-log.md`; do not infer passing state from this handoff.

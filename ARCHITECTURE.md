@@ -275,6 +275,44 @@ evidence remains retained; automatic cleanup, a global retention bound, director
 consumption, and durable bus journal/subscription recovery remain separate unimplemented
 contracts.
 
+#### Durable Control Spool Point Receiver
+
+The bounded Control connection reuses the local transport point, real
+`InProcessMessageBus`, and existing persist-first `RuntimeControlAdmissionHandler`
+without applying a control signal. A separate `scheduler-receive-control` command takes
+one explicit canonical pending `.transport` filename, its spool root, an exact queue
+destination, the runtime-state root, and one Goal identity. It resolves exactly one
+regular non-symbolic pending point or deterministic same-directory `.received` point,
+decodes the unchanged envelope, and rejects a foreign destination or non-Control payload
+before runtime mutation.
+
+The receiver publishes through one fresh queue subscription and reports success only
+after the exact request is durable in the Goal ledger. A new request advances the runtime
+revision; exact replay is revision-free, while identity reuse with changed content fails
+closed. Only after successful admission does a pending point move by same-directory
+atomic rename without replacement. Acknowledged re-entry repeats decode, binding, and
+durable replay checks rather than trusting the suffix.
+
+This boundary records untrusted intent only. It does not authenticate or apply cancel,
+pause, or resume; call bus cancellation; reclaim a lease; interrupt a worker; mutate a
+Scheduler queue; scan or delete spool files; create a durable bus journal; or add
+retention policy. Gate 12 remains the authenticated application owner.
+
+The supported Control producer is intentionally narrower than authenticated control.
+`ControlSpoolPublisher`, exposed through one `scheduler-spool-control` point command,
+resolves an existing runtime
+state directly through `FileSystemAgentRuntimeStateStore`, requiring an `ACTIVE` Goal
+with a current non-terminal AgentRun and never invoking runtime recovery or lease
+reclamation. The retained Work envelope is the sole source of correlation,
+logical-run, and causal message binding; caller input supplies only the new canonical
+message identity, bounded producer and reason, occurrence time, and Control signal.
+The resulting unchanged `ControlPayload` envelope goes to an explicit queue through
+`FileSpoolMessageTransport`, whose result remains only hop-level `ACCEPTED`,
+`BACKPRESSURED`, or `UNAVAILABLE`. A separately invoked receiver remains responsible
+for Message Bus delivery, durable request admission, and acknowledgement. Publication
+creates untrusted intent only and grants no cancel, pause, resume, lease, queue, worker,
+or cleanup authority; authenticated interpretation and application remain Gate 12.
+
 The governed Work-spool publisher supplies the upstream half of this supported path.
 `scheduler-spool-work` derives one Work envelope only from the
 governed active task, repository-memory Workspace snapshot, and explicit caller metadata,
@@ -305,6 +343,16 @@ The authority is bounded to the JVM already running. The executable is resolved 
 The child is bounded like the Git adapter: output is discarded by the operating system rather than read, so a chatty child can neither block on a full pipe nor grow the parent's memory and nothing it prints can be mistaken for a result; the environment is stripped of `JAVA_TOOL_OPTIONS`, `_JAVA_OPTIONS`, and `JDK_JAVA_OPTIONS`, which would otherwise let an inherited setting inject JVM arguments; and a watchdog forcibly destroys a child that overruns its timeout, which is itself capped so a caller cannot disable it.
 
 `IsolatedWorkerMain` is the child entry point. It reads one work message from a spool through the adapter above, runs the same Gate 1-4 pipeline as the in-process execution port, persists the RunRecord, publishes a correlated `ResultPayload` to a separate result spool, and exits with a stable code. The exit code reports lifecycle completion only; the RunRecord reference returns in the result envelope.
+
+The child Work-ingress connection inserts one fresh
+`InProcessMessageBus` queue between transport decode and that unchanged execution port.
+`IsolatedWorkMessageHandler` constructs the same WorkItem from the unchanged envelope and
+parent-supplied identity/capability, executes it, resolves its persisted RunRecord status,
+and exposes reference/status only after handler success. The child publishes to the
+decoded transport message's own destination and proceeds only after exactly one
+`DELIVERED` result, so a foreign route becomes `UNROUTED` before execution or Result
+publication. This adds no retry/dead-letter policy, cancellation, topic, durable journal,
+directory discovery, cleanup, or authority.
 
 Isolation is what makes termination possible. The in-process ceiling of 64 live workers contains stuck code but cannot stop it, and that ceiling still governs in-process execution. `ProcessIsolatedAgentRunExecution` wires the launcher and file-spool adapter into the execution port, and `DurableAgentRunWorker.processIsolated` is the production composition that selects it with the real self-JVM launcher while sharing one durable queue instance between dispatch and finalization.
 
@@ -346,7 +394,15 @@ envelope is a no-revision success against the queue-owned admission history; cha
 content under the already-persisted identity fails closed rather than adding a second
 item.
 
-The work-admission path exercises `WorkPayload`, message/correlation/run/producer identity, queue delivery, journaling, replay, and duplicate suppression. Process-isolated execution separately supplies one named `MessageTransport` work/result path with non-empty result causation. Control and handoff payloads; topic delivery; and failure/retry/dead-letter, cancellation, re-entrant ordering, and backpressure branches still have no named real upstream-to-downstream production connection. Those missing connections remain required before Gate 7 can be promoted as a whole.
+The work-admission path exercises `WorkPayload`, message/correlation/run/producer
+identity, queue delivery, journaling, replay, and duplicate suppression.
+Process-isolated execution separately supplies one named `MessageTransport` work/result
+path with non-empty result causation. The supported Control producer/receiver path now
+connects `ControlPayload` from exact active-Goal binding through the file spool and real
+Message Bus to durable request admission. Handoff payload, topic delivery, and
+failure/retry/dead-letter, cancellation, re-entrant ordering, and backpressure branches
+still have no named real upstream-to-downstream production connection. Those missing
+connections remain required before Gate 7 can be promoted as a whole.
 
 ## Agent Runtime Model
 

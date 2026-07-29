@@ -440,12 +440,18 @@ Current increment:
 - Integrated maturity assessment completed: the governed Work publisher, file-spool
   transport, point receiver, in-process queue, and durable admission now form a named
   real upstream-to-downstream production connection, but Gate 7 remains Contract
-  Verified because Control/Handoff Message Bus flows, topic and
+  Verified because Handoff Message Bus flow, topic and
   failure/retry/dead-letter/cancellation/cascade-ordering branches lack named complete
   production connections;
 - deferred: durable bus persistence, broader local-process or remote IPC adapters,
   directory consumption, cleanup/retention policy, threading, and broader production
   wiring.
+- Reassessed after isolated child Work ingress: no production owner now constructs
+  topic or Handoff flow, invokes cancellation or dead-letter re-delivery, or publishes
+  re-entrantly. Durable journal, directory consumption, and retention still require
+  accepted checkpoint/compaction, claim/restart, and destructive-cleanup policies.
+  These branches remain deferred rather than receiving synthetic production callers;
+  Gate 7 remains Contract Verified.
 
 Implemented bounded connection:
 
@@ -465,6 +471,42 @@ Implemented bounded Result connection:
   restart re-entry, and Worker finalization sequence;
 - add no second result protocol, durable journal, retry/dead-letter recovery,
   acknowledgement/retention, CLI, schema, dependency, or authority.
+
+Implemented bounded isolated Work connection:
+
+- route the existing decoded child Work transport message through one fresh real
+  Message Bus queue before invoking the unchanged Gate 1-4 execution boundary;
+- require exactly one `DELIVERED` outcome before exposing the handler's persisted
+  RunRecord reference/status to Result publication;
+- make a foreign Work route `UNROUTED` before execution, RunRecord persistence, or a
+  Result point;
+- add no retry/dead-letter policy, cancellation, topic, second Work protocol, durable
+  journal, directory discovery, cleanup/retention, schema, dependency, or authority.
+
+Implemented bounded Control connection:
+
+- receive one explicitly named local Control spool point through a fresh real Message
+  Bus queue into the existing durable Goal control-request ledger;
+- validate the exact route and `ControlPayload` before runtime mutation, report only
+  after durable admission, and atomically acknowledge the retained point afterward;
+- keep the request untrusted and unapplied, leaving authenticated cancel/pause/resume
+  behavior to Gate 12;
+- add no worker interruption, queue mutation, durable bus journal, directory scan,
+  cleanup/retention, Handoff, topic catalog, or multi-agent behavior.
+
+Implemented bounded Control producer connection:
+
+- expose one separate `scheduler-spool-control` point command that directly reads an
+  existing `ACTIVE` Goal with a current non-terminal AgentRun and derives correlation,
+  logical-run, and causation only from its retained Work envelope;
+- publish the caller-supplied message identity, producer, occurrence time, Control
+  signal, and reason through `FileSpoolMessageTransport`, reporting transport
+  acceptance separately from receiver admission;
+- connect an accepted point to the existing `scheduler-receive-control` command in one
+  named real-filesystem integration;
+- create untrusted intent only, with no authentication/application, runtime recovery,
+  lease reclamation, worker interruption, queue mutation, scan, retry timing, durable
+  journal, cleanup, or retention.
 
 Dependencies:
 
@@ -497,12 +539,13 @@ Whole-gate assessment:
   priority/fairness observability, deterministic child-RunRecord recovery, lease-expiry
   recovery, disposition-acknowledgement recovery, the bounded foreground service
   connection, one supported durable spool-to-bus-to-admission point receiver, and
-  post-admission retained-point acknowledgement with exact `.received` re-entry.
-  Remaining blockers are not one interchangeable backlog: Gate 7 still owns durable bus
-  journaling, remaining reliability connections, and cleanup/retention policy; Gate 12 owns
-  authenticated control application; Gate 11 owns production external-effect handling;
-  Gates 9 and 10 own model/context budgets and Memory runtime; and Gate 13 owns
-  background/supervisor topology and role-based message workers;
+  post-admission retained-point acknowledgement with exact `.received` re-entry. The
+  isolated child Work and parent Result paths now both cross real Message Bus queues, so
+  the earlier worker-communication blocker is closed. The bounded single-agent
+  Scheduler/runtime foundation is Integrated and retains Operational explicit workflows,
+  but whole-gate promotion remains blocked by the Gate 8-owned explicit runtime-event
+  contract plus later-gate budgets, Memory, authenticated control application,
+  production adapters, and role workers;
 - existing queue-active, checkpoint, deterministic lost-acknowledgement point, and
   expired-lease recovery satisfy the accepted at-least-once correctness prefixes. A
   general orphan inventory or cleanup feature is not silently required and would need a
@@ -567,6 +610,14 @@ Whole-gate assessment:
 
 Current increment:
 
+- Contract Verified and Integrated isolated-worker Work ingress: the decoded unchanged
+  transport message publishes to its carried destination through one fresh real Message
+  Bus with exactly one `queue("work")` handler. The handler constructs the exact
+  parent-identified WorkItem, invokes the unchanged Gate 1-4 execution boundary, resolves
+  the persisted RunRecord status, and exposes reference/status only after success. A
+  foreign route is `UNROUTED` before execution, RunRecord persistence, or Result
+  publication, while the named real child-process path continues through the existing
+  Message-Bus-validated Result return without new protocol, state, or authority;
 - Contract Verified and Integrated point-receive path: `scheduler-receive-work` resolves
   exactly one explicit retained regular non-symbolic pending or acknowledged transport
   artifact, validates its exact queue route and Work payload, publishes the unchanged
@@ -656,7 +707,18 @@ Current increment:
   or additional RunRecord/effect outcome, preserves the effect artifact bytes, and
   clears the checkpoint. This satisfies the supported-migration fixture slice without a
   second schema migration or whole-gate promotion;
-- deferred: the supported durable message-bus-to-worker connection, real authorized external adapters, admission-history compaction/cleanup or schema-v1 queue migration, general orphan inventory/cleanup with an explicit retention and scan policy, general forward-reference graph/cycle handling, authenticated cancellation/pause/resume application, background/supervisor topology, time-based aging, broader budgets, checkpoints beyond current snapshots, schema-v1 runtime or effect-ledger migration, power-loss directory durability, broader multi-process and cross-store coordination, distributed locks and clock-skew handling, and broader production wiring.
+- next Gate 8-owned contract: specify the bounded durable runtime-event taxonomy,
+  identity/provenance, persistence, and publication ownership for retry, stagnation,
+  timeout, cancellation, verification, and completion without absorbing later-gate
+  detection or application policy;
+- deferred: real authorized external adapters, admission-history compaction/cleanup or
+  schema-v1 queue migration, general orphan inventory/cleanup with an explicit retention
+  and scan policy, general forward-reference graph/cycle handling, authenticated
+  cancellation/pause/resume application, background/supervisor topology, time-based
+  aging, broader budgets, checkpoints beyond current snapshots, schema-v1 runtime or
+  effect-ledger migration, power-loss directory durability, broader multi-process and
+  cross-store coordination, distributed locks and clock-skew handling, and broader
+  production wiring.
 
 Ordered connection sequence:
 

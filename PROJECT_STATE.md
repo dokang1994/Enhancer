@@ -2,15 +2,15 @@
 
 ## Updated At
 
-2026-07-28
+2026-07-29
 
 ## Repository State
 
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 264 Java files.
-- Test source: 122 Java files.
+- Production source: 274 Java files.
+- Test source: 128 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -20,6 +20,33 @@ it does not restate which commit published which increment.
 
 ### Contract Verified
 
+- Gate 7 isolated-worker Work Message Bus ingress under `com.enhancer.runtime`:
+  `IsolatedWorkerMain` publishes the unchanged decoded transport message to its carried
+  destination through one fresh `InProcessMessageBus` with exactly one `queue("work")`
+  subscription. `IsolatedWorkMessageHandler` constructs the exact parent-identified
+  WorkItem, invokes the unchanged Gate 1-4 execution boundary, resolves the persisted
+  RunRecord status, and exposes reference/status only after handler success. The child
+  proceeds only after exactly one `DELIVERED` outcome; a foreign route is `UNROUTED`
+  before execution, RunRecord persistence, or Result publication. It adds no retry,
+  dead-letter, cancellation, topic, durable journal, discovery, cleanup, or authority.
+- Gate 7 untrusted Control point publication under `com.enhancer.runtime` and
+  `com.enhancer.cli`: `ControlSpoolPublisher` directly resolves one existing runtime
+  state, requires an `ACTIVE` Goal with a current non-terminal AgentRun, and derives
+  correlation, logical-run, and causation only from its retained Work envelope.
+  `scheduler-spool-control` carries the caller's canonical message identity, bounded
+  producer/reason, occurrence time, and signal through `FileSpoolMessageTransport`,
+  reporting only `ACCEPTED`, `BACKPRESSURED`, or `UNAVAILABLE` and the accepted point
+  filename. It performs no runtime recovery, lease reclamation, request admission,
+  acknowledgement, authentication, or application.
+- Gate 7-to-Gate 8 durable Control spool point reception under
+  `com.enhancer.runtime` and `com.enhancer.cli`: `scheduler-receive-control` resolves
+  one explicit canonical regular non-symbolic pending `.transport` or deterministic
+  acknowledged `.received` point, validates the exact expected queue route and
+  `ControlPayload` before runtime mutation, publishes the unchanged envelope through
+  `InProcessMessageBus` to `RuntimeControlAdmissionHandler`, and distinguishes newly
+  `RECORDED` durable intent from revision-free `REPLAYED` intent. Pending input moves
+  atomically to `.received` only after persistence, and missing Goal state leaves it
+  pending. The connection records untrusted intent only and applies no control signal.
 - Gate 7-to-Gate 8 durable Work spool point reception under `com.enhancer.runtime` and
   `com.enhancer.cli`: `scheduler-receive-work` resolves one explicit canonical regular
   non-symbolic pending `.transport` or deterministic acknowledged `.received` point,
@@ -115,6 +142,28 @@ it does not restate which commit published which increment.
 
 ### Integrated
 
+- Delivery Gate 8 bounded single-agent Scheduler/runtime foundation: durable Goal and
+  AgentRun lifecycle, dependency-aware queueing, priority/fairness, fenced execution,
+  process-isolated Work/Result Message Bus crossings, retry, terminal verification,
+  supported migrations, restart/lost-acknowledgement recovery, and explicit
+  external-effect outcomes compose through named filesystem and child-process paths.
+  Explicit submission/cycle workflows are Operational sub-paths, but the whole gate is
+  not promoted: a unified durable runtime-event contract is absent, while budgets,
+  Memory, authenticated control application, production adapters, and role workers
+  remain owned by Gates 9 through 13.
+- Gate 7 isolated-worker Work/Result Message Bus path: the real child JVM receives the
+  parent-spooled Work transport point, routes it through the fresh Work queue into the
+  unchanged Gate 1-4 execution boundary, persists one RunRecord, and publishes the
+  correlated Result point that the parent routes through its existing fresh validation
+  queue. Named child-process coverage proves the valid path and foreign Work-route
+  refusal before any RunRecord or Result artifact.
+- Gate 7-to-Gate 8 Control spool producer/receiver CLI path: one named real-filesystem
+  integration derives a Control envelope from an existing active Goal's exact retained
+  Work binding, publishes it through `FileSpoolMessageTransport`, passes the explicit
+  accepted point through the separately invoked supported receiver and real Message Bus,
+  persists it in the existing durable Goal request ledger, and atomically acknowledges
+  it. Inactive runtime and hop-level backpressure create no partial point or durable
+  request; authentication and control application remain outside this connection.
 - Gate 8 child-persisted/result-not-published recovery: a real child JVM persists the
   deterministic RunRecord while a blocked result spool forces publication failure; a
   fresh parent then resolves that one record, launches no second child, creates no
@@ -313,7 +362,9 @@ it does not restate which commit published which increment.
 - Delivery Gate 7: Contract Verified after a fresh Integrated maturity assessment. The
   work-message queue/journal/replay/idempotency path now has a named durable
   Scheduler-queue consumer, the durable control-request queue path is Integrated,
-  connection 3d gives `MessageTransport` one named local work/result-spool consumer, and
+  connection 3d gives `MessageTransport` one named local work/result-spool consumer with
+  both child Work execution and parent Result validation routed through fresh Message
+  Bus queues, and
   one supported point receiver carries an explicit retained Work spool through the real
   bus into durable admission and acknowledges it only afterward by deterministic atomic
   rename, with exact acknowledged-point replay and pending-capacity release.
@@ -321,12 +372,24 @@ it does not restate which commit published which increment.
   envelope, exposes its accepted point reference without discovery, and has a named
   real-filesystem publisher-to-receiver-to-admission integration. Backpressure and
   unavailable refusal paths create no additional or partial publication.
+  Separate supported Control producer and receiver commands now derive one exact intent
+  from an existing active Goal, carry its accepted local transport artifact through the
+  real bus into the durable request ledger, and acknowledge it only afterward without
+  authenticating or applying the request.
   The governed file-spool transport publisher-to-receiver path is also Integrated and
-  preserves hop-level refusal separately from delivery and admission. Result/handoff
-  Message Bus flows, authenticated control application, topic,
+  preserves hop-level refusal separately from delivery and admission. Handoff Message
+  Bus flow, authenticated control application, topic,
   cancellation/cascade-ordering/backpressure, durable bus persistence, cleanup and
   retention policy, and reliability branches beyond the named control retry/dead-letter
   path remain contract-only.
+- The post-Work-ingress reassessment found no additional production owner for topic,
+  Handoff, cancellation, dead-letter re-delivery, re-entrant ordering, or in-process
+  pending backpressure. Durable journaling still lacks subscriber checkpoints,
+  truncation/compaction ownership, and cross-store recovery ordering; directory
+  consumption lacks claim/ordering/concurrency/restart policy; retention lacks bounded
+  destructive authority and audit/replay policy. Gate 7 therefore remains Contract
+  Verified while its named Work, Result, and Control sub-path maturities remain
+  unchanged.
 - Delivery Gate 8: Specified - Next; the previously recorded queue, runtime, execution,
   recovery, priority, migration, retry, effect, drain, service, and supported CLI
   sub-path maturities remain unchanged. One retained Gate 7 transport artifact now has a
@@ -423,6 +486,9 @@ system, not open tasks; each is retired only by a bounded increment of its own.
 - Acknowledged Work transport points remain retained as `.received` evidence. No
   automatic deletion, time-based retention, global acknowledged-artifact bound, or
   directory consumer exists.
+- Acknowledged Control transport points are likewise retained as `.received` evidence.
+  The supported producer and receiver have no authentication, application, directory
+  consumer, cleanup, or retention policy.
 - Same-bus work-message replay is duplicate-free and fresh-bus exact replay is a no-revision durable admission success, but queue schema-v1 migration and exact-history compaction/cleanup do not exist. Changed-envelope identity reuse intentionally fails closed and dead-letters.
 - Scheduler queue updates are serialized only for cooperating local filesystem-store writers. The lock does not coordinate runtime/effect/checkpoint stores, provide a cross-store transaction, identify the current owner, wait or recover a holder, or claim distributed/network-filesystem safety.
 - Pending-finalization migration requires the owning Scheduler to be stopped. Its final
