@@ -14,14 +14,13 @@ the active task in `CURRENT_TASK.md`, and delivery history in `CHANGELOG.md` and
 
 ## Session-Only State
 
-- The working tree is intentionally uncommitted. It contains the completed bounded
-  Control receiver, untrusted Control publisher, post-Control Gate 7 reassessment, and
-  isolated-worker Work Message Bus ingress increments, plus the post-ingress decision
-  to stop adding unowned Gate 7 connections and the Gate 8 maturity reassessment.
-  No commit or push was authorized.
+- The Control receiver, untrusted Control publisher, isolated-worker Work Message Bus
+  ingress, Gate 7 reassessment, and Gate 8 maturity reassessment were delivered to
+  `origin/main` in `01aad8b`. A delivery-record commit may follow this handoff update;
+  use Git and `CURRENT_TASK.md` as the authoritative final delivery state.
 - Begin the next session with the repository-required reading order and
   `checkpoint-show`, then reconcile `CURRENT_TASK.md`, `git status`, and the complete
   diff. The session-close checkpoint is expected to be empty after this handoff is
   verified and cleared.
-- Verification details and the one corrected document-ownership failure are recorded
-  only in `docs/verification-log.md`; do not infer passing state from this handoff.
+- Verification and delivery details are recorded only in `docs/verification-log.md`;
+  do not infer passing state from this handoff.

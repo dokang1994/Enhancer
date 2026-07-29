@@ -3193,3 +3193,16 @@ Outcome:
 - `git diff --check` passed before staging.
 - Commit, push, and post-push identity verification remain pending and are not inferred
   from this pre-delivery evidence.
+
+## 2026-07-29 - Deliver Control Work And Gate 8 Assessment To Main
+
+- Commit `01aad8b` preserved all 30 reviewed production, test, decision, and owned
+  document paths without amendment.
+- The fresh pre-commit fetch showed local and remote `main` had not diverged, so no
+  merge commit was necessary.
+- `git push origin main:main` advanced `origin/main` from `3ee633b` to `01aad8b`.
+- Fresh local HEAD, remote-tracking `origin/main`, and
+  `git ls-remote origin refs/heads/main` all resolved to
+  `01aad8bdd8d3ffae0141414d9e9d0c3a98a85744`.
+- No history rewrite, force push, release, tag, deployment, pull request, or unrelated
+  remote action was performed.
