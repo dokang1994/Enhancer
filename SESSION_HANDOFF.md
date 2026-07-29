@@ -16,8 +16,8 @@ the active task in `CURRENT_TASK.md`, and delivery history in `CHANGELOG.md` and
 
 - The Control receiver, untrusted Control publisher, isolated-worker Work Message Bus
   ingress, Gate 7 reassessment, and Gate 8 maturity reassessment were delivered to
-  `origin/main` in `01aad8b`. A delivery-record commit may follow this handoff update;
-  use Git and `CURRENT_TASK.md` as the authoritative final delivery state.
+  `origin/main` in `01aad8b`; delivery state was synchronized in the subsequent
+  `0998762` record commit. No implementation or delivery action remains pending.
 - Begin the next session with the repository-required reading order and
   `checkpoint-show`, then reconcile `CURRENT_TASK.md`, `git status`, and the complete
   diff. The session-close checkpoint is expected to be empty after this handoff is
