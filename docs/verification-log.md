@@ -3215,3 +3215,83 @@ Outcome:
 - Fresh local HEAD, remote-tracking `origin/main`, and remote `refs/heads/main` all
   resolved to `09987622710a9a785b488c24510801eea66b749d`.
 - The final handoff wording now records no pending implementation or delivery action.
+
+## 2026-07-31 - Specify Gate 8 Durable Runtime Events
+
+- The accepted specification defines eight finite `runtime-event-v1` facts separating
+  retry decision/start, stagnation and timeout detection, cancellation request and
+  authenticated application, verification, and terminal queue disposition.
+- Architecture review bound events to existing WorkItem/Goal/AgentRun and
+  task/snapshot/run/correlation provenance, deterministic identity, sealed detail, and
+  one-through-four authoritative references. Canonical state remains authority and must
+  persist before append-only event recording and opaque-reference publication.
+- Fresh focused `DecisionLogIndexTest`, `DocumentOwnershipTest`,
+  `RepositoryTaskPlannerTest`, and `ProjectContextReaderTest` verification passed 19
+  tests across four suites: 18 passed, one Windows privilege-dependent symbolic-link
+  setup skipped, and zero failures or errors.
+- Fresh strict `build --no-daemon --rerun-tasks --warning-mode all` completed in
+  5 minutes 19 seconds. Production and test sources compiled, distribution artifacts
+  assembled, and 644 tests across 127 suites completed: 640 passed, four Windows
+  privilege-dependent symbolic-link cases skipped, and zero failures or errors.
+- A first focused command was blocked before Gradle by host PowerShell execution policy
+  and passed when rerun with the repository-local Java 17 toolchain. A prior full
+  `clean build` reached the test task but exceeded its 5-minute command timeout before
+  producing test-result artifacts and was not counted. Two background-launch attempts
+  were rejected before process creation because the host environment contains duplicate
+  `Path`/`PATH` keys. The successful foreground build is the claim-bearing result.
+- No production or test behavior, runtime schema, MessageEnvelope payload kind,
+  authenticated control, budget, Memory, adapter, role worker, external state, commit,
+  push, release, or deployment changed.
+
+## 2026-07-31 - Implement The Runtime Event Value And Store
+
+- Focused RED for `RuntimeEventTest` and
+  `FileSystemRuntimeEventStoreIntegrationTest` reached `compileTestJava` and failed
+  only because the accepted runtime-event value, stream, store, and checked failure
+  types did not yet exist. The failure was classified as aligned with the active task,
+  accepted decision, and Architecture.
+- The first GREEN attempt reached `compileJava` and failed because `-Werror` promoted
+  missing `serialVersionUID` warnings on the two new checked exceptions. Adding the
+  required serial identities was the complete correction; no contract or scope changed.
+- Fresh strengthened focused verification passed both runtime-event suites after adding
+  direct invalid binding/reference/Unicode boundaries and filesystem changed-identity
+  replay/no-rewrite evidence.
+- Fresh adjacent regression passed
+  `FileSystemExternalEffectLedgerIntegrationTest`,
+  `FileSystemAgentRuntimeStateStoreIntegrationTest`, and
+  `FileSystemSubmissionManifestStoreTest`.
+- Fresh strict `build --no-daemon --rerun-tasks --warning-mode all` completed in
+  5 minutes 36 seconds. Production and test sources compiled, distribution artifacts
+  assembled, and 655 tests across 129 suites completed: 650 passed, five
+  privilege-dependent cases skipped, and zero failures or errors.
+- A first document-governance command named two architecture tests under the wrong
+  package and therefore executed only the planner/context suites; it was recorded as
+  incomplete rather than passing. The corrected fresh
+  `DecisionLogIndexTest`, `DocumentOwnershipTest`, `RepositoryTaskPlannerTest`, and
+  `ProjectContextReaderTest` run executed 19 tests across four suites: 18 passed, one
+  privilege-dependent symbolic-link setup skipped, and zero failures or errors.
+- Fresh `git diff --check` passed after document synchronization. The immutable value,
+  append-only stream, filesystem store, focused tests, capability state, roadmap, task,
+  compact context, changelog, and handoff are synchronized; no new architecture
+  decision was required beyond the accepted runtime-event decision.
+- No transition recorder or publisher, MessageEnvelope schema change, authenticated
+  control application, budget, Memory, production adapter, role worker, migration,
+  scan, retention, cleanup, cross-store transaction, commit, push, release, deployment,
+  or other external state change was added.
+
+## 2026-07-31 - Close The Runtime Event Symbolic-Root Read Boundary
+
+- Final code review found that append rejected a symbolic storage root but point
+  resolution could follow that parent link before validating the final artifact. The
+  filesystem adapter now rejects a present non-directory or symbolic storage root
+  before resolving its per-Goal artifact, and the real-filesystem test asserts both
+  append and resolve refusal.
+- The first post-fix focused rerun exceeded its three-minute host command limit after
+  `compileJava` and produced no claim-bearing result. The same command with a longer
+  limit passed `RuntimeEventTest` and
+  `FileSystemRuntimeEventStoreIntegrationTest` in 2 minutes 57 seconds.
+- Fresh post-fix strict `build --no-daemon --rerun-tasks --warning-mode all` completed
+  in 11 minutes 55 seconds. All 655 tests across 129 suites completed: 650 passed,
+  five privilege-dependent cases skipped, and zero failures or errors.
+- The correction changed no event identity, stream, publication-order, authority,
+  schema, migration, retention, delivery, or external-state contract.

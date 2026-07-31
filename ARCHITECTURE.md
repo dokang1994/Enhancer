@@ -844,6 +844,73 @@ rewrite, reordering, invalid append, stale revision, and unsupported schema. Sch
 migration is a separate task; the incompatible payload is not revised in place under the
 same version number.
 
+### Gate 8 Durable Runtime Event Contract
+
+The Gate 8 event contract is a derived, reference-oriented observation of durable
+runtime facts. It is not another state machine and grants no transition authority.
+Canonical AgentRuntime state, RunRecords, retained Control messages, and Scheduler queue
+state remain authoritative. An event may be recorded only after the state or evidence it
+describes is durable.
+
+The finite `runtime-event-v1` taxonomy deliberately keeps detection, decision,
+application, verification, and terminal disposition separate:
+
+| Event kind | Fact represented | Detection and recording owner |
+|---|---|---|
+| `RETRY_DECISION_RECORDED` | an admitted or refused retry decision is durable | `DurableAgentRunRetryController`, after the decision-bearing runtime revision |
+| `RETRY_STARTED` | the admitted replacement AgentRun is durable | the retry controller/Worker re-entry boundary, after the replacement runtime revision |
+| `STAGNATION_DETECTED` | a persisted RunRecord carries `STAGNATED` | Agent Loop detects; RunRecord-backed result finalization records |
+| `TIMEOUT_DETECTED` | a durable fact records a Tool, process, or lease timeout | the owning Tool/process/lease boundary detects; its transition owner records only after durable runtime or RunRecord evidence |
+| `CANCELLATION_REQUEST_RECORDED` | a bound `CANCEL` Control request is durable and unapplied | `RuntimeControlAdmissionHandler`, after exact request admission |
+| `CANCELLATION_APPLIED` | an authenticated cancellation transition is durable | Gate 12 application boundary; no current producer |
+| `VERIFICATION_RECORDED` | a RunRecord-backed Result transition is durable | `DurableAgentRunFinalizer`, after the AgentRun result transition |
+| `WORK_ITEM_TERMINATED` | the queue durably records `VERIFIED_COMPLETED` or `FAILED` | `DurableAgentRunFinalizer`, after terminal queue disposition |
+
+`RuntimeEvent` carries a version, deterministic domain-separated canonical event UUID,
+kind, occurrence time, WorkItem/Goal/AgentRun identities, the approved task revision and
+Workspace snapshot identity projected from the retained WorkItem, logical-run and
+correlation identities, an optional causal message or prior-event UUID, a bounded
+producer identity, one sealed kind-specific detail value, and one through four bounded
+authoritative references. A reference names a typed runtime revision, retry decision,
+Control or Result message, RunRecord or evidence artifact, or queue revision and may
+carry its integrity digest where the source contract supplies one. Event bodies never
+copy source content, credentials, approval, Tool scope, or mutable policy.
+
+The event UUID derives from a versioned domain plus event kind, Goal and AgentRun
+identities, and the complete ordered authoritative-reference identity. The same durable
+fact therefore re-derives the same event across restart; a different fact cannot
+silently reuse its identity. Occurrence time comes from the authoritative source when it
+has one, otherwise from the transition owner's injected clock after that transition is
+durable. It is data, never an ordering or lease authority.
+
+One implemented `RuntimeEventStream` belongs to one exact Goal and retained WorkItem.
+Schema v1 is bounded to 4096 ordered events and carries one monotonic stream revision.
+The implemented `RuntimeEventStore` append operation persists an exact new prefix
+before exposure.
+Exact event replay is revision-free; changed content under an existing identity, a
+foreign Goal/WorkItem/AgentRun or task/snapshot/logical-run/correlation binding, an
+invalid kind/detail pair, prefix truncation/rewrite, overflow, corruption, or an
+unsupported schema fails closed. `FileSystemRuntimeEventStore` uses the existing
+strict-UTF-8, bounded integrity-envelope, non-symbolic-root, candidate/atomic-publication
+rules. It adds no scan, cleanup, retention, compaction, migration, cross-store or
+cross-process transaction, or power-loss directory-durability claim.
+
+Durable ordering is source transition -> deterministic event append/exact replay ->
+reference publication. `RuntimeEventRecorder` is the later application boundary that
+enforces that ordering and invokes a `RuntimeEventPublisher` port only with the opaque
+durable event reference after append. If the source transition is durable but event
+recording or publication is not acknowledged, the existing transition-specific
+checkpoint or exact message re-entry resolves the source again, derives the same event
+identity, exact-replays the append, and may publish again. Consumers therefore
+deduplicate by event identity. Transport `ACCEPTED` still means only hop acceptance.
+
+The existing `MessageEnvelope` remains sealed to Work, Result, Control, and Handoff.
+Runtime events must not be coerced into one of those meanings. A concrete Message Bus
+publisher requires a separate accepted Gate 7 wire-schema evolution; the first Gate 8
+implementation is limited to the immutable event/detail/reference contract and
+append-only store. Its immediate integration consumer is a later recorder around one
+existing transition owner, selected only after the store contract is verified.
+
 Which connections exist today is stated in `PROJECT_STATE.md`; the cross-boundary connection sequence remains dependency ordered:
 
 | Order | Connection | Owning boundary | Required durable ordering |

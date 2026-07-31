@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### 2026-07-31: Record Runtime Events As Goal-Bound Durable Facts Before Publication
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-31-record-runtime-events-as-goal-bound-durable-facts-before-publication.md)
+
 ### 2026-07-29: Retain Gate 8 And Specify Explicit Runtime Events Next
 
 Status: Accepted Decision

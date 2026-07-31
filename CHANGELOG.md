@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-07-31 - Implement The Runtime Event Value And Store
+
+- Added the immutable eight-kind `runtime-event-v1` value, sealed kind-specific
+  details, exact runtime provenance binding, bounded typed authoritative references,
+  and deterministic domain-separated event UUIDs.
+- Added a 4096-event append-only per-Goal stream with monotonic revisions, exact
+  revision-free replay, and fail-closed changed-identity, foreign-binding, prefix, and
+  overflow validation.
+- Added `RuntimeEventStore` and an atomic integrity-checked strict-UTF-8 filesystem
+  adapter that rejects missing, corrupt, oversized, trailing, unsupported-schema, and
+  symbolic-root artifacts.
+- Kept transition recording, publication, MessageEnvelope evolution, authenticated
+  control, budgets, Memory, production adapters, workers, migration, scan, retention,
+  cleanup, and cross-store coordination out of this increment.
+
+## 2026-07-31 - Specify Goal-Bound Durable Runtime Events
+
+- Defined a finite Gate 8 event taxonomy that separates retry decision and start,
+  stagnation and timeout detection, cancellation request and authenticated application,
+  verification, and terminal Scheduler disposition.
+- Bound every event to deterministic Goal/AgentRun/WorkItem identity, existing
+  task/snapshot/run/correlation provenance, kind-specific detail, and bounded
+  authoritative references without copying content or granting authority.
+- Required authoritative state to persist before append-only event recording and
+  opaque-reference publication, with exact replay and duplicate-publication
+  deduplication by event identity.
+- Kept the existing four-kind MessageEnvelope unchanged and deferred concrete
+  publication wiring, authenticated controls, budgets, Memory, adapters, and role
+  workers to separately authorized work.
+
 ## 2026-07-29 - Retain Gate 8 And Select Explicit Runtime Events
 
 - Reassessed every Gate 8 scope item and exit criterion after both process-isolated Work

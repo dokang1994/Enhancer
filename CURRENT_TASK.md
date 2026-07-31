@@ -2,51 +2,48 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Deliver the completed Control spool receiver/publisher, isolated-worker Work Message Bus
-ingress, Gate 7 reassessment, and Gate 8 maturity reassessment through a reviewed commit
-on `main`, integrate the latest remote `main`, and push the resulting branch.
+Deliver the verified runtime-event value/store increment to `main` through a reviewed
+commit, local merge, remote push, and fresh remote-state verification.
 
 ## Task ID
 
-deliver-control-work-and-gate-8-assessment
+deliver-runtime-event-store-to-main
 
 ## Context
 
-The completed local increments are verified but intentionally uncommitted on `main`.
-The user has now explicitly authorized commit, push, and integration with remote `main`.
+The runtime-event implementation task is completed and freshly verified. The user has
+now explicitly authorized the otherwise out-of-scope commit, push, and merge actions.
+Delivery must preserve the exact reviewed working tree, reconcile with current
+`origin/main`, and verify the external state after push.
 
 ## Justified By
 
-- 2026-07-29: Receive One Control Spool Through The Message Bus Into Durable Request State
-- 2026-07-29: Publish Untrusted Control Intent From Existing Goal State
-- 2026-07-29: Route Isolated Worker Work Through The Message Bus Before More Gate 7 Infrastructure
-- 2026-07-29: Stop Adding Unowned Gate 7 Connections And Reassess Gate 8
-- 2026-07-29: Retain Gate 8 And Specify Explicit Runtime Events Next
+- User request on 2026-07-31 to commit, push, and merge the completed increment to
+  `main`.
 
 ## Acceptance Criteria
 
-- Reconcile the empty checkpoint, complete working-tree diff, current branch, local
-  HEAD, and freshly fetched `origin/main`.
-- Preserve all completed production, test, decision, and owned-document changes in one
-  non-amending commit.
-- If the remote advanced, integrate it without discarding local or remote history and
-  rerun proportionate verification after integration.
-- Ensure the intended final branch is `main`; avoid a meaningless merge commit when the
-  work is already directly on `main`.
-- Push `main` to `origin/main` and verify local HEAD, remote-tracking `main`, and the
-  remote branch resolve to the same commit.
-- Keep the checkpoint through commit, remote integration, push, and final Git
-  verification, then mark it stable and clear it.
+- Fetch current `origin/main` and prove whether the reviewed local base diverged before
+  creating delivery history.
+- Create a bounded delivery branch, stage exactly the reviewed runtime-event increment,
+  review the staged diff, and commit without amending unrelated history.
+- Merge the delivery commit into local `main` without rewriting history, push
+  `main:main`, and verify local HEAD, remote-tracking `origin/main`, and remote
+  `refs/heads/main` resolve to the same commit.
+- Append delivery evidence, complete this task, and commit/push that closure record so
+  repository state is current on `main`.
+- Perform no force push, history rewrite, release, tag, deployment, pull request, or
+  unrelated cleanup.
 
 ## Out Of Scope
 
-History rewrite, force push, destructive reset, release, tag, deployment, pull request,
-remote issue/comment, new production/test behavior, schema or dependency change, or
-unrelated cleanup.
+New implementation; runtime transition integration; event publication; schema changes;
+release, tag, deployment, pull request, history rewrite, force push, destructive
+cleanup, or unrelated repository changes.
 
 ## Approval
 
@@ -58,6 +55,7 @@ The user explicitly requested commit, push, and merge to `main`.
 - write-docs
 - verify
 - git-fetch
+- git-branch
 - git-add
 - git-commit
 - git-merge
@@ -65,18 +63,11 @@ The user explicitly requested commit, push, and merge to `main`.
 
 ## Verification
 
-Fresh pre-delivery `clean build --no-daemon --rerun-tasks --warning-mode all` passed
-644 tests across 127 suites: 640 passed, four Windows privilege-dependent symbolic-link
-cases skipped, and zero failures or errors. `git diff --check` passed. Fresh fetch found
-local HEAD and `origin/main` both at `3ee633b1acd8b48372c6a6f87cc7f5e3d4d58e7a`
-with zero commits on either side, so no merge commit was required. Commit `01aad8b`
-preserved all 30 reviewed paths without amendment. `git push origin main:main` advanced
-the remote from `3ee633b` to `01aad8b`; fresh local HEAD, `origin/main`, and remote
-`refs/heads/main` resolution all returned
-`01aad8bdd8d3ffae0141414d9e9d0c3a98a85744`.
+Pending delivery verification. The implementation evidence remains append-only in
+`docs/verification-log.md`.
 
 ## Next
 
-After delivery, specify the bounded Gate 8 runtime-event taxonomy,
-identity/provenance, persistence, and publication ownership for retry, stagnation,
-timeout, cancellation, verification, and completion.
+After delivery, integrate one existing transition owner through a persist-after-source
+`RuntimeEventRecorder` and publisher port without changing the four-kind
+MessageEnvelope wire schema.

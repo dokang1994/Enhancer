@@ -10,17 +10,13 @@ the active task in `CURRENT_TASK.md`, and delivery history in `CHANGELOG.md` and
 
 ## Updated At
 
-2026-07-29
+2026-07-31
 
 ## Session-Only State
 
-- The Control receiver, untrusted Control publisher, isolated-worker Work Message Bus
-  ingress, Gate 7 reassessment, and Gate 8 maturity reassessment were delivered to
-  `origin/main` in `01aad8b`; delivery state was synchronized in the subsequent
-  `0998762` record commit. No implementation or delivery action remains pending.
-- Begin the next session with the repository-required reading order and
-  `checkpoint-show`, then reconcile `CURRENT_TASK.md`, `git status`, and the complete
-  diff. The session-close checkpoint is expected to be empty after this handoff is
-  verified and cleared.
-- Verification and delivery details are recorded only in `docs/verification-log.md`;
-  do not infer passing state from this handoff.
+- This Windows process exposes Java 21 first and Gradle toolchain discovery did not find
+  Java 17 automatically. The repository-local verified toolchain is under
+  `.tools/jdk17-runtime/jdk-17.0.19+10`; set `JAVA_HOME` explicitly or invoke
+  `scripts/gradle.ps1` through an execution-policy bypass when verification is resumed.
+- Direct invocation of `scripts/gradle.ps1` is blocked by the current PowerShell
+  execution policy. This is a host constraint, not a repository test failure.

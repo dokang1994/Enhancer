@@ -543,9 +543,9 @@ Whole-gate assessment:
   isolated child Work and parent Result paths now both cross real Message Bus queues, so
   the earlier worker-communication blocker is closed. The bounded single-agent
   Scheduler/runtime foundation is Integrated and retains Operational explicit workflows,
-  but whole-gate promotion remains blocked by the Gate 8-owned explicit runtime-event
-  contract plus later-gate budgets, Memory, authenticated control application,
-  production adapters, and role workers;
+  but whole-gate promotion remains blocked by a transition-owner runtime-event recorder
+  and publisher connection plus later-gate budgets, Memory, authenticated control
+  application, production adapters, and role workers;
 - existing queue-active, checkpoint, deterministic lost-acknowledgement point, and
   expired-lease recovery satisfy the accepted at-least-once correctness prefixes. A
   general orphan inventory or cleanup feature is not silently required and would need a
@@ -707,10 +707,15 @@ Current increment:
   or additional RunRecord/effect outcome, preserves the effect artifact bytes, and
   clears the checkpoint. This satisfies the supported-migration fixture slice without a
   second schema migration or whole-gate promotion;
-- next Gate 8-owned contract: specify the bounded durable runtime-event taxonomy,
-  identity/provenance, persistence, and publication ownership for retry, stagnation,
-  timeout, cancellation, verification, and completion without absorbing later-gate
-  detection or application policy;
+- Contract-verified Gate 8 runtime-event value/store: the finite
+  `runtime-event-v1` taxonomy, sealed detail, deterministic Goal/AgentRun/reference
+  identity, bounded per-Goal stream, and integrity-checked atomic filesystem adapter
+  exact-replay without making events transition authority. The existing four-kind
+  MessageEnvelope remains unchanged, and no current transition owner records or
+  publishes an event;
+- next Gate 8-owned implementation: integrate one existing transition owner through a
+  persist-after-source `RuntimeEventRecorder` and opaque-reference publisher port,
+  preserving recovery/exact replay and adding no Gate 7 payload-schema evolution;
 - deferred: real authorized external adapters, admission-history compaction/cleanup or
   schema-v1 queue migration, general orphan inventory/cleanup with an explicit retention
   and scan policy, general forward-reference graph/cycle handling, authenticated

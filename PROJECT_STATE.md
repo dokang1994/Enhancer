@@ -2,15 +2,15 @@
 
 ## Updated At
 
-2026-07-29
+2026-07-31
 
 ## Repository State
 
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 274 Java files.
-- Test source: 128 Java files.
+- Production source: 288 Java files.
+- Test source: 130 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -20,6 +20,22 @@ it does not restate which commit published which increment.
 
 ### Contract Verified
 
+- Delivery Gate 8 immutable runtime-event and append-only store contract under
+  `com.enhancer.runtime`: `RuntimeEvent` exposes exactly eight `runtime-event-v1`
+  kinds with a sealed detail per kind, exact Goal/WorkItem/AgentRun plus
+  task/snapshot/run/correlation provenance, optional causal UUID, bounded producer,
+  occurrence time, and one through four typed authoritative references without
+  content, credentials, Tool scope, or transition authority. Event UUIDs are
+  deterministic and domain-separated over kind, Goal/AgentRun, and the complete
+  ordered reference identity. `RuntimeEventStream` retains one immutable per-Goal and
+  WorkItem binding, at most 4096 exact events, and a monotonic append revision.
+  `FileSystemRuntimeEventStore` exact-replays without rewriting or advancing,
+  atomically publishes bounded strict-UTF-8 SHA-256 envelopes, and fails closed on
+  changed identity reuse, foreign binding, prefix rewrite, overflow, missing,
+  corrupt, oversized, trailing, unsupported-schema, or symbolic-root state. Focused
+  real-filesystem evidence verifies the port and adapter; no transition owner,
+  recorder, publisher, MessageEnvelope evolution, migration, scan, retention, or
+  cross-store transaction is connected yet.
 - Gate 7 isolated-worker Work Message Bus ingress under `com.enhancer.runtime`:
   `IsolatedWorkerMain` publishes the unchanged decoded transport message to its carried
   destination through one fresh `InProcessMessageBus` with exactly one `queue("work")`
@@ -148,9 +164,9 @@ it does not restate which commit published which increment.
   supported migrations, restart/lost-acknowledgement recovery, and explicit
   external-effect outcomes compose through named filesystem and child-process paths.
   Explicit submission/cycle workflows are Operational sub-paths, but the whole gate is
-  not promoted: a unified durable runtime-event contract is absent, while budgets,
-  Memory, authenticated control application, production adapters, and role workers
-  remain owned by Gates 9 through 13.
+  not promoted: the verified runtime-event value/store has no transition-owner recorder
+  or publisher connection, while budgets, Memory, authenticated control application,
+  production adapters, and role workers remain owned by Gates 9 through 13.
 - Gate 7 isolated-worker Work/Result Message Bus path: the real child JVM receives the
   parent-spooled Work transport point, routes it through the fresh Work queue into the
   unchanged Gate 1-4 execution boundary, persists one RunRecord, and publishes the
