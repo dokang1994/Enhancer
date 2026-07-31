@@ -3295,3 +3295,22 @@ Outcome:
   five privilege-dependent cases skipped, and zero failures or errors.
 - The correction changed no event identity, stream, publication-order, authority,
   schema, migration, retention, delivery, or external-state contract.
+
+## 2026-07-31 - Deliver The Runtime Event Value And Store To Main
+
+- Fresh `git fetch origin main --prune` found local `main` and `origin/main` both at
+  `f27352fa07b589b07737cab75f478fc0e2575701`, with zero commits on either side.
+- The staged index contained exactly the 26 reviewed runtime-event implementation,
+  focused-test, accepted-decision, and owned-document paths.
+  `git diff --cached --check` passed before commit.
+- Commit `d75ae5742406e09a637eabd35a0bc69c0c9ba1b5`
+  (`feat: add durable runtime event store`) was created on
+  `codex/runtime-event-store-20260731`.
+- Local `main` fast-forwarded from `f27352f` to `d75ae57`; no merge commit, rebase,
+  amend, reset, or history rewrite was required.
+- `git push origin main:main` advanced remote `main` from `f27352f` to `d75ae57`.
+  Fresh local HEAD, local `main`, remote-tracking `origin/main`, and remote
+  `refs/heads/main` all resolved to
+  `d75ae5742406e09a637eabd35a0bc69c0c9ba1b5`, and local/remote divergence was `0/0`.
+- No force push, release, tag, deployment, pull request, branch deletion, or unrelated
+  remote action was performed.

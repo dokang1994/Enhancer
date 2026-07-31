@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User request on 2026-07-31 to commit, push, and merge the completed increment to
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-07-31-user-request-to-commit-push-and-merge-the-completed-increment-to.md)
+
 ### 2026-07-31: Record Runtime Events As Goal-Bound Durable Facts Before Publication
 
 Status: Accepted Decision
