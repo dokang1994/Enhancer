@@ -10,7 +10,7 @@ the active task in `CURRENT_TASK.md`, and delivery history in `CHANGELOG.md` and
 
 ## Updated At
 
-2026-07-31
+2026-08-03
 
 ## Session-Only State
 
@@ -20,3 +20,5 @@ the active task in `CURRENT_TASK.md`, and delivery history in `CHANGELOG.md` and
   `scripts/gradle.ps1` through an execution-policy bypass when verification is resumed.
 - Direct invocation of `scripts/gradle.ps1` is blocked by the current PowerShell
   execution policy. This is a host constraint, not a repository test failure.
+- The complete process-isolated regression suite can exceed five minutes on this host;
+  use a command bound of at least fifteen minutes for a claim-bearing full build.

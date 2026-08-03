@@ -543,9 +543,12 @@ Whole-gate assessment:
   isolated child Work and parent Result paths now both cross real Message Bus queues, so
   the earlier worker-communication blocker is closed. The bounded single-agent
   Scheduler/runtime foundation is Integrated and retains Operational explicit workflows,
-  but whole-gate promotion remains blocked by a transition-owner runtime-event recorder
-  and publisher connection plus later-gate budgets, Memory, authenticated control
-  application, production adapters, and role workers;
+  and the cancellation-request, verification, and terminal WorkItem transition owners
+  now reach a
+  persist-after-source recorder and injected publisher port. Whole-gate promotion
+  remains blocked by the remaining runtime-event owners, a concrete publication adapter,
+  and later-gate budgets,
+  Memory, authenticated control application, production adapters, and role workers;
 - existing queue-active, checkpoint, deterministic lost-acknowledgement point, and
   expired-lease recovery satisfy the accepted at-least-once correctness prefixes. A
   general orphan inventory or cleanup feature is not silently required and would need a
@@ -707,15 +710,36 @@ Current increment:
   or additional RunRecord/effect outcome, preserves the effect artifact bytes, and
   clears the checkpoint. This satisfies the supported-migration fixture slice without a
   second schema migration or whole-gate promotion;
-- Contract-verified Gate 8 runtime-event value/store: the finite
+- Contract-verified Gate 8 runtime-event value/store and recording boundary: the finite
   `runtime-event-v1` taxonomy, sealed detail, deterministic Goal/AgentRun/reference
   identity, bounded per-Goal stream, and integrity-checked atomic filesystem adapter
-  exact-replay without making events transition authority. The existing four-kind
-  MessageEnvelope remains unchanged, and no current transition owner records or
-  publishes an event;
-- next Gate 8-owned implementation: integrate one existing transition owner through a
-  persist-after-source `RuntimeEventRecorder` and opaque-reference publisher port,
-  preserving recovery/exact replay and adding no Gate 7 payload-schema evolution;
+  exact-replay without making events transition authority. `RuntimeEventRecorder`
+  appends or exact-replays before passing only an opaque deterministic reference to its
+  publisher port;
+- Integrated first transition-owner connection: event-aware Control admission records a
+  `CANCELLATION_REQUEST_RECORDED` event only after the exact `CANCEL` request is durable.
+  Exact Control replay repairs a missing event or republishes the same reference without
+  advancing the runtime or event stream, while source failure and `PAUSE`/`RESUME` reach
+  no event publisher. The existing four-kind MessageEnvelope remains unchanged and no
+  concrete publisher adapter or supported CLI event composition is added;
+- Integrated second transition-owner connection: event-aware
+  `DurableAgentRunFinalizer` records `VERIFICATION_RECORDED` only after its
+  RunRecord-backed Result transition is durable. The retained Result supplies occurrence
+  time, status, and causation, while ordered Result-message and RunRecord references keep
+  exact repair stable across later runtime revisions. Result persistence failure reaches
+  no event or publisher; event/publication failure re-enters from the durable Result.
+  Terminal queue disposition remains a separately ordered fact connected below;
+- Integrated third transition-owner connection: event-aware finalization records
+  `WORK_ITEM_TERMINATED` only after the queue durably retains the exact WorkItem in its
+  matching completed or failed partition. A stable queue/WorkItem/disposition reference
+  survives later whole-queue revisions. Because the queue retains no transition time,
+  recorder re-entry restores the first persisted occurrence for the same event ID while
+  exact-validating every other field. Queue-store failure reaches no event or publisher,
+  and publication failure re-enters from the terminal queue fact without another event
+  revision;
+- remaining Gate 8 runtime-event work: connect additional authoritative transition
+  owners one at a time while preserving source-first durability, exact replay, and the
+  distinction between verification and terminal queue disposition;
 - deferred: real authorized external adapters, admission-history compaction/cleanup or
   schema-v1 queue migration, general orphan inventory/cleanup with an explicit retention
   and scan policy, general forward-reference graph/cycle handling, authenticated

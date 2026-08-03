@@ -2,15 +2,15 @@
 
 ## Updated At
 
-2026-07-31
+2026-08-03
 
 ## Repository State
 
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 288 Java files.
-- Test source: 130 Java files.
+- Production source: 291 Java files.
+- Test source: 131 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -33,9 +33,11 @@ it does not restate which commit published which increment.
   atomically publishes bounded strict-UTF-8 SHA-256 envelopes, and fails closed on
   changed identity reuse, foreign binding, prefix rewrite, overflow, missing,
   corrupt, oversized, trailing, unsupported-schema, or symbolic-root state. Focused
-  real-filesystem evidence verifies the port and adapter; no transition owner,
-  recorder, publisher, MessageEnvelope evolution, migration, scan, retention, or
-  cross-store transaction is connected yet.
+  real-filesystem evidence verifies the port and adapter. `RuntimeEventRecorder`, its
+  opaque publication reference, and its publisher port now enforce append/exact replay
+  before reference publication. A concrete publisher adapter, five remaining
+  transition-owner connections, MessageEnvelope evolution, migration, scan, retention,
+  and cross-store transaction remain absent.
 - Gate 7 isolated-worker Work Message Bus ingress under `com.enhancer.runtime`:
   `IsolatedWorkerMain` publishes the unchanged decoded transport message to its carried
   destination through one fresh `InProcessMessageBus` with exactly one `queue("work")`
@@ -158,14 +160,49 @@ it does not restate which commit published which increment.
 
 ### Integrated
 
+- Delivery Gate 8 terminal WorkItem runtime-event path: the event-aware
+  `DurableAgentRunFinalizer` applies or re-enters the exact verified-completed or failed
+  queue partition and confirms the target before deriving `WORK_ITEM_TERMINATED` from
+  the retained runtime binding, Result causation, disposition, and stable
+  queue/WorkItem/disposition reference. The reference remains stable as the whole queue
+  revision advances. For this source without a retained transition timestamp,
+  `RuntimeEventRecorder` reuses the first persisted occurrence for the same event ID and
+  still delegates all other changed-content refusal to the exact event store. Named
+  filesystem evidence proves missing-event repair after later queue revisions,
+  publication-failure recovery under a later clock, revision-free replay, and queue-store
+  failure isolation. No queue schema, concrete publisher, or supported CLI composition
+  is added.
+- Delivery Gate 8 verification runtime-event path: the event-aware
+  `DurableAgentRunFinalizer` persists or exact-replays the RunRecord-backed Result
+  transition before deriving one deterministic `VERIFICATION_RECORDED` event from the
+  retained Goal, WorkItem, AgentRun, task, snapshot, run, correlation, Result message,
+  occurrence time, verification status, causal Result identity, and RunRecord reference.
+  The Result-message and RunRecord references keep event identity stable after later
+  runtime revisions. Named filesystem integration proves missing-event repair,
+  revision-free replay and repeat publication, Result-transition persistence failure
+  isolation, and
+  event/publisher-failure recovery. No supported CLI composition or concrete publisher
+  adapter exists.
+- Delivery Gate 8 cancellation-request runtime-event path: the event-aware
+  `RuntimeControlAdmissionHandler` persists or exact-replays the bound Control request
+  before deriving one deterministic `CANCELLATION_REQUEST_RECORDED` event from the exact
+  Goal, WorkItem, current AgentRun, task, snapshot, run, correlation, Control message,
+  occurrence time, and runtime revision. `RuntimeEventRecorder` appends or exact-replays
+  the event before passing only its `runtime-event/<goal>/<event>` reference to the
+  injected publisher port. Named filesystem integration proves missing-event repair,
+  revision-free event replay, duplicate reference publication, request-store failure
+  isolation, and request-only `PAUSE`/`RESUME`. No supported CLI composition, concrete
+  publisher adapter, or authenticated cancellation application is connected.
 - Delivery Gate 8 bounded single-agent Scheduler/runtime foundation: durable Goal and
   AgentRun lifecycle, dependency-aware queueing, priority/fairness, fenced execution,
   process-isolated Work/Result Message Bus crossings, retry, terminal verification,
   supported migrations, restart/lost-acknowledgement recovery, and explicit
   external-effect outcomes compose through named filesystem and child-process paths.
   Explicit submission/cycle workflows are Operational sub-paths, but the whole gate is
-  not promoted: the verified runtime-event value/store has no transition-owner recorder
-  or publisher connection, while budgets, Memory, authenticated control application,
+  not promoted: cancellation-request, verification, and terminal WorkItem owners reach
+  the recorder and an injected publisher port, but the remaining runtime-event owners
+  and a concrete publication adapter remain absent, while budgets, Memory,
+  authenticated control application,
   production adapters, and role workers remain owned by Gates 9 through 13.
 - Gate 7 isolated-worker Work/Result Message Bus path: the real child JVM receives the
   parent-spooled Work transport point, routes it through the fresh Work queue into the
@@ -523,6 +560,11 @@ system, not open tasks; each is retired only by a bounded increment of its own.
   establish whether an ambiguous prepared effect occurred, authorize replay or
   compensation, or make the sequential multi-store observation atomic.
 - An unresolved external-effect `PREPARED` record is intentionally not replayed automatically; an owning adapter or user must establish deduplication, compensation, application, or explicit recovery evidence. The retry controller refuses it.
+- Cancellation-request, verification, and terminal WorkItem runtime-event recording are
+  connected only
+  through event-aware owner construction and an injected publisher port. The supported
+  Control receiver/CLI has no runtime-event root or concrete publisher adapter, and the
+  remaining five event kinds have no transition-owner recorder connection.
 - Development-session checkpoints support one active local session per repository and
   have no background timer, token-budget introspection, platform shutdown hook,
   multi-session merge, remote replication, or automatic Git commit/stash behavior.

@@ -21,16 +21,18 @@ import com.enhancer.tool.ToolResultStatus;
 import com.enhancer.tool.VerificationEvidence;
 import com.enhancer.workspace.ApprovedTaskRevision;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
-import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.Test;
 
@@ -40,6 +42,7 @@ class DurableAgentRunFinalizerTest {
     private static final String AGENT_RUN_ID = "00000000-0000-0000-0000-000000000403";
     private static final String WORK_ID = "00000000-0000-0000-0000-000000000411";
     private static final String DEP_ID = "00000000-0000-0000-0000-000000000412";
+    private static final String LATER_ID = "00000000-0000-0000-0000-000000000413";
     private static final String OWNER_ID = "00000000-0000-0000-0000-000000000421";
     private static final String TASK_ID = "gate-8-result-path-finalization";
     private static final Clock CLOCK =
@@ -246,6 +249,397 @@ class DurableAgentRunFinalizerTest {
                 finalizer.finalizeAgentRun(GOAL_ID, AGENT_RUN_ID, reference));
     }
 
+    @Test
+    void recordsVerificationEventBeforeTheDurableQueueTerminationEvent()
+            throws Exception {
+        Setup s = awaitingVerification(true);
+        String reference = persistRunRecord(s, true);
+        FileSystemRuntimeEventStore eventStore =
+                new FileSystemRuntimeEventStore(tempDir.resolve("events"));
+        List<RuntimeEventPublicationReference> published = new ArrayList<>();
+        DurableAgentRunFinalizer finalizer = eventAwareFinalizer(
+                s, new RuntimeEventRecorder(eventStore, published::add));
+
+        assertEquals(
+                RuntimeGoalStatus.COMPLETED,
+                finalizer.recordAgentRunResult(GOAL_ID, AGENT_RUN_ID, reference));
+
+        DurableAgentRuntime runtime =
+                DurableAgentRuntime.recover(GOAL_ID, s.runtimeStore, CLOCK);
+        MessageEnvelope result = runtime.agentRun()
+                .orElseThrow()
+                .resultMessage()
+                .orElseThrow();
+        RuntimeEventBinding binding = new RuntimeEventBinding(
+                GOAL_ID,
+                WORK_ID,
+                s.work.taskRevision(),
+                s.work.snapshotId(),
+                s.work.logicalRunId(),
+                s.work.workMessage().correlationId());
+        RuntimeEvent expected = RuntimeEvent.create(
+                result.occurredAt(),
+                binding,
+                AGENT_RUN_ID,
+                Optional.of(result.messageId()),
+                "durable-agent-run-finalizer",
+                new RuntimeEventDetail.VerificationRecorded(
+                        VerificationStatus.VERIFIED),
+                List.of(
+                        new RuntimeEventReference(
+                                RuntimeEventReferenceKind.RESULT_MESSAGE,
+                                "result-message/" + result.messageId(),
+                                Optional.empty()),
+                        new RuntimeEventReference(
+                                RuntimeEventReferenceKind.RUN_RECORD,
+                                reference,
+                                Optional.empty())));
+        RuntimeEventStream events = eventStore.resolve(GOAL_ID);
+        assertEquals(1, events.revision());
+        assertEquals(List.of(expected), events.events());
+        assertEquals(
+                List.of(RuntimeEventPublicationReference.from(expected)),
+                published);
+
+        assertEquals(
+                Optional.of(WorkItemDisposition.VERIFIED_COMPLETED),
+                finalizer.finalizeTerminalDisposition(GOAL_ID));
+        RuntimeEvent terminated = RuntimeEvent.create(
+                CLOCK.instant(),
+                binding,
+                AGENT_RUN_ID,
+                Optional.of(result.messageId()),
+                "durable-agent-run-finalizer",
+                new RuntimeEventDetail.WorkItemTerminated(
+                        WorkItemDisposition.VERIFIED_COMPLETED),
+                List.of(new RuntimeEventReference(
+                        RuntimeEventReferenceKind.SCHEDULER_QUEUE,
+                        "scheduler-queue/"
+                                + QUEUE_ID
+                                + "/work-item/"
+                                + WORK_ID
+                                + "/disposition/VERIFIED_COMPLETED",
+                        Optional.empty())));
+        RuntimeEventStream afterDisposition = eventStore.resolve(GOAL_ID);
+        assertEquals(2, afterDisposition.revision());
+        assertEquals(List.of(expected, terminated), afterDisposition.events());
+        assertEquals(
+                List.of(
+                        RuntimeEventPublicationReference.from(expected),
+                        RuntimeEventPublicationReference.from(terminated)),
+                published);
+    }
+
+    @Test
+    void exactResultReplayRepairsAndRepublishesAfterLaterRuntimeRevisions()
+            throws Exception {
+        Setup s = awaitingVerification(false);
+        String reference = persistRunRecord(s, false);
+        assertEquals(
+                RuntimeGoalStatus.RETRY_PENDING,
+                finalizer(s).recordAgentRunResult(
+                        GOAL_ID, AGENT_RUN_ID, reference));
+        DurableAgentRuntime runtime =
+                DurableAgentRuntime.recover(GOAL_ID, s.runtimeStore, CLOCK);
+        runtime.recordRetryDecision(new AgentRunRetryDecisionRecord(
+                AGENT_RUN_ID,
+                1,
+                1,
+                0,
+                0,
+                "c".repeat(64),
+                AgentRunRetryDecision.refused(
+                        AgentRunRetryRefusalReason.ATTEMPTS_EXHAUSTED)));
+        runtime.abandonGoal();
+        long laterRuntimeRevision = runtime.revision();
+
+        FileSystemRuntimeEventStore eventStore =
+                new FileSystemRuntimeEventStore(tempDir.resolve("events"));
+        List<RuntimeEventPublicationReference> published = new ArrayList<>();
+        DurableAgentRunFinalizer finalizer = eventAwareFinalizer(
+                s, new RuntimeEventRecorder(eventStore, published::add));
+
+        assertEquals(
+                RuntimeGoalStatus.FAILED,
+                finalizer.recordAgentRunResult(GOAL_ID, AGENT_RUN_ID, reference));
+        assertEquals(
+                RuntimeGoalStatus.FAILED,
+                finalizer.recordAgentRunResult(GOAL_ID, AGENT_RUN_ID, reference));
+
+        RuntimeEventStream repaired = eventStore.resolve(GOAL_ID);
+        assertEquals(1, repaired.revision());
+        assertEquals(1, repaired.events().size());
+        assertEquals(
+                new RuntimeEventDetail.VerificationRecorded(
+                        VerificationStatus.REJECTED),
+                repaired.events().get(0).detail());
+        assertEquals(
+                List.of(
+                        RuntimeEventPublicationReference.from(
+                                repaired.events().get(0)),
+                        RuntimeEventPublicationReference.from(
+                                repaired.events().get(0))),
+                published);
+        assertEquals(
+                laterRuntimeRevision,
+                DurableAgentRuntime.recover(GOAL_ID, s.runtimeStore, CLOCK)
+                        .revision());
+    }
+
+    @Test
+    void publisherFailureLeavesResultAndEventRecoverableForExactReplay()
+            throws Exception {
+        Setup s = awaitingVerification(false);
+        String reference = persistRunRecord(s, true);
+        FileSystemRuntimeEventStore eventStore =
+                new FileSystemRuntimeEventStore(tempDir.resolve("events"));
+        AtomicInteger attempts = new AtomicInteger();
+        RuntimeEventRecorder failingRecorder = new RuntimeEventRecorder(
+                eventStore,
+                ignored -> {
+                    attempts.incrementAndGet();
+                    throw new IOException("publication unavailable");
+                });
+
+        assertThrows(
+                IOException.class,
+                () -> eventAwareFinalizer(s, failingRecorder)
+                        .recordAgentRunResult(GOAL_ID, AGENT_RUN_ID, reference));
+        DurableAgentRuntime runtime =
+                DurableAgentRuntime.recover(GOAL_ID, s.runtimeStore, CLOCK);
+        assertEquals(RuntimeGoalStatus.COMPLETED, runtime.goal().status());
+        long runtimeRevision = runtime.revision();
+        assertEquals(1, eventStore.resolve(GOAL_ID).revision());
+
+        List<RuntimeEventPublicationReference> published = new ArrayList<>();
+        assertEquals(
+                RuntimeGoalStatus.COMPLETED,
+                eventAwareFinalizer(
+                                s,
+                                new RuntimeEventRecorder(
+                                        eventStore, published::add))
+                        .recordAgentRunResult(GOAL_ID, AGENT_RUN_ID, reference));
+
+        RuntimeEventStream replayed = eventStore.resolve(GOAL_ID);
+        assertEquals(1, replayed.revision());
+        assertEquals(1, replayed.events().size());
+        assertEquals(1, attempts.get());
+        assertEquals(
+                List.of(RuntimeEventPublicationReference.from(
+                        replayed.events().get(0))),
+                published);
+        assertEquals(
+                runtimeRevision,
+                DurableAgentRuntime.recover(GOAL_ID, s.runtimeStore, CLOCK)
+                        .revision());
+    }
+
+    @Test
+    void repairsMissingTerminationAfterLaterQueueRevisionsAndReusesFirstOccurrence()
+            throws Exception {
+        Setup s = awaitingVerification(true);
+        String reference = persistRunRecord(s, true);
+        DurableAgentRunFinalizer sourceFinalizer = finalizer(s);
+        sourceFinalizer.recordAgentRunResult(GOAL_ID, AGENT_RUN_ID, reference);
+        assertEquals(
+                Optional.of(WorkItemDisposition.VERIFIED_COMPLETED),
+                sourceFinalizer.finalizeTerminalDisposition(GOAL_ID));
+
+        DurableSingleWorkerSchedulerQueue advancedQueue =
+                DurableSingleWorkerSchedulerQueue.recover(
+                        QUEUE_ID, s.queueStore);
+        assertEquals(DEP_ID, advancedQueue.claimNext().orElseThrow().workItemId());
+        advancedQueue.completeActiveVerified(DEP_ID);
+
+        FileSystemRuntimeEventStore eventStore =
+                new FileSystemRuntimeEventStore(tempDir.resolve("events"));
+        List<RuntimeEventPublicationReference> published = new ArrayList<>();
+        RuntimeEventRecorder recorder =
+                new RuntimeEventRecorder(eventStore, published::add);
+        Clock firstRecoveryClock = Clock.offset(CLOCK, Duration.ofHours(1));
+        assertEquals(
+                Optional.of(WorkItemDisposition.VERIFIED_COMPLETED),
+                eventAwareFinalizer(s, recorder, firstRecoveryClock)
+                        .recoverFinalization(GOAL_ID));
+
+        RuntimeEvent first = eventStore.resolve(GOAL_ID).events().get(0);
+        assertEquals(RuntimeEventKind.WORK_ITEM_TERMINATED, first.kind());
+        assertEquals(firstRecoveryClock.instant(), first.occurredAt());
+        assertEquals(
+                List.of(new RuntimeEventReference(
+                        RuntimeEventReferenceKind.SCHEDULER_QUEUE,
+                        "scheduler-queue/"
+                                + QUEUE_ID
+                                + "/work-item/"
+                                + WORK_ID
+                                + "/disposition/VERIFIED_COMPLETED",
+                        Optional.empty())),
+                first.authoritativeReferences());
+
+        DurableSingleWorkerSchedulerQueue laterQueue =
+                DurableSingleWorkerSchedulerQueue.recover(
+                        QUEUE_ID, s.queueStore);
+        laterQueue.enqueue(new QueuedWork(workItem(LATER_ID), List.of()));
+        Clock laterRecoveryClock = Clock.offset(CLOCK, Duration.ofHours(2));
+        assertEquals(
+                Optional.of(WorkItemDisposition.VERIFIED_COMPLETED),
+                eventAwareFinalizer(s, recorder, laterRecoveryClock)
+                        .recoverFinalization(GOAL_ID));
+
+        RuntimeEventStream replayed = eventStore.resolve(GOAL_ID);
+        assertEquals(1, replayed.revision());
+        assertEquals(List.of(first), replayed.events());
+        assertEquals(firstRecoveryClock.instant(), replayed.events().get(0).occurredAt());
+        assertEquals(
+                List.of(
+                        RuntimeEventPublicationReference.from(first),
+                        RuntimeEventPublicationReference.from(first)),
+                published);
+    }
+
+    @Test
+    void terminationPublisherFailureLeavesQueueAndEventRecoverable()
+            throws Exception {
+        Setup s = awaitingVerification(false);
+        String reference = persistRunRecord(s, true);
+        finalizer(s).recordAgentRunResult(GOAL_ID, AGENT_RUN_ID, reference);
+        FileSystemRuntimeEventStore eventStore =
+                new FileSystemRuntimeEventStore(tempDir.resolve("events"));
+        Clock firstClock = Clock.offset(CLOCK, Duration.ofHours(1));
+        RuntimeEventRecorder failingRecorder = new RuntimeEventRecorder(
+                eventStore,
+                ignored -> {
+                    throw new IOException("publication unavailable");
+                });
+
+        assertThrows(
+                IOException.class,
+                () -> eventAwareFinalizer(s, failingRecorder, firstClock)
+                        .finalizeTerminalDisposition(GOAL_ID));
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.recover(
+                        QUEUE_ID, s.queueStore);
+        assertEquals(Set.of(WORK_ID), queue.completedWorkItemIds());
+        RuntimeEvent first = eventStore.resolve(GOAL_ID).events().get(0);
+        assertEquals(firstClock.instant(), first.occurredAt());
+
+        queue.enqueue(new QueuedWork(workItem(LATER_ID), List.of()));
+        List<RuntimeEventPublicationReference> published = new ArrayList<>();
+        RuntimeEventRecorder recoveryRecorder = new RuntimeEventRecorder(
+                eventStore, published::add);
+        assertEquals(
+                Optional.of(WorkItemDisposition.VERIFIED_COMPLETED),
+                eventAwareFinalizer(
+                                s,
+                                recoveryRecorder,
+                                Clock.offset(CLOCK, Duration.ofHours(2)))
+                        .recoverFinalization(GOAL_ID));
+
+        RuntimeEventStream replayed = eventStore.resolve(GOAL_ID);
+        assertEquals(1, replayed.revision());
+        assertEquals(List.of(first), replayed.events());
+        assertEquals(
+                List.of(RuntimeEventPublicationReference.from(first)),
+                published);
+    }
+
+    @Test
+    void queuePersistenceFailureCreatesNoTerminationEventOrPublication()
+            throws Exception {
+        Setup s = awaitingVerification(false);
+        String reference = persistRunRecord(s, true);
+        finalizer(s).recordAgentRunResult(GOAL_ID, AGENT_RUN_ID, reference);
+        SchedulerQueueStore failingQueueStore = new SchedulerQueueStore() {
+            @Override
+            public void create(SchedulerQueueState initialState) throws IOException {
+                s.queueStore.create(initialState);
+            }
+
+            @Override
+            public void update(SchedulerQueueState nextState) throws IOException {
+                throw new IOException("queue persistence unavailable");
+            }
+
+            @Override
+            public SchedulerQueueState resolve(String queueId) throws IOException {
+                return s.queueStore.resolve(queueId);
+            }
+        };
+        FileSystemRuntimeEventStore eventStore =
+                new FileSystemRuntimeEventStore(tempDir.resolve("events"));
+        List<RuntimeEventPublicationReference> published = new ArrayList<>();
+        DurableAgentRunFinalizer finalizer = new DurableAgentRunFinalizer(
+                DurableSingleWorkerSchedulerQueue.recover(
+                        QUEUE_ID, failingQueueStore),
+                s.runtimeStore,
+                s.runRecordStore,
+                CLOCK,
+                new RuntimeEventRecorder(eventStore, published::add));
+
+        assertThrows(
+                IOException.class,
+                () -> finalizer.finalizeTerminalDisposition(GOAL_ID));
+
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.recover(
+                        QUEUE_ID, s.queueStore);
+        assertTrue(queue.completedWorkItemIds().isEmpty());
+        assertTrue(queue.failedWorkItemIds().isEmpty());
+        assertThrows(
+                MissingRuntimeEventStreamException.class,
+                () -> eventStore.resolve(GOAL_ID));
+        assertTrue(published.isEmpty());
+    }
+
+    @Test
+    void resultPersistenceFailureCreatesNoVerificationEventOrPublication()
+            throws Exception {
+        Setup s = awaitingVerification(false);
+        String reference = persistRunRecord(s, true);
+        AgentRuntimeStateStore failingRuntimeStore = new AgentRuntimeStateStore() {
+            @Override
+            public void create(AgentRuntimeState initialState) throws IOException {
+                s.runtimeStore.create(initialState);
+            }
+
+            @Override
+            public void update(AgentRuntimeState nextState) throws IOException {
+                throw new IOException("runtime persistence unavailable");
+            }
+
+            @Override
+            public AgentRuntimeState resolve(String goalId) throws IOException {
+                return s.runtimeStore.resolve(goalId);
+            }
+        };
+        FileSystemRuntimeEventStore eventStore =
+                new FileSystemRuntimeEventStore(tempDir.resolve("events"));
+        List<RuntimeEventPublicationReference> published = new ArrayList<>();
+        DurableAgentRunFinalizer finalizer = new DurableAgentRunFinalizer(
+                DurableSingleWorkerSchedulerQueue.recover(
+                        QUEUE_ID, s.queueStore),
+                failingRuntimeStore,
+                s.runRecordStore,
+                CLOCK,
+                new RuntimeEventRecorder(eventStore, published::add));
+
+        assertThrows(
+                IOException.class,
+                () -> finalizer.recordAgentRunResult(
+                        GOAL_ID, AGENT_RUN_ID, reference));
+
+        assertEquals(
+                RuntimeAgentRunStatus.AWAITING_VERIFICATION,
+                DurableAgentRuntime.recover(GOAL_ID, s.runtimeStore, CLOCK)
+                        .agentRun()
+                        .orElseThrow()
+                        .status());
+        assertThrows(
+                MissingRuntimeEventStreamException.class,
+                () -> eventStore.resolve(GOAL_ID));
+        assertTrue(published.isEmpty());
+    }
+
     private MessageEnvelope terminalResultEnvelope(
             WorkItem work, String reference, VerificationStatus status) {
         MessageEnvelope workMessage = work.workMessage();
@@ -269,6 +663,24 @@ class DurableAgentRunFinalizerTest {
                 s.runtimeStore,
                 s.runRecordStore,
                 CLOCK);
+    }
+
+    private DurableAgentRunFinalizer eventAwareFinalizer(
+            Setup s,
+            RuntimeEventRecorder eventRecorder) throws IOException {
+        return eventAwareFinalizer(s, eventRecorder, CLOCK);
+    }
+
+    private DurableAgentRunFinalizer eventAwareFinalizer(
+            Setup s,
+            RuntimeEventRecorder eventRecorder,
+            Clock clock) throws IOException {
+        return new DurableAgentRunFinalizer(
+                DurableSingleWorkerSchedulerQueue.recover(QUEUE_ID, s.queueStore),
+                s.runtimeStore,
+                s.runRecordStore,
+                clock,
+                eventRecorder);
     }
 
     private Setup awaitingVerification(boolean withDependent) throws IOException {

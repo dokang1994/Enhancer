@@ -1,6 +1,7 @@
 package com.enhancer.runtime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.enhancer.bus.ControlPayload;
@@ -19,6 +20,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -42,6 +44,186 @@ class RuntimeControlAdmissionIntegrationTest {
 
     @TempDir
     Path storageRoot;
+
+    @Test
+    void cancelAdmissionRecordsAfterSourceAndExactReplayRepublishesTheSameReference()
+            throws Exception {
+        Path runtimeRoot = storageRoot.resolve("runtime");
+        Path eventRoot = storageRoot.resolve("events");
+        FileSystemAgentRuntimeStateStore store =
+                new FileSystemAgentRuntimeStateStore(runtimeRoot);
+        DurableAgentRuntime runtime = DurableAgentRuntime.create(
+                GOAL_ID, workItem(), store, CLOCK);
+        runtime.beginAgentRun(AGENT_RUN_ID);
+        runtime.markReady(AGENT_RUN_ID);
+        MessageEnvelope cancel = controlMessage(
+                "00000000-0000-0000-0000-000000000605",
+                ControlSignal.CANCEL,
+                "stop safely");
+        FileSystemRuntimeEventStore eventStore =
+                new FileSystemRuntimeEventStore(eventRoot);
+        List<RuntimeEventPublicationReference> published = new ArrayList<>();
+        RuntimeEventRecorder recorder =
+                new RuntimeEventRecorder(eventStore, published::add);
+
+        InProcessMessageBus bus = new InProcessMessageBus();
+        bus.subscribe(
+                CONTROL_QUEUE,
+                "runtime-control-admission",
+                new RuntimeControlAdmissionHandler(
+                        GOAL_ID, store, CLOCK, recorder));
+        assertEquals(
+                DeliveryStatus.DELIVERED,
+                bus.publish(CONTROL_QUEUE, cancel).get(0).status());
+
+        AgentRuntimeState persisted = store.resolve(GOAL_ID);
+        RuntimeEventStream events = eventStore.resolve(GOAL_ID);
+        assertEquals(3, persisted.revision());
+        assertEquals(List.of(cancel), persisted.controlRequests());
+        assertEquals(1, events.revision());
+        RuntimeEvent event = events.events().get(0);
+        assertEquals(
+                RuntimeEventKind.CANCELLATION_REQUEST_RECORDED,
+                event.kind());
+        assertEquals(cancel.occurredAt(), event.occurredAt());
+        assertEquals(GOAL_ID, event.binding().goalId());
+        assertEquals(WORK_ITEM_ID, event.binding().workItemId());
+        assertEquals(workItem().taskRevision(), event.binding().taskRevision());
+        assertEquals(workItem().snapshotId(), event.binding().snapshotId());
+        assertEquals(
+                workItem().logicalRunId(), event.binding().logicalRunId());
+        assertEquals(
+                cancel.correlationId(), event.binding().correlationId());
+        assertEquals(AGENT_RUN_ID, event.agentRunId());
+        assertEquals(Optional.of(cancel.messageId()), event.causationId());
+        assertEquals(
+                new RuntimeEventDetail.CancellationRequestRecorded(
+                        cancel.messageId()),
+                event.detail());
+        assertEquals(
+                List.of(
+                        new RuntimeEventReference(
+                                RuntimeEventReferenceKind.CONTROL_MESSAGE,
+                                "control-message/" + cancel.messageId(),
+                                Optional.empty()),
+                        new RuntimeEventReference(
+                                RuntimeEventReferenceKind.RUNTIME_STATE,
+                                "agent-runtime/" + GOAL_ID + "/revision/3",
+                                Optional.empty())),
+                event.authoritativeReferences());
+        assertEquals(
+                List.of(RuntimeEventPublicationReference.from(event)),
+                published);
+
+        InProcessMessageBus restartedBus = new InProcessMessageBus();
+        restartedBus.subscribe(
+                CONTROL_QUEUE,
+                "runtime-control-admission",
+                new RuntimeControlAdmissionHandler(
+                        GOAL_ID, store, CLOCK, recorder));
+        assertEquals(
+                DeliveryStatus.DELIVERED,
+                restartedBus.publish(CONTROL_QUEUE, cancel).get(0).status());
+        assertEquals(3, store.resolve(GOAL_ID).revision());
+        assertEquals(1, eventStore.resolve(GOAL_ID).revision());
+        assertEquals(2, published.size());
+        assertEquals(published.get(0), published.get(1));
+    }
+
+    @Test
+    void pauseAndResumeRemainRequestOnlyWhenEventRecorderIsConnected()
+            throws Exception {
+        Path runtimeRoot = storageRoot.resolve("runtime");
+        Path eventRoot = storageRoot.resolve("events");
+        FileSystemAgentRuntimeStateStore store =
+                new FileSystemAgentRuntimeStateStore(runtimeRoot);
+        DurableAgentRuntime runtime = DurableAgentRuntime.create(
+                GOAL_ID, workItem(), store, CLOCK);
+        runtime.beginAgentRun(AGENT_RUN_ID);
+        runtime.markReady(AGENT_RUN_ID);
+        FileSystemRuntimeEventStore eventStore =
+                new FileSystemRuntimeEventStore(eventRoot);
+        List<RuntimeEventPublicationReference> published = new ArrayList<>();
+        RuntimeEventRecorder recorder =
+                new RuntimeEventRecorder(eventStore, published::add);
+        InProcessMessageBus bus = new InProcessMessageBus();
+        bus.subscribe(
+                CONTROL_QUEUE,
+                "runtime-control-admission",
+                new RuntimeControlAdmissionHandler(
+                        GOAL_ID, store, CLOCK, recorder));
+
+        assertEquals(
+                DeliveryStatus.DELIVERED,
+                bus.publish(
+                                CONTROL_QUEUE,
+                                controlMessage(
+                                        "00000000-0000-0000-0000-000000000605",
+                                        ControlSignal.PAUSE,
+                                        "pause only"))
+                        .get(0)
+                        .status());
+        assertEquals(
+                DeliveryStatus.DELIVERED,
+                bus.publish(
+                                CONTROL_QUEUE,
+                                controlMessage(
+                                        "00000000-0000-0000-0000-000000000606",
+                                        ControlSignal.RESUME,
+                                        "resume only"))
+                        .get(0)
+                        .status());
+
+        assertEquals(4, store.resolve(GOAL_ID).revision());
+        assertTrue(published.isEmpty());
+        assertThrows(
+                MissingRuntimeEventStreamException.class,
+                () -> eventStore.resolve(GOAL_ID));
+    }
+
+    @Test
+    void exactControlReplayRepairsAMissingCancellationEvent()
+            throws Exception {
+        Path runtimeRoot = storageRoot.resolve("runtime");
+        Path eventRoot = storageRoot.resolve("events");
+        FileSystemAgentRuntimeStateStore store =
+                new FileSystemAgentRuntimeStateStore(runtimeRoot);
+        DurableAgentRuntime runtime = DurableAgentRuntime.create(
+                GOAL_ID, workItem(), store, CLOCK);
+        runtime.beginAgentRun(AGENT_RUN_ID);
+        runtime.markReady(AGENT_RUN_ID);
+        MessageEnvelope cancel = controlMessage(
+                "00000000-0000-0000-0000-000000000605",
+                ControlSignal.CANCEL,
+                "repair missing event");
+        new RuntimeControlAdmissionHandler(GOAL_ID, store, CLOCK)
+                .handle(cancel);
+        assertEquals(3, store.resolve(GOAL_ID).revision());
+
+        FileSystemRuntimeEventStore eventStore =
+                new FileSystemRuntimeEventStore(eventRoot);
+        assertThrows(
+                MissingRuntimeEventStreamException.class,
+                () -> eventStore.resolve(GOAL_ID));
+        List<RuntimeEventPublicationReference> published = new ArrayList<>();
+        RuntimeEventRecorder recorder =
+                new RuntimeEventRecorder(eventStore, published::add);
+
+        new RuntimeControlAdmissionHandler(GOAL_ID, store, CLOCK, recorder)
+                .handle(cancel);
+
+        assertEquals(3, store.resolve(GOAL_ID).revision());
+        RuntimeEventStream repaired = eventStore.resolve(GOAL_ID);
+        assertEquals(1, repaired.revision());
+        assertEquals(1, repaired.events().size());
+        assertEquals(
+                RuntimeEventKind.CANCELLATION_REQUEST_RECORDED,
+                repaired.events().get(0).kind());
+        assertEquals(
+                List.of(RuntimeEventPublicationReference.from(
+                        repaired.events().get(0))),
+                published);
+    }
 
     @Test
     void queuePersistsExactOrderedControlsAndRestartReplayIsIdempotent()
@@ -118,11 +300,17 @@ class RuntimeControlAdmissionIntegrationTest {
                 new FailingUpdateStore(durableStore);
         InProcessMessageBus bus = new InProcessMessageBus(
                 RetryPolicy.of(2));
+        FileSystemRuntimeEventStore eventStore =
+                new FileSystemRuntimeEventStore(
+                        storageRoot.resolve("events"));
+        List<RuntimeEventPublicationReference> published = new ArrayList<>();
+        RuntimeEventRecorder recorder =
+                new RuntimeEventRecorder(eventStore, published::add);
         bus.subscribe(
                 CONTROL_QUEUE,
                 "runtime-control-admission",
                 new RuntimeControlAdmissionHandler(
-                        GOAL_ID, failingStore, CLOCK));
+                        GOAL_ID, failingStore, CLOCK, recorder));
 
         assertEquals(
                 DeliveryStatus.FAILED,
@@ -141,6 +329,10 @@ class RuntimeControlAdmissionIntegrationTest {
                         GOAL_ID, durableStore, CLOCK)
                 .controlRequests()
                 .isEmpty());
+        assertTrue(published.isEmpty());
+        assertThrows(
+                MissingRuntimeEventStreamException.class,
+                () -> eventStore.resolve(GOAL_ID));
     }
 
     @Test

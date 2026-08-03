@@ -10,6 +10,7 @@ import com.enhancer.workspace.ApprovedTaskRevision;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,22 +20,52 @@ import java.util.UUID;
  * Queue and runtime remain separate durable boundaries; no cross-store transaction is claimed.
  */
 public final class DurableAgentRunFinalizer {
+    private static final String EVENT_PRODUCER_ID =
+            "durable-agent-run-finalizer";
+
     private final DurableSingleWorkerSchedulerQueue queue;
     private final AgentRuntimeStateStore runtimeStore;
     private final RunRecordStore runRecordStore;
     private final Clock clock;
+    private final Optional<RuntimeEventRecorder> eventRecorder;
 
     public DurableAgentRunFinalizer(
             DurableSingleWorkerSchedulerQueue queue,
             AgentRuntimeStateStore runtimeStore,
             RunRecordStore runRecordStore,
             Clock clock) {
+        this(queue, runtimeStore, runRecordStore, clock, Optional.empty());
+    }
+
+    public DurableAgentRunFinalizer(
+            DurableSingleWorkerSchedulerQueue queue,
+            AgentRuntimeStateStore runtimeStore,
+            RunRecordStore runRecordStore,
+            Clock clock,
+            RuntimeEventRecorder eventRecorder) {
+        this(
+                queue,
+                runtimeStore,
+                runRecordStore,
+                clock,
+                Optional.of(Objects.requireNonNull(
+                        eventRecorder, "eventRecorder must not be null")));
+    }
+
+    private DurableAgentRunFinalizer(
+            DurableSingleWorkerSchedulerQueue queue,
+            AgentRuntimeStateStore runtimeStore,
+            RunRecordStore runRecordStore,
+            Clock clock,
+            Optional<RuntimeEventRecorder> eventRecorder) {
         this.queue = Objects.requireNonNull(queue, "queue must not be null");
         this.runtimeStore =
                 Objects.requireNonNull(runtimeStore, "runtimeStore must not be null");
         this.runRecordStore =
                 Objects.requireNonNull(runRecordStore, "runRecordStore must not be null");
         this.clock = Objects.requireNonNull(clock, "clock must not be null");
+        this.eventRecorder = Objects.requireNonNull(
+                eventRecorder, "eventRecorder must not be null");
     }
 
     public WorkItemDisposition finalizeAgentRun(
@@ -75,6 +106,11 @@ public final class DurableAgentRunFinalizer {
             default -> throw new IllegalStateException(
                     "AgentRun has not acknowledged execution");
         }
+        if (eventRecorder.isPresent()) {
+            eventRecorder.orElseThrow().recordAndPublish(
+                    verificationRecordedEvent(
+                            runtime, canonicalAgentRunId, runRecordReference));
+        }
         return runtime.goal().status();
     }
 
@@ -104,8 +140,15 @@ public final class DurableAgentRunFinalizer {
         } else {
             return Optional.empty();
         }
-        return Optional.of(applyQueueDisposition(
-                runtime.goal().workItem().workItemId(), disposition));
+        String workItemId = runtime.goal().workItem().workItemId();
+        WorkItemDisposition recorded = applyQueueDisposition(
+                workItemId, disposition);
+        requireQueueDisposition(workItemId, recorded);
+        if (eventRecorder.isPresent()) {
+            eventRecorder.orElseThrow().recordAndPublishUsingFirstOccurrence(
+                    workItemTerminatedEvent(runtime, latest, recorded));
+        }
+        return Optional.of(recorded);
     }
 
     public Optional<WorkItemDisposition> recoverFinalization(String goalId)
@@ -146,6 +189,91 @@ public final class DurableAgentRunFinalizer {
         if (!payload.runRecordReference().equals(runRecordReference)) {
             throw new IllegalStateException(
                     "terminal AgentRun was finalized with a different RunRecord");
+        }
+    }
+
+    private RuntimeEvent verificationRecordedEvent(
+            DurableAgentRuntime runtime,
+            String agentRunId,
+            String runRecordReference) {
+        RuntimeAgentRun run = requireRun(runtime, agentRunId);
+        MessageEnvelope result = run.resultMessage().orElseThrow(() ->
+                new IllegalStateException(
+                        "verification event requires a durable Result message"));
+        ResultPayload payload = (ResultPayload) result.payload();
+        if (!payload.runRecordReference().equals(runRecordReference)) {
+            throw new IllegalStateException(
+                    "verification event RunRecord reference does not match the durable Result");
+        }
+        WorkItem workItem = runtime.goal().workItem();
+        RuntimeEventBinding binding = new RuntimeEventBinding(
+                runtime.goal().goalId(),
+                workItem.workItemId(),
+                workItem.taskRevision(),
+                workItem.snapshotId(),
+                workItem.logicalRunId(),
+                workItem.workMessage().correlationId());
+        return RuntimeEvent.create(
+                result.occurredAt(),
+                binding,
+                agentRunId,
+                Optional.of(result.messageId()),
+                EVENT_PRODUCER_ID,
+                new RuntimeEventDetail.VerificationRecorded(
+                        payload.verificationStatus()),
+                List.of(
+                        new RuntimeEventReference(
+                                RuntimeEventReferenceKind.RESULT_MESSAGE,
+                                "result-message/" + result.messageId(),
+                                Optional.empty()),
+                        new RuntimeEventReference(
+                                RuntimeEventReferenceKind.RUN_RECORD,
+                                runRecordReference,
+                                Optional.empty())));
+    }
+
+    private RuntimeEvent workItemTerminatedEvent(
+            DurableAgentRuntime runtime,
+            RuntimeAgentRun run,
+            WorkItemDisposition disposition) {
+        WorkItem workItem = runtime.goal().workItem();
+        MessageEnvelope result = run.resultMessage().orElseThrow(() ->
+                new IllegalStateException(
+                        "work termination event requires a durable Result message"));
+        RuntimeEventBinding binding = new RuntimeEventBinding(
+                runtime.goal().goalId(),
+                workItem.workItemId(),
+                workItem.taskRevision(),
+                workItem.snapshotId(),
+                workItem.logicalRunId(),
+                workItem.workMessage().correlationId());
+        return RuntimeEvent.create(
+                clock.instant(),
+                binding,
+                run.agentRunId(),
+                Optional.of(result.messageId()),
+                EVENT_PRODUCER_ID,
+                new RuntimeEventDetail.WorkItemTerminated(disposition),
+                List.of(new RuntimeEventReference(
+                        RuntimeEventReferenceKind.SCHEDULER_QUEUE,
+                        "scheduler-queue/"
+                                + queue.queueId()
+                                + "/work-item/"
+                                + workItem.workItemId()
+                                + "/disposition/"
+                                + disposition.name(),
+                        Optional.empty())));
+    }
+
+    private void requireQueueDisposition(
+            String workItemId,
+            WorkItemDisposition disposition) {
+        boolean recorded = disposition == WorkItemDisposition.VERIFIED_COMPLETED
+                ? queue.completedWorkItemIds().contains(workItemId)
+                : queue.failedWorkItemIds().contains(workItemId);
+        if (!recorded) {
+            throw new IllegalStateException(
+                    "terminal WorkItem disposition is not durable in the Scheduler queue");
         }
     }
 

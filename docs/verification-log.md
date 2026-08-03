@@ -3314,3 +3314,126 @@ Outcome:
   `d75ae5742406e09a637eabd35a0bc69c0c9ba1b5`, and local/remote divergence was `0/0`.
 - No force push, release, tag, deployment, pull request, branch deletion, or unrelated
   remote action was performed.
+
+## 2026-08-03 - Connect Cancellation Request Runtime Event Recording
+
+- Focused RED for `RuntimeEventRecorderTest` and
+  `RuntimeControlAdmissionIntegrationTest` reached `compileTestJava` and failed only on
+  the accepted missing recorder, publisher port, opaque publication reference, and
+  event-aware transition-owner construction.
+- Fresh focused GREEN passed 8 tests across the two suites with zero failures, errors,
+  or skips. The tests prove append-before-publication, event-persisted/publication-missing
+  retry, source-persisted/event-missing repair, exact event replay without another
+  stream revision, duplicate publication of one reference, source-store failure
+  isolation, and request-only `PAUSE`/`RESUME`.
+- The first full build exposed an unresolved `CURRENT_TASK.md` justification rather than
+  a product failure. Removing it would have changed the checkpoint-bound task contract,
+  so the repository correctly rejected that drift. The user continuation authority was
+  instead recorded as a matching accepted decision file and index entry; fresh
+  `DecisionLogIndexTest` then passed 5 tests with zero failures, errors, or skips.
+- A five-minute full-build command timed out without claim-bearing completion. A longer
+  run executed all 660 tests but one unrelated existing process-isolated integration
+  exceeded its fixed 20-second child bound under full-suite load. The exact failed test
+  passed independently without a code change, classifying the failure as load-sensitive.
+- Fresh final Java 17 `build --no-daemon --console=plain` completed in 5 minutes 35
+  seconds. Production and test sources remained under enforced `-Xlint:all -Werror`,
+  distribution artifacts assembled, and all 660 tests across 130 suites completed:
+  655 passed, five privilege-dependent cases skipped, and zero failures or errors.
+- No concrete publisher adapter, supported CLI event composition, MessageEnvelope
+  payload change, authenticated cancellation application, other runtime-event owner,
+  migration, scan, retention, cleanup, cross-store transaction, commit, push, merge,
+  release, tag, deployment, or external state change was added.
+
+## 2026-08-03 - Verify Runtime Event Recorder Document Synchronization
+
+- After Architecture, compact AI context, capability state, Roadmap, active task,
+  accepted-decision index, handoff, and changelog synchronization, fresh Java 17
+  `compileJava test --rerun-tasks --warning-mode all --no-daemon --console=plain`
+  completed in 2 minutes with production and test compilation executed rather than
+  reused.
+- The claim-bearing focused set executed 27 tests across six suites: runtime-event
+  recorder and Control admission integration plus decision-index, document-ownership,
+  Planner, and Context Reader structure. Twenty-six passed, one Windows
+  privilege-dependent symbolic-link setup skipped, and zero failures or errors.
+
+## 2026-08-03 - Connect Finalizer Verification Runtime Event Recording
+
+- Focused RED for `DurableAgentRunFinalizerTest` reached `compileTestJava` and failed
+  with exactly two missing-constructor errors for the event-aware five-argument
+  finalizer construction. Production compilation remained current and no unrelated
+  failure was absorbed.
+- Added an optional event-aware finalizer construction while preserving the existing
+  four-argument behavior. `recordAgentRunResult` now invokes `RuntimeEventRecorder`
+  only after the RunRecord-backed Result transition persists or exact-replays.
+- `VERIFICATION_RECORDED` retains the stored Result occurrence time, verification
+  status, and causal message UUID plus exact Goal, WorkItem, AgentRun, task revision,
+  snapshot, logical-run, correlation, Result-message, and RunRecord provenance. Ordered
+  Result-message and RunRecord references keep its deterministic identity independent
+  of later runtime revisions.
+- Focused GREEN completed all 13 `DurableAgentRunFinalizerTest` tests: 13 passed, zero
+  failed, errored, or skipped. The four new real-filesystem contracts prove complete
+  event binding, missing-event repair after later runtime revisions, revision-free
+  repeat publication, Result persistence failure isolation, publisher-failure recovery,
+  and no `WORK_ITEM_TERMINATED` event during terminal queue disposition.
+- Fresh Java 17 `build --no-daemon --console=plain` completed in 5 minutes 59 seconds.
+  The build assembled its distributions and executed all 664 tests across 130 suites:
+  659 passed, five privilege-dependent cases skipped, and zero failures or errors.
+- Production and test source counts remain 291 and 131. No new accepted decision was
+  required because the implementation follows the existing finalizer ownership and
+  source-first durability decision. No concrete publisher, supported CLI event
+  composition, MessageEnvelope change, queue-event integration, migration, scan,
+  retention, cleanup, cross-store transaction, commit, push, merge, release, tag,
+  deployment, or other external state change was performed.
+
+## 2026-08-03 - Verify Finalizer Event Document Synchronization
+
+- After Architecture, compact AI context, capability state, Roadmap, active task,
+  handoff review, changelog, and verification-log synchronization, fresh Java 17
+  `compileJava test --rerun-tasks --warning-mode all --no-daemon --console=plain`
+  completed in 1 minute 24 seconds with production and test compilation executed.
+- The focused set executed 40 tests across seven suites: finalizer, runtime-event
+  recorder, Control admission integration, decision-index, document-ownership, Planner,
+  and Context Reader. Thirty-nine passed, one Windows privilege-dependent symbolic-link
+  setup skipped, and zero failures or errors.
+
+## 2026-08-03 - Connect Terminal WorkItem Runtime Event Recording
+
+- Focused RED for `RuntimeEventRecorderTest` and
+  `DurableAgentRunFinalizerTest` reached `compileTestJava` and failed with exactly three
+  missing-method errors for first-occurrence recovery. Production compilation remained
+  current and no unrelated failure was absorbed.
+- Added `RuntimeEventRecorder.recordAndPublishUsingFirstOccurrence`: it resolves only an
+  already-persisted matching event identity, reconstructs the candidate with that first
+  occurrence time, and delegates every other field to the unchanged exact append check.
+  Missing streams or identities use the post-source candidate time normally.
+- Event-aware `DurableAgentRunFinalizer` now applies or re-enters the exact terminal queue
+  disposition, confirms the WorkItem is in the matching completed or failed partition,
+  and only then records `WORK_ITEM_TERMINATED`. The stable
+  `scheduler-queue/<queue>/work-item/<work>/disposition/<value>` reference survives later
+  whole-queue revisions, and the retained Result message supplies causation.
+- Fresh focused GREEN executed 19 tests across the two suites: 19 passed, zero failed,
+  errored, or skipped. The four new contracts prove first-occurrence recovery without
+  weakened changed-content refusal, verification-before-termination ordering,
+  source-persisted/event-missing repair after later queue revisions, later-clock replay
+  after publication failure, and queue-store failure isolation.
+- Fresh Java 17 `build --no-daemon --console=plain` completed in 5 minutes 25 seconds
+  with all seven tasks executed. The build assembled distributions and ran all 668 tests
+  across 130 suites: 663 passed, five privilege-dependent cases skipped, and zero
+  failures or errors.
+- Production and test source counts remain 291 and 131. No new accepted decision was
+  required because the implementation follows the existing finalizer ownership and
+  source-first durability decision. No queue/runtime schema, concrete publisher,
+  supported CLI event composition, MessageEnvelope change, migration, scan, retention,
+  cleanup, cross-store transaction, commit, push, merge, release, tag, deployment, or
+  other external state change was performed.
+
+## 2026-08-03 - Verify Terminal WorkItem Event Document Synchronization
+
+- After Architecture, compact AI context, capability state, Roadmap, active task,
+  handoff review, changelog, and verification-log synchronization, fresh Java 17
+  `compileJava test --rerun-tasks --warning-mode all --no-daemon --console=plain`
+  completed in 1 minute 24 seconds with all three tasks executed.
+- The focused set executed 44 tests across seven suites: finalizer, runtime-event
+  recorder, Control admission integration, decision-index, document-ownership, Planner,
+  and Context Reader. Forty-three passed, one Windows privilege-dependent symbolic-link
+  setup skipped, and zero failures or errors.

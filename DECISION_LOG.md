@@ -11,6 +11,18 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User request on 2026-08-03 to commit, push, and merge the completed runtime-event owner connections to main
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-03-user-request-to-commit-push-and-merge-the-completed-runtime-event-owner-connections-to-main.md)
+
+### User request on 2026-08-03 to continue the project from the recorded next task.
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-03-user-request-to-continue-the-project-from-the-recorded-next-task.md)
+
 ### User request on 2026-07-31 to commit, push, and merge the completed increment to
 
 Status: Accepted Decision

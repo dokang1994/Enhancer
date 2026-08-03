@@ -1,5 +1,42 @@
 # Changelog
 
+## 2026-08-03 - Connect Terminal WorkItem Runtime Event Recording
+
+- Connected event-aware `DurableAgentRunFinalizer` construction to derive
+  `WORK_ITEM_TERMINATED` only after the target WorkItem is durably present in the
+  matching verified-completed or failed queue partition.
+- Used a stable queue/WorkItem/disposition reference so event identity survives later
+  whole-queue revisions, and added recorder recovery of the first persisted occurrence
+  time without weakening exact-content replay checks.
+- Proved missing-event repair after later queue progress, revision-free repeat
+  publication under a later clock, queue-persistence failure isolation, and recovery
+  after publisher failure without changing the queue schema or adding a concrete
+  publisher.
+
+## 2026-08-03 - Connect Verification Runtime Event Recording
+
+- Connected event-aware `DurableAgentRunFinalizer` construction to derive
+  `VERIFICATION_RECORDED` only after the RunRecord-backed Result transition is durable.
+- Bound deterministic repair to the retained Result message and RunRecord reference,
+  preserving occurrence time, verification status, causation, and exact runtime work
+  provenance even after later runtime revisions.
+- Proved missing-event repair, revision-free repeat publication, Result persistence
+  failure isolation, and recovery after publisher failure while keeping
+  `WORK_ITEM_TERMINATED` separate from this increment.
+
+## 2026-08-03 - Connect Cancellation Request Runtime Event Recording
+
+- Added `RuntimeEventRecorder`, an opaque deterministic publication reference, and a
+  publisher port that receives no event body and is invoked only after append or exact
+  replay succeeds.
+- Connected event-aware Control admission to derive
+  `CANCELLATION_REQUEST_RECORDED` only after the exact `CANCEL` request is durable,
+  preserving retained Goal, WorkItem, AgentRun, task, snapshot, run, correlation,
+  message, occurrence-time, and runtime-revision provenance.
+- Proved missing-event repair, revision-free replay with repeat publication, source
+  failure isolation, and request-only `PAUSE`/`RESUME` behavior without changing the
+  four-kind MessageEnvelope or adding a concrete publisher adapter.
+
 ## 2026-07-31 - Implement The Runtime Event Value And Store
 
 - Added the immutable eight-kind `runtime-event-v1` value, sealed kind-specific

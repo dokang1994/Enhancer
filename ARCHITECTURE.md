@@ -896,20 +896,65 @@ rules. It adds no scan, cleanup, retention, compaction, migration, cross-store o
 cross-process transaction, or power-loss directory-durability claim.
 
 Durable ordering is source transition -> deterministic event append/exact replay ->
-reference publication. `RuntimeEventRecorder` is the later application boundary that
-enforces that ordering and invokes a `RuntimeEventPublisher` port only with the opaque
-durable event reference after append. If the source transition is durable but event
-recording or publication is not acknowledged, the existing transition-specific
-checkpoint or exact message re-entry resolves the source again, derives the same event
-identity, exact-replays the append, and may publish again. Consumers therefore
-deduplicate by event identity. Transport `ACCEPTED` still means only hop acceptance.
+reference publication. The implemented `RuntimeEventRecorder` enforces that ordering
+and invokes a `RuntimeEventPublisher` port only with the deterministic opaque
+`runtime-event/<goal>/<event>` reference after append. If the source transition is
+durable but event recording or publication is not acknowledged, the existing
+transition-specific checkpoint or exact message re-entry resolves the source again,
+derives the same event identity, exact-replays the append, and may publish again.
+Consumers therefore deduplicate by event identity. Transport `ACCEPTED` still means
+only hop acceptance.
+
+When an authoritative transition retains no occurrence timestamp, the transition owner
+supplies an injected post-source time for the first candidate. The recorder's explicit
+first-occurrence recovery operation resolves only the same deterministic event identity,
+reuses its already-persisted occurrence time, and submits the reconstructed value through
+the unchanged exact-append check. Every other field remains candidate-derived, so changed
+content under that identity still fails closed. If no such event exists, the candidate's
+post-source time becomes the first durable occurrence time.
+
+The first transition-owner consumer is the event-aware construction of
+`RuntimeControlAdmissionHandler`. It persists or exact-replays the bound Control request
+first. For `CANCEL` only, it then derives `CANCELLATION_REQUEST_RECORDED` from the exact
+retained Goal, WorkItem, current AgentRun, task, snapshot, logical-run, correlation,
+Control message, occurrence time, and persisted runtime revision before invoking the
+recorder. An exact Control replay repairs a source-persisted/event-missing prefix or
+republishes an event-persisted reference without advancing either source revision.
+`PAUSE` and `RESUME` remain request-only, and source persistence failure reaches neither
+the event store nor publisher port.
+
+The second transition-owner consumer is the event-aware construction of
+`DurableAgentRunFinalizer`. `recordAgentRunResult` first persists or exact-replays the
+RunRecord-backed Result transition. It then derives `VERIFICATION_RECORDED` from the
+retained Result occurrence time, verification status, and causal message identity plus
+the exact Goal, WorkItem, AgentRun, task, snapshot, logical-run, correlation,
+Result-message, and RunRecord bindings. The ordered Result-message and RunRecord
+references determine event identity; a later runtime revision therefore cannot change
+the verification fact during repair. Result persistence failure reaches neither the
+event store nor publisher, while an event or publisher failure leaves the Result
+transition available for exact re-entry. Terminal queue disposition remains a separate
+durable boundary handled by the next connection.
+
+The third transition-owner consumer is the same event-aware finalizer after terminal
+queue disposition. `finalizeTerminalDisposition` first applies or re-enters the exact
+`VERIFIED_COMPLETED` or `FAILED` partition and confirms that the target WorkItem is
+present there. Only then does it derive `WORK_ITEM_TERMINATED` with the retained Result
+message as causation and a stable
+`scheduler-queue/<queue>/work-item/<work>/disposition/<value>` reference to the queue's
+monotonic terminal fact. That reference does not use the mutable whole-queue revision,
+so later claims, admissions, or dispositions re-derive the same event identity. Because
+the queue retains no transition time, the first candidate uses the injected clock after
+the disposition is durable; publication or later-clock re-entry recovers that first
+persisted occurrence time before exact replay. Queue persistence failure reaches neither
+the event store nor publisher, while event or publisher failure leaves the terminal
+queue partition available to `recoverFinalization`.
 
 The existing `MessageEnvelope` remains sealed to Work, Result, Control, and Handoff.
 Runtime events must not be coerced into one of those meanings. A concrete Message Bus
-publisher requires a separate accepted Gate 7 wire-schema evolution; the first Gate 8
-implementation is limited to the immutable event/detail/reference contract and
-append-only store. Its immediate integration consumer is a later recorder around one
-existing transition owner, selected only after the store contract is verified.
+publisher requires a separate accepted Gate 7 wire-schema evolution. The current
+publisher remains a caller-supplied port in the named integration paths; no supported
+CLI composition, transport adapter, event consumer, authenticated cancellation
+application, or additional runtime-event transition owner is implied.
 
 Which connections exist today is stated in `PROJECT_STATE.md`; the cross-boundary connection sequence remains dependency ordered:
 
