@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-03 - Deliver Runtime Event Owner Connections To Main
+
+- Committed the three verified runtime-event owner connections and their owned tests,
+  decisions, and project-document synchronization as `f3eecc8` on the dedicated
+  `codex/runtime-event-owner-connections-20260803` branch.
+- Pushed the branch, fast-forward merged it into `main`, and pushed `main` without
+  force, rebase, history rewriting, branch deletion, release, tag, or deployment.
+- Reconciled the fetched remote baseline before delivery and retained the separate next
+  task for `RETRY_DECISION_RECORDED` retry-controller integration.
+
 ## 2026-08-03 - Connect Terminal WorkItem Runtime Event Recording
 
 - Connected event-aware `DurableAgentRunFinalizer` construction to derive

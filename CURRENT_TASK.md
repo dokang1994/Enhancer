@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -62,7 +62,24 @@ changes.
 
 ## Verification
 
-Pending delivery verification.
+- Fetched `origin/main` with pruning before delivery. Local `main`, `origin/main`, and
+  `HEAD` all resolved to `5d4bd7009a2e26fcf330429d4510cfbc8343a3f6` with `0/0`
+  divergence before branch creation.
+- Fresh Java 17 delivery-governance verification completed successfully in 1 minute
+  10 seconds with all three Gradle tasks executed. Nineteen tests across four suites
+  completed: 18 passed, one Windows privilege-dependent symbolic-link setup skipped,
+  and zero failures or errors.
+- Explicit review staged 19 owned paths with no unstaged changes;
+  `git diff --cached --check` passed. Commit
+  `f3eecc8aba205e125bc41af41c3625df2d7b030b` records 1,511 insertions and 87
+  deletions as `feat: connect durable runtime event owners`.
+- The dedicated `codex/runtime-event-owner-connections-20260803` branch was pushed at
+  that exact commit, then fast-forward merged into `main` without rebase or history
+  rewriting. The first `main` push advanced the remote from `5d4bd70` to `f3eecc8`;
+  local `main` and `origin/main` then matched with `0/0` divergence.
+- No force push, branch deletion, pull request, release, tag, deployment, or unrelated
+  external effect was performed. The closing documentation commit and final remote-ref
+  equality are verified as the last steps of this delivery checkpoint.
 
 ## Next
 

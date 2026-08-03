@@ -3437,3 +3437,38 @@ Outcome:
   recorder, Control admission integration, decision-index, document-ownership, Planner,
   and Context Reader. Forty-three passed, one Windows privilege-dependent symbolic-link
   setup skipped, and zero failures or errors.
+
+## 2026-08-03 - Deliver Runtime Event Owner Connections To Main
+
+- `git fetch origin main --prune` completed before delivery. Local `HEAD`, `main`, and
+  the refreshed `origin/main` all resolved to
+  `5d4bd7009a2e26fcf330429d4510cfbc8343a3f6`; `main...origin/main` was `0 0`.
+- Fresh Java 17 `compileJava test --rerun-tasks --warning-mode all --no-daemon
+  --console=plain` for `DecisionLogIndexTest`, `DocumentOwnershipTest`,
+  `RepositoryTaskPlannerTest`, and `ProjectContextReaderTest` completed successfully in
+  1 minute 10 seconds with all three tasks executed. Nineteen tests across four suites
+  completed: 18 passed, one Windows privilege-dependent symbolic-link setup skipped,
+  and zero failures or errors.
+- Exactly 19 owned implementation, test, accepted-decision, and project-document paths
+  were staged. There were no unstaged paths, and `git diff --cached --check` passed.
+  Commit `f3eecc8aba205e125bc41af41c3625df2d7b030b` records the reviewed diff as
+  `feat: connect durable runtime event owners` with 1,511 insertions and 87 deletions.
+- The dedicated `codex/runtime-event-owner-connections-20260803` branch was pushed at
+  the exact feature commit with `0 0` local/remote branch divergence. `main` then
+  fast-forwarded from `5d4bd7009a2e26fcf330429d4510cfbc8343a3f6` to the same
+  commit and the first `main` push succeeded; local `HEAD`, `main`, and `origin/main`
+  all resolved to `f3eecc8aba205e125bc41af41c3625df2d7b030b` with `0 0`
+  divergence.
+- Force push, rebase, history rewriting, branch deletion, pull-request creation,
+  release, tag, deployment, and unrelated external effects were not performed.
+
+## 2026-08-03 - Verify Runtime Event Owner Delivery Document Synchronization
+
+- After delivery task, changelog, and append-only delivery evidence synchronization,
+  fresh Java 17 `compileJava test --rerun-tasks --warning-mode all --no-daemon
+  --console=plain` completed successfully in 1 minute 24 seconds with all three tasks
+  executed.
+- The focused decision-index, document-ownership, Planner, and Context Reader set
+  executed 19 tests across four suites: 18 passed, one Windows privilege-dependent
+  symbolic-link setup skipped, and zero failures or errors. `git diff --check` also
+  passed for the three closing documentation paths.
