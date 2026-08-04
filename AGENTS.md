@@ -51,6 +51,46 @@ Before planning or editing, read these files in order:
   currently changed path in the artifact manifest and references to raw evidence; do not
   copy canonical project facts into the checkpoint.
 
+## Adaptive Development Subagent Delegation
+
+The user supplies the task authority; the primary Agent selects the execution topology.
+For every non-trivial task, the primary Agent must evaluate whether bounded subagents
+provide a material quality, risk-reduction, or latency benefit over their coordination
+cost, then use the smallest useful topology.
+
+Use subagents when at least two independent bounded subtasks can be inspected in
+parallel, several components or document owners benefit from separate analysis,
+architecture/governance/security/self-hosting changes merit independent review,
+alternatives can be compared against the same repository authority, or test and
+regression surfaces can be analyzed independently. Stay single-agent for small,
+sequential, tightly coupled, overlapping-write, ambiguous-ownership, or
+coordination-dominated work.
+
+Development delegation is bounded as follows:
+
+- use at most three concurrent subagents, one delegation level, three dispatches per
+  increment, and six dispatches per Active Task;
+- give every subagent one concrete scope, source set, expected output, conflict policy,
+  join condition, and least Tool/context/time bound before dispatch;
+- keep subagents read-only; nested delegation, background continuation, and
+  shared-worktree parallel mutation are prohibited;
+- the primary Agent alone edits canonical documents, code, tests, checkpoints, or Git
+  state; classifies RED/GREEN; validates raw evidence; resolves conflicts; and makes
+  lifecycle claims;
+- subagent reports are recommendations, never verification evidence; the primary Agent
+  must reconcile them against repository authority and run/read fresh verification;
+- delegation cannot widen the user request, Active Task, allowed Tools, permissions,
+  budgets, external/destructive authority, or lifecycle state, and an explicit task
+  prohibition always narrows this policy;
+- join or stop every child before completing the increment or ending the session, and
+  fall back to single-agent execution on authority conflict, drift, failed join,
+  exhausted bounds, ambiguous ownership, or unsafe synthesis.
+
+A Dynamic Workflow is not required for delegation. When one exists, increment selection
+remains sequential; subagents may inspect only independent bounded work inside the sole
+selected increment. This host development policy is not Gate 13 product/runtime
+multi-agent execution and changes no capability maturity.
+
 ## Dynamic Workflow Rules
 
 - `CURRENT_TASK.md` remains the single Active Task and authority envelope. When one
@@ -75,9 +115,10 @@ Before planning or editing, read these files in order:
   increment/time/cost/context bounds, task drift, insufficient authority, or unsafe
   recovery. Do not skip a blocked increment or continue into independent work merely to
   keep the workflow moving.
-- Dynamic workflow structure grants no commit, push, merge, release, deployment,
+- Dynamic workflow structure itself grants no commit, push, merge, release, deployment,
   destructive-action, paid-service, permission-change, external-message, background,
-  parallel, or multi-agent authority.
+  or product-runtime multi-agent authority. Adaptive read-only development delegation
+  is governed only by the section above and stays inside the selected increment.
 
 ## Document Driven Development
 

@@ -26,12 +26,42 @@ public final class DurableControlMessageReceiver {
     private final String goalId;
     private final AgentRuntimeStateStore store;
     private final Clock clock;
+    private final java.util.Optional<RuntimeEventRecorder> eventRecorder;
 
     public DurableControlMessageReceiver(
             DeliveryDestination expectedDestination,
             String goalId,
             AgentRuntimeStateStore store,
             Clock clock) {
+        this(
+                expectedDestination,
+                goalId,
+                store,
+                clock,
+                java.util.Optional.empty());
+    }
+
+    public DurableControlMessageReceiver(
+            DeliveryDestination expectedDestination,
+            String goalId,
+            AgentRuntimeStateStore store,
+            Clock clock,
+            RuntimeEventRecorder eventRecorder) {
+        this(
+                expectedDestination,
+                goalId,
+                store,
+                clock,
+                java.util.Optional.of(Objects.requireNonNull(
+                        eventRecorder, "eventRecorder must not be null")));
+    }
+
+    private DurableControlMessageReceiver(
+            DeliveryDestination expectedDestination,
+            String goalId,
+            AgentRuntimeStateStore store,
+            Clock clock,
+            java.util.Optional<RuntimeEventRecorder> eventRecorder) {
         this.expectedDestination = Objects.requireNonNull(
                 expectedDestination, "expectedDestination must not be null");
         if (expectedDestination.kind() != DeliveryDestinationKind.QUEUE) {
@@ -41,6 +71,8 @@ public final class DurableControlMessageReceiver {
         this.goalId = AgentRuntimeState.requireCanonicalGoalId(goalId);
         this.store = Objects.requireNonNull(store, "store must not be null");
         this.clock = Objects.requireNonNull(clock, "clock must not be null");
+        this.eventRecorder = Objects.requireNonNull(
+                eventRecorder, "eventRecorder must not be null");
     }
 
     public DurableControlMessageReceiveResult receive(TransportMessage message)
@@ -57,8 +89,11 @@ public final class DurableControlMessageReceiver {
 
         long beforeRevision = store.resolve(goalId).revision();
         AtomicReference<RuntimeException> handlerFailure = new AtomicReference<>();
-        MessageHandler durableHandler =
-                new RuntimeControlAdmissionHandler(goalId, store, clock);
+        MessageHandler durableHandler = eventRecorder
+                .<MessageHandler>map(recorder -> new RuntimeControlAdmissionHandler(
+                        goalId, store, clock, recorder))
+                .orElseGet(() ->
+                        new RuntimeControlAdmissionHandler(goalId, store, clock));
         InProcessMessageBus bus = new InProcessMessageBus();
         bus.subscribe(expectedDestination, SUBSCRIBER_ID, envelope -> {
             try {

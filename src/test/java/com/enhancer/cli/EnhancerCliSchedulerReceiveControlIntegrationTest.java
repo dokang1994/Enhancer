@@ -14,7 +14,11 @@ import com.enhancer.bus.TransportMessage;
 import com.enhancer.bus.WorkPayload;
 import com.enhancer.runtime.DurableAgentRuntime;
 import com.enhancer.runtime.FileSystemAgentRuntimeStateStore;
+import com.enhancer.runtime.FileSystemRuntimeEventPublisher;
+import com.enhancer.runtime.FileSystemRuntimeEventStore;
 import com.enhancer.runtime.RuntimeAgentRunStatus;
+import com.enhancer.runtime.RuntimeEventKind;
+import com.enhancer.runtime.RuntimeEventPublicationReference;
 import com.enhancer.runtime.RuntimeGoalStatus;
 import com.enhancer.runtime.WorkItem;
 import com.enhancer.workspace.ApprovedTaskRevision;
@@ -141,6 +145,156 @@ class EnhancerCliSchedulerReceiveControlIntegrationTest {
                 messageFile.replace(".transport", ".received"))));
     }
 
+    @Test
+    void optionalEventCompositionPublishesCancelAndExactlyReplaysTheAcknowledgedPoint()
+            throws Exception {
+        Path runtimeRoot = temporaryRoot.resolve("event-runtime");
+        Path spoolRoot = temporaryRoot.resolve("event-spool");
+        Path eventRoot = temporaryRoot.resolve("events");
+        Path publicationRoot = temporaryRoot.resolve("publications");
+        FileSystemAgentRuntimeStateStore store = activeRuntime(runtimeRoot);
+        MessageEnvelope cancel = controlMessage(ControlSignal.CANCEL);
+        String messageFile = new FileSpoolMessageTransport(
+                        spoolRoot, BackpressurePolicy.standard())
+                .sendWithReference(new TransportMessage(
+                        DeliveryDestination.queue(DESTINATION), cancel))
+                .messageFile()
+                .orElseThrow();
+
+        Execution recorded = executeWithEvents(
+                spoolRoot,
+                runtimeRoot,
+                eventRoot,
+                publicationRoot,
+                "4",
+                messageFile);
+
+        assertEquals(0, recorded.exitCode());
+        assertTrue(recorded.stdout().contains("status=RECORDED"));
+        assertTrue(recorded.stdout().contains("spoolStatus=ACKNOWLEDGED"));
+        long runtimeRevision = store.resolve(GOAL_ID).revision();
+        var eventStream = new FileSystemRuntimeEventStore(eventRoot).resolve(GOAL_ID);
+        assertEquals(1, eventStream.revision());
+        assertEquals(1, eventStream.events().size());
+        assertEquals(
+                RuntimeEventKind.CANCELLATION_REQUEST_RECORDED,
+                eventStream.events().get(0).kind());
+        Path point = onlyPublicationPoint(publicationRoot);
+        byte[] pointBytes = Files.readAllBytes(point);
+        var retainedTime = java.nio.file.attribute.FileTime.from(
+                Instant.parse("2026-08-04T03:00:00Z"));
+        Files.setLastModifiedTime(point, retainedTime);
+
+        Execution replayed = executeWithEvents(
+                spoolRoot,
+                runtimeRoot,
+                eventRoot,
+                publicationRoot,
+                "4",
+                messageFile);
+
+        assertEquals(0, replayed.exitCode());
+        assertTrue(replayed.stdout().contains("status=REPLAYED"));
+        assertTrue(replayed.stdout().contains(
+                "spoolStatus=ALREADY_ACKNOWLEDGED"));
+        assertEquals(runtimeRevision, store.resolve(GOAL_ID).revision());
+        assertEquals(1, new FileSystemRuntimeEventStore(eventRoot)
+                .resolve(GOAL_ID).revision());
+        assertEquals(point, onlyPublicationPoint(publicationRoot));
+        assertEquals(retainedTime, Files.getLastModifiedTime(point));
+        org.junit.jupiter.api.Assertions.assertArrayEquals(
+                pointBytes, Files.readAllBytes(point));
+    }
+
+    @Test
+    void publisherCapacityFailureLeavesDurablePrefixesForExactRecovery()
+            throws Exception {
+        Path runtimeRoot = temporaryRoot.resolve("recovery-runtime");
+        Path spoolRoot = temporaryRoot.resolve("recovery-spool");
+        Path eventRoot = temporaryRoot.resolve("recovery-events");
+        Path publicationRoot = temporaryRoot.resolve("recovery-publications");
+        FileSystemAgentRuntimeStateStore store = activeRuntime(runtimeRoot);
+        FileSystemRuntimeEventPublisher blockingPublisher =
+                new FileSystemRuntimeEventPublisher(publicationRoot, 1);
+        blockingPublisher.publish(new RuntimeEventPublicationReference(
+                "runtime-event/"
+                        + GOAL_ID
+                        + "/00000000-0000-0000-0000-000000000899"));
+        MessageEnvelope cancel = controlMessage(ControlSignal.CANCEL);
+        String messageFile = new FileSpoolMessageTransport(
+                        spoolRoot, BackpressurePolicy.standard())
+                .sendWithReference(new TransportMessage(
+                        DeliveryDestination.queue(DESTINATION), cancel))
+                .messageFile()
+                .orElseThrow();
+
+        Execution failed = executeWithEvents(
+                spoolRoot,
+                runtimeRoot,
+                eventRoot,
+                publicationRoot,
+                "1",
+                messageFile);
+
+        assertEquals(CliExitCode.INTERNAL_ERROR.code(), failed.exitCode());
+        assertTrue(Files.isRegularFile(spoolRoot.resolve(messageFile)));
+        assertEquals(List.of(cancel), store.resolve(GOAL_ID).controlRequests());
+        long runtimeRevision = store.resolve(GOAL_ID).revision();
+        assertEquals(1, new FileSystemRuntimeEventStore(eventRoot)
+                .resolve(GOAL_ID).revision());
+        Files.delete(onlyPublicationPoint(publicationRoot));
+
+        Execution recovered = executeWithEvents(
+                spoolRoot,
+                runtimeRoot,
+                eventRoot,
+                publicationRoot,
+                "1",
+                messageFile);
+
+        assertEquals(0, recovered.exitCode());
+        assertTrue(recovered.stdout().contains("status=REPLAYED"));
+        assertTrue(recovered.stdout().contains("spoolStatus=ACKNOWLEDGED"));
+        assertEquals(runtimeRevision, store.resolve(GOAL_ID).revision());
+        assertEquals(1, new FileSystemRuntimeEventStore(eventRoot)
+                .resolve(GOAL_ID).revision());
+        assertEquals(1, publicationPointCount(publicationRoot));
+    }
+
+    @Test
+    void rejectsPartialOrInvalidEventCompositionBeforePointResolution()
+            throws Exception {
+        Path missingSpool = temporaryRoot.resolve("missing-options-spool");
+        Path runtimeRoot = temporaryRoot.resolve("missing-options-runtime");
+        Path eventRoot = temporaryRoot.resolve("missing-options-events");
+        Path publicationRoot = temporaryRoot.resolve("missing-options-publications");
+
+        Execution partial = executeArguments(new String[] {
+                "scheduler-receive-control",
+                "--transport-spool-root", missingSpool.toString(),
+                "--message-file", "00000000-0000-0000-0000-000000000899.transport",
+                "--destination-name", DESTINATION,
+                "--runtime-root", runtimeRoot.toString(),
+                "--goal-id", GOAL_ID,
+                "--runtime-event-root", eventRoot.toString()
+        });
+        Execution overflow = executeWithEvents(
+                missingSpool,
+                runtimeRoot,
+                eventRoot,
+                publicationRoot,
+                "4097",
+                "00000000-0000-0000-0000-000000000899.transport");
+
+        assertEquals(CliExitCode.USAGE_OR_CONFIGURATION.code(), partial.exitCode());
+        assertTrue(partial.stderr().contains("must be supplied together"));
+        assertEquals(CliExitCode.USAGE_OR_CONFIGURATION.code(), overflow.exitCode());
+        assertTrue(overflow.stderr().contains("must not exceed 4096"));
+        assertFalse(Files.exists(runtimeRoot));
+        assertFalse(Files.exists(eventRoot));
+        assertFalse(Files.exists(publicationRoot));
+    }
+
     private FileSystemAgentRuntimeStateStore activeRuntime(Path runtimeRoot)
             throws Exception {
         FileSystemAgentRuntimeStateStore store =
@@ -156,6 +310,37 @@ class EnhancerCliSchedulerReceiveControlIntegrationTest {
             Path spoolRoot,
             Path runtimeRoot,
             String messageFile) throws Exception {
+        return executeArguments(new String[] {
+                "scheduler-receive-control",
+                "--transport-spool-root", spoolRoot.toString(),
+                "--message-file", messageFile,
+                "--destination-name", DESTINATION,
+                "--runtime-root", runtimeRoot.toString(),
+                "--goal-id", GOAL_ID
+        });
+    }
+
+    private Execution executeWithEvents(
+            Path spoolRoot,
+            Path runtimeRoot,
+            Path eventRoot,
+            Path publicationRoot,
+            String capacity,
+            String messageFile) throws Exception {
+        return executeArguments(new String[] {
+                "scheduler-receive-control",
+                "--transport-spool-root", spoolRoot.toString(),
+                "--message-file", messageFile,
+                "--destination-name", DESTINATION,
+                "--runtime-root", runtimeRoot.toString(),
+                "--goal-id", GOAL_ID,
+                "--runtime-event-root", eventRoot.toString(),
+                "--runtime-event-publication-root", publicationRoot.toString(),
+                "--max-pending-runtime-event-publications", capacity
+        });
+    }
+
+    private Execution executeArguments(String[] arguments) throws Exception {
         ByteArrayOutputStream stdout = new ByteArrayOutputStream();
         ByteArrayOutputStream stderr = new ByteArrayOutputStream();
         int exitCode;
@@ -163,14 +348,7 @@ class EnhancerCliSchedulerReceiveControlIntegrationTest {
                         stdout, true, StandardCharsets.UTF_8);
                 PrintStream err = new PrintStream(
                         stderr, true, StandardCharsets.UTF_8)) {
-            exitCode = new EnhancerCli().execute(new String[] {
-                    "scheduler-receive-control",
-                    "--transport-spool-root", spoolRoot.toString(),
-                    "--message-file", messageFile,
-                    "--destination-name", DESTINATION,
-                    "--runtime-root", runtimeRoot.toString(),
-                    "--goal-id", GOAL_ID
-            }, out, err);
+            exitCode = new EnhancerCli().execute(arguments, out, err);
         }
         return new Execution(
                 exitCode,
@@ -203,6 +381,10 @@ class EnhancerCliSchedulerReceiveControlIntegrationTest {
     }
 
     private static MessageEnvelope controlMessage() {
+        return controlMessage(ControlSignal.PAUSE);
+    }
+
+    private static MessageEnvelope controlMessage(ControlSignal signal) {
         return new MessageEnvelope(
                 CONTROL_MESSAGE_ID,
                 "control-cli-correlation",
@@ -210,7 +392,25 @@ class EnhancerCliSchedulerReceiveControlIntegrationTest {
                 "control-cli-logical-run",
                 "untrusted-control-cli-test",
                 Instant.parse("2026-07-29T02:00:00Z"),
-                new ControlPayload(ControlSignal.PAUSE, "record only"));
+                new ControlPayload(signal, "record only"));
+    }
+
+    private Path onlyPublicationPoint(Path publicationRoot) throws Exception {
+        try (var paths = Files.list(publicationRoot)) {
+            List<Path> points = paths.filter(path -> path.getFileName().toString()
+                            .endsWith(FileSystemRuntimeEventPublisher.FILE_SUFFIX))
+                    .toList();
+            assertEquals(1, points.size());
+            return points.get(0);
+        }
+    }
+
+    private long publicationPointCount(Path publicationRoot) throws Exception {
+        try (var paths = Files.list(publicationRoot)) {
+            return paths.filter(path -> path.getFileName().toString()
+                            .endsWith(FileSystemRuntimeEventPublisher.FILE_SUFFIX))
+                    .count();
+        }
     }
 
     private record Execution(int exitCode, String stdout, String stderr) {

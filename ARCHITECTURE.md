@@ -293,6 +293,23 @@ closed. Only after successful admission does a pending point move by same-direct
 atomic rename without replacement. Acknowledged re-entry repeats decode, binding, and
 durable replay checks rather than trusting the suffix.
 
+The supported receiver optionally composes runtime-event publication through an
+all-or-none `--runtime-event-root`, `--runtime-event-publication-root`, and
+`--max-pending-runtime-event-publications` group. Omitting all three preserves the
+request-only construction. Supplying all three constructs
+`FileSystemRuntimeEventStore` -> `RuntimeEventRecorder` ->
+`FileSystemRuntimeEventPublisher` and passes the recorder through
+`DurableControlMessageReceiver` to the existing event-aware handler. Partial groups or
+capacity outside 1 through 4096 fail during argument parsing before point resolution.
+
+For `CANCEL`, the supported order is Control request persistence -> event append/exact
+replay -> opaque reference-point publication -> Control spool acknowledgement. Event or
+publisher failure leaves the earlier durable prefix and the transport point
+unacknowledged for exact re-entry with the same explicit roots. `PAUSE`/`RESUME` remain
+request-only, the existing output makes no event-delivery claim, and root creation stays
+lazy until a `CANCEL` reaches event recording. Consumer semantics, root migration,
+cleanup/retention, and authenticated application remain separate.
+
 This boundary records untrusted intent only. It does not authenticate or apply cancel,
 pause, or resume; call bus cancellation; reclaim a lease; interrupt a worker; mutate a
 Scheduler queue; scan or delete spool files; create a durable bus journal; or add
@@ -1063,12 +1080,31 @@ events or publication failure after later runtime progress without another sourc
 revision. Earlier runtime schemas, automatic post-reclaim execution, concrete
 publication, and supported CLI event composition remain separate.
 
+The implemented first concrete adapter is `FileSystemRuntimeEventPublisher`, which
+implements the existing port without using `MessageEnvelope`. It publishes exactly one
+validated opaque reference into a caller-owned local root under deterministic point
+name `sha256(reference-utf8).runtime-event-reference`. The schema-v1 point is a bounded
+integrity envelope containing fixed magic and version, declared strict-UTF-8 reference
+length, SHA-256 digest, and the reference itself; it contains no event body, credential,
+authority, route, acknowledgement, or consumer state. Capacity is caller-bounded from
+1 through 4096 points.
+
+Publication forces a same-root candidate and atomically moves it without replacement.
+Before capacity evaluation, an existing deterministic point is fully validated: exact
+content replays without rewrite, while a symbolic, non-regular, oversized, malformed,
+unsupported, digest-invalid, or reference-mismatched point fails closed. Instance-local
+serialization bounds concurrent calls through one adapter; no cross-process lock,
+directory fsync, scan/consumer API, cleanup, retention, or cross-store transaction is
+claimed. Adapter success means only local point acceptance. Source transition -> event
+append/exact replay -> reference-point publication remains the durable order, and a
+publication failure remains recoverable from the already-durable event.
+
 The existing `MessageEnvelope` remains sealed to Work, Result, Control, and Handoff.
 Runtime events must not be coerced into one of those meanings. A concrete Message Bus
 publisher requires a separate accepted Gate 7 wire-schema evolution. The current
 publisher remains a caller-supplied port in the named integration paths; no supported
-CLI composition, transport adapter, event consumer, authenticated cancellation
-application, or additional runtime-event transition owner is implied.
+CLI composition, Message Bus adapter, event consumer, or additional runtime-event
+transition owner is implied by the filesystem point adapter.
 
 Which connections exist today is stated in `PROJECT_STATE.md`; the cross-boundary connection sequence remains dependency ordered:
 
@@ -1115,6 +1151,30 @@ The conflict was possible because the compact `.ai/architecture.md` described cu
 **Option C — mark the queue completed at execution acknowledgement.** Rejected. It is simple and releases capacity, but it lets dependent work start before independent verification and makes a worker receipt equivalent to completion authority, which conflicts with the Constitution-backed verification model, Gate 3/4 behaviour, the runtime AgentRun states, and the Gate 8 Verified-only terminal contract.
 
 ## Agent Orchestration Contract
+
+### Development-Time Adaptive Subagent Delegation
+
+Repository development sessions may use host-provided subagents as an execution
+topology inside the existing user request and Active Task. The primary Agent evaluates
+non-trivial work and selects the smallest topology whose independent analysis,
+alternative comparison, risk review, or test-surface review produces a material
+quality, safety, or latency benefit over coordination cost. Local, sequential, tightly
+coupled, overlapping-write, or ambiguous work remains single-agent.
+
+The initial contract is read-only: at most three children execute concurrently, depth
+is one, each assignment has one concrete scope and join result, and the primary Agent
+owns all repository mutation, checkpoint/Git state, authority reconciliation, raw-
+evidence validation, synthesis, and lifecycle claims. Reports are untrusted
+recommendations. Delegation cannot enlarge scope, Tools, permissions, budget,
+external/destructive authority, or lifecycle state; every child is joined or stopped
+before increment/session completion.
+
+This policy may be used with or without a document-driven Dynamic Workflow. Workflow
+increment selection remains sequential, while independent read-only inspection may run
+inside the selected increment. This host development-session contract is not the Gate
+13 `CoordinationPlan`, typed Handoff/runtime worker orchestration, background execution,
+or a product capability-maturity claim. RFC-0009 and the product connection sequence
+remain unchanged.
 
 Enhancer escalates orchestration only when the simpler topology cannot satisfy the approved work: one worker, sequential pipeline, Producer-Reviewer, bounded fan-out/fan-in, expert routing or supervisor allocation, and finally a hierarchy with at most one subordinate coordination layer. A role is a capability assignment, not a fixed personality, provider, prompt, or process.
 
@@ -1538,9 +1598,11 @@ Failure, a blocked dependency, stagnation, exhausted increment/time/cost/context
 task-contract drift, newly required authority, or unsafe recovery stops selection. An
 unplanned increment or authority change requires explicit user approval and an accepted
 task/decision update before continuation. Commit, push, merge, release, deployment,
-destructive action, parallel/background execution, and multi-agent dispatch remain
-separate authority or later-gate capabilities. This document contract is not the Gate 10
-Workflow Engine or Gate 13 orchestration runtime.
+destructive action, background execution, and Gate 13 multi-agent dispatch remain
+separate authority or later-gate capabilities. The adaptive development policy above
+may run bounded read-only inspection inside the selected increment; the Dynamic Workflow
+does not grant that topology or widen its authority. This document contract is not the
+Gate 10 Workflow Engine or Gate 13 orchestration runtime.
 
 `CONSTITUTION.md` is the stable normative Kernel, not the complete Codex guidebook. It defines identity, document authority, lifecycle states, authorization boundaries, verification principles, self-hosting safeguards, and amendment governance.
 

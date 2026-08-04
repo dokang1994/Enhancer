@@ -1,5 +1,44 @@
 # Changelog
 
+## 2026-08-04 - Let Primary Agents Select Development Subagents Adaptively
+
+- Replaced one-off development-subagent topology selection with a repository-wide
+  primary-Agent decision based on independent work, risk/quality benefit, latency, and
+  coordination cost, while retaining single-agent execution for local or coupled work.
+- Bounded the first policy to read-only children, maximum concurrency three, depth one,
+  fixed increment/task dispatch limits, primary-only mutation/evidence/lifecycle
+  ownership, mandatory join, and safe single-agent fallback.
+- Kept Dynamic Workflow selection sequential and separated host development delegation
+  from Gate 13 product/runtime multi-agent capability and every underlying privileged-
+  action authority boundary.
+
+## 2026-08-04 - Compose Runtime Event Publication In The Supported Control Receiver
+
+- Used the approved five-increment Dynamic Workflow and joined three bounded read-only
+  subagent analyses before the primary Agent selected the existing Control receiver as
+  the narrowest supported composition boundary.
+- Added an optional all-or-none `scheduler-receive-control` group for the runtime-event
+  store root, publication root, and capacity. Existing invocations remain request-only;
+  complete configuration constructs the concrete store, publisher, and recorder for
+  `CANCELLATION_REQUEST_RECORDED` without changing MessageEnvelope or control authority.
+- Proved durable request-event-publication-acknowledgement ordering, exact `.received`
+  replay, and capacity-failure recovery. Consumers, other event-owner and Scheduler
+  composition, authenticated application, cleanup, retention, commit, and delivery
+  remain separate.
+
+## 2026-08-04 - Publish Runtime Event References As Bounded Filesystem Points
+
+- Added `FileSystemRuntimeEventPublisher` as the first concrete implementation of the
+  existing opaque-reference port, without changing the four-kind MessageEnvelope or
+  resolving/copying a runtime-event body.
+- Added deterministic SHA-256 point identities, capacity bounds from 1 through 4096,
+  schema-v1 strict-UTF-8 integrity envelopes, forced same-root candidates, atomic
+  non-replacing publication, and exact replay before capacity evaluation.
+- Proved corruption, symbolic/non-regular points, unusable roots, and capacity refusal
+  fail closed while retained exact points remain replayable. Supported Scheduler/CLI
+  composition, consumers, acknowledgement, routing, scan, cleanup, retention, and
+  cross-process coordination remain separate.
+
 ## 2026-08-04 - Apply Authenticated Cancellation And Record Its Runtime Event
 
 - Added a trusted `ControlRequestAuthorizer` port and typed approved/denied decisions;

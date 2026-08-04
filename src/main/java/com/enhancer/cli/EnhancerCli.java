@@ -49,6 +49,8 @@ import com.enhancer.runtime.DurableWorkMessageReceiver;
 import com.enhancer.runtime.FileSystemAgentRuntimeStateStore;
 import com.enhancer.runtime.FileSystemExternalEffectLedgerStore;
 import com.enhancer.runtime.FileSystemPendingFinalizationStore;
+import com.enhancer.runtime.FileSystemRuntimeEventPublisher;
+import com.enhancer.runtime.FileSystemRuntimeEventStore;
 import com.enhancer.runtime.FileSystemSchedulerQueueStore;
 import com.enhancer.runtime.FileSystemSubmissionManifestStore;
 import com.enhancer.runtime.ForegroundSchedulerDrain;
@@ -70,6 +72,7 @@ import com.enhancer.runtime.SchedulerQueueMigrationResult;
 import com.enhancer.runtime.SchedulerQueueStatus;
 import com.enhancer.runtime.SchedulerRecoveryStatus;
 import com.enhancer.runtime.SchedulerRecoveryStatusReader;
+import com.enhancer.runtime.RuntimeEventRecorder;
 import com.enhancer.runtime.SubmissionManifestMigrationResult;
 import com.enhancer.runtime.WorkItemDisposition;
 import com.enhancer.session.DevelopmentSessionCheckpoint;
@@ -1005,11 +1008,25 @@ public final class EnhancerCli {
                 new FileSystemAgentRuntimeStateStore(command.runtimeRoot());
         DurableControlMessageReceiveResult result;
         try {
-            result = new DurableControlMessageReceiver(
-                    expectedDestination,
-                    command.goalId(),
-                    store,
-                    Clock.systemUTC()).receive(message);
+            DurableControlMessageReceiver receiver = command
+                    .runtimeEventPublication()
+                    .map(configuration -> new DurableControlMessageReceiver(
+                            expectedDestination,
+                            command.goalId(),
+                            store,
+                            Clock.systemUTC(),
+                            new RuntimeEventRecorder(
+                                    new FileSystemRuntimeEventStore(
+                                            configuration.runtimeEventRoot()),
+                                    new FileSystemRuntimeEventPublisher(
+                                            configuration.publicationRoot(),
+                                            configuration.maxPendingPublications()))))
+                    .orElseGet(() -> new DurableControlMessageReceiver(
+                            expectedDestination,
+                            command.goalId(),
+                            store,
+                            Clock.systemUTC()));
+            result = receiver.receive(message);
         } catch (MissingAgentRuntimeStateException exception) {
             throw new CliUsageException(
                     "runtime configuration is invalid: " + safeMessage(exception),

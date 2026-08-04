@@ -26,6 +26,15 @@ Use this prompt when implementing the current task.
 13. Promote lifecycle state only when fresh evidence supports the promotion.
 14. Report changed files, fresh verification evidence, checks not run, and remaining risks.
 
+## Adaptive Subagent Delegation
+
+Before implementation, apply the selection rules in `AGENTS.md`. Use bounded read-only
+subagents only for concrete independent analysis, comparison, risk review, or test-
+surface work whose benefit exceeds coordination cost. Record scopes and join criteria,
+keep all mutation and evidence interpretation with the primary Agent, and join or stop
+every child before lifecycle promotion. A Dynamic Workflow remains sequential at the
+increment level.
+
 ## Scope Rules
 
 - Do not expand beyond `CURRENT_TASK.md` without explicit user approval.

@@ -51,6 +51,16 @@ After reading, report:
 9. Checkpoint recovery state and reconciliation result
 10. Dynamic workflow identity, current increment, dependency readiness, bounds, and stop
     conditions when `CURRENT_TASK.md` contains `## Dynamic Workflow`
+11. Adaptive subagent topology decision, selection rationale, bounded assignments, and
+    join plan for non-trivial work
+
+## Adaptive Subagent Delegation
+
+Apply `AGENTS.md`'s adaptive development-subagent policy after authority, checkpoint,
+task, and diff reconciliation. Select the smallest useful topology, keep children
+read-only and bounded, and report why one Agent or subagents fit the task. Dynamic
+Workflow presence is not a prerequisite and does not change sequential increment
+selection.
 
 ## Constraint
 

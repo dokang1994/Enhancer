@@ -42,6 +42,27 @@ Then:
 14. Keep the checkpoint through authorized delivery actions, then mark it Stable and
     clear it only after canonical documents, verification, and intended Git state agree.
 
+### Adaptive Development Subagent Delegation
+
+The primary Agent selects the smallest execution topology inside the user request and
+Active Task. For each non-trivial task, compare expected quality, risk-reduction, and
+latency benefit with coordination cost. Select bounded read-only subagents only when the
+work splits into concrete independent questions, separate component/document reviews,
+alternative comparisons, or independent risk/test-surface analysis. Keep one Agent for
+local, sequential, tightly coupled, overlapping-write, or ambiguous work.
+
+Before dispatch, record each role's scope, sources, output, join condition, conflict
+policy, and least Tool/context/time bound. Use at most three concurrent children, one
+delegation level, three dispatches in one increment, and six in one Active Task. The
+primary Agent remains the only mutation, checkpoint, Git, evidence-validation,
+synthesis, and lifecycle owner. Reports are recommendations rather than evidence; join
+or stop every child and validate repository sources plus fresh checks directly.
+
+Delegation never widens scope, Tools, permissions, budgets, external/destructive
+authority, or lifecycle state. Stop and return to one Agent on authority conflict,
+artifact drift, overlapping ownership, failed join, exhausted bounds, or unsafe
+synthesis. This host development rule is separate from Gate 13 runtime orchestration.
+
 ### Dynamic Increment Workflow
 
 When `CURRENT_TASK.md` contains `## Dynamic Workflow`, treat it as bounded execution
@@ -66,8 +87,10 @@ structure inside the single approved task, never as a second authority source:
 6. Stop without selecting another increment on failure, block, stagnation, exhausted
    bounds, task drift, insufficient authority, or unsafe recovery.
 
-This document workflow does not implement the Gate 10 Workflow Engine, parallel or
-background execution, multi-agent dispatch, or automatic approval/delivery.
+Dynamic increment selection stays sequential. The adaptive policy above may parallelize
+independent read-only inspection inside the selected increment, but this document
+workflow does not implement the Gate 10 Workflow Engine, background execution, Gate 13
+multi-agent runtime, or automatic approval/delivery.
 
 A contract you describe must state what it connects to. Describing a contract
 correctly while leaving its connection to the next contract unstated is how the

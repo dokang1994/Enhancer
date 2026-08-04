@@ -545,9 +545,11 @@ Whole-gate assessment:
   Scheduler/runtime foundation is Integrated and retains Operational explicit workflows,
   and the retry-decision, retry-started, Tool-timeout, stagnation,
   cancellation-request, verification, and terminal WorkItem transition owners now reach a
-  persist-after-source recorder and injected publisher port. Whole-gate promotion
-  remains blocked by a concrete publication adapter,
-  and later-gate budgets,
+  persist-after-source recorder and injected publisher port. A concrete filesystem
+  reference-point adapter implements that port, and the optional Control receiver is
+  its first supported construction for cancellation-request events. No consumer or
+  supported composition for the other owners exists. Whole-gate promotion remains
+  blocked by broader publication/consumption and later-gate budgets,
   Memory, authenticated control application, production adapters, and role workers;
 - existing queue-active, checkpoint, deterministic lost-acknowledgement point, and
   expired-lease recovery satisfy the accepted at-least-once correctness prefixes. A
@@ -720,8 +722,11 @@ Current increment:
   `CANCELLATION_REQUEST_RECORDED` event only after the exact `CANCEL` request is durable.
   Exact Control replay repairs a missing event or republishes the same reference without
   advancing the runtime or event stream, while source failure and `PAUSE`/`RESUME` reach
-  no event publisher. The existing four-kind MessageEnvelope remains unchanged and no
-  concrete publisher adapter or supported CLI event composition is added;
+  no event publisher. The optional all-or-none `scheduler-receive-control` publication
+  group is the first supported concrete composition for this owner: explicit event and
+  publication roots plus capacity preserve request-event-point-acknowledgement order
+  and exact retained-prefix replay. The existing four-kind MessageEnvelope remains
+  unchanged, and omitted configuration preserves request-only behavior;
 - Integrated second transition-owner connection: event-aware
   `DurableAgentRunFinalizer` records `VERIFICATION_RECORDED` only after its
   RunRecord-backed Result transition is durable. The retained Result supplies occurrence
@@ -785,8 +790,18 @@ Current increment:
   causation, and stable message/application references. Denial and drift do not mutate;
   retained-record replay repairs event/publication without reauthorization or another
   runtime revision;
-- remaining runtime-event work: select a separately accepted concrete publisher while
-  preserving source-first durability and exact replay;
+- Implemented first concrete runtime-event publisher adapter:
+  `FileSystemRuntimeEventPublisher` accepts only the opaque durable reference, writes a
+  deterministic capacity-bounded schema-v1 integrity point through atomic publication,
+  exact-replays before capacity evaluation, and fails closed on corrupt or foreign
+  point reuse without changing MessageEnvelope;
+- Integrated first supported publisher composition: `scheduler-receive-control`
+  optionally constructs the filesystem event store, publisher, and recorder from one
+  all-or-none caller-owned group, publishing only `CANCELLATION_REQUEST_RECORDED` before
+  spool acknowledgement while retaining exact repair after capacity or publication
+  failure;
+- remaining runtime-event work: select a bounded consumer contract or another explicit
+  owner composition while preserving source-first durability and exact replay;
 - deferred: real authorized external adapters, admission-history compaction/cleanup or
   schema-v1 queue migration, general orphan inventory/cleanup with an explicit retention
   and scan policy, general forward-reference graph/cycle handling, authenticated

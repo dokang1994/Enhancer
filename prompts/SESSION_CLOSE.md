@@ -30,6 +30,11 @@ Read and execute this prompt before ending a Codex work session.
 15. After the intended final Git and external state is freshly verified, clear the stable
     checkpoint. If clearing fails or drift is reported, leave it intact and report why.
 
+Adaptive subagent delegation must be fully joined or stopped before close. Confirm that
+the primary Agent reconciled every report against repository authority, used no report
+as verification evidence, and retained sole ownership of mutations, checkpoint/Git
+state, raw evidence interpretation, and lifecycle claims.
+
 If a step has nothing to change, say so and move on. Restating an unchanged fact to make a step feel done is the failure these steps are written against.
 
 ## Final Report

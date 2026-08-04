@@ -293,7 +293,11 @@ When the parent watchdog receives a typed process timeout, it persists one bound
 command exposes the execution error. Preserve that invocation root: exact reinvocation
 resolves the same fact and fails without launching another child. The supported CLI does
 not yet compose a runtime-event publisher; event-aware library construction can derive
-and repair `RuntimeTimeoutKind.PROCESS` from the persisted fact.
+and repair `RuntimeTimeoutKind.PROCESS` from the persisted fact. Library callers may
+inject `FileSystemRuntimeEventPublisher` to atomically publish only the opaque durable
+event reference into a caller-owned root with a capacity from 1 through 4096. This is a
+local point adapter, not a MessageEnvelope, consumer, acknowledgement, or supported CLI
+composition.
 
 AgentRuntime schema v4 also retains a bounded lease-timeout record atomically when
 recovery reclaims an expired executing lease. Event-aware library recovery can derive
@@ -375,6 +379,23 @@ request was already present. `ACKNOWLEDGED` reports the post-persistence atomic 
 while `ALREADY_ACKNOWLEDGED` reports exact retained-point re-entry. Use the original
 `.transport` input name after an uncertain result. A missing Goal or invalid request
 leaves a pending point unacknowledged.
+
+To additionally publish the opaque cancellation-request runtime-event reference, add
+the complete optional publication group:
+
+```powershell
+.\scripts\gradle.ps1 run --args="scheduler-receive-control --transport-spool-root C:\Enhancer\.enhancer\transport --message-file <canonical-message-file>.transport --destination-name runtime-controls --runtime-root C:\Enhancer\.enhancer\runtime --goal-id <canonical-goal-uuid> --runtime-event-root C:\Enhancer\.enhancer\runtime-events --runtime-event-publication-root C:\Enhancer\.enhancer\runtime-event-publications --max-pending-runtime-event-publications 256"
+```
+
+The three publication options are all-or-none, and capacity must be from `1` through
+`4096`; partial or invalid configuration fails before creating artifacts. Only
+`CANCEL` records and publishes `CANCELLATION_REQUEST_RECORDED`; `PAUSE` and `RESUME`
+remain request-only and do not create either optional root. Ordering is durable request,
+runtime event, opaque publication point, then spool acknowledgement. If event or point
+publication fails, retain the same roots and original `.transport` input name: exact
+re-entry repairs the missing suffix without rewriting the request, event, or existing
+publication point. The publication directory is a bounded point surface, not an event
+body consumer, scanner, acknowledgement queue, or authenticated control channel.
 
 These commands publish and record untrusted intent only. They do not authenticate or
 apply cancel, pause, or resume, call Message Bus cancellation, interrupt a worker,
@@ -549,6 +570,27 @@ the development-session checkpoint; verification evidence belongs to the append-
 `docs/verification-log.md`. This document structure supports governed sequential
 development today and is not the future Gate 10 Workflow Engine or Gate 13 orchestration
 runtime.
+
+## Adaptive Development Subagents
+
+For non-trivial repository work, the primary Agent evaluates whether independent
+read-only subagents will materially improve quality, risk coverage, or elapsed time
+relative to coordination cost. Useful cases include separate component/document
+analysis, architecture or governance review, alternative comparison, and independent
+test-surface analysis. Small, sequential, tightly coupled, overlapping-write, or
+ambiguous tasks remain single-agent.
+
+The development policy uses at most three concurrent subagents and one delegation
+level. Every assignment has a concrete scope and join result; children do not edit the
+shared worktree, run in the background, mutate checkpoints or Git, or make verification
+and completion claims. The primary Agent owns all changes, reads raw evidence, and
+reconciles every recommendation against repository authority. Delegation never expands
+the task, Tools, permissions, privileged actions, or lifecycle state.
+
+This policy works with or without `## Dynamic Workflow`. A workflow still selects one
+increment sequentially; only independent read-only inspection inside that increment may
+run concurrently. It configures repository development sessions and does not implement
+the Gate 13 multi-agent product runtime.
 
 ## Development Setup
 

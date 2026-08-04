@@ -3860,3 +3860,141 @@ Outcome:
   `git diff --cached --check` produced no output. The staged summary contained 5,308
   insertions and 144 deletions across the expected documentation, runtime, and test
   paths, with no deletions, generated build output, credential path, or unrelated file.
+
+## 2026-08-04 - Publish Runtime Event References As Bounded Filesystem Points
+
+- Structural review selected a local bounded point adapter over the existing opaque
+  `RuntimeEventPublisher` port. The decision preserves source-event-publication order
+  and excludes MessageEnvelope evolution, event-body transport, supported composition,
+  consumers, cleanup, and cross-process coordination.
+- Focused RED reached test compilation with 19 errors, all naming the missing aligned
+  `FileSystemRuntimeEventPublisher` type or its accepted point/replay surface.
+- Focused GREEN recompiled production and tests in 1 minute 38 seconds and ran nine
+  publisher/recorder tests: eight passed, one Windows privilege-dependent symbolic-link
+  case skipped, and zero failed or errored.
+- Fresh Java 17 `clean build --no-daemon --console=plain` completed in 6 minutes 16
+  seconds with all eight tasks executed. It assembled distributions and ran 706 tests
+  across 134 suites: 699 passed, seven environment-dependent cases skipped, and zero
+  failures or errors. Production and test source counts are 304 and 135.
+
+## 2026-08-04 - Filesystem Runtime Event Publisher Post-Synchronization Verification
+
+- After state, roadmap, architecture/mirror, README, changelog, task, decision, and
+  verification synchronization, a fresh Java 17 command recompiled production and
+  tests and selected the publisher, recorder, and four governance suites.
+- The run completed in 1 minute 25 seconds and executed 19 tests: 18 passed, the one
+  Windows privilege-dependent symbolic-link case skipped, and zero failed or errored.
+  Fresh `git diff --check` produced no output; the 12 changed paths remained inside the
+  accepted publisher and owned-document boundary.
+
+## 2026-08-04 - Compose Filesystem Runtime Event Publication In The Control Receiver
+
+- Three approved bounded read-only subagents joined without editing, running tests, or
+  nested delegation. Their Control-path, Scheduler-alternative, and governance/test
+  reports were treated only as recommendations. Primary structural review selected the
+  existing `scheduler-receive-control` parser/command/receiver seam because Scheduler
+  construction would widen across cycle, drain, service, and several event owners.
+- The indexed accepted decision and Architecture contract passed all 10 tests across
+  `DecisionLogIndexTest`, `DocumentOwnershipTest`, `RepositoryTaskPlannerTest`, and
+  `ProjectContextReaderTest`, with zero skips, failures, or errors.
+- Focused RED ran all six Control receiver CLI integration cases. The three retained
+  request-only cases passed, while the three new aligned cases failed only because the
+  optional publication arguments and composition did not yet exist.
+- Focused GREEN ran 48 tests across the Control CLI integration, argument parser,
+  durable receiver, Control admission, concrete publisher, and recorder suites: 47
+  passed, one Windows privilege-dependent symbolic-link case skipped, and zero failed
+  or errored. The cases prove optional compatibility, request-event-point-
+  acknowledgement order, exact acknowledged replay, pre-side-effect argument refusal,
+  and retained-prefix recovery after capacity failure.
+- Fresh Java 17 `clean build --no-daemon --console=plain` completed in 5 minutes 51
+  seconds with all eight tasks executed. It assembled distributions and ran 709 tests
+  across 134 suites: 702 passed, seven environment-dependent cases skipped, and zero
+  failures or errors. Production and test source counts are 305 and 135; fresh
+  `git diff --check` produced no output.
+- No runtime-event consumer/body transport, MessageEnvelope evolution, authenticated
+  control application, Scheduler behavior change, other event-owner composition,
+  commit, push, merge, release, deployment, destructive action, or unrelated external
+  effect was performed.
+
+## 2026-08-04 - Control Receiver Publication Post-Synchronization Verification
+
+- After Architecture/mirror, Project State, Roadmap, README, changelog, active-task,
+  decision-index, and verification-log synchronization, fresh Java 17
+  `compileJava test --rerun-tasks --warning-mode all --no-daemon --console=plain`
+  recompiled production and test sources and ran the six selected behavioral plus four
+  document-governance suites together.
+- The command completed in 2 minutes 4 seconds and executed 67 tests across 10 suites:
+  65 passed, two Windows environment-dependent symbolic-link cases skipped, and zero
+  failed or errored. Fresh `git diff --check` produced no output.
+- Final status/stat review retained exactly 20 changed paths: the preceding concrete
+  filesystem publisher's accepted implementation/test/document set plus this task's
+  optional Control composition, recovery tests, two accepted decisions, and owned
+  document updates. No unrelated path, deletion, generated build output, credential,
+  commit, or external delivery entered the diff.
+
+## 2026-08-04 - Completed Control Publication Workflow Governance Verification
+
+- After the Active Task and all five Dynamic Workflow increments were marked
+  `Completed`, fresh Java 17 governance verification recompiled production and test
+  sources in 1 minute 6 seconds and ran 19 tests across the decision-index,
+  document-ownership, Planner, and Context Reader suites: 18 passed, one Windows
+  environment-dependent symbolic-link case skipped, and zero failed or errored.
+- Fresh `git diff --check` produced no output. Name/status review retained the same 20
+  approved implementation, test, decision, and owned-document paths with no deletion,
+  generated output, credential, commit, or external delivery.
+
+## 2026-08-04 - Govern Adaptive Development Subagent Delegation
+
+- Three bounded read-only subagents independently reviewed the delegation policy,
+  repository-authority conflicts, and structural test surface. All three joined without
+  editing, testing, checkpoint mutation, background continuation, or nested delegation;
+  the primary Agent treated their reports as recommendations rather than evidence.
+- Primary constitutional review found no amendment necessary. Constitution Section 7
+  already permits bounded in-scope inspection and normal local work, while the user's
+  directed policy request, this Active Task, and the indexed Accepted Decision satisfy
+  the operating-rule change path in Section 9. Gate 13 product runtime and maturity
+  remain unchanged.
+- Focused Java 17 RED ran all three `DynamicWorkflowDocumentTest` cases: both retained
+  workflow cases passed and the new adaptive-delegation contract failed only on the
+  eight governed surfaces that did not yet carry the policy. The first GREEN candidate
+  then exposed one whitespace-sensitive assertion at a Markdown line wrap; the test was
+  normalized for Markdown whitespace without changing the asserted policy contract.
+- Focused GREEN recompiled production and tests and ran 23 tests across six delegation,
+  decision-index, ownership, package-boundary, Planner, and Context suites: 22 passed,
+  one Windows environment-dependent symbolic-link case skipped, and zero failed or
+  errored. Fresh `git diff --check` produced no output.
+- Fresh Java 17 `clean build --no-daemon --console=plain` completed in 6 minutes 45
+  seconds with all eight tasks executed. It assembled distributions and ran 710 tests
+  across 134 suites: 703 passed, seven environment-dependent cases skipped, and zero
+  failures or errors. Production and test source counts are 305 and 135; fresh
+  `git diff --check` produced no output.
+- The policy changes only development-session execution topology inside existing task
+  authority. It adds no Gate 13 runtime capability or maturity, Constitution change,
+  product behavior, commit, push, merge, release, deployment, destructive action, or
+  external effect.
+
+## 2026-08-04 - Adaptive Development Subagent Governance Post-Synchronization Verification
+
+- After the Accepted Decision, Agent instructions, compact workflow, Architecture and
+  mirror, Project State, README, prompts, changelog, Active Task, and verification log
+  were synchronized, fresh Java 17 verification recompiled production and tests and
+  reran the six focused delegation and document-governance suites.
+- The command completed in 1 minute 57 seconds and ran 23 tests across six suites: 22
+  passed, one Windows environment-dependent symbolic-link case skipped, and zero failed
+  or errored. Fresh `git diff --check` produced no output.
+- The verified contract assigns execution-topology selection to the primary Agent
+  inside existing task authority and contains no per-use user-approval precondition for
+  subagent selection. Existing authority gates still apply to the delegated work itself.
+
+## 2026-08-04 - Completed Adaptive Development Subagent Governance Verification
+
+- After the Active Task and all four Dynamic Workflow increments were marked
+  `Completed`, fresh Java 17 governance verification recompiled production and tests in
+  1 minute 19 seconds and ran 23 tests across the six delegation, decision-index,
+  ownership, package-boundary, Planner, and Context suites: 22 passed, one Windows
+  environment-dependent symbolic-link case skipped, and zero failed or errored.
+- Fresh `git diff --check` produced no output. Status/stat review retained 27 changed
+  paths: the preceding filesystem-event publisher and Control-receiver work plus this
+  task's bounded delegation decision, structural contract, and governed document
+  synchronization. No deletion, generated build output, credential, commit, push, or
+  external delivery entered the diff; `HEAD` and `origin/main` remained synchronized.

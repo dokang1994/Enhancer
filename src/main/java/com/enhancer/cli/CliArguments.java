@@ -5,6 +5,7 @@ import com.enhancer.bus.BackpressurePolicy;
 import com.enhancer.bus.ControlSignal;
 import com.enhancer.runtime.AgentRunRetryPolicy;
 import com.enhancer.runtime.IsolatedWorkerLauncher;
+import com.enhancer.runtime.FileSystemRuntimeEventPublisher;
 import com.enhancer.runtime.SchedulerPriority;
 import com.enhancer.runtime.SchedulerServicePolicy;
 import com.enhancer.runtime.SingleWorkerSchedulerQueue;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -131,6 +133,10 @@ final class CliArguments {
             "destination-name",
             "runtime-root",
             "goal-id");
+    private static final Set<String> SCHEDULER_RECEIVE_CONTROL_OPTIONAL_OPTIONS = Set.of(
+            "runtime-event-root",
+            "runtime-event-publication-root",
+            "max-pending-runtime-event-publications");
     private static final Set<String> SCHEDULER_SPOOL_WORK_OPTIONS = Set.of(
             "project-root",
             "transport-spool-root",
@@ -273,7 +279,8 @@ final class CliArguments {
             case "scheduler-receive-control" -> parseSchedulerReceiveControl(
                     parseOptions(
                             arguments,
-                            SCHEDULER_RECEIVE_CONTROL_OPTIONS));
+                            SCHEDULER_RECEIVE_CONTROL_OPTIONS,
+                            SCHEDULER_RECEIVE_CONTROL_OPTIONAL_OPTIONS));
             case "scheduler-spool-work" -> parseSchedulerSpoolWork(
                     parseOptions(arguments, SCHEDULER_SPOOL_WORK_OPTIONS));
             case "scheduler-spool-control" -> parseSchedulerSpoolControl(
@@ -575,12 +582,46 @@ final class CliArguments {
 
     private static SchedulerReceiveControlCliCommand parseSchedulerReceiveControl(
             Map<String, String> options) {
+        List<String> publicationOptions = List.of(
+                "runtime-event-root",
+                "runtime-event-publication-root",
+                "max-pending-runtime-event-publications");
+        long supplied = publicationOptions.stream()
+                .filter(options::containsKey)
+                .count();
+        if (supplied != 0 && supplied != publicationOptions.size()) {
+            throw new CliUsageException(
+                    "runtime event publication options must be supplied together");
+        }
+        Optional<RuntimeEventPublicationCliConfiguration> publication =
+                supplied == 0
+                        ? Optional.empty()
+                        : Optional.of(runtimeEventPublication(options));
         return new SchedulerReceiveControlCliCommand(
                 path(options.get("transport-spool-root"), "transport-spool-root"),
                 canonicalTransportFile(options.get("message-file")),
                 nonBlank(options.get("destination-name"), "destination-name"),
                 path(options.get("runtime-root"), "runtime-root"),
-                canonicalUuid(options.get("goal-id"), "goal-id"));
+                canonicalUuid(options.get("goal-id"), "goal-id"),
+                publication);
+    }
+
+    private static RuntimeEventPublicationCliConfiguration runtimeEventPublication(
+            Map<String, String> options) {
+        long maximum = positiveLong(
+                options.get("max-pending-runtime-event-publications"),
+                "max-pending-runtime-event-publications");
+        if (maximum > FileSystemRuntimeEventPublisher.MAX_PENDING_PUBLICATIONS) {
+            throw new CliUsageException(
+                    "max-pending-runtime-event-publications must not exceed "
+                            + FileSystemRuntimeEventPublisher.MAX_PENDING_PUBLICATIONS);
+        }
+        return new RuntimeEventPublicationCliConfiguration(
+                path(options.get("runtime-event-root"), "runtime-event-root"),
+                path(
+                        options.get("runtime-event-publication-root"),
+                        "runtime-event-publication-root"),
+                (int) maximum);
     }
 
     private static String canonicalTransportFile(String value) {

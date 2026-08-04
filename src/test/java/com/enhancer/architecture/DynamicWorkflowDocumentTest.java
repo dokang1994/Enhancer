@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -118,6 +119,48 @@ class DynamicWorkflowDocumentTest {
             }
         }
         assertTrue(missing.isEmpty(), () -> "dynamic workflow connections are missing: " + missing);
+    }
+
+    @Test
+    void adaptiveDevelopmentSubagentPolicyIsBoundedAndConnected() throws IOException {
+        Map<String, String> requiredConnections = Map.of(
+                "AGENTS.md", "## Adaptive Development Subagent Delegation",
+                ".ai/workflow.md", "### Adaptive Development Subagent Delegation",
+                "ARCHITECTURE.md", "### Development-Time Adaptive Subagent Delegation",
+                ".ai/architecture.md", "Adaptive development subagents",
+                "README.md", "## Adaptive Development Subagents",
+                "prompts/IMPLEMENT_TASK.md", "## Adaptive Subagent Delegation",
+                "prompts/SESSION_START.md", "## Adaptive Subagent Delegation",
+                "prompts/SESSION_CLOSE.md", "Adaptive subagent delegation");
+
+        List<String> missing = new ArrayList<>();
+        for (Map.Entry<String, String> connection : requiredConnections.entrySet()) {
+            if (!read(connection.getKey()).contains(connection.getValue())) {
+                missing.add(connection.getKey() + " -> " + connection.getValue());
+            }
+        }
+        assertTrue(missing.isEmpty(),
+                () -> "adaptive subagent connections are missing: " + missing);
+
+        String policy = section(read("AGENTS.md"), "Adaptive Development Subagent Delegation");
+        String compactPolicy = policy.replaceAll("\\s+", " ");
+        String normalized = compactPolicy.toLowerCase(Locale.ROOT);
+        assertTrue(compactPolicy.contains(
+                "The user supplies the task authority; the primary Agent selects the execution topology."));
+        assertTrue(compactPolicy.contains("at least two independent bounded subtasks"));
+        assertTrue(compactPolicy.contains("coordination cost"));
+        assertTrue(compactPolicy.contains("small, sequential, tightly coupled"));
+        assertTrue(compactPolicy.contains("at most three concurrent subagents"));
+        assertTrue(compactPolicy.contains("one delegation level"));
+        assertTrue(compactPolicy.contains("three dispatches per increment"));
+        assertTrue(compactPolicy.contains("six dispatches per Active Task"));
+        assertTrue(compactPolicy.contains("read-only"));
+        assertTrue(compactPolicy.contains("primary Agent alone"));
+        assertTrue(compactPolicy.contains("reports are recommendations, never verification evidence"));
+        assertTrue(compactPolicy.contains("increment selection remains sequential"));
+        assertTrue(compactPolicy.contains("Gate 13"));
+        assertFalse(normalized.contains("explicit user approval"),
+                "subagent topology selection must not add a per-use approval condition");
     }
 
     private static List<Increment> increments(String workflow) {

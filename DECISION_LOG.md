@@ -11,6 +11,30 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### 2026-08-04: Let Primary Agents Select Bounded Development Subagents Adaptively
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-04-let-primary-agents-select-bounded-development-subagents-adaptively.md)
+
+### 2026-08-04: Compose Filesystem Runtime Event Publication In The Supported Control Receiver
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-04-compose-filesystem-runtime-event-publication-in-the-supported-control-receiver.md)
+
+### User request on 2026-08-04 to continue with a dynamic workflow and bounded subagents
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-04-continue-with-a-dynamic-workflow-and-bounded-subagents.md)
+
+### 2026-08-04: Publish Runtime Event References As Bounded Filesystem Points
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-04-publish-runtime-event-references-as-bounded-filesystem-points.md)
+
 ### User request on 2026-08-04 to commit and push completed work with a subagent-documentation message
 
 Status: Accepted Decision
