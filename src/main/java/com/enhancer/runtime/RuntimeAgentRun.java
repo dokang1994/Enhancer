@@ -7,7 +7,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Immutable lifecycle state for one attempt retained in runtime schema-v2 history.
+ * Immutable lifecycle state for one attempt retained in runtime schema-v4 history.
  */
 public record RuntimeAgentRun(
         String agentRunId,
@@ -32,7 +32,7 @@ public record RuntimeAgentRun(
             throw new IllegalArgumentException(
                     "agentRunId must be distinct from goal and work identities");
         }
-        if (status.isTerminal() != resultMessage.isPresent()) {
+        if (status.hasResult() != resultMessage.isPresent()) {
             throw new IllegalArgumentException(
                     "terminal AgentRun state and result presence must match");
         }
@@ -52,6 +52,13 @@ public record RuntimeAgentRun(
                 nextStatus,
                 Optional.empty(),
                 Optional.empty());
+    }
+
+    RuntimeAgentRun cancel() {
+        if (status.isTerminal()) {
+            throw new IllegalStateException("terminal AgentRun cannot be cancelled");
+        }
+        return transition(RuntimeAgentRunStatus.CANCELLED);
     }
 
     RuntimeAgentRun executeWith(AgentRunLease nextLease) {

@@ -8,7 +8,10 @@ Read and execute this prompt before ending a Codex work session.
 2. Run relevant tests.
 3. Append this increment's verification evidence to `docs/verification-log.md`. Write it once; never revise an earlier entry.
 4. Update `PROJECT_STATE.md` only where current state, maturity, or a known limitation actually changed. Verification records do not go here.
-5. Update `CURRENT_TASK.md`, including the next task.
+5. Update `CURRENT_TASK.md`, including the next task. For a dynamic workflow, update the
+   completed increment and deterministic successor cursor only after reading the
+   increment's declared evidence; close the parent task only when every required
+   increment is Completed.
 6. Update `ARCHITECTURE.md` only if a boundary, component, or contract changed. Maturity statements do not go here.
 7. Record a new accepted decision as a file under `docs/decisions/` opening with its exact heading as a level-1 title, and add the matching `### <heading>` entry with its `Status: Accepted Decision` line to the `DECISION_LOG.md` index. Both sides are required; the heading text is the decision's identity and must never change after acceptance.
 8. Distill reusable knowledge:
@@ -38,6 +41,7 @@ Report:
 - Lifecycle state and checks not run
 - Commit hash, if committed
 - Remaining risks or next task
+- Dynamic workflow final increment states and stop reason, when applicable
 - Final checkpoint state, including why it was retained if it could not be cleared
 
 ## Constraint

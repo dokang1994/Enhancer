@@ -298,6 +298,35 @@ pause, or resume; call bus cancellation; reclaim a lease; interrupt a worker; mu
 Scheduler queue; scan or delete spool files; create a durable bus journal; or add
 retention policy. Gate 12 remains the authenticated application owner.
 
+#### Authenticated Cancellation Application
+
+The first Gate 12 application boundary is `AuthenticatedCancellationApplication` over
+one exact retained `CANCEL` request. A trusted `ControlRequestAuthorizer` port receives
+that retained envelope and returns a typed approved or denied result. Approval binds a
+canonical authorization identity, bounded actor, exact Goal and Control-message
+identities, `CANCEL`, and authorization time. Envelope producer/reason, transport
+acceptance, and durable admission remain diagnostic or recovery facts and cannot create
+approval.
+
+AgentRuntime schema v4 retains at most one immutable
+`CancellationApplicationRecord`. First application atomically persists the approved
+record with Goal `ACTIVE|RETRY_PENDING -> CANCELLED`; a current non-terminal AgentRun
+also becomes `CANCELLED` and releases its lease, while an already failed latest attempt
+remains failed. This terminal runtime state refuses later lifecycle, lease, result,
+retry, and Control-request transitions. Exact replay resolves the retained record before
+authorizer invocation and changes no revision. It does not signal or kill a process,
+call Message Bus cancellation, dispose the Scheduler queue, cancel a Tool or external
+effect, or define pause/resume.
+
+After the record-bearing revision is durable, event-aware application derives
+`CANCELLATION_APPLIED` at the retained application time with exact Work/Goal/AgentRun
+binding, Control-message causation, producer
+`authenticated-cancellation-application`, and stable `CONTROL_MESSAGE` plus
+`CONTROL_APPLICATION` references. Retained-record replay repairs event append or
+publication without reauthorization or another runtime revision. Credential issuance,
+supported interface composition, concrete event transport, queue disposition, and
+runtime schema v1-v3 migration remain separate.
+
 The supported Control producer is intentionally narrower than authenticated control.
 `ControlSpoolPublisher`, exposed through one `scheduler-spool-control` point command,
 resolves an existing runtime
@@ -543,13 +572,13 @@ automatic execution.
 
 ### Gate 8 Durable Goal And AgentRun Lifecycle
 
-The runtime state is one immutable schema-v2 `AgentRuntimeState` containing exactly one `RuntimeGoal`, the Goal's exact existing `WorkItem`, an ordered immutable list of at most 16 `RuntimeAgentRun` attempts, and an ordered retry-decision history. Goal, AgentRun, WorkItem, and message identities are distinct canonical UUIDs, including across attempts. `agentRun()` is only the latest-attempt projection; earlier attempts remain exact. The retained WorkItem remains the sole source of approved task revision, Workspace snapshot, logical run, required capability, and allowed-Tool provenance; lifecycle state cannot add or widen authority.
+The runtime state is one immutable schema-v4 `AgentRuntimeState` containing exactly one `RuntimeGoal`, the Goal's exact existing `WorkItem`, an ordered immutable list of at most 16 `RuntimeAgentRun` attempts, an ordered retry-decision history, at most 256 exact lease-timeout records, and at most one authorization-bound cancellation application. Goal, AgentRun, WorkItem, and message identities are distinct canonical UUIDs, including across attempts. `agentRun()` is only the latest-attempt projection; earlier attempts remain exact. The retained WorkItem remains the sole source of approved task revision, Workspace snapshot, logical run, required capability, and allowed-Tool provenance; lifecycle state cannot add or widen authority.
 
-The Goal advances through `ACCEPTED -> ACTIVE -> COMPLETED` or `ACTIVE -> RETRY_PENDING -> ACTIVE|FAILED`. Each AgentRun advances only through `PLANNING -> READY -> EXECUTING -> AWAITING_VERIFICATION -> COMPLETED|FAILED`; skipped, reversed, repeated, mismatched, and post-terminal transitions fail. Result transition requires one exact `ResultPayload` envelope whose logical run, correlation, task, and causation match the retained work message. Only `VERIFIED` completes the Goal. A non-Verified result terminates the current attempt as `FAILED` and parks the Goal at durable non-terminal `RETRY_PENDING`; an admitted persisted decision permits one distinct replacement attempt, while a refused persisted decision permits terminal Goal abandonment.
+The Goal advances through `ACCEPTED -> ACTIVE -> COMPLETED`, `ACTIVE -> RETRY_PENDING -> ACTIVE|FAILED`, or an authorization-bound `ACTIVE|RETRY_PENDING -> CANCELLED`. Each AgentRun advances through `PLANNING -> READY -> EXECUTING -> AWAITING_VERIFICATION -> COMPLETED|FAILED`; authenticated Goal cancellation may instead move the current non-terminal attempt to `CANCELLED`, while cancellation from retry-pending preserves its already failed attempt. Skipped, reversed, repeated, mismatched, and post-terminal transitions fail. Result transition requires one exact `ResultPayload` envelope whose logical run, correlation, task, and causation match the retained work message. Only `VERIFIED` completes the Goal. A non-Verified result terminates the current attempt as `FAILED` and parks the Goal at durable non-terminal `RETRY_PENDING`; an admitted persisted decision permits one distinct replacement attempt, while a refused persisted decision permits terminal Goal abandonment.
 
-`DurableAgentRuntime` stages every transition and persists the next revision before adopting or exposing it. `FileSystemAgentRuntimeStateStore` keeps one bounded strict-UTF-8 integrity-checked binary artifact per Goal, atomically creates or replaces it, requires revision increments of exactly one, preserves exact WorkItem, AgentRun, retry-decision, control, result, and fence prefixes, and fails closed on missing, corrupt, oversized, trailing, structurally invalid, rewritten, truncated, reordered, invalidly appended, or unsupported state. Schema-v1 runtime artifacts are explicitly unsupported; migration is separate work.
+`DurableAgentRuntime` stages every transition and persists the next revision before adopting or exposing it. `FileSystemAgentRuntimeStateStore` keeps one bounded strict-UTF-8 integrity-checked binary artifact per Goal, atomically creates or replaces it, requires revision increments of exactly one, preserves exact WorkItem, AgentRun, retry-decision, control, cancellation, lease-timeout, result, and fence prefixes, and fails closed on missing, corrupt, oversized, trailing, structurally invalid, rewritten, truncated, reordered, invalidly appended, or unsupported state. Runtime schemas v1 through v3 are explicitly unsupported; migration is separate work.
 
-`READY` is the only lease-acquisition state. Acquisition issues one bounded non-blank owner identity, a persisted monotonically increasing positive fence token, an injected-clock issue time, and an exclusive expiry from 1 millisecond through 24 hours, then moves the AgentRun to `EXECUTING`. Renewal preserves owner and fence, must extend expiry, and execution completion requires the same unexpired owner and fence. At or after expiry, explicit reclaim or runtime recovery persists `EXECUTING -> READY`, clears the lease, retains the last-issued fence, and ensures the next acquisition receives a greater fence. Acquisition, renewal, completion, and reclaim all preserve persist-before-exposure; a storage failure leaves the previous state authoritative.
+`READY` is the only lease-acquisition state. Acquisition issues one bounded non-blank owner identity, a persisted monotonically increasing positive fence token, an injected-clock issue time, and an exclusive expiry from 1 millisecond through 24 hours, then moves the AgentRun to `EXECUTING`. Renewal preserves owner and fence, must extend expiry, and execution completion requires the same unexpired owner and fence. At or after expiry, explicit reclaim or runtime recovery atomically appends the exact lease-timeout record and persists `EXECUTING -> READY`, clears the lease, retains the last-issued fence, and ensures the next acquisition receives a greater fence. Acquisition, renewal, completion, and reclaim all preserve persist-before-exposure; a storage failure leaves the previous state authoritative.
 
 Lease possession grants only lifecycle-transition authority already bounded by the retained WorkItem. Goal-wide fence monotonicity survives attempt replacement, so a new attempt cannot reuse an earlier fence. This boundary does not itself resolve the RunRecord reference, decide retry from the external-effect ledger, execute a replacement AgentRun, cancel/pause/resume, fence an external adapter invocation, coordinate processes, define distributed clock-skew handling, migrate schema v1, or claim parent-directory power-loss durability.
 
@@ -567,7 +596,7 @@ Fence-checked execution completion and Scheduler queue completion are different 
 
 The Scheduler queue now records a terminal `WorkItemDisposition` (`VERIFIED_COMPLETED` or `FAILED`), and only `VERIFIED_COMPLETED.satisfiesDependencies()` is true. The queue's single completion operation is split: `completeActiveVerified` adds the WorkItem to `completedWorkItemIds`, the dependency-satisfaction source used to release dependent work, while `failActive` adds it to a separate `failedWorkItemIds` set that never satisfies dependents, so a failed dependency leaves dependents blocked with an inspectable cause held in the runtime/RunRecord. The schema-v3 state partition is `pending + active + verified + failed = admissionOrder`, with verified and failed disjoint; the separate exact admission history has the same ordered identities and the queue stores disposition only, not a failure reason.
 
-The queue item remains active while the latest AgentRun is `AWAITING_VERIFICATION` and while the Goal is `RETRY_PENDING`; only a terminal Goal disposition releases the single active slot. Queue disposition and exact admission history share the schema-v3 on-disk snapshot with exact restart recovery: a persisted terminal disposition is never re-run, only interrupted active work is requeued with its one-shot recovery preference, and incompatible schema-v1/v2 snapshots fail ordinary resolution. Runtime lifecycle state is separately schema v2.
+The queue item remains active while the latest AgentRun is `AWAITING_VERIFICATION`, while the Goal is `RETRY_PENDING`, and after a runtime-only authenticated cancellation until a separate queue-disposition connection exists. Queue disposition and exact admission history share the schema-v3 on-disk snapshot with exact restart recovery: a persisted terminal disposition is never re-run, only interrupted active work is requeued with its one-shot recovery preference, and incompatible schema-v1/v2 snapshots fail ordinary resolution. Runtime lifecycle state is separately schema v4.
 
 `DurableAgentRunFinalizer` connects those separate facts through two recoverable operations. `recordAgentRunResult` resolves the RunRecord reference, binds it to the Goal on `approvedTask.taskId()` and `sourceDocument()` (no source SHA exists), and persists either Goal `COMPLETED` or non-terminal `RETRY_PENDING`; it never persists the RunRecord and fails closed on missing, corrupt, mismatched, premature, or changed-reference input. `finalizeTerminalDisposition` derives queue mutation only from terminal Goal state: `COMPLETED -> completeActiveVerified`, terminal `FAILED -> failActive`, and `ACTIVE`/`RETRY_PENDING` -> no disposition. A terminal `FAILED` Goal requires a persisted refused retry decision. Because queue recovery requeues interrupted active work, terminal finalization re-claims the matching item before disposition when necessary. The legacy `finalizeAgentRun` composes the forward terminal case, while `recoverFinalization` applies only authorized post-terminal disposition. Queue and runtime remain separate durable boundaries with no cross-store transaction.
 
@@ -704,9 +733,9 @@ or mutates nothing and makes no child-liveness claim.
 
 `AgentLoopAgentRunExecution` is the first production implementation of that port: it drives the Integrated Gate 1-4 pipeline (governed `read-file` `ToolExecutor`, `EvidenceRecorder`-persisted evidence, the bounded `AgentRunController`/`AgentLoop`, `DeterministicReadFileVerifier`, and the application `AgentRunFinalizer`) against the approved task's own source document — the `read-file` target is `taskRevision().sourceDocument()` and the expected content SHA-256 is `taskRevision().sourceSha256()` — and returns the persisted `run-record/<uuid>` reference. The `ApprovedTask` is constructed directly from the WorkItem's fields (no `ApprovedTaskReader`, no `In Progress` coupling), so the runtime finalizer's taskId-plus-sourceDocument binding holds by construction; the port must persist through the same `RunRecordStore` the worker's finalizer resolves from. A digest mismatch or Tool failure is carried in a persisted non-`VERIFIED` RunRecord, never thrown, and is real drift detection; the runtime result boundary records it as a failed attempt at `RETRY_PENDING` without a terminal queue disposition. The derivation of `(targetPath, expectedContentSha256)` from the WorkItem sits behind one private seam.
 
-`WorkPayload` now carries an optional caller-supplied `ExecutionInput(targetPath, expectedContentSha256)`: the port's seam prefers the declared input and falls back to the approved task's own source document when it is absent, so a WorkItem can execute an arbitrary governed target through the same contained read-file, evidence, verification, and RunRecord pipeline while the `ApprovedTask` binding stays the source document (exactly as the CLI separates `CURRENT_TASK.md` from `target-path`). The input is explicit caller authority data supplied through a `WorkMessagePublisher` overload — snapshot observations are evidence, not approval authority, so they never derive it. Both filesystem serializers persist the optional input after `allowedTools` with a presence flag; queue schema v3 and runtime schema v2 both embed it, with incompatible snapshots failing closed. Multiple inputs, payload-carried plans or Tool-call scripts, and write Tools remain out of scope.
+`WorkPayload` now carries an optional caller-supplied `ExecutionInput(targetPath, expectedContentSha256)`: the port's seam prefers the declared input and falls back to the approved task's own source document when it is absent, so a WorkItem can execute an arbitrary governed target through the same contained read-file, evidence, verification, and RunRecord pipeline while the `ApprovedTask` binding stays the source document (exactly as the CLI separates `CURRENT_TASK.md` from `target-path`). The input is explicit caller authority data supplied through a `WorkMessagePublisher` overload — snapshot observations are evidence, not approval authority, so they never derive it. Both filesystem serializers persist the optional input after `allowedTools` with a presence flag; queue schema v3 and runtime schema v4 both embed it, with incompatible snapshots failing closed. Multiple inputs, payload-carried plans or Tool-call scripts, and write Tools remain out of scope.
 
-`RuntimeControlAdmissionHandler` is the bounded Gate 7-to-Gate 8 request connection for control envelopes. It recovers one named Goal and records an exact `ControlPayload` envelope only while that Goal and its AgentRun are active, after matching logical run, correlation, and work-message causation and rejecting runtime-identity collisions. `AgentRuntimeState` retains at most 256 requests in admission order; exact message replay is a no-revision duplicate, identity reuse with different content fails closed, and every later lifecycle state retains the exact ledger prefix. `FileSystemAgentRuntimeStateStore` encodes the full envelopes in schema v2, requires the ledger to stay prefix-monotonic on update, and publishes the new revision atomically before the handler returns. Checked storage failure becomes handler failure so the existing bus retry/dead-letter contract remains visible. Incompatible schema-v1 runtime payloads fail explicitly.
+`RuntimeControlAdmissionHandler` is the bounded Gate 7-to-Gate 8 request connection for control envelopes. It recovers one named Goal and records an exact `ControlPayload` envelope only while that Goal and its AgentRun are active, after matching logical run, correlation, and work-message causation and rejecting runtime-identity collisions. `AgentRuntimeState` retains at most 256 requests in admission order; exact message replay is a no-revision duplicate, identity reuse with different content fails closed, and every later lifecycle state retains the exact ledger prefix. `FileSystemAgentRuntimeStateStore` encodes the full envelopes in schema v4, requires the ledger to stay prefix-monotonic on update, and publishes the new revision atomically before the handler returns. Checked storage failure becomes handler failure so the existing bus retry/dead-letter contract remains visible. Incompatible schema-v1-v3 runtime payloads fail explicitly.
 
 This boundary records an untrusted request, not an accepted transition. The envelope producer and control reason are diagnostic provenance and cannot pause, resume, cancel, release a lease, mutate the queue, interrupt a worker, expand Tool scope, or change bus cancellation. Gate 12 must authenticate and authorize a later application path before any of those state changes can exist.
 
@@ -860,9 +889,9 @@ application, verification, and terminal disposition separate:
 | `RETRY_DECISION_RECORDED` | an admitted or refused retry decision is durable | `DurableAgentRunRetryController`, after the decision-bearing runtime revision |
 | `RETRY_STARTED` | the admitted replacement AgentRun is durable | the retry controller/Worker re-entry boundary, after the replacement runtime revision |
 | `STAGNATION_DETECTED` | a persisted RunRecord carries `STAGNATED` | Agent Loop detects; RunRecord-backed result finalization records |
-| `TIMEOUT_DETECTED` | a durable fact records a Tool, process, or lease timeout | the owning Tool/process/lease boundary detects; its transition owner records only after durable runtime or RunRecord evidence |
+| `TIMEOUT_DETECTED` | a durable fact records a Tool, process, or lease timeout | Tool uses the finalizer after a bound RunRecord carries `ToolFailureCode.TIMED_OUT`; process uses `ProcessIsolatedAgentRunExecution` after its bound `ProcessTimeoutFact` is point-persisted; lease uses event-aware `DurableAgentRuntime` only after reclaim atomically appends a bound `LeaseTimeoutRecord` with the `EXECUTING -> READY` runtime revision |
 | `CANCELLATION_REQUEST_RECORDED` | a bound `CANCEL` Control request is durable and unapplied | `RuntimeControlAdmissionHandler`, after exact request admission |
-| `CANCELLATION_APPLIED` | an authenticated cancellation transition is durable | Gate 12 application boundary; no current producer |
+| `CANCELLATION_APPLIED` | an authenticated cancellation transition is durable | `AuthenticatedCancellationApplication`, after the authorization-bound runtime cancellation revision |
 | `VERIFICATION_RECORDED` | a RunRecord-backed Result transition is durable | `DurableAgentRunFinalizer`, after the AgentRun result transition |
 | `WORK_ITEM_TERMINATED` | the queue durably records `VERIFIED_COMPLETED` or `FAILED` | `DurableAgentRunFinalizer`, after terminal queue disposition |
 
@@ -948,6 +977,91 @@ the disposition is durable; publication or later-clock re-entry recovers that fi
 persisted occurrence time before exact replay. Queue persistence failure reaches neither
 the event store nor publisher, while event or publisher failure leaves the terminal
 queue partition available to `recoverFinalization`.
+
+The fourth transition-owner consumer is the event-aware construction of
+`DurableAgentRunRetryController`. `recordDecision` first persists or exact-replays the
+attempt-bound admitted or refused `AgentRunRetryDecisionRecord`. It then derives
+`RETRY_DECISION_RECORDED` from the retained failed Result causation, decision outcome,
+exact Goal, WorkItem, failed AgentRun, task, snapshot, logical-run, and correlation
+binding plus ordered stable references to
+`agent-runtime/<goal>/retry-decision/<agent-run>` and the decision-bearing runtime
+revision. The decision record retains no occurrence time, so the first candidate uses
+the injected clock only after decision persistence and publisher-failure re-entry
+recovers the first persisted event occurrence before exact replay. Runtime persistence
+failure reaches neither event store nor publisher; event or publisher failure leaves
+the decision available through exact `recordDecision` re-entry. `RETRY_STARTED` remains
+separate until a replacement AgentRun is durable, and post-decision admitted/refused
+actions create no additional event through this connection.
+
+The fifth transition-owner consumer is the same event-aware retry controller at the
+Worker-reentered `beginAdmittedRetry` boundary. It first appends or exact-replays the
+caller-checkpointed replacement AgentRun, then derives `RETRY_STARTED` with that
+replacement as the event AgentRun, the prior failed AgentRun in its sealed detail, and
+the retained failed Result message as causation. Ordered stable references to
+`agent-runtime/<goal>/retry-decision/<previous-agent-run>` and
+`agent-runtime/<goal>/agent-run/<replacement-agent-run>` identify the admitted decision
+and monotonic replacement fact without binding replay to a later mutable runtime
+revision. Because replacement append retains no transition time, the first candidate
+uses the injected post-persistence clock; publisher-failure replay restores the first
+event occurrence, while a missing event after later replacement status progress uses
+the recovery candidate time and the same stable identity. Replacement persistence
+failure reaches neither event store nor publisher. Refused decisions and terminal
+abandonment create no `RETRY_STARTED` fact through this connection.
+
+The sixth transition-owner consumer is the event-aware finalizer during
+`recordAgentRunResult`. It first resolves and binds the RunRecord, persists or
+exact-replays the matching Result transition, and records the separate
+`VERIFICATION_RECORDED` fact. When the same RunRecord carries worker stop reason
+`STAGNATED`, it then derives `STAGNATION_DETECTED` from the RunRecord's retained
+occurrence time and iteration count plus the current default Agent Loop stagnation
+threshold of three. The retained Result supplies causation, while ordered stable
+Result-message and RunRecord references determine identity without a later mutable
+runtime revision. Exact Result re-entry resolves the source again and exact-replays both
+events, so event or publication failure remains recoverable after later runtime
+revisions. Missing, corrupt, mismatched, or Result-transition persistence failure
+reaches no stagnation event, and a non-stagnated RunRecord creates only its separate
+verification event. This connection changes no RunRecord, runtime, event, or message
+schema and does not select a timeout owner.
+
+The initial timeout source is the same bound persisted RunRecord, but only when its
+exact Tool result carries `ToolFailureCode.TIMED_OUT`. The event-aware finalizer remains
+the transition owner: after the matching Result transition and its separate
+`VERIFICATION_RECORDED` fact are durable, it records `TIMEOUT_DETECTED` with
+`RuntimeTimeoutKind.TOOL`, the RunRecord occurrence time, Result causation, and stable
+Result-message and RunRecord references. When the RunRecord also records `STAGNATED`,
+the timeout fact precedes the separate stagnation fact. Exact Result re-entry repairs or
+republishes the same event without another runtime revision.
+
+Process watchdog timeout is owned by `ProcessIsolatedAgentRunExecution`, which alone
+receives the exact dispatch, configured timeout, and typed
+`IsolatedWorkerStatus.TIMED_OUT` outcome. It persists one bound `ProcessTimeoutFact`
+under deterministic reference `process-timeout/<goal>/<agent-run>` before exposing
+failure. The point store retains the first post-outcome occurrence time, exact
+runtime-event binding, AgentRun, positive configured timeout, bounded launcher reason,
+and a semantic digest; identical re-entry is rewrite-free while changed reuse, foreign
+binding, corruption, or unsupported state fails closed. The event-aware execution then
+records `TIMEOUT_DETECTED` with `RuntimeTimeoutKind.PROCESS`, Work-message causation,
+producer `process-isolated-agent-run-execution`, and the process-timeout
+reference/digest. A persisted fact is checked before spooling or launch, so restart
+repairs or republishes the exact event and exposes the same failure without another
+child. Start failure, non-zero completion, invalid result publication, and successful
+execution create no such fact. This connection changes no AgentRun lifecycle or retry
+policy and adds no scan, retention, cleanup, migration, CLI event transport, or
+cross-store transaction.
+
+Lease-expiry recovery is owned by `DurableAgentRuntime` and the same AgentRuntime state
+that owns leases and reclamation. Schema v3 retains a bounded ordered ledger of exact
+`LeaseTimeoutRecord` values. Reclaim appends the current AgentRun, owner, fence, issue,
+expiry, and observation facts while transitioning `EXECUTING -> READY` in one durable
+revision; unexpired or non-executing recovery adds none. The filesystem store enforces
+an exact prefix and validates a single append against that transition. Event-aware
+recovery derives `TIMEOUT_DETECTED` with `RuntimeTimeoutKind.LEASE`, occurrence at the
+retained lease expiry, Work-message causation, producer `durable-agent-runtime`, and
+stable reference `agent-runtime/<goal>/lease-timeout/<agent-run>/<fence>` only after
+that runtime revision is durable. Replaying the bounded retained ledger repairs missing
+events or publication failure after later runtime progress without another source
+revision. Earlier runtime schemas, automatic post-reclaim execution, concrete
+publication, and supported CLI event composition remain separate.
 
 The existing `MessageEnvelope` remains sealed to Work, Result, Control, and Handoff.
 Runtime events must not be coerced into one of those meanings. A concrete Message Bus
@@ -1393,6 +1507,40 @@ after orderly verification and document synchronization. The first contract supp
 active development session per repository and adds no timers, platform shutdown hook,
 multi-session merge, automatic commit/stash, remote replication, or external-effect
 deduplication.
+
+### Document-Driven Dynamic Increment Workflow Boundary
+
+`CURRENT_TASK.md` remains the single Active Task and next-task authority. When one
+explicitly approved task contains two through sixteen related bounded increments, its
+optional `## Dynamic Workflow` section may describe their execution graph without
+creating another task ledger. The parent Task, Task ID, Approval, Acceptance Criteria,
+Allowed Tools, and Out Of Scope sections are the fixed authority envelope; increment
+entries can narrow that envelope but cannot add scope, Tools, external actions, or
+approval.
+
+The v1 document grammar is deliberately sequential and bounded. It records one stable
+workflow identity, `Sequential` mode, the declared increment limit, a deterministic
+selection rule, explicit stop conditions, and ordered stable increment identities. Each
+increment records `Pending`, `In Progress`, `Completed`, or `Blocked`, its dependency
+identities, bounded scope, exit criteria, verification expectation, and next action. At
+most one increment is `In Progress`. The only eligible successor is the first ordered
+`Pending` increment whose dependencies are `Completed`, and it may be selected only
+after their required evidence has been read.
+
+Increment state is execution context, not a new constitutional lifecycle or evidence
+store. `Completed` is valid only when the increment's exit criteria and declared fresh
+verification are satisfied; the task becomes Completed only after every required
+increment is Completed and the normal session-close synchronization succeeds. The
+machine checkpoint continues to bind the parent task contract and records atomic
+execution position; it neither selects an increment nor proves its completion.
+
+Failure, a blocked dependency, stagnation, exhausted increment/time/cost/context bound,
+task-contract drift, newly required authority, or unsafe recovery stops selection. An
+unplanned increment or authority change requires explicit user approval and an accepted
+task/decision update before continuation. Commit, push, merge, release, deployment,
+destructive action, parallel/background execution, and multi-agent dispatch remain
+separate authority or later-gate capabilities. This document contract is not the Gate 10
+Workflow Engine or Gate 13 orchestration runtime.
 
 `CONSTITUTION.md` is the stable normative Kernel, not the complete Codex guidebook. It defines identity, document authority, lifecycle states, authorization boundaries, verification principles, self-hosting safeguards, and amendment governance.
 

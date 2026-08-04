@@ -3472,3 +3472,391 @@ Outcome:
   executed 19 tests across four suites: 18 passed, one Windows privilege-dependent
   symbolic-link setup skipped, and zero failures or errors. `git diff --check` also
   passed for the three closing documentation paths.
+
+## 2026-08-03 - Connect Retry Decision Runtime Event Recording
+
+- Focused RED for `DurableAgentRunRetryControllerTest` reached `compileTestJava` and
+  failed in 39 seconds with exactly one missing-constructor error for the event-aware
+  five-argument controller construction. Production compilation remained current and
+  no unrelated failure was absorbed.
+- Added optional event-aware controller construction. `recordDecision` now invokes
+  `RuntimeEventRecorder.recordAndPublishUsingFirstOccurrence` only after the admitted or
+  refused `AgentRunRetryDecisionRecord` persists or exact-replays. The event retains the
+  failed Result causation, exact runtime Work binding, decision outcome, stable
+  retry-decision identity, and decision-bearing runtime revision.
+- Fresh focused GREEN completed in 2 minutes 1 second with all three tasks executed.
+  All 20 tests across `DurableAgentRunRetryControllerTest` and
+  `RuntimeEventRecorderTest` passed with zero failures, errors, or skips. The four new
+  contracts prove post-persistence publication, separation from `RETRY_STARTED`,
+  first-occurrence publisher recovery under a later clock, runtime-persistence failure
+  isolation, and event-append repair without revising the decision.
+- Fresh Java 17 `build --no-daemon --console=plain` completed in 6 minutes 22 seconds.
+  The build assembled distributions and executed all 672 tests across 130 suites: 667
+  passed, five privilege-dependent cases skipped, and zero failures or errors.
+- Production and test source counts remain 291 and 131. No runtime/event schema,
+  concrete publisher, supported Worker/CLI event composition, MessageEnvelope change,
+  `RETRY_STARTED`, cross-store transaction, migration, scan, cleanup, retention,
+  commit, push, merge, release, tag, deployment, or unrelated external state change was
+  performed.
+
+## 2026-08-03 - Verify Retry Decision Event Document Synchronization
+
+- After Architecture, compact AI context, capability state, Roadmap, active task,
+  accepted-decision index, changelog, and verification-log synchronization, fresh Java
+  17 `compileJava test --rerun-tasks --warning-mode all --no-daemon --console=plain`
+  completed in 1 minute 21 seconds with all three tasks executed.
+- The focused controller, recorder, decision-index, document-ownership, Planner, and
+  Context Reader set executed 39 tests across six suites: 38 passed, one Windows
+  privilege-dependent symbolic-link setup skipped, and zero failures or errors.
+  `git diff --check` also passed for all 11 active-task paths.
+
+## 2026-08-03 - Connect Retry Started Runtime Event Recording
+
+- Focused RED for `DurableAgentRunRetryControllerTest` compiled production and tests,
+  then ran 20 tests in 44 seconds. Exactly the three new `RETRY_STARTED` contracts
+  failed: one expected the event stream to advance from the decision event to the
+  replacement-start event, and two expected append/publication failures that could not
+  occur because `beginAdmittedRetry` did not invoke the recorder. Existing tests passed
+  and no unrelated failure was absorbed.
+- Event-aware `beginAdmittedRetry` now invokes
+  `RuntimeEventRecorder.recordAndPublishUsingFirstOccurrence` only after replacement
+  persistence or exact active-state replay. The event retains the replacement and prior
+  failed AgentRuns, causal failed Result, exact Work provenance, admitted decision, and
+  stable replacement identity without using a mutable later runtime revision.
+- Fresh focused GREEN completed in 1 minute 24 seconds with all three tasks executed.
+  All 23 tests across `DurableAgentRunRetryControllerTest` and
+  `RuntimeEventRecorderTest` passed with zero failures, errors, or skips. The new
+  contracts prove decision-before-start ordering, replacement-persistence isolation,
+  first-occurrence publication recovery after a later `READY` revision, and
+  missing-event repair after later runtime progress.
+- Fresh Java 17 `build --no-daemon --console=plain` completed in 5 minutes 10 seconds.
+  The build assembled distributions and executed all 675 tests across 130 suites: 670
+  passed, five privilege-dependent cases skipped, and zero failures or errors.
+- Production and test source counts remain 291 and 131. No runtime/event schema,
+  concrete publisher, supported Worker/CLI event composition, MessageEnvelope change,
+  replacement execution/readiness, cross-store transaction, migration, scan, cleanup,
+  retention, commit, push, merge, release, tag, deployment, or unrelated external state
+  change was performed.
+
+## 2026-08-03 - Verify Retry Started Event Document Synchronization
+
+- After Architecture, compact AI context, capability state, detailed Roadmap owner
+  reconciliation, active task, accepted-decision index, changelog, and verification-log
+  synchronization, fresh Java 17 `compileJava test --rerun-tasks --warning-mode all
+  --no-daemon --console=plain` completed in 1 minute 19 seconds with all three tasks
+  executed.
+- The focused controller, recorder, decision-index, document-ownership, Planner, and
+  Context Reader set executed 42 tests across six suites: 41 passed, one Windows
+  privilege-dependent symbolic-link setup skipped, and zero failures or errors.
+  `git diff --check` also passed for all 12 active-task paths.
+
+## 2026-08-03 - Connect Stagnation Runtime Event Recording
+
+- Focused RED for `DurableAgentRunFinalizerTest` compiled production and tests, then ran
+  18 tests in 44 seconds. Exactly the two new stagnation contracts failed: one expected
+  the event stream to advance beyond its existing verification event, and one expected
+  the second publication attempt to fail when no stagnation recorder call yet existed.
+  The 16 existing tests passed and no unrelated failure was absorbed.
+- Event-aware `recordAgentRunResult` now resolves the bound RunRecord, persists or
+  exact-replays the matching Result transition, records the existing separate
+  verification event, and then records `STAGNATION_DETECTED` only for worker stop reason
+  `STAGNATED`. The event retains RunRecord occurrence and iterations, current default
+  threshold three, Result causation, exact Work provenance, and stable ordered
+  Result-message plus RunRecord references.
+- Fresh focused GREEN completed in 47 seconds with all three tasks executed. All 21
+  tests across `DurableAgentRunFinalizerTest` and `RuntimeEventRecorderTest` passed with
+  zero failures, errors, or skips. The new contracts prove source-first ordering,
+  verification/stagnation separation, and exact publication repair after later runtime
+  revisions.
+- Fresh Java 17 `build --no-daemon --console=plain` completed in 5 minutes 3 seconds.
+  The build assembled distributions and executed all 677 tests across 130 suites: 672
+  passed, five privilege-dependent cases skipped, and zero failures or errors.
+- Production and test source counts remain 291 and 131. No RunRecord/runtime/event/
+  MessageEnvelope schema, timeout or cancellation-application owner, concrete publisher,
+  supported Worker/CLI event composition, cross-store transaction, migration, scan,
+  cleanup, retention, commit, push, merge, release, tag, deployment, or unrelated
+  external state change was performed.
+
+## 2026-08-03 - Verify Stagnation Event Document Synchronization
+
+- After Architecture, compact AI context, capability state, Roadmap, active task,
+  accepted-decision index, changelog, and append-only verification-log synchronization,
+  fresh Java 17 `compileJava test --rerun-tasks --warning-mode all --no-daemon
+  --console=plain` completed in 1 minute 21 seconds with all three tasks executed.
+- The focused finalizer, recorder, decision-index, document-ownership, Planner, and
+  Context Reader set executed 40 tests across six suites: 39 passed, one Windows
+  privilege-dependent symbolic-link setup skipped, and zero failures or errors.
+  `git diff --check` also passed for all 15 changed paths.
+
+## 2026-08-03 - Verify Stagnation Event Final Review Correction
+
+- Final diff review found one formatting-only over-indent in the finalizer's terminal
+  exact-replay branch. The indentation was corrected without changing behavior.
+- Fresh Java 17 focused verification recompiled production and ran
+  `DurableAgentRunFinalizerTest` in 55 seconds: all 18 tests passed with zero failures,
+  errors, or skips. `git diff --check` passed again.
+
+## 2026-08-03 - Enable Document-Driven Dynamic Increment Workflows
+
+- Added `DynamicWorkflowDocumentTest` as an executable repository guard for the live
+  optional dynamic workflow. It checks the stable workflow identity, `Sequential` mode,
+  two-through-sixteen bound, declared increment count, ordered unique increment IDs,
+  allowed states, earlier dependency references, completed dependencies before progress,
+  required scope/exit/verification/next-action fields, the one-active-increment rule,
+  parent completion consistency, and all governed instruction connections.
+- Fresh focused Java 17 verification reran five governance suites in 57 seconds. The
+  structural workflow, decision index, document ownership, repository Planner, and
+  Project Context Reader suites executed 21 tests: 20 passed, one Windows
+  privilege-dependent symbolic-link case skipped, and zero failures or errors.
+- The first fresh Java 17 `clean build` assembled the distributions but reported one
+  unrelated failure among 679 tests: the real process-isolated worker exceeded its
+  explicit 20-second child bound under full-suite load. The other 673 tests passed and
+  five privilege-dependent cases skipped. The failing method then passed on an immediate
+  isolated rerun in 49 seconds, classifying the result as transient host/full-suite load
+  rather than a dynamic-workflow contract failure; no unrelated implementation was
+  absorbed.
+- A subsequent fresh Java 17 `clean build` completed in 4 minutes 57 seconds with all
+  eight tasks executed. It assembled the distributions and executed 679 tests across
+  131 suites: 674 passed, five privilege-dependent cases skipped, and zero failures or
+  errors. Production source remains 291 Java files and test source is now 132 Java files.
+- No Constitution amendment, production Workflow Engine, checkpoint schema or CLI
+  change, automatic approval or delivery, parallel/background execution, multi-agent
+  dispatch, commit, push, merge, release, tag, deployment, destructive action, or other
+  external effect was performed for this increment.
+
+## 2026-08-03 - Verify Dynamic Workflow Document Synchronization
+
+- After Architecture, compact AI context, Agent instructions, implementation/session
+  prompts, README guidance, capability state, active task, accepted-decision index,
+  changelog, and append-only verification-log synchronization, fresh Java 17 focused
+  verification recompiled production and tests and completed in 37 seconds.
+- The dynamic-workflow structure, decision-index, document-ownership, repository
+  Planner, and Project Context Reader suites executed 21 tests: 20 passed, one Windows
+  privilege-dependent symbolic-link case skipped, and zero failures or errors.
+  `git diff --check` also passed for all 23 changed paths.
+
+## 2026-08-03 - Verify Dynamic Workflow Final Review Correction
+
+- Final review strengthened `DynamicWorkflowDocumentTest` to reject a self/forward
+  dependency and any dependency-ready `Pending` increment ordered before the selected
+  `In Progress` increment, making deterministic first-ready selection executable rather
+  than checking only its declared text.
+- Fresh Java 17 verification recompiled production and tests and ran the two structural
+  workflow tests in 37 seconds: both passed with zero failures, errors, or skips.
+  `git diff --check` passed again.
+
+## 2026-08-04 - Connect Persisted Tool Timeout Runtime Event Recording
+
+- Source review selected the exact persisted RunRecord
+  `ToolFailureCode.TIMED_OUT` value as the initial authoritative timeout fact. The
+  process watchdog currently returns transient `IsolatedWorkerStatus.TIMED_OUT` before
+  a RunRecord reference exists, and lease recovery retains no separate typed timeout
+  occurrence, so neither was inferred or absorbed into this increment.
+- Focused RED recompiled production and tests in 2 minutes 11 seconds and executed 20
+  `DurableAgentRunFinalizerTest` cases. Eighteen existing cases passed; the two new
+  timeout contracts failed only at their expected event-order assertions because
+  production emitted verification and optional stagnation without
+  `TIMEOUT_DETECTED`. The failure matched the active task, accepted decision,
+  Architecture, and current RunRecord contract.
+- The minimum implementation records `TIMEOUT_DETECTED` with
+  `RuntimeTimeoutKind.TOOL` only after Result persistence/exact replay and the separate
+  verification event, using RunRecord occurrence, Result causation, exact Work binding,
+  and stable Result-message/RunRecord references. A timed-out stagnated record orders
+  verification, timeout, then stagnation; non-timeout input creates no timeout event.
+- Fresh focused GREEN completed in 1 minute 28 seconds with all three tasks executed.
+  All 23 tests across `DurableAgentRunFinalizerTest` and
+  `RuntimeEventRecorderTest` passed with zero failures, errors, or skips.
+- Fresh focused runtime/governance verification completed in 1 minute 29 seconds with
+  all three tasks executed. Seven suites ran 44 tests: 43 passed, one Windows
+  privilege-dependent symbolic-link setup skipped, and zero failures or errors.
+- Fresh Java 17 `clean build --no-daemon --console=plain` completed in 6 minutes 1
+  second with all eight tasks executed. It assembled the distributions and ran 681
+  tests across 131 suites: 676 passed, five privilege-dependent cases skipped, and zero
+  failures or errors. Production and test source counts remain 291 and 132.
+- No RunRecord, runtime-event, MessageEnvelope, queue, runtime, or store schema change;
+  process/lease timeout inference; cancellation application; concrete publisher;
+  supported Worker/CLI event composition; Gate 8 promotion; migration; scan; cleanup;
+  retention; cross-store transaction; commit; push; merge; release; tag; deployment;
+  destructive action; parallel/background execution; multi-agent dispatch; or other
+  external effect was performed.
+
+## 2026-08-04 - Verify Tool Timeout Recovery Evidence Gap Closure
+
+- Final diff review found that the initial Tool-timeout evidence did not directly
+  exercise the acceptance criteria for missing-event repair or publication-failure
+  replay. Two focused filesystem tests were added without changing production behavior.
+- The first 25-test focused run compiled and executed, with 24 passes and one
+  assertion-only failure because the test compared `RuntimeEventStream` object identity
+  instead of its value-bearing revision, binding, and events. The next correction
+  attempt failed at test compilation because it referenced nonexistent convenience
+  accessors. Both failures were confined to the new test assertion and were corrected
+  to compare `revision()`, `binding()`, and `events()`.
+- The corrected focused Java 17 run executed all 25 tests across
+  `DurableAgentRunFinalizerTest` and `RuntimeEventRecorderTest`: 25 passed with zero
+  skips, failures, or errors. It proves exact Result re-entry repairs a missing Tool
+  timeout event without another runtime revision and replays the exact persisted event
+  after publication failure.
+- The final fresh Java 17 `clean build --no-daemon --console=plain` completed in 8
+  minutes 36 seconds with all eight tasks executed. It assembled distributions and ran
+  683 tests across 131 suites: 678 passed, five privilege-dependent cases skipped, and
+  zero failures or errors.
+
+## 2026-08-04 - Tool Timeout Event Post-Synchronization Verification
+
+- The first post-synchronization command passed every selected test but used the wrong
+  package name for `ProjectContextReaderTest`; result inspection showed six suites and
+  35 passing tests, so it was not used as the complete structural claim.
+- The corrected fresh Java 17 command selected all seven declared runtime and governance
+  suites and completed in 1 minute 34 seconds. It ran 43 tests: 42 passed, one existing
+  privilege-dependent Windows symbolic-link setup case skipped, and zero failures or
+  errors. Fresh `git diff --check` produced no output.
+
+## 2026-08-04 - Persist And Connect Process Timeout Runtime Event Recording
+
+- Source review selected `ProcessIsolatedAgentRunExecution` as the owner because it alone
+  retains the exact dispatch, configured timeout, typed `IsolatedWorkerStatus.TIMED_OUT`
+  outcome, and first post-outcome clock read. The accepted decision keeps the durable
+  cycle checkpoint about recovery position and forbids a synthetic RunRecord.
+- Persistence RED recompiled production and reached `compileTestJava`, which failed with
+  18 expected missing-symbol errors for the new fact, resolved value, store port and
+  adapter, and process-boundary constructor. The failure matched the active task,
+  accepted decision, and Architecture.
+- The minimum persistence implementation passed 22 focused tests across
+  `ProcessIsolatedAgentRunExecutionTest` and
+  `FileSystemProcessTimeoutFactStoreTest`: 21 passed, one Windows
+  privilege-dependent symbolic-link case skipped, and zero failures or errors. The
+  tests prove point persistence before exposed failure, exact rewrite-free recovery
+  without another child, changed-content/corrupt/oversized/unsupported-state refusal,
+  and absence for start failure, completed failure, and success.
+- Event RED reached `compileTestJava` and failed with exactly two expected missing
+  contracts: `RuntimeEventReferenceKind.PROCESS_TIMEOUT` and the event-aware process
+  execution constructor. Production and the persistence GREEN remained current.
+- The minimum event connection and bounded review corrections passed 28 focused tests
+  across the process execution, timeout fact store, and runtime-event recorder suites:
+  27 passed, one privilege-dependent symbolic-link case skipped, and zero failures or
+  errors. The fact is durable before event publication; the derived event retains the
+  fact occurrence, exact binding, Work-message causation, producer, PROCESS detail,
+  deterministic reference, and semantic digest. Re-entry repairs a missing event and
+  exact-replays after publication failure without another fact, event revision, or
+  child launch.
+- The first full build assembled successfully and executed 690 tests, but one
+  `DecisionLogIndexTest` failed because the active task's two existing justification
+  headings did not resolve in the decision index; 683 passed and six were skipped. No
+  production or feature test failed. Recording those unchanged task-contract headings
+  as accepted decisions passed all seven focused decision-index and document-ownership
+  tests.
+- Final fresh Java 17 `clean build --no-daemon --console=plain` completed in 5 minutes
+  55 seconds with all eight tasks executed. It assembled distributions and ran 690
+  tests across 132 suites: 684 passed, six privilege-dependent cases skipped, and zero
+  failures or errors. Production and test source counts are 297 and 133.
+- No lease-timeout inference, AgentRun lifecycle or retry-policy change, synthetic
+  RunRecord, MessageEnvelope change, supported CLI event publication, Gate 8 promotion,
+  cross-store transaction, migration, scan, retention, cleanup, commit, push, merge,
+  release, tag, deployment, destructive action, parallel/background execution,
+  multi-agent dispatch, or other external effect was performed.
+
+## 2026-08-04 - Process Timeout Event Post-Synchronization Verification
+
+- After architecture, state, roadmap, task, README, changelog, decision, and verification
+  synchronization, a fresh Java 17 focused command recompiled production and tests and
+  selected eight process-timeout runtime and governance suites.
+- The run completed in 2 minutes 40 seconds and executed 46 tests: 44 passed, two
+  existing privilege-dependent Windows symbolic-link setup cases skipped, and zero
+  failures or errors. Fresh `git diff --check` produced no output.
+
+## 2026-08-04 - Persist And Connect Lease Timeout Runtime Events
+
+- Persistence RED reached test compilation and failed only on seven missing lease
+  record/schema contracts. The minimum AgentRuntime schema-v3 implementation then ran
+  25 focused durable-runtime and filesystem-store tests with 25 passes and no skips,
+  failures, or errors.
+- Event RED reached test compilation and failed only on the missing event-aware recovery
+  overload and `LEASE_TIMEOUT` reference kind. The minimum event connection passed the
+  focused durable runtime, filesystem state-store, and recorder suites with zero
+  failures or errors, proving source-first recording, retained-expiry occurrence,
+  Work causation, missing-event repair, and publication-failure exact replay without a
+  second runtime revision.
+- The first full Java 17 build assembled successfully and ran 693 tests, but one legacy
+  schema-v2 suite expected literal version `2`; 686 passed and six were skipped. The
+  failure was aligned with the accepted schema-v3 change. Replacing the literal with
+  `AgentRuntimeState.CURRENT_SCHEMA_VERSION` passed all five focused schema tests.
+- Fresh Java 17 `clean build --no-daemon --console=plain` completed in 6 minutes 10
+  seconds with all eight tasks executed. It assembled distributions and ran 693 tests:
+  687 passed, six privilege-dependent cases skipped, and zero failures or errors.
+  Production and test source counts are 298 and 133.
+- No earlier-schema migration, automatic post-reclaim execution, cancellation
+  application, concrete publisher, supported CLI event composition, commit, push,
+  merge, release, deployment, destructive action, parallel/background execution,
+  multi-agent dispatch, or other external effect was performed.
+
+## 2026-08-04 - Lease Timeout Event Post-Synchronization Verification
+
+- After architecture, state, roadmap, task, README, changelog, decision, source-comment,
+  and verification synchronization, a fresh Java 17 focused command recompiled
+  production and tests and selected eight runtime and governance suites.
+- The run completed in 1 minute 31 seconds and executed 45 tests: all 45 passed with
+  zero skips, failures, or errors. Fresh `git diff --check` produced no output.
+
+## 2026-08-04 - Apply Authenticated Cancellation And Record Its Runtime Event
+
+- Structural review selected a trusted Gate 12 `ControlRequestAuthorizer` port over the
+  exact retained request; no envelope or transport field grants authority. The accepted
+  decision binds one positive authorization to a schema-v4 terminal runtime fact before
+  event append/publication and leaves process signalling and queue disposition separate.
+- The first persistence RED contained one test-fixture mistake plus the missing
+  production contracts. After replacing the nonexistent test-only memory store, RED
+  reached test compilation with 23 aligned missing authorizer, decision, application,
+  record, accessor, and `CANCELLED` status contracts.
+- The minimum schema-v4 persistence implementation required two bounded corrections:
+  the build's warning-as-error policy required `serialVersionUID`, and exhaustive retry
+  test construction required a cancelled branch. The first focused execution then ran
+  61 tests with 60 passes and one stale literal schema-v3 expectation; replacing it with
+  a current recovered-schema assertion produced 61 passes across five suites with zero
+  skips, failures, or errors.
+- Event RED reached test compilation with five aligned missing contracts for the
+  event-aware application constructor and `CONTROL_APPLICATION` reference. The minimum
+  connection passed nine focused application/recorder tests with zero skips, failures,
+  or errors, proving source-first append, denial exclusion, missing-event repair, and
+  publication-failure exact replay without reauthorization or another runtime revision.
+- Fresh Java 17 `clean build --no-daemon --console=plain` completed in 5 minutes 30
+  seconds with all eight tasks executed. It assembled distributions and ran 700 tests
+  across 133 suites: 694 passed, six privilege-dependent cases skipped, and zero
+  failures or errors. Production and test source counts are 303 and 134.
+- No credential issuance, supported login/CLI/API/Desktop/editor composition, process
+  signalling, cancelled queue disposition, Tool/effect cancellation, `PAUSE`/`RESUME`,
+  concrete event transport, earlier-schema migration, commit, push, merge, release,
+  deployment, destructive action, background/parallel execution, multi-agent dispatch,
+  or other external effect was performed in this implementation task.
+
+## 2026-08-04 - Authenticated Cancellation Post-Synchronization Verification
+
+- After architecture, compact mirror, state, roadmap, task, README, changelog, decision,
+  and verification synchronization, a fresh Java 17 focused command recompiled
+  production and tests and selected nine runtime and governance suites.
+- The run completed in 1 minute 45 seconds and executed 53 tests: all 53 passed with
+  zero skips, failures, or errors. Fresh `git diff --check` produced no output.
+
+## 2026-08-04 - Subagent Documentation Git Delivery Preparation
+
+- The first fresh delivery-document command recompiled production and tests and ran 10
+  tests across `RuntimePackageBoundaryTest`, `DynamicWorkflowDocumentTest`,
+  `DocumentOwnershipTest`, and `DecisionLogIndexTest`. Nine passed and the sole failure
+  identified that the new Active Task lacked the live two-through-sixteen increment
+  dynamic-workflow section required by the accepted repository document contract.
+- The failure was classified as aligned delivery-document drift. Adding the bounded
+  sequential authority-recording and delivery-preparation increments changed no product
+  or test behavior.
+- The exact command then completed successfully in 1 minute 11 seconds: all 10 tests
+  passed with zero skips, failures, or errors. Fresh `git diff --check` produced no
+  output, and status/stat review found only the accumulated accepted documentation,
+  runtime, and test paths intended for this delivery.
+
+## 2026-08-04 - Subagent Documentation Staged Delivery Review
+
+- `git add --all` staged the complete 62-path accumulated change set. The first cached
+  whitespace check found one extra blank line at EOF in an accepted Tool-timeout
+  decision and stopped before commit.
+- After removing that blank line and restaging the exact file,
+  `git diff --cached --check` produced no output. The staged summary contained 5,308
+  insertions and 144 deletions across the expected documentation, runtime, and test
+  paths, with no deletions, generated build output, credential path, or unrelated file.

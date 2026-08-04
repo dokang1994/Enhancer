@@ -27,11 +27,13 @@ import java.security.MessageDigest;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -56,6 +58,9 @@ class ProcessIsolatedAgentRunExecutionTest {
                 VerificationStatus.VERIFIED,
                 fixture.runRecordStore().resolve(reference).record().verification().status(),
                 "the child ran the real pipeline against a digest-matching target");
+        assertTrue(fixture.timeoutStore()
+                .find(fixture.dispatch().goalId(), fixture.dispatch().agentRunId())
+                .isEmpty(), "successful execution must not create a timeout fact");
 
         // The work crossed out and the result crossed back through the cycle's own spools.
         assertTrue(Files.isDirectory(fixture.cycleRoot().resolve(IsolatedWorkerMain.WORK_SPOOL)));
@@ -323,19 +328,62 @@ class ProcessIsolatedAgentRunExecutionTest {
     }
 
     @Test
-    void failsClosedWhenTheChildIsDestroyedOrExitsNonZero() throws IOException {
+    void persistsATypedTimeoutBeforeFailureAndReentryDoesNotLaunchAgain()
+            throws IOException {
         Fixture fixture = Fixture.create(temporaryRoot);
+        Instant occurredAt = Instant.parse("2026-08-04T10:05:00Z");
+        AtomicInteger launches = new AtomicInteger();
+        WorkerProcessLauncher timedOutLauncher = new WorkerProcessLauncher() {
+            @Override
+            public IsolatedWorkerOutcome run(
+                    Class<?> entryPoint, List<String> arguments, Duration timeout) {
+                launches.incrementAndGet();
+                return IsolatedWorkerOutcome.refused(
+                        IsolatedWorkerStatus.TIMED_OUT, "destroyed");
+            }
+        };
 
         IOException timedOut = assertThrows(IOException.class,
+                () -> fixture.executionWith(
+                        timedOutLauncher, Clock.fixed(occurredAt, java.time.ZoneOffset.UTC))
+                        .execute(fixture.dispatch()));
+        assertTrue(timedOut.getMessage().contains("did not complete"), timedOut.getMessage());
+        ResolvedProcessTimeoutFact persisted = fixture.timeoutStore()
+                .find(fixture.dispatch().goalId(), fixture.dispatch().agentRunId())
+                .orElseThrow();
+        assertEquals(occurredAt, persisted.fact().occurredAt());
+        assertEquals(fixture.dispatch().agentRunId(), persisted.fact().agentRunId());
+        assertEquals(GENEROUS, persisted.fact().timeout());
+        assertEquals("destroyed", persisted.fact().reason());
+        assertEquals(1, launches.get());
+
+        IOException replayed = assertThrows(IOException.class,
+                () -> fixture.executionWith(failIfLaunched(), Clock.systemUTC())
+                        .execute(fixture.dispatch()));
+        assertTrue(replayed.getMessage().contains("did not complete"), replayed.getMessage());
+        assertEquals(Optional.of(persisted), fixture.timeoutStore()
+                .find(fixture.dispatch().goalId(), fixture.dispatch().agentRunId()));
+        assertEquals(1, launches.get());
+    }
+
+    @Test
+    void startFailureAndCompletedFailurePersistNoProcessTimeout() throws IOException {
+        Fixture fixture = Fixture.create(temporaryRoot);
+
+        IOException startFailed = assertThrows(IOException.class,
                 () -> fixture.executionWith(new WorkerProcessLauncher() {
                     @Override
                     public IsolatedWorkerOutcome run(
                             Class<?> entryPoint, List<String> arguments, Duration timeout) {
                         return IsolatedWorkerOutcome.refused(
-                                IsolatedWorkerStatus.TIMED_OUT, "destroyed");
+                                IsolatedWorkerStatus.START_FAILED, "could not start");
                     }
                 }).execute(fixture.dispatch()));
-        assertTrue(timedOut.getMessage().contains("did not complete"), timedOut.getMessage());
+        assertTrue(startFailed.getMessage().contains("did not complete"),
+                startFailed.getMessage());
+        assertTrue(fixture.timeoutStore()
+                .find(fixture.dispatch().goalId(), fixture.dispatch().agentRunId())
+                .isEmpty());
 
         IOException failed = assertThrows(IOException.class,
                 () -> fixture.executionWith(new WorkerProcessLauncher() {
@@ -348,6 +396,125 @@ class ProcessIsolatedAgentRunExecutionTest {
                 }).execute(fixture.dispatch()));
         assertTrue(failed.getMessage().contains("without publishing a result"),
                 failed.getMessage());
+        assertTrue(fixture.timeoutStore()
+                .find(fixture.dispatch().goalId(), fixture.dispatch().agentRunId())
+                .isEmpty());
+    }
+
+    @Test
+    void recordsProcessTimeoutEventOnlyAfterTheFactIsDurable() throws Exception {
+        Fixture fixture = Fixture.create(temporaryRoot);
+        Instant occurredAt = Instant.parse("2026-08-04T10:10:00Z");
+        FileSystemRuntimeEventStore eventStore = new FileSystemRuntimeEventStore(
+                fixture.root().resolve("process-timeout-events"));
+        List<RuntimeEventPublicationReference> publications = new ArrayList<>();
+        RuntimeEventRecorder recorder = new RuntimeEventRecorder(
+                eventStore,
+                reference -> {
+                    assertTrue(fixture.timeoutStore()
+                            .find(
+                                    fixture.dispatch().goalId(),
+                                    fixture.dispatch().agentRunId())
+                            .isPresent(), "the timeout fact must precede publication");
+                    publications.add(reference);
+                });
+
+        assertThrows(IOException.class, () -> fixture.executionWithEvents(
+                timedOutLauncher(),
+                Clock.fixed(occurredAt, java.time.ZoneOffset.UTC),
+                recorder).execute(fixture.dispatch()));
+
+        RuntimeEventStream stream = eventStore.resolve(fixture.dispatch().goalId());
+        assertEquals(1, stream.revision());
+        RuntimeEvent event = stream.events().get(0);
+        assertEquals(RuntimeEventKind.TIMEOUT_DETECTED, event.kind());
+        assertEquals(
+                new RuntimeEventDetail.TimeoutDetected(RuntimeTimeoutKind.PROCESS),
+                event.detail());
+        assertEquals(occurredAt, event.occurredAt());
+        assertEquals(fixture.dispatch().agentRunId(), event.agentRunId());
+        assertEquals(
+                Optional.of(fixture.dispatch().workItem().workMessage().messageId()),
+                event.causationId());
+        assertEquals("process-isolated-agent-run-execution", event.producerId());
+        ResolvedProcessTimeoutFact fact = fixture.timeoutStore()
+                .find(fixture.dispatch().goalId(), fixture.dispatch().agentRunId())
+                .orElseThrow();
+        assertEquals(
+                List.of(new RuntimeEventReference(
+                        RuntimeEventReferenceKind.PROCESS_TIMEOUT,
+                        fact.reference(),
+                        Optional.of(fact.sha256()))),
+                event.authoritativeReferences());
+        assertEquals(
+                List.of(RuntimeEventPublicationReference.from(event)),
+                publications);
+    }
+
+    @Test
+    void persistedTimeoutRepairsAMissingEventWithoutAnotherLaunch() throws Exception {
+        Fixture fixture = Fixture.create(temporaryRoot);
+        Instant occurredAt = Instant.parse("2026-08-04T10:15:00Z");
+        assertThrows(IOException.class, () -> fixture.executionWith(
+                timedOutLauncher(),
+                Clock.fixed(occurredAt, java.time.ZoneOffset.UTC))
+                .execute(fixture.dispatch()));
+        ResolvedProcessTimeoutFact fact = fixture.timeoutStore()
+                .find(fixture.dispatch().goalId(), fixture.dispatch().agentRunId())
+                .orElseThrow();
+        FileSystemRuntimeEventStore eventStore = new FileSystemRuntimeEventStore(
+                fixture.root().resolve("missing-process-timeout-event"));
+        List<RuntimeEventPublicationReference> publications = new ArrayList<>();
+
+        assertThrows(IOException.class, () -> fixture.executionWithEvents(
+                failIfLaunched(),
+                Clock.systemUTC(),
+                new RuntimeEventRecorder(eventStore, publications::add))
+                .execute(fixture.dispatch()));
+
+        RuntimeEvent event = eventStore.resolve(fixture.dispatch().goalId())
+                .events().get(0);
+        assertEquals(occurredAt, event.occurredAt());
+        assertEquals(fact.reference(), event.authoritativeReferences().get(0).reference());
+        assertEquals(
+                List.of(RuntimeEventPublicationReference.from(event)),
+                publications);
+    }
+
+    @Test
+    void processTimeoutPublicationFailureReplaysTheExactPersistedEvent()
+            throws Exception {
+        Fixture fixture = Fixture.create(temporaryRoot);
+        FileSystemRuntimeEventStore eventStore = new FileSystemRuntimeEventStore(
+                fixture.root().resolve("process-timeout-publication-recovery"));
+        RuntimeEventRecorder failingRecorder = new RuntimeEventRecorder(
+                eventStore,
+                ignored -> {
+                    throw new IOException("process timeout publication unavailable");
+                });
+
+        IOException publicationFailure = assertThrows(IOException.class, () ->
+                fixture.executionWithEvents(
+                        timedOutLauncher(), Clock.systemUTC(), failingRecorder)
+                        .execute(fixture.dispatch()));
+        assertTrue(publicationFailure.getMessage().contains("publication unavailable"));
+        RuntimeEventStream persisted = eventStore.resolve(fixture.dispatch().goalId());
+        List<RuntimeEventPublicationReference> replayed = new ArrayList<>();
+
+        assertThrows(IOException.class, () -> fixture.executionWithEvents(
+                failIfLaunched(),
+                Clock.systemUTC(),
+                new RuntimeEventRecorder(eventStore, replayed::add))
+                .execute(fixture.dispatch()));
+
+        RuntimeEventStream afterReplay = eventStore.resolve(fixture.dispatch().goalId());
+        assertEquals(persisted.revision(), afterReplay.revision());
+        assertEquals(persisted.binding(), afterReplay.binding());
+        assertEquals(persisted.events(), afterReplay.events());
+        assertEquals(
+                List.of(RuntimeEventPublicationReference.from(
+                        persisted.events().get(0))),
+                replayed);
     }
 
     @Test
@@ -420,6 +587,17 @@ class ProcessIsolatedAgentRunExecutionTest {
         };
     }
 
+    private static WorkerProcessLauncher timedOutLauncher() {
+        return new WorkerProcessLauncher() {
+            @Override
+            public IsolatedWorkerOutcome run(
+                    Class<?> entryPoint, List<String> arguments, Duration timeout) {
+                return IsolatedWorkerOutcome.refused(
+                        IsolatedWorkerStatus.TIMED_OUT, "destroyed");
+            }
+        };
+    }
+
     /** One dispatched cycle with real filesystem stores and a real target to read. */
     private record Fixture(
             Path root,
@@ -481,6 +659,11 @@ class ProcessIsolatedAgentRunExecutionTest {
         }
 
         ProcessIsolatedAgentRunExecution executionWith(WorkerProcessLauncher launcher) {
+            return executionWith(launcher, Clock.systemUTC());
+        }
+
+        ProcessIsolatedAgentRunExecution executionWith(
+                WorkerProcessLauncher launcher, Clock clock) {
             return new ProcessIsolatedAgentRunExecution(
                     root.resolve("invocations"),
                     root.resolve("project"),
@@ -488,7 +671,31 @@ class ProcessIsolatedAgentRunExecutionTest {
                     root.resolve("run-records"),
                     runRecordStore,
                     launcher,
-                    GENEROUS);
+                    GENEROUS,
+                    timeoutStore(),
+                    clock);
+        }
+
+        ProcessIsolatedAgentRunExecution executionWithEvents(
+                WorkerProcessLauncher launcher,
+                Clock clock,
+                RuntimeEventRecorder recorder) {
+            return new ProcessIsolatedAgentRunExecution(
+                    root.resolve("invocations"),
+                    root.resolve("project"),
+                    root.resolve("evidence"),
+                    root.resolve("run-records"),
+                    runRecordStore,
+                    launcher,
+                    GENEROUS,
+                    timeoutStore(),
+                    clock,
+                    recorder);
+        }
+
+        ProcessTimeoutFactStore timeoutStore() {
+            return new FileSystemProcessTimeoutFactStore(
+                    root.resolve("invocations").resolve(".process-timeouts"));
         }
 
         String recordFor(

@@ -249,6 +249,7 @@ class AgentRunRetryDeciderTest {
             case FAILED -> planning.terminate(
                     RuntimeAgentRunStatus.FAILED,
                     resultMessage(VerificationStatus.REJECTED));
+            case CANCELLED -> planning.cancel();
         };
     }
 

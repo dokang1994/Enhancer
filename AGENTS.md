@@ -51,6 +51,34 @@ Before planning or editing, read these files in order:
   currently changed path in the artifact manifest and references to raw evidence; do not
   copy canonical project facts into the checkpoint.
 
+## Dynamic Workflow Rules
+
+- `CURRENT_TASK.md` remains the single Active Task and authority envelope. When one
+  approved task contains two or more related bounded increments, use its optional
+  `## Dynamic Workflow` section; do not create a second task or next-task document.
+- A dynamic workflow is sequential until a later accepted runtime contract says
+  otherwise. It declares two through sixteen increments, stable identities,
+  dependencies, scope, exit criteria, verification, next action, deterministic
+  selection, and stop conditions.
+- At most one increment may be `In Progress`. Select only the first ordered `Pending`
+  increment whose dependencies are `Completed`, and only after reading the required
+  fresh evidence for those dependencies.
+- An increment may narrow but never widen the parent Task, Approval, Acceptance
+  Criteria, Allowed Tools, or Out Of Scope sections. Adding an unplanned increment or
+  requiring new authority stops the workflow until the user approves the change and the
+  decision/task contract is updated.
+- Record the dynamic-workflow cursor in `CURRENT_TASK.md` and atomic execution position
+  in the checkpoint. Neither is verification evidence. Append evidence once to
+  `docs/verification-log.md` and promote an increment to `Completed` only when its exit
+  criteria and declared verification are satisfied.
+- Stop selection on failed verification, blocked dependencies, stagnation, exhausted
+  increment/time/cost/context bounds, task drift, insufficient authority, or unsafe
+  recovery. Do not skip a blocked increment or continue into independent work merely to
+  keep the workflow moving.
+- Dynamic workflow structure grants no commit, push, merge, release, deployment,
+  destructive-action, paid-service, permission-change, external-message, background,
+  parallel, or multi-agent authority.
+
 ## Document Driven Development
 
 Follow the sequence in Constitution Section 6. Repository implementation proceeds from constitutional review through architecture, decision, active task, minimal implementation, fresh verification, and document synchronization.

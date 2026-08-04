@@ -10,7 +10,7 @@ the active task in `CURRENT_TASK.md`, and delivery history in `CHANGELOG.md` and
 
 ## Updated At
 
-2026-08-03
+2026-08-04
 
 ## Session-Only State
 

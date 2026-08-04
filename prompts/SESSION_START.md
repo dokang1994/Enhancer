@@ -49,6 +49,8 @@ After reading, report:
 7. Current lifecycle state and required authority
 8. Work plan
 9. Checkpoint recovery state and reconciliation result
+10. Dynamic workflow identity, current increment, dependency readiness, bounds, and stop
+    conditions when `CURRENT_TASK.md` contains `## Dynamic Workflow`
 
 ## Constraint
 

@@ -117,7 +117,7 @@ public final class DurableAgentRunDispatcher {
                     }
                     return lease;
                 }
-                case AWAITING_VERIFICATION, COMPLETED, FAILED ->
+                case AWAITING_VERIFICATION, COMPLETED, FAILED, CANCELLED ->
                     throw new IllegalStateException(
                             "AgentRun has advanced beyond lease acquisition");
             }

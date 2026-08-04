@@ -8,7 +8,10 @@ Use this prompt when implementing the current task.
 2. Confirm the work follows `CONSTITUTION.md`.
 3. Check `ARCHITECTURE.md` and update it first if the architecture must change.
 4. Record accepted design decisions in `DECISION_LOG.md`.
-5. Confirm the active task from `CURRENT_TASK.md`.
+5. Confirm the active task from `CURRENT_TASK.md`. If it contains `## Dynamic Workflow`,
+   validate the bounded sequential grammar and work only on its sole `In Progress`
+   increment. If none is active, select only the first dependency-ready `Pending`
+   increment after reading its dependencies' fresh evidence.
 6. Inspect the relevant code and tests.
 7. Start or resume the development-session checkpoint. Before every mutating or
    verification step, record `STEP_PENDING` with the expected revision, current changed
@@ -26,6 +29,9 @@ Use this prompt when implementing the current task.
 ## Scope Rules
 
 - Do not expand beyond `CURRENT_TASK.md` without explicit user approval.
+- A dynamic increment may narrow but never widen the parent task contract. Stop before
+  adding an unplanned increment, skipping a blocked dependency, or continuing after a
+  declared stop condition.
 - Do not convert proposals into decisions unless the user accepts them.
 - Do not infer destructive or external-action authority from permission to implement.
 - Do not treat the implementing Agent's claim as independent verification.

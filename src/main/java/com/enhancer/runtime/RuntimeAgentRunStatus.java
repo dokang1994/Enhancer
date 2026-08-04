@@ -6,9 +6,14 @@ public enum RuntimeAgentRunStatus {
     EXECUTING,
     AWAITING_VERIFICATION,
     COMPLETED,
-    FAILED;
+    FAILED,
+    CANCELLED;
 
     public boolean isTerminal() {
+        return this == COMPLETED || this == FAILED || this == CANCELLED;
+    }
+
+    public boolean hasResult() {
         return this == COMPLETED || this == FAILED;
     }
 }

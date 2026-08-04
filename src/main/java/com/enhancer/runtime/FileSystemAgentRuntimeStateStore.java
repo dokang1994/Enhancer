@@ -40,7 +40,7 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * One-current-state filesystem adapter for a Goal and its schema-v2 attempt history. Atomic
+ * One-current-state filesystem adapter for a Goal and its schema-v4 runtime history. Atomic
  * publication prevents partial visibility; parent-directory power-loss durability is not
  * claimed.
  */
@@ -105,6 +105,8 @@ public final class FileSystemAgentRuntimeStateStore
         }
         validateAgentRunHistoryPrefix(current, nextState);
         validateRetryDecisionPrefix(current, nextState);
+        validateLeaseTimeoutPrefix(current, nextState);
+        validateCancellationApplication(current, nextState);
         List<MessageEnvelope> currentControls =
                 current.controlRequests();
         List<MessageEnvelope> nextControls =
@@ -124,6 +126,68 @@ public final class FileSystemAgentRuntimeStateStore
                     "Agent runtime fence token must stay current or advance exactly one");
         }
         publish(nextState, true);
+    }
+
+    private void validateLeaseTimeoutPrefix(
+            AgentRuntimeState current,
+            AgentRuntimeState next) throws IOException {
+        List<LeaseTimeoutRecord> before = current.leaseTimeouts();
+        List<LeaseTimeoutRecord> after = next.leaseTimeouts();
+        if (after.size() < before.size()
+                || after.size() > before.size() + 1
+                || !after.subList(0, before.size()).equals(before)) {
+            throw new IOException(
+                    "lease timeout history must retain its exact prefix");
+        }
+        if (after.size() == before.size() + 1) {
+            RuntimeAgentRun previous = current.agentRun().orElseThrow();
+            RuntimeAgentRun reclaimed = next.agentRun().orElseThrow();
+            AgentRunLease lease = previous.lease().orElseThrow();
+            LeaseTimeoutRecord appended = after.get(after.size() - 1);
+            if (previous.status() != RuntimeAgentRunStatus.EXECUTING
+                    || reclaimed.status() != RuntimeAgentRunStatus.READY
+                    || !previous.agentRunId().equals(reclaimed.agentRunId())
+                    || !appended.agentRunId().equals(previous.agentRunId())
+                    || !appended.ownerId().equals(lease.ownerId())
+                    || appended.fenceToken() != lease.fenceToken()
+                    || !appended.issuedAt().equals(lease.issuedAt())
+                    || !appended.expiresAt().equals(lease.expiresAt())) {
+                throw new IOException("lease timeout append does not match reclaim");
+            }
+        }
+    }
+
+    private void validateCancellationApplication(
+            AgentRuntimeState current,
+            AgentRuntimeState next) throws IOException {
+        Optional<CancellationApplicationRecord> before =
+                current.cancellationApplication();
+        Optional<CancellationApplicationRecord> after =
+                next.cancellationApplication();
+        if (before.isPresent()) {
+            if (!before.equals(after)) {
+                throw new IOException(
+                        "cancellation application must remain exact after persistence");
+            }
+            return;
+        }
+        if (after.isEmpty()) {
+            return;
+        }
+        CancellationApplicationRecord appended = after.orElseThrow();
+        RuntimeAgentRun previous = current.agentRun().orElseThrow();
+        RuntimeAgentRun cancelled = next.agentRun().orElseThrow();
+        boolean validRunTransition = previous.status() == RuntimeAgentRunStatus.FAILED
+                ? previous.equals(cancelled)
+                : cancelled.status() == RuntimeAgentRunStatus.CANCELLED
+                        && previous.agentRunId().equals(cancelled.agentRunId());
+        if (!appended.goalId().equals(current.goal().goalId())
+                || !appended.agentRunId().equals(previous.agentRunId())
+                || next.goal().status() != RuntimeGoalStatus.CANCELLED
+                || !validRunTransition) {
+            throw new IOException(
+                    "cancellation application does not match the terminal runtime transition");
+        }
     }
 
     @Override
@@ -267,10 +331,12 @@ public final class FileSystemAgentRuntimeStateStore
         return switch (before) {
             case ACCEPTED -> after == RuntimeGoalStatus.ACTIVE;
             case ACTIVE -> after == RuntimeGoalStatus.COMPLETED
-                    || after == RuntimeGoalStatus.RETRY_PENDING;
+                    || after == RuntimeGoalStatus.RETRY_PENDING
+                    || after == RuntimeGoalStatus.CANCELLED;
             case RETRY_PENDING -> after == RuntimeGoalStatus.ACTIVE
-                    || after == RuntimeGoalStatus.FAILED;
-            case COMPLETED, FAILED -> false;
+                    || after == RuntimeGoalStatus.FAILED
+                    || after == RuntimeGoalStatus.CANCELLED;
+            case COMPLETED, FAILED, CANCELLED -> false;
         };
     }
 
@@ -286,11 +352,13 @@ public final class FileSystemAgentRuntimeStateStore
             return false;
         }
         return switch (before.status()) {
-            case PLANNING -> after.status() == RuntimeAgentRunStatus.READY;
-            case READY -> after.status() == RuntimeAgentRunStatus.EXECUTING;
+            case PLANNING -> after.status() == RuntimeAgentRunStatus.READY
+                    || after.status() == RuntimeAgentRunStatus.CANCELLED;
+            case READY -> after.status() == RuntimeAgentRunStatus.EXECUTING
+                    || after.status() == RuntimeAgentRunStatus.CANCELLED;
             case EXECUTING -> isValidExecutingTransition(before, after);
             case AWAITING_VERIFICATION -> after.status().isTerminal();
-            case COMPLETED, FAILED -> false;
+            case COMPLETED, FAILED, CANCELLED -> false;
         };
     }
 
@@ -298,7 +366,8 @@ public final class FileSystemAgentRuntimeStateStore
             RuntimeAgentRun before,
             RuntimeAgentRun after) {
         if (after.status() == RuntimeAgentRunStatus.READY
-                || after.status() == RuntimeAgentRunStatus.AWAITING_VERIFICATION) {
+                || after.status() == RuntimeAgentRunStatus.AWAITING_VERIFICATION
+                || after.status() == RuntimeAgentRunStatus.CANCELLED) {
             return true;
         }
         if (after.status() != RuntimeAgentRunStatus.EXECUTING) {
@@ -395,6 +464,9 @@ public final class FileSystemAgentRuntimeStateStore
             writeAgentRuns(output, state.agentRuns());
             writeRetryDecisions(output, state.retryDecisions());
             writeMessageEnvelopes(output, state.controlRequests());
+            writeLeaseTimeouts(output, state.leaseTimeouts());
+            writeCancellationApplication(
+                    output, state.cancellationApplication());
         }
         return bytes.toByteArray();
     }
@@ -432,6 +504,9 @@ public final class FileSystemAgentRuntimeStateStore
                     readRetryDecisions(input);
             List<MessageEnvelope> controlRequests =
                     readMessageEnvelopes(input);
+            List<LeaseTimeoutRecord> leaseTimeouts = readLeaseTimeouts(input);
+            Optional<CancellationApplicationRecord> cancellationApplication =
+                    readCancellationApplication(input);
             if (input.available() != 0) {
                 throw corrupted(
                         expectedGoalId,
@@ -444,7 +519,9 @@ public final class FileSystemAgentRuntimeStateStore
                     new RuntimeGoal(goalId, workItem, goalStatus),
                     agentRuns,
                     retryDecisions,
-                    controlRequests);
+                    controlRequests,
+                    leaseTimeouts,
+                    cancellationApplication);
         } catch (CorruptedAgentRuntimeStateException exception) {
             throw exception;
         } catch (EOFException exception) {
@@ -458,6 +535,72 @@ public final class FileSystemAgentRuntimeStateStore
                     "state could not be decoded",
                     exception);
         }
+    }
+
+    private void writeLeaseTimeouts(
+            DataOutputStream output,
+            List<LeaseTimeoutRecord> records) throws IOException {
+        output.writeInt(records.size());
+        for (LeaseTimeoutRecord record : records) {
+            writeString(output, record.agentRunId());
+            writeString(output, record.ownerId());
+            output.writeLong(record.fenceToken());
+            writeInstant(output, record.issuedAt());
+            writeInstant(output, record.expiresAt());
+            writeInstant(output, record.observedAt());
+        }
+    }
+
+    private List<LeaseTimeoutRecord> readLeaseTimeouts(DataInputStream input)
+            throws IOException {
+        int count = input.readInt();
+        if (count < 0 || count > AgentRuntimeState.MAX_LEASE_TIMEOUTS) {
+            throw new IOException("lease timeout count is invalid");
+        }
+        List<LeaseTimeoutRecord> records = new ArrayList<>();
+        for (int index = 0; index < count; index++) {
+            records.add(new LeaseTimeoutRecord(
+                    readString(input),
+                    readString(input),
+                    input.readLong(),
+                    readInstant(input),
+                    readInstant(input),
+                    readInstant(input)));
+        }
+        return List.copyOf(records);
+    }
+
+    private void writeCancellationApplication(
+            DataOutputStream output,
+            Optional<CancellationApplicationRecord> application)
+            throws IOException {
+        output.writeBoolean(application.isPresent());
+        if (application.isEmpty()) {
+            return;
+        }
+        CancellationApplicationRecord record = application.orElseThrow();
+        writeString(output, record.authorizationId());
+        writeString(output, record.actorId());
+        writeString(output, record.goalId());
+        writeString(output, record.controlMessageId());
+        writeString(output, record.agentRunId());
+        writeInstant(output, record.authorizedAt());
+        writeInstant(output, record.appliedAt());
+    }
+
+    private Optional<CancellationApplicationRecord> readCancellationApplication(
+            DataInputStream input) throws IOException {
+        if (!readPresence(input)) {
+            return Optional.empty();
+        }
+        return Optional.of(new CancellationApplicationRecord(
+                readString(input),
+                readString(input),
+                readString(input),
+                readString(input),
+                readString(input),
+                readInstant(input),
+                readInstant(input)));
     }
 
     private void writeAgentRun(

@@ -21,6 +21,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.time.Clock;
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
@@ -49,6 +50,9 @@ import java.util.Optional;
  * point-resolved and validated through the same binding checks before execution is skipped.
  */
 public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution {
+    private static final String EVENT_PRODUCER_ID =
+            "process-isolated-agent-run-execution";
+
     private final Path invocationRoot;
     private final Path projectRoot;
     private final Path evidenceRoot;
@@ -56,6 +60,9 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
     private final RunRecordStore runRecordStore;
     private final WorkerProcessLauncher launcher;
     private final Duration timeout;
+    private final ProcessTimeoutFactStore timeoutStore;
+    private final Clock clock;
+    private final Optional<RuntimeEventRecorder> eventRecorder;
 
     public ProcessIsolatedAgentRunExecution(
             Path invocationRoot,
@@ -65,6 +72,105 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
             RunRecordStore runRecordStore,
             WorkerProcessLauncher launcher,
             Duration timeout) {
+        this(
+                invocationRoot,
+                projectRoot,
+                evidenceRoot,
+                runRecordRoot,
+                runRecordStore,
+                launcher,
+                timeout,
+                new FileSystemProcessTimeoutFactStore(
+                        absolute(invocationRoot, "invocationRoot")
+                                .resolve(".process-timeouts")),
+                Clock.systemUTC(),
+                Optional.empty());
+    }
+
+    public ProcessIsolatedAgentRunExecution(
+            Path invocationRoot,
+            Path projectRoot,
+            Path evidenceRoot,
+            Path runRecordRoot,
+            RunRecordStore runRecordStore,
+            WorkerProcessLauncher launcher,
+            Duration timeout,
+            RuntimeEventRecorder eventRecorder) {
+        this(
+                invocationRoot,
+                projectRoot,
+                evidenceRoot,
+                runRecordRoot,
+                runRecordStore,
+                launcher,
+                timeout,
+                new FileSystemProcessTimeoutFactStore(
+                        absolute(invocationRoot, "invocationRoot")
+                                .resolve(".process-timeouts")),
+                Clock.systemUTC(),
+                Optional.of(Objects.requireNonNull(
+                        eventRecorder, "eventRecorder must not be null")));
+    }
+
+    ProcessIsolatedAgentRunExecution(
+            Path invocationRoot,
+            Path projectRoot,
+            Path evidenceRoot,
+            Path runRecordRoot,
+            RunRecordStore runRecordStore,
+            WorkerProcessLauncher launcher,
+            Duration timeout,
+            ProcessTimeoutFactStore timeoutStore,
+            Clock clock) {
+        this(
+                invocationRoot,
+                projectRoot,
+                evidenceRoot,
+                runRecordRoot,
+                runRecordStore,
+                launcher,
+                timeout,
+                timeoutStore,
+                clock,
+                Optional.empty());
+    }
+
+    ProcessIsolatedAgentRunExecution(
+            Path invocationRoot,
+            Path projectRoot,
+            Path evidenceRoot,
+            Path runRecordRoot,
+            RunRecordStore runRecordStore,
+            WorkerProcessLauncher launcher,
+            Duration timeout,
+            ProcessTimeoutFactStore timeoutStore,
+            Clock clock,
+            RuntimeEventRecorder eventRecorder) {
+        this(
+                invocationRoot,
+                projectRoot,
+                evidenceRoot,
+                runRecordRoot,
+                runRecordStore,
+                launcher,
+                timeout,
+                timeoutStore,
+                clock,
+                Optional.of(Objects.requireNonNull(
+                        eventRecorder, "eventRecorder must not be null")));
+    }
+
+    private ProcessIsolatedAgentRunExecution(
+            Path invocationRoot,
+            Path projectRoot,
+            Path evidenceRoot,
+            Path runRecordRoot,
+            RunRecordStore runRecordStore,
+            WorkerProcessLauncher launcher,
+            Duration timeout,
+            ProcessTimeoutFactStore timeoutStore,
+            Clock clock,
+            Optional<RuntimeEventRecorder> eventRecorder) {
         this.invocationRoot = absolute(invocationRoot, "invocationRoot");
         this.projectRoot = absolute(projectRoot, "projectRoot");
         this.evidenceRoot = absolute(evidenceRoot, "evidenceRoot");
@@ -73,6 +179,11 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
                 runRecordStore, "runRecordStore must not be null");
         this.launcher = Objects.requireNonNull(launcher, "launcher must not be null");
         this.timeout = Objects.requireNonNull(timeout, "timeout must not be null");
+        this.timeoutStore = Objects.requireNonNull(
+                timeoutStore, "timeoutStore must not be null");
+        this.clock = Objects.requireNonNull(clock, "clock must not be null");
+        this.eventRecorder = Objects.requireNonNull(
+                eventRecorder, "eventRecorder must not be null");
     }
 
     @Override
@@ -80,6 +191,15 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
         Objects.requireNonNull(dispatch, "dispatch must not be null");
         WorkItem workItem = dispatch.workItem();
         Path cycleRoot = cycleRoot(dispatch);
+
+        Optional<ResolvedProcessTimeoutFact> recoveredTimeout = timeoutStore.find(
+                dispatch.goalId(), dispatch.agentRunId());
+        if (recoveredTimeout.isPresent()) {
+            ResolvedProcessTimeoutFact resolved = recoveredTimeout.orElseThrow();
+            requireTimeoutBinding(resolved.fact(), dispatch);
+            recordTimeoutEvent(resolved, dispatch);
+            throw timeoutFailure(resolved.fact());
+        }
 
         Optional<String> recovered = publishedResult(cycleRoot, workItem);
         if (recovered.isPresent()) {
@@ -104,6 +224,17 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
                         dispatch.agentRunId()),
                 timeout);
 
+        if (outcome.status() == IsolatedWorkerStatus.TIMED_OUT) {
+            ProcessTimeoutFact fact = ProcessTimeoutFact.create(
+                    clock.instant(),
+                    eventBinding(dispatch),
+                    dispatch.agentRunId(),
+                    timeout,
+                    outcome.reason().orElseThrow());
+            ResolvedProcessTimeoutFact persisted = timeoutStore.persist(fact);
+            recordTimeoutEvent(persisted, dispatch);
+            throw timeoutFailure(persisted.fact());
+        }
         if (outcome.status() != IsolatedWorkerStatus.COMPLETED) {
             throw new IOException("the isolated worker did not complete: "
                     + outcome.status() + " (" + outcome.reason().orElse("no reason") + ")");
@@ -115,6 +246,57 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
         }
         return publishedResult(cycleRoot, workItem).orElseThrow(() -> new IOException(
                 "the isolated worker reported success but published no valid result"));
+    }
+
+    private void recordTimeoutEvent(
+            ResolvedProcessTimeoutFact source,
+            AgentRunDispatch dispatch) throws IOException {
+        if (eventRecorder.isEmpty()) {
+            return;
+        }
+        ProcessTimeoutFact fact = source.fact();
+        eventRecorder.orElseThrow().recordAndPublish(RuntimeEvent.create(
+                fact.occurredAt(),
+                fact.binding(),
+                fact.agentRunId(),
+                Optional.of(dispatch.workItem().workMessage().messageId()),
+                EVENT_PRODUCER_ID,
+                new RuntimeEventDetail.TimeoutDetected(RuntimeTimeoutKind.PROCESS),
+                List.of(new RuntimeEventReference(
+                        RuntimeEventReferenceKind.PROCESS_TIMEOUT,
+                        source.reference(),
+                        Optional.of(source.sha256())))));
+    }
+
+    private RuntimeEventBinding eventBinding(AgentRunDispatch dispatch) {
+        WorkItem workItem = dispatch.workItem();
+        return new RuntimeEventBinding(
+                dispatch.goalId(),
+                workItem.workItemId(),
+                workItem.taskRevision(),
+                workItem.snapshotId(),
+                workItem.logicalRunId(),
+                workItem.workMessage().correlationId());
+    }
+
+    private void requireTimeoutBinding(
+            ProcessTimeoutFact fact, AgentRunDispatch dispatch) throws IOException {
+        ProcessTimeoutFact expected = ProcessTimeoutFact.create(
+                fact.occurredAt(),
+                eventBinding(dispatch),
+                dispatch.agentRunId(),
+                timeout,
+                fact.reason());
+        if (!fact.equals(expected)) {
+            throw new IOException(
+                    "the persisted process timeout does not match the dispatched work");
+        }
+    }
+
+    private IOException timeoutFailure(ProcessTimeoutFact fact) {
+        return new IOException("the isolated worker did not complete: "
+                + IsolatedWorkerStatus.TIMED_OUT
+                + " (" + fact.reason() + ")");
     }
 
     /**

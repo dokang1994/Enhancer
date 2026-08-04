@@ -8,6 +8,7 @@ import java.time.Clock;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Persist-first application boundary for deciding and applying one parked AgentRun retry.
@@ -16,21 +17,57 @@ import java.util.Objects;
 public final class DurableAgentRunRetryController {
     private static final String LEDGER_DIGEST_FORMAT =
             "enhancer.external-effect-ledger.semantic.v2";
+    private static final String EVENT_PRODUCER_ID =
+            "durable-agent-run-retry-controller";
 
     private final AgentRuntimeStateStore runtimeStore;
     private final ExternalEffectLedgerStore effectLedgerStore;
     private final AgentRunRetryDecider decider;
+    private final Clock clock;
+    private final Optional<RuntimeEventRecorder> eventRecorder;
 
     public DurableAgentRunRetryController(
             AgentRuntimeStateStore runtimeStore,
             ExternalEffectLedgerStore effectLedgerStore,
             AgentRunRetryDecider decider) {
+        this(
+                runtimeStore,
+                effectLedgerStore,
+                decider,
+                Clock.systemUTC(),
+                Optional.empty());
+    }
+
+    public DurableAgentRunRetryController(
+            AgentRuntimeStateStore runtimeStore,
+            ExternalEffectLedgerStore effectLedgerStore,
+            AgentRunRetryDecider decider,
+            Clock clock,
+            RuntimeEventRecorder eventRecorder) {
+        this(
+                runtimeStore,
+                effectLedgerStore,
+                decider,
+                clock,
+                Optional.of(Objects.requireNonNull(
+                        eventRecorder, "eventRecorder must not be null")));
+    }
+
+    private DurableAgentRunRetryController(
+            AgentRuntimeStateStore runtimeStore,
+            ExternalEffectLedgerStore effectLedgerStore,
+            AgentRunRetryDecider decider,
+            Clock clock,
+            Optional<RuntimeEventRecorder> eventRecorder) {
         this.runtimeStore = Objects.requireNonNull(
                 runtimeStore, "runtimeStore must not be null");
         this.effectLedgerStore = Objects.requireNonNull(
                 effectLedgerStore, "effectLedgerStore must not be null");
         this.decider = Objects.requireNonNull(
                 decider, "decider must not be null");
+        this.clock = Objects.requireNonNull(clock, "clock must not be null");
+        this.eventRecorder = Objects.requireNonNull(
+                eventRecorder, "eventRecorder must not be null");
     }
 
     /** Resolves exact durable inputs and records their decision before any retry action. */
@@ -64,6 +101,10 @@ public final class DurableAgentRunRetryController {
                 semanticDigest(ledger.records()),
                 decision);
         runtime.recordRetryDecision(record);
+        if (eventRecorder.isPresent()) {
+            eventRecorder.orElseThrow().recordAndPublishUsingFirstOccurrence(
+                    retryDecisionRecordedEvent(runtime, failedAttempt, record));
+        }
         return record;
     }
 
@@ -75,17 +116,23 @@ public final class DurableAgentRunRetryController {
                 checkpointedReplacementAgentRunId,
                 "checkpointedReplacementAgentRunId");
         DurableAgentRuntime runtime = recover(goalId);
+        AgentRunRetryDecisionRecord decision;
         if (runtime.goal().status() == RuntimeGoalStatus.ACTIVE) {
             requireIdempotentAdmittedReplay(runtime, replacementId);
-            return;
+            decision = latestDecision(runtime);
+        } else {
+            requireRetryPending(runtime);
+            decision = latestDecision(runtime);
+            if (!decision.decision().isAdmitted()) {
+                throw new IllegalStateException(
+                        "refused retry decision cannot append an AgentRun");
+            }
+            runtime.beginRetryAgentRun(replacementId);
         }
-        requireRetryPending(runtime);
-        AgentRunRetryDecisionRecord decision = latestDecision(runtime);
-        if (!decision.decision().isAdmitted()) {
-            throw new IllegalStateException(
-                    "refused retry decision cannot append an AgentRun");
+        if (eventRecorder.isPresent()) {
+            eventRecorder.orElseThrow().recordAndPublishUsingFirstOccurrence(
+                    retryStartedEvent(runtime, replacementId, decision));
         }
-        runtime.beginRetryAgentRun(replacementId);
     }
 
     /** Applies a refused decision as terminal Goal abandonment. */
@@ -149,6 +196,100 @@ public final class DurableAgentRunRetryController {
             throw new IllegalStateException(
                     "active Goal is not the recorded retry transition");
         }
+    }
+
+    private RuntimeEvent retryDecisionRecordedEvent(
+            DurableAgentRuntime runtime,
+            RuntimeAgentRun failedAttempt,
+            AgentRunRetryDecisionRecord decision) {
+        WorkItem workItem = runtime.goal().workItem();
+        String resultMessageId = failedAttempt.resultMessage()
+                .orElseThrow(() -> new IllegalStateException(
+                        "retry decision requires a durable failed Result message"))
+                .messageId();
+        RuntimeEventBinding binding = new RuntimeEventBinding(
+                runtime.goal().goalId(),
+                workItem.workItemId(),
+                workItem.taskRevision(),
+                workItem.snapshotId(),
+                workItem.logicalRunId(),
+                workItem.workMessage().correlationId());
+        return RuntimeEvent.create(
+                clock.instant(),
+                binding,
+                failedAttempt.agentRunId(),
+                Optional.of(resultMessageId),
+                EVENT_PRODUCER_ID,
+                new RuntimeEventDetail.RetryDecisionRecorded(
+                        decision.decision().isAdmitted(),
+                        decision.decision().refusalReason()),
+                List.of(
+                        new RuntimeEventReference(
+                                RuntimeEventReferenceKind.RETRY_DECISION,
+                                "agent-runtime/"
+                                        + runtime.goal().goalId()
+                                        + "/retry-decision/"
+                                        + failedAttempt.agentRunId(),
+                                Optional.empty()),
+                        new RuntimeEventReference(
+                                RuntimeEventReferenceKind.RUNTIME_STATE,
+                                "agent-runtime/"
+                                        + runtime.goal().goalId()
+                                        + "/revision/"
+                                        + runtime.revision(),
+                                Optional.empty())));
+    }
+
+    private RuntimeEvent retryStartedEvent(
+            DurableAgentRuntime runtime,
+            String replacementAgentRunId,
+            AgentRunRetryDecisionRecord decision) {
+        List<RuntimeAgentRun> attempts = runtime.agentRuns();
+        if (attempts.size() < 2) {
+            throw new IllegalStateException(
+                    "retry-started event requires previous and replacement AgentRuns");
+        }
+        RuntimeAgentRun replacement = attempts.get(attempts.size() - 1);
+        RuntimeAgentRun previous = attempts.get(attempts.size() - 2);
+        if (!replacement.agentRunId().equals(replacementAgentRunId)
+                || !previous.agentRunId().equals(decision.agentRunId())) {
+            throw new IllegalStateException(
+                    "retry-started event does not match the durable retry transition");
+        }
+        String resultMessageId = previous.resultMessage()
+                .orElseThrow(() -> new IllegalStateException(
+                        "retry-started event requires a durable failed Result message"))
+                .messageId();
+        WorkItem workItem = runtime.goal().workItem();
+        RuntimeEventBinding binding = new RuntimeEventBinding(
+                runtime.goal().goalId(),
+                workItem.workItemId(),
+                workItem.taskRevision(),
+                workItem.snapshotId(),
+                workItem.logicalRunId(),
+                workItem.workMessage().correlationId());
+        return RuntimeEvent.create(
+                clock.instant(),
+                binding,
+                replacement.agentRunId(),
+                Optional.of(resultMessageId),
+                EVENT_PRODUCER_ID,
+                new RuntimeEventDetail.RetryStarted(previous.agentRunId()),
+                List.of(
+                        new RuntimeEventReference(
+                                RuntimeEventReferenceKind.RETRY_DECISION,
+                                "agent-runtime/"
+                                        + runtime.goal().goalId()
+                                        + "/retry-decision/"
+                                        + previous.agentRunId(),
+                                Optional.empty()),
+                        new RuntimeEventReference(
+                                RuntimeEventReferenceKind.RUNTIME_STATE,
+                                "agent-runtime/"
+                                        + runtime.goal().goalId()
+                                        + "/agent-run/"
+                                        + replacement.agentRunId(),
+                                Optional.empty())));
     }
 
     private static String semanticDigest(List<ExternalEffectRecord> records) {

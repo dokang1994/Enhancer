@@ -219,7 +219,7 @@ public final class SchedulerRecoveryStatus {
         DurableAgentRunFinalizer.requireBinding(
                 resolved.record(), runtime.goal().workItem());
         Optional<RuntimeAgentRun> latest = runtime.agentRun();
-        if (latest.isPresent() && latest.orElseThrow().status().isTerminal()) {
+        if (latest.isPresent() && latest.orElseThrow().status().hasResult()) {
             ResultPayload result = (ResultPayload) latest.orElseThrow()
                     .resultMessage().orElseThrow().payload();
             if (!result.runRecordReference().equals(reference)
@@ -237,6 +237,10 @@ public final class SchedulerRecoveryStatus {
             SchedulerQueueStatus.WorkState workState) {
         RuntimeGoalStatus goal = runtime.goal().status();
         Optional<RuntimeAgentRun> latest = runtime.agentRun();
+        if (goal == RuntimeGoalStatus.CANCELLED) {
+            requireRecoverableQueueWork(workState);
+            return RecoveryPhase.QUEUE_DISPOSITION_PENDING;
+        }
         if (goal == RuntimeGoalStatus.COMPLETED
                 || goal == RuntimeGoalStatus.FAILED) {
             SchedulerQueueStatus.WorkState terminal =
@@ -287,7 +291,7 @@ public final class SchedulerRecoveryStatus {
                 }
                 yield RecoveryPhase.RESULT_RECORDING_PENDING;
             }
-            case COMPLETED, FAILED -> throw inconsistent(
+            case COMPLETED, FAILED, CANCELLED -> throw inconsistent(
                     "terminal AgentRun requires matching terminal Goal");
         };
     }

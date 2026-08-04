@@ -288,6 +288,21 @@ verified completion exit `0`; terminal failed work exits `40`. Missing queue sta
 malformed input exits `2`, while corrupt state and unexpected execution/storage errors
 exit `70`. Preserve every named root to resume a checkpointed cycle after interruption.
 
+When the parent watchdog receives a typed process timeout, it persists one bound fact at
+`<invocation-root>/.process-timeouts/<goal>/<agent-run>.process-timeout` before the
+command exposes the execution error. Preserve that invocation root: exact reinvocation
+resolves the same fact and fails without launching another child. The supported CLI does
+not yet compose a runtime-event publisher; event-aware library construction can derive
+and repair `RuntimeTimeoutKind.PROCESS` from the persisted fact.
+
+AgentRuntime schema v4 also retains a bounded lease-timeout record atomically when
+recovery reclaims an expired executing lease. Event-aware library recovery can derive
+and repair `RuntimeTimeoutKind.LEASE` from that retained record. The same schema can
+atomically apply one exact retained `CANCEL` only through a trusted
+`ControlRequestAuthorizer`, then derive and repair `CANCELLATION_APPLIED`; envelope
+metadata alone never authenticates. Runtime schemas v1 through v3 are unsupported and
+require separate migration work.
+
 ## Drain Ready Scheduler Work
 
 `scheduler-drain` uses the same recovery inputs as `scheduler-cycle` but invokes
@@ -514,6 +529,26 @@ Example through the Gradle application runner:
 The checkpoint is not verification, task, maturity, or delivery authority. Resume still
 requires canonical document loading, `git status`/diff inspection, and fresh applicable
 tests.
+
+## Document-Driven Dynamic Increment Workflows
+
+`CURRENT_TASK.md` remains the one approved Active Task. When that task contains several
+related pre-authorized increments, an optional `## Dynamic Workflow` section may record
+two through sixteen sequential increments with stable identities, dependencies, state,
+scope, exit criteria, verification, and next action.
+
+Only one increment may be `In Progress`. After its fresh evidence is read and its exit
+criteria pass, the first ordered dependency-ready pending increment may be selected.
+Failure, a blocked dependency, stagnation, exhausted bounds, task drift, new authority,
+or unsafe recovery stops the workflow. Increment state never widens the parent task's
+approval or Tool scope and never grants commit, push, merge, release, deployment,
+destructive action, background execution, parallel agents, or multi-agent authority.
+
+The workflow cursor belongs to `CURRENT_TASK.md`; atomic execution position belongs to
+the development-session checkpoint; verification evidence belongs to the append-only
+`docs/verification-log.md`. This document structure supports governed sequential
+development today and is not the future Gate 10 Workflow Engine or Gate 13 orchestration
+runtime.
 
 ## Development Setup
 

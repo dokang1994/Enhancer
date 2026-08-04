@@ -127,7 +127,47 @@ class FileSystemAgentRuntimeStateStoreIntegrationTest {
         assertEquals(1, recovered.completedAttempts());
         assertEquals(runtime.agentRuns(), recovered.agentRuns());
         assertEquals(List.of(decision), recovered.retryDecisions());
-        assertEquals(AgentRuntimeState.CURRENT_SCHEMA_VERSION, 2);
+        assertEquals(
+                AgentRuntimeState.CURRENT_SCHEMA_VERSION,
+                new FileSystemAgentRuntimeStateStore(storageRoot)
+                        .resolve(GOAL_ID)
+                        .schemaVersion());
+    }
+
+    @Test
+    void persistsLeaseTimeoutRecordAtomicallyWithReclaimAcrossStoreInstances()
+            throws Exception {
+        Instant issuedAt = Instant.parse("2026-08-04T11:00:00Z");
+        Clock issuedClock = Clock.fixed(issuedAt, ZoneOffset.UTC);
+        FileSystemAgentRuntimeStateStore store =
+                new FileSystemAgentRuntimeStateStore(storageRoot);
+        DurableAgentRuntime runtime = DurableAgentRuntime.create(
+                GOAL_ID, workItem(), store, issuedClock);
+        runtime.beginAgentRun(AGENT_RUN_ID);
+        runtime.markReady(AGENT_RUN_ID);
+        AgentRunLease lease = runtime.acquireLease(
+                AGENT_RUN_ID, "lease-timeout-owner", Duration.ofMinutes(5));
+
+        Instant observedAt = issuedAt.plus(Duration.ofMinutes(5));
+        DurableAgentRuntime reclaimed = DurableAgentRuntime.recover(
+                GOAL_ID,
+                new FileSystemAgentRuntimeStateStore(storageRoot),
+                Clock.fixed(observedAt, ZoneOffset.UTC));
+
+        LeaseTimeoutRecord expected = new LeaseTimeoutRecord(
+                AGENT_RUN_ID,
+                lease.ownerId(),
+                lease.fenceToken(),
+                lease.issuedAt(),
+                lease.expiresAt(),
+                observedAt);
+        assertEquals(RuntimeAgentRunStatus.READY,
+                reclaimed.agentRun().orElseThrow().status());
+        assertEquals(List.of(expected), reclaimed.leaseTimeouts());
+        assertEquals(List.of(expected),
+                new FileSystemAgentRuntimeStateStore(storageRoot)
+                        .resolve(GOAL_ID)
+                        .leaseTimeouts());
     }
 
     @Test

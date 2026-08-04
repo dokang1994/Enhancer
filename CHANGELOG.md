@@ -1,5 +1,108 @@
 # Changelog
 
+## 2026-08-04 - Apply Authenticated Cancellation And Record Its Runtime Event
+
+- Added a trusted `ControlRequestAuthorizer` port and typed approved/denied decisions;
+  existing Control-envelope producer, reason, transport acceptance, and durable
+  admission remain non-authoritative.
+- Evolved AgentRuntime to schema v4 with one immutable authorization-bound
+  `CancellationApplicationRecord`, terminal `CANCELLED` Goal/current-AgentRun state,
+  lease removal, retry-pending cancellation, exact replay without reauthorization, and
+  strict filesystem recovery/prefix validation.
+- Connected event-aware `CANCELLATION_APPLIED` recording after source persistence with
+  retained application time, exact Work/Goal/AgentRun provenance, Control causation,
+  stable message/application references, missing-event repair, and publication-failure
+  exact replay. Process signalling, cancelled queue disposition, credential/interfaces,
+  `PAUSE`/`RESUME`, concrete event transport, and earlier-schema migration remain
+  separate.
+
+## 2026-08-04 - Persist And Connect Lease Timeout Runtime Events
+
+- Evolved AgentRuntime state to schema v3 with a bounded exact-prefix
+  `LeaseTimeoutRecord` ledger appended atomically with expired
+  `EXECUTING -> READY` reclamation and retained across later runtime progress.
+- Added event-aware recovery that records `TIMEOUT_DETECTED` with
+  `RuntimeTimeoutKind.LEASE` only after the record-bearing runtime revision is durable,
+  using retained expiry, Work causation, and a stable Goal/AgentRun/fence reference.
+- Proved missing-event repair and publication-failure exact replay without another
+  runtime revision. Earlier runtime-schema migration, automatic post-reclaim execution,
+  concrete publication, supported CLI event composition, and external delivery remain
+  separate.
+
+## 2026-08-04 - Persist And Connect Process Timeout Runtime Events
+
+- Added a deterministic, integrity-checked process-timeout fact and filesystem point
+  store under the process invocation root, preserving exact Work/Goal/AgentRun binding,
+  occurrence, configured timeout, bounded reason, semantic digest, and rewrite-free
+  restart replay.
+- Changed `ProcessIsolatedAgentRunExecution` to persist a typed watchdog timeout before
+  exposing failure and to resolve it before spooling or launching on re-entry; start
+  failure, completed failure, and successful execution create no timeout fact.
+- Added event-aware derivation of `TIMEOUT_DETECTED` with
+  `RuntimeTimeoutKind.PROCESS`, Work-message causation, and a stable process-timeout
+  reference, including missing-event repair and exact replay after publication failure.
+  AgentRun lifecycle/retry policy and supported CLI event publication remain unchanged.
+
+## 2026-08-04 - Connect Persisted Tool Timeout Runtime Event Recording
+
+- Selected the bound persisted RunRecord `TIMED_OUT` Tool failure as the first
+  authoritative timeout source, while deferring process and lease timeouts until each
+  retains its own typed durable fact and transition owner.
+- Extended event-aware `DurableAgentRunFinalizer.recordAgentRunResult` to derive
+  `TIMEOUT_DETECTED` with `RuntimeTimeoutKind.TOOL` only after the matching Result and
+  separate verification fact are durable, using RunRecord occurrence, Result causation,
+  and stable Result-message plus RunRecord references.
+- Proved verification/timeout/stagnation ordering, non-timeout exclusion, exact replay,
+  and Result-persistence failure isolation without changing a schema or adding concrete
+  publication, supported Worker/CLI composition, or Gate 8 promotion.
+
+## 2026-08-03 - Enable Document-Driven Dynamic Increment Workflows
+
+- Added an optional two-through-sixteen increment queue inside the single
+  `CURRENT_TASK.md` Active Task, with sequential mode, stable identities, explicit
+  dependencies, bounded states, exit/verification requirements, deterministic successor
+  selection, and fail-closed stop conditions.
+- Connected the contract across repository Agent instructions, compact AI workflow and
+  Architecture mirrors, implementation/session prompts, and user-facing README guidance
+  without amending the Constitution or granting new external-action authority.
+- Added `DynamicWorkflowDocumentTest` to enforce the live workflow grammar and required
+  instruction connections while keeping runtime Workflow Engine, parallel/background
+  work, automatic approval/delivery, and multi-agent execution out of scope.
+
+## 2026-08-03 - Connect Stagnation Runtime Event Recording
+
+- Extended event-aware `DurableAgentRunFinalizer.recordAgentRunResult` to derive
+  `STAGNATION_DETECTED` only after a bound `STAGNATED` RunRecord reaches a durable Result
+  transition.
+- Preserved verification as a separate earlier fact and bound stagnation identity to
+  stable Result-message and RunRecord references, with occurrence and iterations from
+  the RunRecord and threshold three from the current default Agent Loop policy.
+- Proved exact event/publication repair after later runtime progress and retained
+  verification-only behavior for non-stagnated records without changing source schemas,
+  choosing a timeout owner, or adding supported publication wiring.
+
+## 2026-08-03 - Connect Retry Started Runtime Event Recording
+
+- Extended event-aware `DurableAgentRunRetryController.beginAdmittedRetry` to derive
+  `RETRY_STARTED` only after the caller-checkpointed replacement AgentRun is durable.
+- Bound event identity to the stable admitted retry decision and replacement AgentRun,
+  retaining the previous failed attempt, causal Result, exact Work provenance, and
+  first persisted occurrence without depending on a later mutable runtime revision.
+- Proved decision-before-start order, replacement-store failure isolation, publisher
+  recovery, and missing-event repair after later replacement readiness while preserving
+  legacy event-free construction and refused abandonment behavior.
+
+## 2026-08-03 - Connect Retry Decision Runtime Event Recording
+
+- Added optional event-aware `DurableAgentRunRetryController` construction while
+  preserving the existing event-free path.
+- Derived `RETRY_DECISION_RECORDED` only after durable decision persistence from the
+  exact failed-attempt binding, decision outcome, causal Result, stable retry-decision
+  identity, and decision-bearing runtime revision.
+- Proved source-failure isolation, event-append repair, later-clock publisher recovery
+  with first-occurrence reuse, exact no-revision replay, and separation from
+  `RETRY_STARTED` without adding schema, concrete publisher, or Worker/CLI wiring.
+
 ## 2026-08-03 - Deliver Runtime Event Owner Connections To Main
 
 - Committed the three verified runtime-event owner connections and their owned tests,

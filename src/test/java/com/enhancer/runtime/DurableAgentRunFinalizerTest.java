@@ -15,6 +15,7 @@ import com.enhancer.run.FileSystemRunRecordStore;
 import com.enhancer.run.PolicyDecision;
 import com.enhancer.run.PolicyDecisionStatus;
 import com.enhancer.run.RunRecord;
+import com.enhancer.tool.ToolFailureCode;
 import com.enhancer.tool.ToolRequest;
 import com.enhancer.tool.ToolResult;
 import com.enhancer.tool.ToolResultStatus;
@@ -331,6 +332,351 @@ class DurableAgentRunFinalizerTest {
     }
 
     @Test
+    void recordsStagnationAfterTheDurableResultTransition() throws Exception {
+        Setup s = awaitingVerification(false);
+        RunRecord stagnated = stagnatedRunRecord();
+        String reference = s.runRecordStore.persist(stagnated).reference();
+        FileSystemRuntimeEventStore eventStore =
+                new FileSystemRuntimeEventStore(tempDir.resolve("events"));
+        List<RuntimeEventPublicationReference> published = new ArrayList<>();
+        DurableAgentRunFinalizer finalizer = eventAwareFinalizer(
+                s, new RuntimeEventRecorder(eventStore, published::add));
+
+        assertEquals(
+                RuntimeGoalStatus.RETRY_PENDING,
+                finalizer.recordAgentRunResult(GOAL_ID, AGENT_RUN_ID, reference));
+
+        DurableAgentRuntime runtime =
+                DurableAgentRuntime.recover(GOAL_ID, s.runtimeStore, CLOCK);
+        MessageEnvelope result = runtime.agentRun()
+                .orElseThrow()
+                .resultMessage()
+                .orElseThrow();
+        RuntimeEventBinding binding = new RuntimeEventBinding(
+                GOAL_ID,
+                WORK_ID,
+                s.work.taskRevision(),
+                s.work.snapshotId(),
+                s.work.logicalRunId(),
+                s.work.workMessage().correlationId());
+        RuntimeEvent verification = RuntimeEvent.create(
+                result.occurredAt(),
+                binding,
+                AGENT_RUN_ID,
+                Optional.of(result.messageId()),
+                "durable-agent-run-finalizer",
+                new RuntimeEventDetail.VerificationRecorded(
+                        VerificationStatus.NOT_PERFORMED),
+                List.of(
+                        new RuntimeEventReference(
+                                RuntimeEventReferenceKind.RESULT_MESSAGE,
+                                "result-message/" + result.messageId(),
+                                Optional.empty()),
+                        new RuntimeEventReference(
+                                RuntimeEventReferenceKind.RUN_RECORD,
+                                reference,
+                                Optional.empty())));
+        RuntimeEvent stagnation = RuntimeEvent.create(
+                stagnated.recordedAt(),
+                binding,
+                AGENT_RUN_ID,
+                Optional.of(result.messageId()),
+                "durable-agent-run-finalizer",
+                new RuntimeEventDetail.StagnationDetected(3, 3),
+                List.of(
+                        new RuntimeEventReference(
+                                RuntimeEventReferenceKind.RESULT_MESSAGE,
+                                "result-message/" + result.messageId(),
+                                Optional.empty()),
+                        new RuntimeEventReference(
+                                RuntimeEventReferenceKind.RUN_RECORD,
+                                reference,
+                                Optional.empty())));
+
+        RuntimeEventStream events = eventStore.resolve(GOAL_ID);
+        assertEquals(2, events.revision());
+        assertEquals(List.of(verification, stagnation), events.events());
+        assertEquals(
+                List.of(
+                        RuntimeEventPublicationReference.from(verification),
+                        RuntimeEventPublicationReference.from(stagnation)),
+                published);
+    }
+
+    @Test
+    void recordsToolTimeoutAfterTheDurableResultTransition() throws Exception {
+        Setup s = awaitingVerification(false);
+        RunRecord timedOut = timedOutRunRecord(
+                AgentLoopStopReason.MAX_ITERATIONS, 5);
+        String reference = s.runRecordStore.persist(timedOut).reference();
+        FileSystemRuntimeEventStore eventStore =
+                new FileSystemRuntimeEventStore(tempDir.resolve("timeout-events"));
+        List<RuntimeEventPublicationReference> published = new ArrayList<>();
+
+        assertEquals(
+                RuntimeGoalStatus.RETRY_PENDING,
+                eventAwareFinalizer(
+                                s,
+                                new RuntimeEventRecorder(
+                                        eventStore, published::add))
+                        .recordAgentRunResult(
+                                GOAL_ID, AGENT_RUN_ID, reference));
+
+        RuntimeAgentRun run = DurableAgentRuntime.recover(
+                        GOAL_ID, s.runtimeStore, CLOCK)
+                .agentRun()
+                .orElseThrow();
+        MessageEnvelope result = run.resultMessage().orElseThrow();
+        RuntimeEventStream stream = eventStore.resolve(GOAL_ID);
+        assertEquals(2, stream.revision());
+        assertEquals(
+                List.of(
+                        RuntimeEventKind.VERIFICATION_RECORDED,
+                        RuntimeEventKind.TIMEOUT_DETECTED),
+                stream.events().stream().map(RuntimeEvent::kind).toList());
+        RuntimeEvent timeout = stream.events().get(1);
+        assertEquals(timedOut.recordedAt(), timeout.occurredAt());
+        assertEquals(Optional.of(result.messageId()), timeout.causationId());
+        assertEquals(
+                new RuntimeEventDetail.TimeoutDetected(RuntimeTimeoutKind.TOOL),
+                timeout.detail());
+        assertEquals(
+                List.of(
+                        new RuntimeEventReference(
+                                RuntimeEventReferenceKind.RESULT_MESSAGE,
+                                "result-message/" + result.messageId(),
+                                Optional.empty()),
+                        new RuntimeEventReference(
+                                RuntimeEventReferenceKind.RUN_RECORD,
+                                reference,
+                                Optional.empty())),
+                timeout.authoritativeReferences());
+        assertEquals(
+                stream.events().stream()
+                        .map(RuntimeEventPublicationReference::from)
+                        .toList(),
+                published);
+    }
+
+    @Test
+    void recordsToolTimeoutBeforeTheSeparateStagnationFact() throws Exception {
+        Setup s = awaitingVerification(false);
+        String reference = s.runRecordStore.persist(timedOutRunRecord(
+                AgentLoopStopReason.STAGNATED, 3)).reference();
+        FileSystemRuntimeEventStore eventStore =
+                new FileSystemRuntimeEventStore(
+                        tempDir.resolve("timeout-stagnation-events"));
+
+        eventAwareFinalizer(
+                        s,
+                        new RuntimeEventRecorder(eventStore, ignored -> { }))
+                .recordAgentRunResult(GOAL_ID, AGENT_RUN_ID, reference);
+
+        assertEquals(
+                List.of(
+                        RuntimeEventKind.VERIFICATION_RECORDED,
+                        RuntimeEventKind.TIMEOUT_DETECTED,
+                        RuntimeEventKind.STAGNATION_DETECTED),
+                eventStore.resolve(GOAL_ID).events().stream()
+                        .map(RuntimeEvent::kind)
+                        .toList());
+    }
+
+    @Test
+    void missingToolTimeoutEventRepairsFromTheDurableResult()
+            throws Exception {
+        Setup s = awaitingVerification(false);
+        String reference = s.runRecordStore.persist(timedOutRunRecord(
+                AgentLoopStopReason.MAX_ITERATIONS, 5)).reference();
+        FileSystemRuntimeEventStore eventStore =
+                new FileSystemRuntimeEventStore(
+                        tempDir.resolve("timeout-append-recovery"));
+        AtomicInteger appends = new AtomicInteger();
+        RuntimeEventStore failSecondAppend = new RuntimeEventStore() {
+            @Override
+            public RuntimeEventAppendResult append(RuntimeEvent event)
+                    throws IOException {
+                if (appends.incrementAndGet() == 2) {
+                    throw new IOException("timeout event append unavailable");
+                }
+                return eventStore.append(event);
+            }
+
+            @Override
+            public RuntimeEventStream resolve(String goalId)
+                    throws IOException {
+                return eventStore.resolve(goalId);
+            }
+        };
+        List<RuntimeEventPublicationReference> firstPublications =
+                new ArrayList<>();
+
+        assertThrows(
+                IOException.class,
+                () -> eventAwareFinalizer(
+                                s,
+                                new RuntimeEventRecorder(
+                                        failSecondAppend,
+                                        firstPublications::add))
+                        .recordAgentRunResult(
+                                GOAL_ID, AGENT_RUN_ID, reference));
+
+        DurableAgentRuntime runtime = DurableAgentRuntime.recover(
+                GOAL_ID, s.runtimeStore, CLOCK);
+        assertEquals(RuntimeGoalStatus.RETRY_PENDING, runtime.goal().status());
+        long resultRevision = runtime.revision();
+        assertEquals(
+                List.of(RuntimeEventKind.VERIFICATION_RECORDED),
+                eventStore.resolve(GOAL_ID).events().stream()
+                        .map(RuntimeEvent::kind)
+                        .toList());
+        assertEquals(1, firstPublications.size());
+
+        List<RuntimeEventPublicationReference> recoveredPublications =
+                new ArrayList<>();
+        eventAwareFinalizer(
+                        s,
+                        new RuntimeEventRecorder(
+                                eventStore,
+                                recoveredPublications::add))
+                .recordAgentRunResult(GOAL_ID, AGENT_RUN_ID, reference);
+
+        assertEquals(
+                resultRevision,
+                DurableAgentRuntime.recover(GOAL_ID, s.runtimeStore, CLOCK)
+                        .revision());
+        RuntimeEventStream recovered = eventStore.resolve(GOAL_ID);
+        assertEquals(2, recovered.revision());
+        assertEquals(
+                List.of(
+                        RuntimeEventKind.VERIFICATION_RECORDED,
+                        RuntimeEventKind.TIMEOUT_DETECTED),
+                recovered.events().stream().map(RuntimeEvent::kind).toList());
+        assertEquals(
+                recovered.events().stream()
+                        .map(RuntimeEventPublicationReference::from)
+                        .toList(),
+                recoveredPublications);
+    }
+
+    @Test
+    void toolTimeoutPublicationFailureReplaysTheExactPersistedEvent()
+            throws Exception {
+        Setup s = awaitingVerification(false);
+        String reference = s.runRecordStore.persist(timedOutRunRecord(
+                AgentLoopStopReason.MAX_ITERATIONS, 5)).reference();
+        FileSystemRuntimeEventStore eventStore =
+                new FileSystemRuntimeEventStore(
+                        tempDir.resolve("timeout-publication-recovery"));
+        AtomicInteger attempts = new AtomicInteger();
+        RuntimeEventRecorder failingRecorder = new RuntimeEventRecorder(
+                eventStore,
+                ignored -> {
+                    if (attempts.incrementAndGet() == 2) {
+                        throw new IOException("timeout publication unavailable");
+                    }
+                });
+
+        assertThrows(
+                IOException.class,
+                () -> eventAwareFinalizer(s, failingRecorder)
+                        .recordAgentRunResult(
+                                GOAL_ID, AGENT_RUN_ID, reference));
+
+        DurableAgentRuntime runtime = DurableAgentRuntime.recover(
+                GOAL_ID, s.runtimeStore, CLOCK);
+        long resultRevision = runtime.revision();
+        RuntimeEventStream persisted = eventStore.resolve(GOAL_ID);
+        assertEquals(2, persisted.revision());
+        assertEquals(RuntimeEventKind.TIMEOUT_DETECTED,
+                persisted.events().get(1).kind());
+
+        List<RuntimeEventPublicationReference> replayed = new ArrayList<>();
+        eventAwareFinalizer(
+                        s,
+                        new RuntimeEventRecorder(eventStore, replayed::add))
+                .recordAgentRunResult(GOAL_ID, AGENT_RUN_ID, reference);
+
+        assertEquals(
+                resultRevision,
+                DurableAgentRuntime.recover(GOAL_ID, s.runtimeStore, CLOCK)
+                        .revision());
+        RuntimeEventStream afterReplay = eventStore.resolve(GOAL_ID);
+        assertEquals(persisted.revision(), afterReplay.revision());
+        assertEquals(persisted.binding(), afterReplay.binding());
+        assertEquals(persisted.events(), afterReplay.events());
+        assertEquals(
+                persisted.events().stream()
+                        .map(RuntimeEventPublicationReference::from)
+                        .toList(),
+                replayed);
+    }
+
+    @Test
+    void stagnationPublisherFailureRepairsAfterLaterRuntimeRevision()
+            throws Exception {
+        Setup s = awaitingVerification(false);
+        String reference = s.runRecordStore.persist(stagnatedRunRecord()).reference();
+        FileSystemRuntimeEventStore eventStore =
+                new FileSystemRuntimeEventStore(tempDir.resolve("events"));
+        AtomicInteger attempts = new AtomicInteger();
+        RuntimeEventRecorder failingRecorder = new RuntimeEventRecorder(
+                eventStore,
+                ignored -> {
+                    if (attempts.incrementAndGet() == 2) {
+                        throw new IOException("stagnation publication unavailable");
+                    }
+                });
+
+        assertThrows(
+                IOException.class,
+                () -> eventAwareFinalizer(s, failingRecorder)
+                        .recordAgentRunResult(GOAL_ID, AGENT_RUN_ID, reference));
+        DurableAgentRuntime runtime =
+                DurableAgentRuntime.recover(GOAL_ID, s.runtimeStore, CLOCK);
+        assertEquals(RuntimeGoalStatus.RETRY_PENDING, runtime.goal().status());
+        assertEquals(2, eventStore.resolve(GOAL_ID).revision());
+        assertEquals(2, attempts.get());
+
+        runtime.recordRetryDecision(new AgentRunRetryDecisionRecord(
+                AGENT_RUN_ID,
+                1,
+                1,
+                0,
+                0,
+                "c".repeat(64),
+                AgentRunRetryDecision.refused(
+                        AgentRunRetryRefusalReason.ATTEMPTS_EXHAUSTED)));
+        runtime.abandonGoal();
+        long laterRuntimeRevision = runtime.revision();
+
+        List<RuntimeEventPublicationReference> published = new ArrayList<>();
+        assertEquals(
+                RuntimeGoalStatus.FAILED,
+                eventAwareFinalizer(
+                                s,
+                                new RuntimeEventRecorder(eventStore, published::add),
+                                Clock.offset(CLOCK, Duration.ofHours(2)))
+                        .recordAgentRunResult(GOAL_ID, AGENT_RUN_ID, reference));
+
+        RuntimeEventStream replayed = eventStore.resolve(GOAL_ID);
+        assertEquals(2, replayed.revision());
+        assertEquals(2, replayed.events().size());
+        assertEquals(
+                new RuntimeEventDetail.StagnationDetected(3, 3),
+                replayed.events().get(1).detail());
+        assertEquals(
+                List.of(
+                        RuntimeEventPublicationReference.from(replayed.events().get(0)),
+                        RuntimeEventPublicationReference.from(replayed.events().get(1))),
+                published);
+        assertEquals(
+                laterRuntimeRevision,
+                DurableAgentRuntime.recover(GOAL_ID, s.runtimeStore, CLOCK)
+                        .revision());
+    }
+
+    @Test
     void exactResultReplayRepairsAndRepublishesAfterLaterRuntimeRevisions()
             throws Exception {
         Setup s = awaitingVerification(false);
@@ -592,10 +938,11 @@ class DurableAgentRunFinalizerTest {
     }
 
     @Test
-    void resultPersistenceFailureCreatesNoVerificationEventOrPublication()
+    void resultPersistenceFailureCreatesNoDerivedEventOrPublication()
             throws Exception {
         Setup s = awaitingVerification(false);
-        String reference = persistRunRecord(s, true);
+        String reference = s.runRecordStore.persist(timedOutRunRecord(
+                AgentLoopStopReason.MAX_ITERATIONS, 5)).reference();
         AgentRuntimeStateStore failingRuntimeStore = new AgentRuntimeStateStore() {
             @Override
             public void create(AgentRuntimeState initialState) throws IOException {
@@ -745,6 +1092,83 @@ class DurableAgentRunFinalizerTest {
                 verified
                         ? AgentLoopStopReason.COMPLETED
                         : AgentLoopStopReason.AWAITING_VERIFICATION);
+    }
+
+    private RunRecord stagnatedRunRecord() {
+        return new RunRecord(
+                "logical-run-finalizer-1",
+                Instant.parse("2026-07-17T11:00:00Z"),
+                new ApprovedTask(
+                        TASK_ID,
+                        "Finalize the Gate 8 result path",
+                        "Approved by test owner",
+                        Set.of("read-file"),
+                        "CURRENT_TASK.md"),
+                new ToolRequest(
+                        "read-file",
+                        "correlation-1",
+                        Map.of("path", "target.txt")),
+                new PolicyDecision(
+                        PolicyDecisionStatus.ALLOWED,
+                        "C:/project",
+                        Set.of("read-file"),
+                        Set.of(),
+                        4096,
+                        1000),
+                new ToolResult(
+                        "read-file",
+                        ToolResultStatus.FAILURE,
+                        OptionalInt.empty(),
+                        VerificationEvidence.capture(
+                                "temporary failure",
+                                "same failure",
+                                Optional.empty())),
+                Optional.empty(),
+                VerificationDecision.notPerformed(
+                        "stagnated before verification"),
+                3,
+                AgentLoopStopReason.STAGNATED,
+                AgentLoopStopReason.STAGNATED);
+    }
+
+    private RunRecord timedOutRunRecord(
+            AgentLoopStopReason stopReason,
+            int iterations) {
+        return new RunRecord(
+                "logical-run-finalizer-1",
+                Instant.parse("2026-07-17T11:00:00Z"),
+                new ApprovedTask(
+                        TASK_ID,
+                        "Finalize the Gate 8 result path",
+                        "Approved by test owner",
+                        Set.of("read-file"),
+                        "CURRENT_TASK.md"),
+                new ToolRequest(
+                        "read-file",
+                        "correlation-1",
+                        Map.of("path", "target.txt")),
+                new PolicyDecision(
+                        PolicyDecisionStatus.ALLOWED,
+                        "C:/project",
+                        Set.of("read-file"),
+                        Set.of(),
+                        4096,
+                        1000),
+                new ToolResult(
+                        "read-file",
+                        ToolResultStatus.FAILURE,
+                        OptionalInt.empty(),
+                        Optional.of(ToolFailureCode.TIMED_OUT),
+                        VerificationEvidence.capture(
+                                "Tool invocation timed out",
+                                "timeout",
+                                Optional.empty())),
+                Optional.empty(),
+                VerificationDecision.notPerformed(
+                        "Tool timeout stopped before verification"),
+                iterations,
+                stopReason,
+                stopReason);
     }
 
     private ToolResult success() {

@@ -5,5 +5,6 @@ public enum RuntimeGoalStatus {
     ACTIVE,
     RETRY_PENDING,
     COMPLETED,
-    FAILED
+    FAILED,
+    CANCELLED
 }

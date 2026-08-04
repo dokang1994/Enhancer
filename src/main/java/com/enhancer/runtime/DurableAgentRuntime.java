@@ -12,17 +12,29 @@ import java.util.Optional;
  * Persist-before-exposure lifecycle wrapper for one Goal and its AgentRun history.
  */
 public final class DurableAgentRuntime {
+    private static final String EVENT_PRODUCER_ID = "durable-agent-runtime";
+
     private final AgentRuntimeStateStore store;
     private final Clock clock;
+    private final Optional<RuntimeEventRecorder> eventRecorder;
     private AgentRuntimeState state;
 
     private DurableAgentRuntime(
             AgentRuntimeStateStore store,
             Clock clock,
             AgentRuntimeState state) {
+        this(store, clock, state, Optional.empty());
+    }
+
+    private DurableAgentRuntime(
+            AgentRuntimeStateStore store,
+            Clock clock,
+            AgentRuntimeState state,
+            Optional<RuntimeEventRecorder> eventRecorder) {
         this.store = store;
         this.clock = clock;
         this.state = state;
+        this.eventRecorder = eventRecorder;
     }
 
     public static DurableAgentRuntime create(
@@ -56,7 +68,22 @@ public final class DurableAgentRuntime {
             AgentRuntimeStateStore store,
             Clock clock) throws IOException {
         return recoverLoaded(
-                goalId, Optional.empty(), store, clock, true);
+                goalId, Optional.empty(), store, clock, true, Optional.empty());
+    }
+
+    public static DurableAgentRuntime recover(
+            String goalId,
+            AgentRuntimeStateStore store,
+            Clock clock,
+            RuntimeEventRecorder eventRecorder) throws IOException {
+        return recoverLoaded(
+                goalId,
+                Optional.empty(),
+                store,
+                clock,
+                true,
+                Optional.of(Objects.requireNonNull(
+                        eventRecorder, "eventRecorder must not be null")));
     }
 
     static DurableAgentRuntime recoverMatching(
@@ -71,7 +98,8 @@ public final class DurableAgentRuntime {
                         "expectedWorkItem must not be null")),
                 store,
                 clock,
-                true);
+                true,
+                Optional.empty());
     }
 
     static DurableAgentRuntime recoverForControlAdmission(
@@ -79,7 +107,12 @@ public final class DurableAgentRuntime {
             AgentRuntimeStateStore store,
             Clock clock) throws IOException {
         return recoverLoaded(
-                goalId, Optional.empty(), store, clock, false);
+                goalId,
+                Optional.empty(),
+                store,
+                clock,
+                false,
+                Optional.empty());
     }
 
     private static DurableAgentRuntime recoverLoaded(
@@ -87,11 +120,13 @@ public final class DurableAgentRuntime {
             Optional<WorkItem> expectedWorkItem,
             AgentRuntimeStateStore store,
             Clock clock,
-            boolean reclaimExpiredLease) throws IOException {
+            boolean reclaimExpiredLease,
+            Optional<RuntimeEventRecorder> eventRecorder) throws IOException {
         Objects.requireNonNull(store, "store must not be null");
         Objects.requireNonNull(clock, "clock must not be null");
         Objects.requireNonNull(
                 expectedWorkItem, "expectedWorkItem must not be null");
+        Objects.requireNonNull(eventRecorder, "eventRecorder must not be null");
         String canonicalGoalId =
                 AgentRuntimeState.requireCanonicalGoalId(goalId);
         AgentRuntimeState loaded = store.resolve(canonicalGoalId);
@@ -104,7 +139,8 @@ public final class DurableAgentRuntime {
         DurableAgentRuntime runtime = new DurableAgentRuntime(
                 store,
                 clock,
-                loaded);
+                loaded,
+                eventRecorder);
         if (reclaimExpiredLease) {
             runtime.reclaimExpiredLease();
         }
@@ -161,11 +197,11 @@ public final class DurableAgentRuntime {
     public boolean reclaimExpiredLease() throws IOException {
         Optional<AgentRuntimeState> reclaimed =
                 state.reclaimExpiredLease(clock.instant());
-        if (reclaimed.isEmpty()) {
-            return false;
+        if (reclaimed.isPresent()) {
+            adoptAfterPersistence(reclaimed.orElseThrow());
         }
-        adoptAfterPersistence(reclaimed.orElseThrow());
-        return true;
+        recordLeaseTimeoutEvents();
+        return reclaimed.isPresent();
     }
 
     public void recordResult(
@@ -228,6 +264,14 @@ public final class DurableAgentRuntime {
         return state.retryDecisions();
     }
 
+    public List<LeaseTimeoutRecord> leaseTimeouts() {
+        return state.leaseTimeouts();
+    }
+
+    public Optional<CancellationApplicationRecord> cancellationApplication() {
+        return state.cancellationApplication();
+    }
+
     public int completedAttempts() {
         return state.completedAttempts();
     }
@@ -236,9 +280,46 @@ public final class DurableAgentRuntime {
         return state.controlRequests();
     }
 
+    void applyCancellation(CancellationApplicationRecord record)
+            throws IOException {
+        Optional<AgentRuntimeState> next = state.applyCancellation(record);
+        if (next.isPresent()) {
+            adoptAfterPersistence(next.orElseThrow());
+        }
+    }
+
     private void adoptAfterPersistence(
             AgentRuntimeState nextState) throws IOException {
         store.update(nextState);
         state = nextState;
+    }
+
+    private void recordLeaseTimeoutEvents() throws IOException {
+        if (eventRecorder.isEmpty()) {
+            return;
+        }
+        WorkItem workItem = state.goal().workItem();
+        RuntimeEventBinding binding = new RuntimeEventBinding(
+                state.goal().goalId(),
+                workItem.workItemId(),
+                workItem.taskRevision(),
+                workItem.snapshotId(),
+                workItem.logicalRunId(),
+                workItem.workMessage().correlationId());
+        for (LeaseTimeoutRecord timeout : state.leaseTimeouts()) {
+            RuntimeEvent event = RuntimeEvent.create(
+                    timeout.expiresAt(),
+                    binding,
+                    timeout.agentRunId(),
+                    Optional.of(workItem.workMessage().messageId()),
+                    EVENT_PRODUCER_ID,
+                    new RuntimeEventDetail.TimeoutDetected(
+                            RuntimeTimeoutKind.LEASE),
+                    List.of(new RuntimeEventReference(
+                            RuntimeEventReferenceKind.LEASE_TIMEOUT,
+                            timeout.reference(state.goal().goalId()),
+                            Optional.empty())));
+            eventRecorder.orElseThrow().recordAndPublish(event);
+        }
     }
 }

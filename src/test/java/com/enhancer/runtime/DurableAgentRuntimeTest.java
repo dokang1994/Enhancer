@@ -18,9 +18,13 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class DurableAgentRuntimeTest {
     private static final String GOAL_ID =
@@ -31,6 +35,86 @@ class DurableAgentRuntimeTest {
             "00000000-0000-0000-0000-000000000403";
     private static final String WORK_MESSAGE_ID =
             "00000000-0000-0000-0000-000000000404";
+
+    @TempDir
+    Path temporaryRoot;
+
+    @Test
+    void eventAwareRecoveryRepairsMissingLeaseTimeoutEvent() throws Exception {
+        MutableClock clock = new MutableClock(
+                Instant.parse("2026-08-04T12:00:00Z"));
+        MemoryAgentRuntimeStateStore runtimeStore =
+                new MemoryAgentRuntimeStateStore();
+        DurableAgentRuntime runtime = DurableAgentRuntime.create(
+                GOAL_ID, workItem(), runtimeStore, clock);
+        runtime.beginAgentRun(AGENT_RUN_ID);
+        runtime.markReady(AGENT_RUN_ID);
+        AgentRunLease lease = runtime.acquireLease(
+                AGENT_RUN_ID, "lease-event-owner", Duration.ofMinutes(5));
+        clock.advance(Duration.ofMinutes(5));
+        DurableAgentRuntime.recover(GOAL_ID, runtimeStore, clock);
+        long sourceRevision = runtimeStore.resolve(GOAL_ID).revision();
+        FileSystemRuntimeEventStore eventStore = new FileSystemRuntimeEventStore(
+                temporaryRoot.resolve("missing-lease-event"));
+        List<RuntimeEventPublicationReference> published = new ArrayList<>();
+
+        DurableAgentRuntime recovered = DurableAgentRuntime.recover(
+                GOAL_ID,
+                runtimeStore,
+                clock,
+                new RuntimeEventRecorder(eventStore, published::add));
+
+        assertEquals(sourceRevision, recovered.revision());
+        RuntimeEvent event = eventStore.resolve(GOAL_ID).events().get(0);
+        assertEquals(RuntimeEventKind.TIMEOUT_DETECTED, event.kind());
+        assertEquals(new RuntimeEventDetail.TimeoutDetected(RuntimeTimeoutKind.LEASE),
+                event.detail());
+        assertEquals(lease.expiresAt(), event.occurredAt());
+        assertEquals(Optional.of(WORK_MESSAGE_ID), event.causationId());
+        assertEquals(RuntimeEventReferenceKind.LEASE_TIMEOUT,
+                event.authoritativeReferences().get(0).kind());
+        assertEquals(List.of(RuntimeEventPublicationReference.from(event)), published);
+    }
+
+    @Test
+    void leaseTimeoutPublicationFailureExactReplaysWithoutRuntimeRevision()
+            throws Exception {
+        MutableClock clock = new MutableClock(
+                Instant.parse("2026-08-04T13:00:00Z"));
+        MemoryAgentRuntimeStateStore runtimeStore =
+                new MemoryAgentRuntimeStateStore();
+        DurableAgentRuntime runtime = DurableAgentRuntime.create(
+                GOAL_ID, workItem(), runtimeStore, clock);
+        runtime.beginAgentRun(AGENT_RUN_ID);
+        runtime.markReady(AGENT_RUN_ID);
+        runtime.acquireLease(
+                AGENT_RUN_ID, "lease-publication-owner", Duration.ofMinutes(5));
+        clock.advance(Duration.ofMinutes(5));
+        FileSystemRuntimeEventStore eventStore = new FileSystemRuntimeEventStore(
+                temporaryRoot.resolve("lease-publication-recovery"));
+
+        assertThrows(IOException.class, () -> DurableAgentRuntime.recover(
+                GOAL_ID,
+                runtimeStore,
+                clock,
+                new RuntimeEventRecorder(eventStore, ignored -> {
+                    throw new IOException("lease publication unavailable");
+                })));
+        long sourceRevision = runtimeStore.resolve(GOAL_ID).revision();
+        RuntimeEventStream persisted = eventStore.resolve(GOAL_ID);
+        List<RuntimeEventPublicationReference> replayed = new ArrayList<>();
+
+        DurableAgentRuntime.recover(
+                GOAL_ID,
+                runtimeStore,
+                clock,
+                new RuntimeEventRecorder(eventStore, replayed::add));
+
+        assertEquals(sourceRevision, runtimeStore.resolve(GOAL_ID).revision());
+        assertEquals(persisted.events(), eventStore.resolve(GOAL_ID).events());
+        assertEquals(List.of(RuntimeEventPublicationReference.from(
+                persisted.events().get(0))), replayed);
+    }
 
     @Test
     void persistsTheForwardLifecycleAndVerifiedTerminalResult()
@@ -324,6 +408,15 @@ class DurableAgentRuntimeTest {
                 RuntimeAgentRunStatus.READY,
                 reclaimed.agentRun().orElseThrow().status());
         assertTrue(reclaimed.agentRun().orElseThrow().lease().isEmpty());
+        assertEquals(
+                List.of(new LeaseTimeoutRecord(
+                        AGENT_RUN_ID,
+                        first.ownerId(),
+                        first.fenceToken(),
+                        first.issuedAt(),
+                        first.expiresAt(),
+                        clock.instant())),
+                reclaimed.leaseTimeouts());
 
         AgentRunLease second = reclaimed.acquireLease(
                 AGENT_RUN_ID,
@@ -339,6 +432,8 @@ class DurableAgentRuntimeTest {
                 AGENT_RUN_ID,
                 second.ownerId(),
                 second.fenceToken());
+        assertEquals(1, DurableAgentRuntime.recover(GOAL_ID, store, clock)
+                .leaseTimeouts().size());
     }
 
     @Test

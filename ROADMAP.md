@@ -543,10 +543,10 @@ Whole-gate assessment:
   isolated child Work and parent Result paths now both cross real Message Bus queues, so
   the earlier worker-communication blocker is closed. The bounded single-agent
   Scheduler/runtime foundation is Integrated and retains Operational explicit workflows,
-  and the cancellation-request, verification, and terminal WorkItem transition owners
-  now reach a
+  and the retry-decision, retry-started, Tool-timeout, stagnation,
+  cancellation-request, verification, and terminal WorkItem transition owners now reach a
   persist-after-source recorder and injected publisher port. Whole-gate promotion
-  remains blocked by the remaining runtime-event owners, a concrete publication adapter,
+  remains blocked by a concrete publication adapter,
   and later-gate budgets,
   Memory, authenticated control application, production adapters, and role workers;
 - existing queue-active, checkpoint, deterministic lost-acknowledgement point, and
@@ -639,7 +639,7 @@ Current increment:
 - Contract Verified and Integrated submission-priority persistence: immutable manifest schema v2 stores exact `NORMAL`/`EXPEDITED` Scheduler intent, durable submission propagates it to dependency-free exact queue admission, changed-priority replay fails closed, and `scheduler-migrate-submission-manifest` explicitly maps one stopped schema-v1 manifest to `NORMAL` without queue or execution authority;
 - Integrated sub-path: the real repository-derived work-message path reaches a separate persist-first durable admission handler, which derives one stable distinct WorkItem identity and admits dependency-free work through the filesystem-backed queue before success. A real process-isolated Scheduler cycle reaches terminal disposition, then fresh queue and bus instances accept the exact envelope without a second queue revision, WorkItem, RunRecord, or dead letter; changed-content identity reuse fails closed;
 - Contract Verified and Integrated submission path: one immutable manifest persists the target queue identity/capacity, required capability, and exact work envelope before queue creation. The application boundary creates only an absent queue or verifies an existing capacity before recovery, then uses exact durable admission; real-filesystem interruption after either completed prefix resumes to one WorkItem, while exact replay is revision-free and changed content fails closed. The separate explicit `scheduler-submit` CLI reaches this boundary without combining execution;
-- Contract Verified: one exact-WorkItem schema-v2 `RuntimeGoal` with an immutable history of at most 16 distinct `RuntimeAgentRun` attempts and attempt-bound retry decisions, deterministic forward-only per-attempt transitions, matching typed result envelopes, Verified-only Goal completion, durable `RETRY_PENDING` for failed attempts, Goal-wide fences, monotonic persist-before-exposure revisions, bounded integrity-checked filesystem state, and exact-prefix restart recovery;
+- Contract Verified: one exact-WorkItem schema-v4 `RuntimeGoal` with an immutable history of at most 16 distinct `RuntimeAgentRun` attempts, attempt-bound retry decisions, at most 256 exact lease-timeout records, and at most one authorization-bound cancellation application, deterministic forward-only per-attempt transitions, matching typed result envelopes, Verified-only Goal completion, durable `RETRY_PENDING` for failed attempts, terminal authenticated cancellation, Goal-wide fences, monotonic persist-before-exposure revisions, bounded integrity-checked filesystem state, and exact-prefix restart recovery;
 - Contract Verified: a bounded fenced single-owner `AgentRunLease` acquired only from `READY`, with injected time, persisted monotonic fence tokens, matching unexpired owner/fence checks for renewal and execution completion, and durable expiry reclamation back to `READY` across restart;
 - Integrated sub-path: one durable queue active/ready WorkItem is connected to the exact durable Goal, named AgentRun planning/readiness prefix, and current fenced lease through idempotent persisted-prefix recovery across both filesystem stores;
 - Contract Verified: a first concrete `MessageTransport` (connection 3c) writing one encoded route and envelope to a local file spool a peer reads, with the frame owned by a separate deterministic codec carrying all four payload kinds and failing closed on corruption, and no ordering promised across separately spooled messages;
@@ -737,9 +737,56 @@ Current increment:
   exact-validating every other field. Queue-store failure reaches no event or publisher,
   and publication failure re-enters from the terminal queue fact without another event
   revision;
-- remaining Gate 8 runtime-event work: connect additional authoritative transition
-  owners one at a time while preserving source-first durability, exact replay, and the
-  distinction between verification and terminal queue disposition;
+- Integrated fourth transition-owner connection: event-aware retry control records
+  `RETRY_DECISION_RECORDED` only after the exact admitted or refused attempt-bound
+  decision is durable. Stable decision identity and decision-bearing runtime revision
+  references support exact event/publication repair, while runtime persistence failure
+  reaches no event or publisher and replacement append remains a separate fact;
+- Integrated fifth transition-owner connection: event-aware `beginAdmittedRetry`
+  records `RETRY_STARTED` only after the caller-checkpointed replacement AgentRun is
+  durable. Stable prior-decision and replacement-AgentRun references survive later
+  replacement status revisions; first-occurrence recovery preserves publication replay,
+  and replacement persistence failure reaches no event or publisher. Refused
+  abandonment and supported Worker/CLI event composition remain separate;
+- Integrated sixth transition-owner connection: event-aware
+  `DurableAgentRunFinalizer.recordAgentRunResult` resolves the bound RunRecord and
+  persists or exact-replays the matching Result transition before recording
+  `STAGNATION_DETECTED` for `STAGNATED` only. The RunRecord occurrence and iterations,
+  current default threshold three, causal Result, and stable Result-message/RunRecord
+  references preserve exact replay after later runtime revisions. Verification remains
+  a distinct earlier event; non-stagnated records add no stagnation observation, and no
+  timeout owner or source schema is added;
+- Integrated seventh transition-owner connection: event-aware
+  `DurableAgentRunFinalizer.recordAgentRunResult` records `TIMEOUT_DETECTED` with
+  `RuntimeTimeoutKind.TOOL` only after a bound RunRecord carrying exact
+  `ToolFailureCode.TIMED_OUT` reaches its durable Result transition and separate
+  verification fact. RunRecord occurrence, Result causation, exact Work binding, and
+  stable Result-message/RunRecord references preserve exact replay; timeout precedes a
+  separate stagnation fact when both apply. Non-timeout input and Result persistence
+  failure reach no timeout event;
+- Integrated eighth transition-owner connection:
+  `ProcessIsolatedAgentRunExecution` persists one bound deterministic
+  `ProcessTimeoutFact` after a typed watchdog timeout and before exposing failure, then
+  its event-aware construction records `TIMEOUT_DETECTED` with
+  `RuntimeTimeoutKind.PROCESS` from that fact's occurrence, Work causation, stable
+  reference, and digest. Exact re-entry skips another child and repairs a missing event
+  or failed publication; start failure, completed failure, and success add no timeout
+  fact or event, and AgentRun lifecycle/retry policy stays unchanged;
+- Integrated ninth transition-owner connection: AgentRuntime schema v4 atomically
+  appends one bounded exact `LeaseTimeoutRecord` with expired `EXECUTING -> READY`
+  reclaim. Event-aware `DurableAgentRuntime` records `TIMEOUT_DETECTED` with
+  `RuntimeTimeoutKind.LEASE` from retained expiry, Work causation, and the stable
+  Goal/AgentRun/fence reference; retained-ledger replay repairs missing events and
+  publication failure without another runtime revision;
+- Integrated tenth transition-owner connection: `AuthenticatedCancellationApplication`
+  accepts only a matching approval from a trusted authorizer over an exact retained
+  `CANCEL`, atomically persists the authorization-bound schema-v4 terminal runtime fact,
+  and then records `CANCELLATION_APPLIED` with retained application time, Control
+  causation, and stable message/application references. Denial and drift do not mutate;
+  retained-record replay repairs event/publication without reauthorization or another
+  runtime revision;
+- remaining runtime-event work: select a separately accepted concrete publisher while
+  preserving source-first durability and exact replay;
 - deferred: real authorized external adapters, admission-history compaction/cleanup or
   schema-v1 queue migration, general orphan inventory/cleanup with an explicit retention
   and scan policy, general forward-reference graph/cycle handling, authenticated

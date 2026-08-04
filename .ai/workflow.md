@@ -42,6 +42,33 @@ Then:
 14. Keep the checkpoint through authorized delivery actions, then mark it Stable and
     clear it only after canonical documents, verification, and intended Git state agree.
 
+### Dynamic Increment Workflow
+
+When `CURRENT_TASK.md` contains `## Dynamic Workflow`, treat it as bounded execution
+structure inside the single approved task, never as a second authority source:
+
+1. Validate `Sequential` mode, the declared two-through-sixteen increment limit, stable
+   unique increment identities, dependency references, and at most one `In Progress`
+   entry.
+2. Work only on the `In Progress` increment. If none is active, select the first ordered
+   `Pending` increment whose dependencies are `Completed` after reading their declared
+   fresh verification evidence.
+3. Keep every increment inside the parent Task, Approval, Acceptance Criteria, Allowed
+   Tools, and Out Of Scope envelope. Stop for user approval before adding an increment,
+   widening scope, or acquiring new external/destructive authority.
+4. Record checkpoint intent and outcome around every mutation or verification. The
+   workflow cursor is canonical task context; the checkpoint is recovery position; the
+   append-only verification log is evidence. Do not substitute one for another.
+5. Mark an increment `Completed` only after its exit criteria and declared verification
+   pass. Then either promote the deterministic dependency-ready successor or, when all
+   required increments are complete, close the parent task through the normal document
+   synchronization and Definition of Done.
+6. Stop without selecting another increment on failure, block, stagnation, exhausted
+   bounds, task drift, insufficient authority, or unsafe recovery.
+
+This document workflow does not implement the Gate 10 Workflow Engine, parallel or
+background execution, multi-agent dispatch, or automatic approval/delivery.
+
 A contract you describe must state what it connects to. Describing a contract
 correctly while leaving its connection to the next contract unstated is how the
 `completion` conflict reached implementation; `ARCHITECTURE.md` records that case

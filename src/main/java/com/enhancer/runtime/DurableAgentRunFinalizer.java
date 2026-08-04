@@ -3,9 +3,12 @@ package com.enhancer.runtime;
 import com.enhancer.bus.MessageEnvelope;
 import com.enhancer.bus.ResultPayload;
 import com.enhancer.kernel.VerificationStatus;
+import com.enhancer.loop.AgentLoop;
+import com.enhancer.loop.AgentLoopStopReason;
 import com.enhancer.run.ResolvedRunRecord;
 import com.enhancer.run.RunRecord;
 import com.enhancer.run.RunRecordStore;
+import com.enhancer.tool.ToolFailureCode;
 import com.enhancer.workspace.ApprovedTaskRevision;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -90,26 +93,57 @@ public final class DurableAgentRunFinalizer {
                 DurableAgentRuntime.recover(goalId, runtimeStore, clock);
         RuntimeAgentRun run = requireRun(runtime, canonicalAgentRunId);
         WorkItem workItem = runtime.goal().workItem();
+        Optional<RunRecord> eventSource = Optional.empty();
 
         switch (run.status()) {
             case AWAITING_VERIFICATION -> {
                 ResolvedRunRecord resolved =
                         runRecordStore.resolve(runRecordReference);
                 requireBinding(resolved.record(), workItem);
+                eventSource = Optional.of(resolved.record());
                 VerificationStatus status = resolved.record().verification().status();
                 MessageEnvelope result = buildResultEnvelope(
                         workItem, canonicalAgentRunId, runRecordReference, status);
                 runtime.recordResult(canonicalAgentRunId, result);
             }
-            case COMPLETED, FAILED ->
-                    assertStoredResultReference(run, runRecordReference);
+            case COMPLETED, FAILED -> {
+                assertStoredResultReference(run, runRecordReference);
+                if (eventRecorder.isPresent()) {
+                    ResolvedRunRecord resolved =
+                            runRecordStore.resolve(runRecordReference);
+                    requireBinding(resolved.record(), workItem);
+                    eventSource = Optional.of(resolved.record());
+                }
+            }
+            case CANCELLED -> throw new IllegalStateException(
+                    "cancelled AgentRun cannot record a Result");
             default -> throw new IllegalStateException(
                     "AgentRun has not acknowledged execution");
         }
         if (eventRecorder.isPresent()) {
-            eventRecorder.orElseThrow().recordAndPublish(
+            RuntimeEventRecorder recorder = eventRecorder.orElseThrow();
+            recorder.recordAndPublish(
                     verificationRecordedEvent(
                             runtime, canonicalAgentRunId, runRecordReference));
+            RunRecord source = eventSource.orElseThrow(() ->
+                    new IllegalStateException(
+                            "event-aware finalization requires its resolved RunRecord"));
+            if (source.toolResult().failureCode()
+                    .filter(code -> code == ToolFailureCode.TIMED_OUT)
+                    .isPresent()) {
+                recorder.recordAndPublish(timeoutDetectedEvent(
+                        runtime,
+                        canonicalAgentRunId,
+                        runRecordReference,
+                        source));
+            }
+            if (source.workerStopReason() == AgentLoopStopReason.STAGNATED) {
+                recorder.recordAndPublish(stagnationDetectedEvent(
+                        runtime,
+                        canonicalAgentRunId,
+                        runRecordReference,
+                        source));
+            }
         }
         return runtime.goal().status();
     }
@@ -263,6 +297,98 @@ public final class DurableAgentRunFinalizer {
                                 + "/disposition/"
                                 + disposition.name(),
                         Optional.empty())));
+    }
+
+    private RuntimeEvent stagnationDetectedEvent(
+            DurableAgentRuntime runtime,
+            String agentRunId,
+            String runRecordReference,
+            RunRecord source) {
+        RuntimeAgentRun run = requireRun(runtime, agentRunId);
+        MessageEnvelope result = run.resultMessage().orElseThrow(() ->
+                new IllegalStateException(
+                        "stagnation event requires a durable Result message"));
+        ResultPayload payload = (ResultPayload) result.payload();
+        if (!payload.runRecordReference().equals(runRecordReference)) {
+            throw new IllegalStateException(
+                    "stagnation event RunRecord reference does not match the durable Result");
+        }
+        if (source.workerStopReason() != AgentLoopStopReason.STAGNATED) {
+            throw new IllegalArgumentException(
+                    "stagnation event requires a stagnated RunRecord");
+        }
+        WorkItem workItem = runtime.goal().workItem();
+        RuntimeEventBinding binding = new RuntimeEventBinding(
+                runtime.goal().goalId(),
+                workItem.workItemId(),
+                workItem.taskRevision(),
+                workItem.snapshotId(),
+                workItem.logicalRunId(),
+                workItem.workMessage().correlationId());
+        return RuntimeEvent.create(
+                source.recordedAt(),
+                binding,
+                agentRunId,
+                Optional.of(result.messageId()),
+                EVENT_PRODUCER_ID,
+                new RuntimeEventDetail.StagnationDetected(
+                        source.iterations(),
+                        AgentLoop.DEFAULT_STAGNATION_THRESHOLD),
+                List.of(
+                        new RuntimeEventReference(
+                                RuntimeEventReferenceKind.RESULT_MESSAGE,
+                                "result-message/" + result.messageId(),
+                                Optional.empty()),
+                        new RuntimeEventReference(
+                                RuntimeEventReferenceKind.RUN_RECORD,
+                                runRecordReference,
+                                Optional.empty())));
+    }
+
+    private RuntimeEvent timeoutDetectedEvent(
+            DurableAgentRuntime runtime,
+            String agentRunId,
+            String runRecordReference,
+            RunRecord source) {
+        RuntimeAgentRun run = requireRun(runtime, agentRunId);
+        MessageEnvelope result = run.resultMessage().orElseThrow(() ->
+                new IllegalStateException(
+                        "timeout event requires a durable Result message"));
+        ResultPayload payload = (ResultPayload) result.payload();
+        if (!payload.runRecordReference().equals(runRecordReference)) {
+            throw new IllegalStateException(
+                    "timeout event RunRecord reference does not match the durable Result");
+        }
+        if (source.toolResult().failureCode()
+                .filter(code -> code == ToolFailureCode.TIMED_OUT)
+                .isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Tool timeout event requires a timed-out Tool result");
+        }
+        WorkItem workItem = runtime.goal().workItem();
+        RuntimeEventBinding binding = new RuntimeEventBinding(
+                runtime.goal().goalId(),
+                workItem.workItemId(),
+                workItem.taskRevision(),
+                workItem.snapshotId(),
+                workItem.logicalRunId(),
+                workItem.workMessage().correlationId());
+        return RuntimeEvent.create(
+                source.recordedAt(),
+                binding,
+                agentRunId,
+                Optional.of(result.messageId()),
+                EVENT_PRODUCER_ID,
+                new RuntimeEventDetail.TimeoutDetected(RuntimeTimeoutKind.TOOL),
+                List.of(
+                        new RuntimeEventReference(
+                                RuntimeEventReferenceKind.RESULT_MESSAGE,
+                                "result-message/" + result.messageId(),
+                                Optional.empty()),
+                        new RuntimeEventReference(
+                                RuntimeEventReferenceKind.RUN_RECORD,
+                                runRecordReference,
+                                Optional.empty())));
     }
 
     private void requireQueueDisposition(

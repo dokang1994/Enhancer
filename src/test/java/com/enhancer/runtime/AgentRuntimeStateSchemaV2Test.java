@@ -27,7 +27,8 @@ class AgentRuntimeStateSchemaV2Test {
     void failedAttemptBecomesRetryPendingWithoutLosingItsExactHistory() {
         AgentRuntimeState pending = failedFirstAttempt();
 
-        assertEquals(2, pending.schemaVersion());
+        assertEquals(AgentRuntimeState.CURRENT_SCHEMA_VERSION,
+                pending.schemaVersion());
         assertEquals(RuntimeGoalStatus.RETRY_PENDING, pending.goal().status());
         assertEquals(1, pending.completedAttempts());
         assertEquals(1, pending.agentRuns().size());

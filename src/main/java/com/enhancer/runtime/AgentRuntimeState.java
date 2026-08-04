@@ -13,11 +13,12 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-/** Immutable schema-v2 Goal, AgentRun history, retry-decision, and control state. */
+/** Immutable schema-v4 Goal, AgentRun, control, cancellation, and lease-timeout state. */
 public final class AgentRuntimeState {
-    public static final int CURRENT_SCHEMA_VERSION = 2;
+    public static final int CURRENT_SCHEMA_VERSION = 4;
     public static final int MAX_ATTEMPTS_PER_GOAL = AgentRunRetryPolicy.MAX_ATTEMPTS;
     public static final int MAX_CONTROL_REQUESTS = 256;
+    public static final int MAX_LEASE_TIMEOUTS = 256;
 
     private final int schemaVersion;
     private final long revision;
@@ -26,6 +27,8 @@ public final class AgentRuntimeState {
     private final List<RuntimeAgentRun> agentRuns;
     private final List<AgentRunRetryDecisionRecord> retryDecisions;
     private final List<MessageEnvelope> controlRequests;
+    private final List<LeaseTimeoutRecord> leaseTimeouts;
+    private final Optional<CancellationApplicationRecord> cancellationApplication;
 
     AgentRuntimeState(
             int schemaVersion,
@@ -68,6 +71,48 @@ public final class AgentRuntimeState {
             List<RuntimeAgentRun> agentRuns,
             List<AgentRunRetryDecisionRecord> retryDecisions,
             List<MessageEnvelope> controlRequests) {
+        this(
+                schemaVersion,
+                revision,
+                lastIssuedFenceToken,
+                goal,
+                agentRuns,
+                retryDecisions,
+                controlRequests,
+                List.of());
+    }
+
+    AgentRuntimeState(
+            int schemaVersion,
+            long revision,
+            long lastIssuedFenceToken,
+            RuntimeGoal goal,
+            List<RuntimeAgentRun> agentRuns,
+            List<AgentRunRetryDecisionRecord> retryDecisions,
+            List<MessageEnvelope> controlRequests,
+            List<LeaseTimeoutRecord> leaseTimeouts) {
+        this(
+                schemaVersion,
+                revision,
+                lastIssuedFenceToken,
+                goal,
+                agentRuns,
+                retryDecisions,
+                controlRequests,
+                leaseTimeouts,
+                Optional.empty());
+    }
+
+    AgentRuntimeState(
+            int schemaVersion,
+            long revision,
+            long lastIssuedFenceToken,
+            RuntimeGoal goal,
+            List<RuntimeAgentRun> agentRuns,
+            List<AgentRunRetryDecisionRecord> retryDecisions,
+            List<MessageEnvelope> controlRequests,
+            List<LeaseTimeoutRecord> leaseTimeouts,
+            Optional<CancellationApplicationRecord> cancellationApplication) {
         if (schemaVersion != CURRENT_SCHEMA_VERSION) {
             throw new IllegalArgumentException(
                     "Agent runtime schema version is unsupported");
@@ -89,6 +134,11 @@ public final class AgentRuntimeState {
                 retryDecisions, "retryDecisions must not be null"));
         this.controlRequests = List.copyOf(Objects.requireNonNull(
                 controlRequests, "controlRequests must not be null"));
+        this.leaseTimeouts = List.copyOf(Objects.requireNonNull(
+                leaseTimeouts, "leaseTimeouts must not be null"));
+        this.cancellationApplication = Objects.requireNonNull(
+                cancellationApplication,
+                "cancellationApplication must not be null");
         validateStructure();
     }
 
@@ -135,12 +185,20 @@ public final class AgentRuntimeState {
 
     public int completedAttempts() {
         return (int) agentRuns.stream()
-                .filter(run -> run.status().isTerminal())
+                .filter(run -> run.status().hasResult())
                 .count();
     }
 
     public List<MessageEnvelope> controlRequests() {
         return controlRequests;
+    }
+
+    public List<LeaseTimeoutRecord> leaseTimeouts() {
+        return leaseTimeouts;
+    }
+
+    public Optional<CancellationApplicationRecord> cancellationApplication() {
+        return cancellationApplication;
     }
 
     AgentRuntimeState beginAgentRun(String agentRunId) {
@@ -240,10 +298,32 @@ public final class AgentRuntimeState {
         if (!lease.isExpiredAt(observedAt)) {
             return Optional.empty();
         }
-        return Optional.of(replaceLatest(
-                current.transition(RuntimeAgentRunStatus.READY),
+        if (leaseTimeouts.size() >= MAX_LEASE_TIMEOUTS) {
+            throw new IllegalStateException("lease timeout history is at capacity");
+        }
+        LeaseTimeoutRecord timeout = new LeaseTimeoutRecord(
+                current.agentRunId(),
+                lease.ownerId(),
+                lease.fenceToken(),
+                lease.issuedAt(),
+                lease.expiresAt(),
+                observedAt);
+        List<LeaseTimeoutRecord> nextTimeouts = new ArrayList<>(leaseTimeouts);
+        nextTimeouts.add(timeout);
+        List<RuntimeAgentRun> nextRuns = new ArrayList<>(agentRuns);
+        nextRuns.set(
+                nextRuns.size() - 1,
+                current.transition(RuntimeAgentRunStatus.READY));
+        return Optional.of(new AgentRuntimeState(
+                schemaVersion,
+                revision + 1,
+                lastIssuedFenceToken,
                 goal,
-                lastIssuedFenceToken));
+                nextRuns,
+                retryDecisions,
+                controlRequests,
+                nextTimeouts,
+                cancellationApplication));
     }
 
     AgentRuntimeState recordAttemptResult(
@@ -345,7 +425,72 @@ public final class AgentRuntimeState {
                 goal,
                 agentRuns,
                 retryDecisions,
-                nextRequests));
+                nextRequests,
+                leaseTimeouts,
+                cancellationApplication));
+    }
+
+    Optional<AgentRuntimeState> applyCancellation(
+            CancellationApplicationRecord record) {
+        Objects.requireNonNull(record, "record must not be null");
+        if (cancellationApplication.isPresent()) {
+            if (cancellationApplication.orElseThrow().equals(record)) {
+                return Optional.empty();
+            }
+            throw new IllegalArgumentException(
+                    "cancellation application already exists with different content");
+        }
+        if (!record.goalId().equals(goal.goalId())) {
+            throw new IllegalArgumentException(
+                    "cancellation application Goal does not match runtime");
+        }
+        if (allIdentityValues().contains(record.authorizationId())) {
+            throw new IllegalArgumentException(
+                    "authorization identity must be distinct from runtime identities");
+        }
+        MessageEnvelope request = controlRequests.stream()
+                .filter(candidate -> candidate.messageId()
+                        .equals(record.controlMessageId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "cancellation application requires a retained Control request"));
+        if (!(request.payload() instanceof ControlPayload payload)
+                || payload.signal() != com.enhancer.bus.ControlSignal.CANCEL) {
+            throw new IllegalArgumentException(
+                    "cancellation application requires a retained CANCEL request");
+        }
+        RuntimeAgentRun latest = agentRun().orElseThrow(() ->
+                new IllegalStateException("cancellation requires an AgentRun"));
+        if (!latest.agentRunId().equals(record.agentRunId())) {
+            throw new IllegalArgumentException(
+                    "cancellation application AgentRun does not match current runtime");
+        }
+        RuntimeAgentRun cancelledRun;
+        if (goal.status() == RuntimeGoalStatus.ACTIVE) {
+            if (latest.status().isTerminal()) {
+                throw new IllegalStateException(
+                        "active Goal cancellation requires a non-terminal AgentRun");
+            }
+            cancelledRun = latest.cancel();
+        } else if (goal.status() == RuntimeGoalStatus.RETRY_PENDING
+                && latest.status() == RuntimeAgentRunStatus.FAILED) {
+            cancelledRun = latest;
+        } else {
+            throw new IllegalStateException(
+                    "cancellation requires an active or retry-pending Goal");
+        }
+        List<RuntimeAgentRun> nextRuns = new ArrayList<>(agentRuns);
+        nextRuns.set(nextRuns.size() - 1, cancelledRun);
+        return Optional.of(new AgentRuntimeState(
+                schemaVersion,
+                revision + 1,
+                lastIssuedFenceToken,
+                goal.withStatus(RuntimeGoalStatus.CANCELLED),
+                nextRuns,
+                retryDecisions,
+                controlRequests,
+                leaseTimeouts,
+                Optional.of(record)));
     }
 
     static String requireCanonicalGoalId(String goalId) {
@@ -468,7 +613,9 @@ public final class AgentRuntimeState {
                 nextGoal,
                 nextRuns,
                 nextDecisions,
-                controlRequests);
+                controlRequests,
+                leaseTimeouts,
+                cancellationApplication);
     }
 
     private void validateControlRequest(MessageEnvelope request) {
@@ -523,12 +670,17 @@ public final class AgentRuntimeState {
         if (controlRequests.size() > MAX_CONTROL_REQUESTS) {
             throw new IllegalArgumentException("control request ledger exceeds capacity");
         }
+        if (leaseTimeouts.size() > MAX_LEASE_TIMEOUTS) {
+            throw new IllegalArgumentException("lease timeout history exceeds capacity");
+        }
         if (agentRuns.isEmpty()) {
             if (goal.status() != RuntimeGoalStatus.ACCEPTED
                     || revision != 0
                     || lastIssuedFenceToken != 0
                     || !retryDecisions.isEmpty()
-                    || !controlRequests.isEmpty()) {
+                    || !controlRequests.isEmpty()
+                    || !leaseTimeouts.isEmpty()
+                    || cancellationApplication.isPresent()) {
                 throw new IllegalArgumentException(
                         "Goal without AgentRun must be initial Accepted state");
             }
@@ -559,7 +711,7 @@ public final class AgentRuntimeState {
                 throw new IllegalArgumentException(
                         "every earlier AgentRun must be terminal Failed");
             }
-            if (run.status().isTerminal()) {
+            if (run.status().hasResult()) {
                 MessageEnvelope result = run.resultMessage().orElseThrow();
                 validateStoredResultMessage(result, run);
                 if (!identities.add(result.messageId())) {
@@ -584,6 +736,45 @@ public final class AgentRuntimeState {
                     || !identities.add(request.messageId())) {
                 throw new IllegalArgumentException(
                         "control request identities must be globally unique");
+            }
+        }
+
+        if (cancellationApplication.isPresent()) {
+            CancellationApplicationRecord cancellation =
+                    cancellationApplication.orElseThrow();
+            MessageEnvelope source = controlRequests.stream()
+                    .filter(request -> request.messageId()
+                            .equals(cancellation.controlMessageId()))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "cancellation application source request is absent"));
+            if (!(source.payload() instanceof ControlPayload payload)
+                    || payload.signal()
+                            != com.enhancer.bus.ControlSignal.CANCEL
+                    || !cancellation.goalId().equals(goal.goalId())
+                    || !cancellation.agentRunId().equals(latest.agentRunId())
+                    || !identities.add(cancellation.authorizationId())
+                    || goal.status() != RuntimeGoalStatus.CANCELLED) {
+                throw new IllegalArgumentException(
+                        "cancellation application does not bind to terminal runtime state");
+            }
+        } else if (goal.status() == RuntimeGoalStatus.CANCELLED) {
+            throw new IllegalArgumentException(
+                    "cancelled Goal requires a cancellation application record");
+        }
+
+        Set<Long> timeoutFences = new HashSet<>();
+        Set<String> runIds = new HashSet<>();
+        for (RuntimeAgentRun run : agentRuns) {
+            runIds.add(run.agentRunId());
+        }
+        for (LeaseTimeoutRecord timeout : leaseTimeouts) {
+            Objects.requireNonNull(timeout, "leaseTimeouts must not contain null");
+            if (!runIds.contains(timeout.agentRunId())
+                    || !timeoutFences.add(timeout.fenceToken())
+                    || timeout.fenceToken() > lastIssuedFenceToken) {
+                throw new IllegalArgumentException(
+                        "lease timeout history has an invalid run or fence binding");
             }
         }
 
@@ -637,6 +828,13 @@ public final class AgentRuntimeState {
                             "failed Goal requires a failed latest AgentRun");
                 }
             }
+            case CANCELLED -> {
+                if (latest.status() != RuntimeAgentRunStatus.CANCELLED
+                        && latest.status() != RuntimeAgentRunStatus.FAILED) {
+                    throw new IllegalArgumentException(
+                            "cancelled Goal requires a cancelled or failed latest AgentRun");
+                }
+            }
             case ACCEPTED -> throw new IllegalArgumentException(
                     "Accepted Goal cannot retain AgentRun history");
         }
@@ -686,6 +884,15 @@ public final class AgentRuntimeState {
                             .decision().isAdmitted()) {
                 throw new IllegalArgumentException(
                         "failed Goal requires a refused latest retry decision");
+            }
+        }
+        if (goal.status() == RuntimeGoalStatus.CANCELLED) {
+            int requiredDecisions = latest.status() == RuntimeAgentRunStatus.FAILED
+                    ? failedRuns.size() - 1
+                    : failedRuns.size();
+            if (retryDecisions.size() != requiredDecisions) {
+                throw new IllegalArgumentException(
+                        "cancelled Goal retry history does not match prior failures");
             }
         }
     }

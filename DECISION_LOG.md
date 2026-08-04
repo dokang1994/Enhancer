@@ -11,6 +11,78 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User request on 2026-08-04 to commit and push completed work with a subagent-documentation message
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-04-commit-and-push-completed-work-with-a-subagent-documentation-message.md)
+
+### 2026-08-04: Apply Authenticated Cancellation As A Terminal AgentRuntime Transition
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-04-apply-authenticated-cancellation-as-a-terminal-agentruntime-transition.md)
+
+### 2026-08-04: Retain Lease Timeout Records In Agent Runtime State
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-04-retain-lease-timeout-records-in-agent-runtime-state.md)
+
+### User request on 2026-08-04 to continue after each completed project task
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-04-user-request-to-continue-after-each-completed-project-task.md)
+
+### The user requested on 2026-08-04 that the project continue after the completed
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-04-user-requested-project-continuation-after-the-completed-task.md)
+
+### The recorded next task in the completed
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-04-select-the-recorded-next-task-after-tool-timeout.md)
+
+### 2026-08-04: Persist Process Timeout Facts At The Isolated Execution Boundary
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-04-persist-process-timeout-facts-at-the-isolated-execution-boundary.md)
+
+### 2026-08-04: Record Tool Timeout Events From Persisted RunRecord Results
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-04-record-tool-timeout-events-from-persisted-runrecord-results.md)
+
+### 2026-08-03: Enable Document-Driven Dynamic Increment Workflows
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-03-enable-document-driven-dynamic-increment-workflows.md)
+
+### User request on 2026-08-03 to continue from the recorded stagnation-event task
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-03-user-request-to-continue-from-the-recorded-stagnation-event-task.md)
+
+### User request on 2026-08-03 to continue from the recorded retry-started task
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-03-user-request-to-continue-from-the-recorded-retry-started-task.md)
+
+### User request on 2026-08-03 to continue after main delivery with the recorded next task
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-03-user-request-to-continue-after-main-delivery-with-the-recorded-next-task.md)
+
 ### User request on 2026-08-03 to commit, push, and merge the completed runtime-event owner connections to main
 
 Status: Accepted Decision

@@ -2,15 +2,15 @@
 
 ## Updated At
 
-2026-08-03
+2026-08-04
 
 ## Repository State
 
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 291 Java files.
-- Test source: 131 Java files.
+- Production source: 303 Java files.
+- Test source: 134 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -35,9 +35,9 @@ it does not restate which commit published which increment.
   corrupt, oversized, trailing, unsupported-schema, or symbolic-root state. Focused
   real-filesystem evidence verifies the port and adapter. `RuntimeEventRecorder`, its
   opaque publication reference, and its publisher port now enforce append/exact replay
-  before reference publication. A concrete publisher adapter, five remaining
-  transition-owner connections, MessageEnvelope evolution, migration, scan, retention,
-  and cross-store transaction remain absent.
+  before reference publication. A concrete publisher adapter, MessageEnvelope
+  evolution, migration,
+  scan, retention, and cross-store transaction remain absent.
 - Gate 7 isolated-worker Work Message Bus ingress under `com.enhancer.runtime`:
   `IsolatedWorkerMain` publishes the unchanged decoded transport message to its carried
   destination through one fresh `InProcessMessageBus` with exactly one `queue("work")`
@@ -123,16 +123,16 @@ it does not restate which commit published which increment.
 - Delivery Gate 8 durable AgentRun retry controller under `com.enhancer.runtime`: `DurableAgentRunRetryController` is the persist-first application boundary over the existing runtime and exact Goal external-effect ledger. It requires `RETRY_PENDING` plus the latest failed attempt, derives completed attempts from immutable runtime history, invokes the pure decider, and records the decision with the ledger revision/count and a deterministic versioned length-framed semantic SHA-256 over every ordered request field and status. Exact decision replay is revision-free; a changed policy or ledger fails against the immutable attempt-bound record. A caller-checkpointed canonical replacement identity may append only an admitted AgentRun, while a refused decision may terminally abandon the Goal; both post-decision actions recover idempotently after persistence failure. The controller executes no replacement, mutates no queue, acquires no lease, invokes no Tool/adapter, and creates no external-effect evidence or cross-store transaction.
 - Delivery Gate 8 corrected attempt-level retry decision under `com.enhancer.runtime`: pure `AgentRunRetryDecider.decide(lastAttempt, completedAttempts, policy, ledgerState)` consumes the exact `RuntimeAgentRun` rather than terminal Scheduler `WorkItemDisposition`, binds the ledger Goal and every effect WorkItem to that attempt, and keeps the 1–16 attempt bound. Deterministic first-match precedence refuses a non-`FAILED` attempt (`NOT_FAILED`), `PREPARED` (`UNRESOLVED_EXTERNAL_EFFECT`), `REQUIRES_USER_RECOVERY` (`EFFECT_REQUIRES_USER_RECOVERY`), `APPLIED`/`DEDUPLICATED` (`NON_COMPENSATED_EXTERNAL_EFFECT`), then exhausted budget (`ATTEMPTS_EXHAUSTED`); only empty or all-`COMPENSATED` history admits automatic retry. It reads no store, creates/persists/runs no AgentRun, mutates no queue/runtime/lease/fence/ledger state, and adds no durable history, schema, finalizer split, controller, worker, CLI, or authority.
 - Delivery Gate 8 evidence-bound external-effect execution under `com.enhancer.runtime`: one separate schema-v2 ledger per Goal retains at most 256 ordered `ExternalEffectRequest` values, each binding a stable bounded idempotency key, adapter identity, operation name, and semantic SHA-256 to the exact Goal, AgentRun, and WorkItem without payload content, credentials, or Tool authority. `PREPARED` carries no outcome evidence; every terminal `APPLIED`, `DEDUPLICATED`, `COMPENSATED`, or `REQUIRES_USER_RECOVERY` record carries exactly one immutable Evidence Store reference and SHA-256. `DurableExternalEffectExecutor` validates adapter identity and digest before mutation, persists `PREPARED` before one invocation, persists redacted complete evidence before the current-owner/fence-checked terminal update, resolves exact terminal replay without another invocation or revision, and refuses automatic execution from pre-existing preparation. Adapter, evidence, terminal-store, and lease-expiry failures retain the durable prepared prefix. The bounded filesystem store rejects schema-v1 artifacts and enforces monotonic request, status, and evidence history; a named real-filesystem integration connects the runtime lease, ledger, executor, deterministic adapter, and Evidence Store. No production adapter, external call, retry/second AgentRun, cross-store transaction, multi-process lock, migration, cleanup, or parent-directory power-loss claim is added.
-- Delivery Gate 8 durable runtime control-request admission under `com.enhancer.runtime`: `AgentRuntimeState` retains an immutable ordered ledger of at most 256 exact `ControlPayload` envelopes, admitted only for an active Goal/AgentRun when logical-run, correlation, and work-message causation bind to the retained WorkItem. Exact restart replay is idempotent, identity reuse with different content and runtime-identity collisions fail closed, later lifecycle revisions retain the exact prefix, and schema-v2 filesystem persistence occurs before exposure while incompatible schema-v1 runtime artifacts fail explicitly. The request changes no Goal/AgentRun status, lease, fence, queue, Tool scope, worker, or bus cancellation state; authenticated application remains Gate 12 work.
+- Delivery Gate 8 durable runtime control-request admission under `com.enhancer.runtime`: `AgentRuntimeState` retains an immutable ordered ledger of at most 256 exact `ControlPayload` envelopes, admitted only for an active Goal/AgentRun when logical-run, correlation, and work-message causation bind to the retained WorkItem. Exact restart replay is idempotent, identity reuse with different content and runtime-identity collisions fail closed, later lifecycle revisions retain the exact prefix, and schema-v4 filesystem persistence occurs before exposure while incompatible schema-v1-v3 runtime artifacts fail explicitly. The request itself changes no Goal/AgentRun status, lease, fence, queue, Tool scope, worker, or bus cancellation state; application remains the separate authenticated boundary below.
 - Delivery Gate 8 process-isolated execution (connection 3d) under `com.enhancer.runtime`: `ProcessIsolatedAgentRunExecution` is the second production `AgentRunExecution`. It spools the work envelope to a `work/` spool under an invocation root private to the Goal and AgentRun, launches `IsolatedWorkerMain` through the `WorkerProcessLauncher` port with the project, evidence, and RunRecord roots as parent-supplied arguments, and returns the persisted RunRecord reference read back from a `result/` spool. The child runs the same Gate 1-4 pipeline as the in-process path through the package-private `AgentLoopAgentRunExecution.executeWork` seam, so the two paths do not drift without widening the public execution boundary. Re-entry reuses work only after decoding the sole message and matching the exact work destination and complete dispatched envelope; foreign work and several work or result messages fail before launch. The decoded Result now publishes through a fresh real `InProcessMessageBus` queue to `IsolatedResultMessageHandler`; exactly one `DELIVERED` outcome may expose the reference, while `UNROUTED`, failed, duplicate, or invalid delivery fails closed. The result remains a claim: the handler requires matching correlation/logical-run/causation/task identities, an exact `ResultPayload`, a reference resolvable in the shared `RunRecordStore`, a RunRecord bound to the dispatched task, source document, read-file target, and (when verification was performed) expected digest, plus agreement between claimed and recorded verification status. A non-completed launcher outcome or non-zero exit fails closed. Re-entry returns an already-published valid result through the same bus/handler path or a matching deterministic point-resolved record without launching a second child. Store roots never come from payload data. Its idempotent post-checkpoint cleanup removes only the exact Goal/AgentRun spool tree; retry, cancellation, and concurrent cycles sharing one invocation root do not exist.
 - Delivery Gate 8 isolated worker process (connection 3b) under `com.enhancer.runtime`: `IsolatedWorkerLauncher` runs one worker in a child process and returns a typed `IsolatedWorkerOutcome` — `COMPLETED` with an exit code, or `TIMED_OUT`/`START_FAILED` with a bounded reason and no exit code, so a destroyed child cannot read as a clean exit. The executable is resolved from `java.home`, canonicalized, and required to be a regular file; the child runs the current classpath and an entry point taken as a `Class<?>`, so no caller-supplied executable, command name, or shell reaches `ProcessBuilder` and there is no lookup to poison. Output is discarded by the operating system, `JAVA_TOOL_OPTIONS`/`_JAVA_OPTIONS`/`JDK_JAVA_OPTIONS` are stripped, the timeout is capped so a caller cannot disable the watchdog, and an overrunning child is forcibly destroyed. `IsolatedWorkerMain` is the child entry point and reads one message from a spool, so the boundary is proven by a real message crossing it. Nothing constructs the launcher in production.
 - Delivery Gate 8 local IPC transport adapter (connection 3c) under `com.enhancer.bus`: `FileSpoolMessageTransport` is the first concrete `MessageTransport`, writing one encoded route and envelope to its own file under a configured spool directory a peer reads — durably spooled is `ACCEPTED`, capacity exhaustion against a `BackpressurePolicy` is `BACKPRESSURED`, an unusable root is `UNAVAILABLE`, and a refusal spools nothing. `MessageEnvelopeCodec` owns the frame separately so the format is verifiable without a filesystem: all four payload kinds, epoch-second plus nanosecond occurrence time, no wall-clock or random state so encoding is deterministic, and fail-closed decoding reporting `CorruptedSpooledMessageException`, distinct from `IOException` because corrupt is permanent while a filesystem error may be transient. The adapter promises no ordering across separately spooled messages and is one-directional per instance; connection 3d composes separate work and result instances, while no durable bus or supported messaging entry point uses it.
-- Delivery Gate 8 WorkPayload execution input under `com.enhancer.bus`/`com.enhancer.runtime`: `WorkPayload` carries an optional caller-supplied `ExecutionInput(targetPath, expectedContentSha256)` (bounded target path, 64-hex digest) with a three-argument convenience constructor, projected by `WorkItem.executionInput()`, persisted after `allowedTools` in the queue schema-v3 and runtime schema-v2 filesystem serializers via a presence flag, and published through a `WorkMessagePublisher` overload as explicit caller authority data (not snapshot-derived). `AgentLoopAgentRunExecution`'s derivation seam prefers the declared input and falls back to the approved source document, so a WorkItem executes an arbitrary governed target while the `ApprovedTask`/Goal binding stays the source document. Incompatible snapshots fail closed; no write Tool, multiple inputs, or payload-carried plan is added.
+- Delivery Gate 8 WorkPayload execution input under `com.enhancer.bus`/`com.enhancer.runtime`: `WorkPayload` carries an optional caller-supplied `ExecutionInput(targetPath, expectedContentSha256)` (bounded target path, 64-hex digest) with a three-argument convenience constructor, projected by `WorkItem.executionInput()`, persisted after `allowedTools` in the queue schema-v3 and runtime schema-v4 filesystem serializers via a presence flag, and published through a `WorkMessagePublisher` overload as explicit caller authority data (not snapshot-derived). `AgentLoopAgentRunExecution`'s derivation seam prefers the declared input and falls back to the approved source document, so a WorkItem executes an arbitrary governed target while the `ApprovedTask`/Goal binding stays the source document. Incompatible snapshots fail closed; no write Tool, multiple inputs, or payload-carried plan is added.
 - Delivery Gate 8 AgentLoop-backed execution port under `com.enhancer.runtime`: `AgentLoopAgentRunExecution` is the first production `AgentRunExecution` — one `execute(dispatch)` call assembles the Gate 1-4 pipeline (governed `read-file` `ToolExecutor` with `EvidenceRecorder`-persisted evidence, bounded `AgentRunController`/`AgentLoop` at the CLI reference bounds, `DeterministicReadFileVerifier`, application `AgentRunFinalizer`) against the payload-declared execution input or its approved-source fallback and returns the persisted `run-record/<uuid>` reference. The `ApprovedTask` is built directly from the WorkItem so the runtime finalizer's taskId-plus-sourceDocument binding holds by construction; the port must persist through the same `RunRecordStore` the worker's finalizer resolves from. A digest mismatch or Tool failure is carried in a persisted non-`VERIFIED` RunRecord and is recorded by the runtime as a failed attempt at `RETRY_PENDING`, never thrown. Its package-private `executeWork` seam lets the isolated child reuse the same pipeline without creating a public lease-free execution API. The execution port itself adds no write Tool, retry controller, control application, or authority.
 - Delivery Gate 8 durable Scheduler worker (connection sub-increment 3a) under `com.enhancer.runtime`: `DurableAgentRunWorker.runOneCycle(leaseDuration)` drives one scheduling cycle over the existing `DurableAgentRunDispatcher`, `DurableAgentRuntime`, and `DurableAgentRunFinalizer` in the recoverable order cycle-intent (ids) -> queue claim + lease -> RunRecord persisted (ref) -> intent updated with ref -> execution-artifact cleanup -> `completeExecution` -> result recording -> terminal disposition when authorized. A worker-owned single-record durable cycle-intent checkpoint (`PendingFinalization`/`PendingFinalizationStore`/`FileSystemPendingFinalizationStore`: bounded, strict-UTF-8, digest-checked, atomically published, fail-closed) is written before the claim so restart re-entry supplies the same identities; the reference persists before cleanup and acknowledgement. Verified completion records `VERIFIED_COMPLETED` and clears the intent. A non-Verified result records a failed attempt, parks the Goal durably at `RETRY_PENDING`, retains the intent and RunRecord reference, returns empty, and neither fails the active WorkItem nor executes a second AgentRun. Cleanup failures likewise retain the checkpoint for no-reexecution recovery. Empty-queue cycles leave no durable trace, while pre-reference-checkpoint execution can orphan an earlier RunRecord under the accepted at-least-once contract. The retry controller and replacement-attempt execution remain outside this worker increment.
 - Delivery Gate 8 RunRecord-backed result-path finalization under `com.enhancer.runtime`: `DurableAgentRunFinalizer` composes the durable queue, `AgentRuntimeStateStore`, and `RunRecordStore` but separates `recordAgentRunResult` from `finalizeTerminalDisposition`. Result recording resolves but never persists the RunRecord, binds it to the Goal on `taskId` plus `sourceDocument`, and records a Verified attempt as Goal `COMPLETED` or a non-Verified attempt as Goal `RETRY_PENDING`; missing/corrupt/mismatched records fail closed while the run remains recoverable. Terminal disposition is derived only from terminal Goal state (`COMPLETED -> completeActiveVerified`, terminal `FAILED -> failActive` after a persisted refused retry decision), re-claims a recovery-requeued item when necessary, and performs no queue mutation for `ACTIVE` or `RETRY_PENDING`. The legacy forward method composes these steps for terminal results, and `recoverFinalization` applies only authorized post-terminal disposition. Queue and runtime remain separate stores with no cross-store transaction.
 - Delivery Gate 8 durable queue terminal disposition under `com.enhancer.runtime`: a terminal `WorkItemDisposition` (`VERIFIED_COMPLETED`, `FAILED`) where only verified completion satisfies dependencies, a disjoint `failedWorkItemIds` set extending the partition invariant to `pending + active + verified + failed`, and the `completeActiveVerified`/`failActive` split across the in-memory queue, durable wrapper, and schema-v3 filesystem store with exact restart recovery; failed work never satisfies dependents and the queue stores disposition only, not a failure reason.
-- Delivery Gate 8 schema-v2 durable Goal/AgentRun lifecycle and fenced ownership under `com.enhancer.runtime`: one exact WorkItem-backed Goal retains an immutable ordered history of at most 16 distinctly identified AgentRuns plus an ordered attempt-bound retry-decision history; `agentRun()` is the latest projection and completed-attempt count is derived from the immutable prefix. Each attempt follows Planning/Ready/leased-Executing/Awaiting-Verification/terminal transitions with matching typed result provenance, while the Goal follows `ACCEPTED -> ACTIVE -> COMPLETED` or `ACTIVE -> RETRY_PENDING -> ACTIVE|FAILED`. A failed attempt parks at non-terminal `RETRY_PENDING`; only a persisted admitted decision permits one replacement append, and only a persisted refused decision permits terminal abandonment. Leases retain injected expiry, stale-owner rejection, durable reclamation, and Goal-wide monotonically increasing fences across attempts. The bounded strict-UTF-8 integrity-checked filesystem store enforces exact WorkItem, AgentRun, retry-decision, control, and fence prefixes before exactly-one revision publication; corruption, history rewrite/truncation/reordering, invalid append, and schema v1 fail closed. No schema migration, retry controller, replacement execution, external-effect adapter, multi-process lock, distributed clock-skew protocol, or parent-directory power-loss claim is added.
+- Delivery Gate 8 schema-v4 durable Goal/AgentRun lifecycle and fenced ownership under `com.enhancer.runtime`: one exact WorkItem-backed Goal retains an immutable ordered history of at most 16 distinctly identified AgentRuns, an ordered attempt-bound retry-decision history, at most 256 exact lease-timeout records, and at most one authorization-bound cancellation application; `agentRun()` is the latest projection and completed-attempt count excludes cancellation. Each attempt follows Planning/Ready/leased-Executing/Awaiting-Verification/result-terminal transitions, while an authenticated cancellation may terminally cancel the current non-result attempt or a retry-pending Goal without rewriting its failed attempt. Leases retain injected expiry, stale-owner rejection, durable reclamation, exact timeout facts, and Goal-wide monotonically increasing fences across attempts. The bounded strict-UTF-8 integrity-checked filesystem store enforces exact WorkItem, AgentRun, retry-decision, control, cancellation, lease-timeout, and fence prefixes before exactly-one revision publication; corruption, history rewrite/truncation/reordering, invalid append, and schemas v1-v3 fail closed. No schema migration, process signalling, cancelled queue disposition, external-effect cancellation, multi-process lock, distributed clock-skew protocol, or parent-directory power-loss claim is added.
 - Delivery Gate 8 durable queue state and restart recovery under `com.enhancer.runtime`: canonical queue identity and one-logical-run binding, immutable schema-v3 snapshots retaining every exact priority-bearing `QueuedWork` in admission order including terminal work, maximum expedited burst, consecutive expedited progress, and an optional one-shot recovery-preferred WorkItem. The bounded strict-UTF-8 integrity-checked atomic filesystem store rejects history rewrite/truncation across revisions and persists every transition before exposure. Recovery requeues interrupted active work in admission order, persists its exact preferred identity, and the next claim consumes that ready item before ordinary priority selection without advancing fairness twice. Ordinary claims persist the selected active identity and next fairness progress in one transition. Each update uses the stable non-blocking queue-scoped operating-system lock; stale or contending writers fail without mutation. Exact admission replay remains revision-free and changed priority, capability, envelope, authorization, provenance, execution input, or dependencies under one identity fail closed. Schema-v1 remains unsupported and ordinary schema-v2 resolution fails closed.
 - Delivery Gate 8 stopped-Scheduler queue migration under `com.enhancer.runtime` and `com.enhancer.cli`: `FileSystemSchedulerQueueStore.migrateSchemaV2ToCurrent` plus `scheduler-migrate-queue` retain every schema-v2 queue field and exact work value while assigning `NORMAL`, maximum expedited burst `4`, progress `0`, and no migration-time recovery preference. Typed absent/current outcomes do not rewrite the queue artifact; migration writes and rereads a same-directory v3 candidate under the queue lock, refuses source drift, atomically replaces only after validation, and preserves the source on corruption or pre-publication failure. Real-filesystem store and CLI tests cover exact active-state migration through recovery, idempotence, corruption/future preservation, candidate cleanup, source drift, and absent-root non-creation. The command performs no claim, recovery, execution, Tool, effect, or priority admission.
 - Delivery Gate 8 dependency-ready single-worker queue under `com.enhancer.runtime`: immutable priority-bearing queued work with at most 256 unique canonical earlier-admitted dependencies, a run-scoped 4096-admission ceiling, duplicate rejection, complete admission-ordered ready-candidate selection, one active slot, and matching explicit completion; no lease, worker execution, priority admission input, or authority.
@@ -160,6 +160,92 @@ it does not restate which commit published which increment.
 
 ### Integrated
 
+- Delivery Gate 12 authenticated cancellation application and runtime-event path:
+  `AuthenticatedCancellationApplication` resolves one exact retained `CANCEL` request
+  and delegates authentication/authorization to an injected trusted
+  `ControlRequestAuthorizer`; envelope producer, reason, transport, and admission never
+  grant authority. A matching approval atomically persists one
+  `CancellationApplicationRecord` with Goal/current-AgentRun terminal cancellation in
+  AgentRuntime schema v4 before exposure. Denial, non-CANCEL input, or binding drift
+  leaves the runtime unchanged, while exact retained-record replay bypasses
+  reauthorization and advances no revision. Event-aware construction then derives
+  `CANCELLATION_APPLIED` from retained application time, Control causation, exact Work
+  binding, and stable Control-message/application references. Named filesystem evidence
+  proves missing-event repair and publication-failure replay. Credential issuance,
+  supported interfaces, process signalling, queue disposition, Tool/effect cancellation,
+  `PAUSE`/`RESUME`, and concrete event transport remain absent.
+- Delivery Gate 8 lease-timeout fact and runtime-event path: AgentRuntime schema v4
+  retains at most 256 ordered exact `LeaseTimeoutRecord` values. Expired
+  `EXECUTING -> READY` reclamation atomically appends the current AgentRun, owner,
+  fence, issue, expiry, and observation facts; the filesystem store preserves the
+  ledger as an exact prefix and validates the append against the reclaim transition.
+  Event-aware `DurableAgentRuntime` derives `TIMEOUT_DETECTED` with
+  `RuntimeTimeoutKind.LEASE` only after that revision is durable, using retained lease
+  expiry, Work-message causation, producer `durable-agent-runtime`, and stable
+  `agent-runtime/<goal>/lease-timeout/<agent-run>/<fence>` reference. Retained-record
+  replay repairs missing events and publication failures without another runtime
+  revision. Earlier runtime schemas, automatic post-reclaim execution, supported CLI
+  event composition, and a concrete publisher remain absent.
+- Delivery Gate 8 process-timeout fact and runtime-event path:
+  `ProcessIsolatedAgentRunExecution` now point-resolves a deterministic
+  `process-timeout/<goal>/<agent-run>` fact before spooling or launch. A fresh typed
+  `IsolatedWorkerStatus.TIMED_OUT` outcome persists the first post-outcome occurrence,
+  exact Work/Goal/AgentRun binding, positive timeout, and bounded launcher reason in the
+  integrity-checked `FileSystemProcessTimeoutFactStore` before exposing failure. Exact
+  re-entry rejects changed binding/content and fails again without another child. The
+  event-aware construction then derives `TIMEOUT_DETECTED` with
+  `RuntimeTimeoutKind.PROCESS`, Work-message causation, and the fact reference plus
+  semantic digest; missing-event and publication-failure recovery exact-replay without
+  another fact or event revision. Start failure, completed failure, and success create
+  no process-timeout fact. No AgentRun lifecycle/retry policy, RunRecord, MessageEnvelope,
+  or CLI event-publisher composition changes.
+- Delivery Gate 8 Tool-timeout runtime-event path: event-aware
+  `DurableAgentRunFinalizer.recordAgentRunResult` resolves a bound persisted RunRecord,
+  persists or exact-replays the matching Result transition, records the separate
+  verification fact, and only then derives `TIMEOUT_DETECTED` with
+  `RuntimeTimeoutKind.TOOL` when the exact Tool failure code is `TIMED_OUT`. The event
+  retains the RunRecord occurrence time, Result causation, exact runtime Work binding,
+  and stable Result-message plus RunRecord references. Named focused evidence proves
+  verification-before-timeout ordering, timeout-before-separate-stagnation ordering,
+  non-timeout exclusion, Result-persistence failure isolation, missing-event repair,
+  and exact replay after publication failure. Supported Worker/CLI event composition
+  and a concrete publisher remain absent.
+- Delivery Gate 8 stagnation runtime-event path: event-aware
+  `DurableAgentRunFinalizer.recordAgentRunResult` resolves the bound RunRecord and
+  persists or exact-replays the matching Result transition before deriving
+  `STAGNATION_DETECTED` only for worker stop reason `STAGNATED`. The RunRecord supplies
+  the retained occurrence time and total iterations, the current default Agent Loop
+  policy supplies threshold three, and ordered Result-message plus RunRecord references
+  keep identity stable after later runtime revisions. The existing
+  `VERIFICATION_RECORDED` event remains earlier and separate. Named filesystem evidence
+  proves exact repair after stagnation publication failure and later runtime progress,
+  while non-stagnated records retain verification-only behavior. No source schema,
+  timeout owner, supported Worker/CLI composition, or concrete publisher is added.
+- Delivery Gate 8 retry-started runtime-event path: event-aware
+  `DurableAgentRunRetryController.beginAdmittedRetry` persists or exact-replays the
+  caller-checkpointed replacement AgentRun before deriving one deterministic
+  `RETRY_STARTED` event from the replacement, previous failed attempt, exact retained
+  Work binding, causal failed Result, admitted decision, and stable replacement-AgentRun
+  identity. The source has no retained transition time, so the injected
+  post-persistence clock supplies the first candidate and recorder replay preserves the
+  first event occurrence. Named filesystem evidence proves decision-before-start order,
+  replacement-persistence isolation, publisher recovery after a later `READY` revision,
+  and missing-event repair after later runtime progress without another runtime or event
+  revision. Refused abandonment, existing event-free construction, supported Worker/CLI
+  event composition, and a concrete publisher adapter remain unchanged or absent.
+- Delivery Gate 8 retry-decision runtime-event path: the event-aware
+  `DurableAgentRunRetryController` persists or exact-replays the admitted or refused
+  attempt-bound decision before deriving one deterministic `RETRY_DECISION_RECORDED`
+  event from the exact Goal, WorkItem, failed AgentRun, task, snapshot, run,
+  correlation, causal Result message, decision outcome, stable retry-decision identity,
+  and decision-bearing runtime revision. The source has no retained transition time, so
+  an injected post-persistence clock supplies the first candidate and
+  `RuntimeEventRecorder` reuses the first persisted occurrence during publication
+  recovery. Named filesystem evidence proves exact replay without either stream
+  revision advancing, runtime-persistence isolation, event-append recovery, and
+  publisher-failure recovery under a later clock. Existing construction remains
+  event-free, `RETRY_STARTED` is not connected, and no supported Worker/CLI composition
+  or concrete publisher adapter exists.
 - Delivery Gate 8 terminal WorkItem runtime-event path: the event-aware
   `DurableAgentRunFinalizer` applies or re-enters the exact verified-completed or failed
   queue partition and confirms the target before deriving `WORK_ITEM_TERMINATED` from
@@ -199,10 +285,10 @@ it does not restate which commit published which increment.
   supported migrations, restart/lost-acknowledgement recovery, and explicit
   external-effect outcomes compose through named filesystem and child-process paths.
   Explicit submission/cycle workflows are Operational sub-paths, but the whole gate is
-  not promoted: cancellation-request, verification, and terminal WorkItem owners reach
-  the recorder and an injected publisher port, but the remaining runtime-event owners
-  and a concrete publication adapter remain absent, while budgets, Memory,
-  authenticated control application,
+  not promoted: retry-decision, retry-started, Tool/process/lease-timeout, stagnation,
+  cancellation-request/application, verification, and terminal WorkItem owners reach
+  the recorder and an injected publisher port, but a concrete publication adapter
+  remains absent, while budgets, Memory, broader authenticated control application,
   production adapters, and role workers remain owned by Gates 9 through 13.
 - Gate 7 isolated-worker Work/Result Message Bus path: the real child JVM receives the
   parent-spooled Work transport point, routes it through the fresh Work queue into the
@@ -373,6 +459,14 @@ it does not restate which commit published which increment.
   evidence references, working-artifact digests, atomic integrity-checked recovery, and
   start/record/show/clear CLI operations. The checkpoint is recovery metadata and cannot
   promote task, verification, maturity, or delivery state.
+- Document-driven dynamic increment workflows under the single `CURRENT_TASK.md`
+  authority: an optional bounded queue carries two through sixteen pre-authorized
+  sequential increments with stable identities, dependencies, exit criteria,
+  verification, stop conditions, deterministic successor selection, and at most one
+  active increment. An executable structural guard checks the live grammar and governed
+  instruction connections. This is development governance only; it adds no runtime
+  Workflow Engine, automatic approval or delivery, background execution, parallelism,
+  or multi-agent dispatch.
 - RED failures are classified against active task authority, accepted decisions, Architecture, and repository settings before aligned missing implementation proceeds to the minimum GREEN change.
 - Java 17 strict lint (`-Xlint:all -Werror`) is enforced by the build across production and test sources, so `./gradlew build` refuses a warning rather than relying on a manual invocation being remembered.
 
@@ -560,15 +654,16 @@ system, not open tasks; each is retired only by a bounded increment of its own.
   establish whether an ambiguous prepared effect occurred, authorize replay or
   compensation, or make the sequential multi-store observation atomic.
 - An unresolved external-effect `PREPARED` record is intentionally not replayed automatically; an owning adapter or user must establish deduplication, compensation, application, or explicit recovery evidence. The retry controller refuses it.
-- Cancellation-request, verification, and terminal WorkItem runtime-event recording are
-  connected only
+- Retry-decision, retry-started, Tool/process/lease-timeout, stagnation, cancellation-request/application,
+  verification, and terminal WorkItem runtime-event recording are connected only
   through event-aware owner construction and an injected publisher port. The supported
-  Control receiver/CLI has no runtime-event root or concrete publisher adapter, and the
-  remaining five event kinds have no transition-owner recorder connection.
+  Control receiver/CLI has no runtime-event root or concrete publisher adapter. The
+  authenticated application remains a library boundary with no credential or interface
+  composition, process signal, or cancelled queue disposition.
 - Development-session checkpoints support one active local session per repository and
   have no background timer, token-budget introspection, platform shutdown hook,
   multi-session merge, remote replication, or automatic Git commit/stash behavior.
-- Schema-v2 AgentRun/decision history, split finalization, durable retry control,
+- Schema-v4 AgentRun/decision/lease-timeout/cancellation history, split finalization, durable retry control,
   replacement identity checkpointing, replacement execution/recovery wiring, durable
   submission, the explicit two-command Scheduler workflow, and the replay-safe
   generated-input submission workflow (`scheduler-submit-generated` plus a separate
