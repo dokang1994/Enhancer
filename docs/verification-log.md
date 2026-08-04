@@ -3998,3 +3998,33 @@ Outcome:
   task's bounded delegation decision, structural contract, and governed document
   synchronization. No deletion, generated build output, credential, commit, push, or
   external delivery entered the diff; `HEAD` and `origin/main` remained synchronized.
+
+## 2026-08-04 - Deliver Adaptive Subagent Governance And Accumulated Verified Work
+
+- The user explicitly authorized commit, push, and delivery to `main`. The repository
+  was already on `main` at `ae7d733`, so direct commit and push supplied the requested
+  main integration without a synthetic merge commit or temporary branch.
+- Before staging, fresh Java 17 verification recompiled production and tests in 1
+  minute 29 seconds and ran 23 tests across six delegation and document-governance
+  suites: 22 passed, one Windows environment-dependent symbolic-link case skipped, and
+  zero failed or errored. Fresh `git diff --check` produced no output.
+- Cached review covered exactly 27 paths with 1,736 insertions and 148 deletions.
+  `git diff --cached --check` produced no output, and name/status review found no
+  deleted file, generated build output, or credential path.
+- Commit `3d4e4e5949eaf544f9035b96945a724e2b8ba44b` was created on `main` with subject
+  `docs: govern adaptive project subagent usage`; its body records that the same
+  governed delivery also includes the already verified runtime-event publication and
+  Control-receiver increments.
+- `git push origin main` advanced `origin/main` from `ae7d733` to `3d4e4e5`. Immediate
+  post-push comparison found `HEAD`, `main`, and `origin/main` at the exact same full
+  commit identity with a clean working tree.
+
+## 2026-08-04 - Main Delivery Evidence Post-Synchronization Verification
+
+- After the delivery increment and initial push evidence were synchronized into the
+  Active Task and verification log, fresh Java 17 verification recompiled production
+  and tests in 1 minute 18 seconds and ran 23 tests across the six delegation and
+  document-governance suites: 22 passed, one Windows environment-dependent symbolic-
+  link case skipped, and zero failed or errored.
+- Fresh `git diff --check` produced no output. Only `CURRENT_TASK.md` and this append-only
+  verification log remained changed for the final evidence synchronization commit.
