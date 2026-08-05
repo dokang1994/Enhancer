@@ -4196,3 +4196,54 @@ Outcome:
 - Before final state promotion, the evidence synchronization contained only the three
   owning Markdown paths with no implementation drift, deletion, generated output,
   credential material, history rewrite, tag, deployment, or unrelated external effect.
+
+## 2026-08-05 - Compose Lease Timeout Publication Across Scheduler Commands
+
+- Required repository authority was read in order, fresh checkpoint inspection was
+  empty, and `HEAD`, local `main`, and `origin/main` were aligned at
+  `7efdbd1a64511347995c48d0e252e994cf81ad2d` with a clean working tree before task
+  activation. Three bounded read-only runtime, test, and governance reviews joined and
+  were reconciled by the primary Agent without mutation or nested delegation.
+- Focused Java 17 RED compiled and ran four CLI integration cases. All four failed at
+  the task-owned boundary: cycle, drain, and service reclaimed the expired lease but
+  had no runtime-event stream, and exact re-entry had no pending publication point.
+- The minimum implementation retained the existing optional recorder in the shared
+  worker, passed it through exact-WorkItem dispatcher recovery and all three direct
+  worker runtime-recovery sites, and left finalizer and retry construction unchanged.
+  The same focused suite then ran four tests with zero skipped, failed, or errored,
+  proving exact LEASE event provenance, one opaque point, missing event/point repair,
+  revision-free retained-record replay, and acknowledged-point non-recreation.
+- Expanded runtime and CLI regression ran 77 tests across seven suites with zero
+  skipped, failed, or errored, including existing process-timeout publication,
+  event-free service reclamation, runtime owner replay, dispatcher/worker recovery, and
+  CLI option validation.
+- The first full Java 17 clean build ran 727 tests and exposed one Decision Log index
+  failure from two unindexed task-justification identities. The checkpoint rejected an
+  attempted contract edit as designed; the original contract was restored and the
+  already asserted user-continuation and recorded-candidate authorities were indexed
+  as accepted decisions. Focused Decision Log, document-ownership, and Dynamic Workflow
+  verification then passed.
+- The repeated Java 17 `clean build --no-daemon --console=plain` executed all eight
+  tasks in 6 minutes 18 seconds and ran 727 tests across 139 suites: 719 passed, eight
+  environment-dependent cases skipped, and zero failed or errored. Verified source
+  counts were 312 production and 140 test Java files. Fresh `git diff --check` produced
+  no output before document synchronization.
+- No invocation against an actual user Scheduler/runtime root, commit, push, merge,
+  release, deployment, external adapter/message, destructive action, cleanup,
+  retention operation, permission change, or credential change was performed.
+
+## 2026-08-05 - Synchronize Lease Timeout Composition Documents
+
+- Architecture now states the shared process plus lease-recovery recorder boundary and
+  current schema-v4 lease ledger. Project State records the Integrated Scheduler owner
+  composition without a Gate promotion, Roadmap removes the completed lease candidate,
+  Changelog records the notable local change, and the Active Task closes its sequential
+  workflow. `SESSION_HANDOFF.md` required no change because it already contains all
+  current host-only continuation facts.
+- Fresh Java 17 Decision Log, document-ownership, Dynamic Workflow, and runtime package-
+  boundary verification ran 11 tests across four suites with zero skipped, failed, or
+  errored. Final primary review found 14 intentional paths, no deletion, no unrelated
+  implementation, and no `git diff --check` output.
+- The work remains uncommitted on local `main`; no commit, push, merge, release,
+  deployment, external runtime invocation, destructive action, permission change, or
+  credential change was authorized or performed.

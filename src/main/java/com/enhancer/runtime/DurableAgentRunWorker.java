@@ -28,6 +28,7 @@ public final class DurableAgentRunWorker {
     private final AgentRunRetryPolicy retryPolicy;
     private final String ownerId;
     private final Clock clock;
+    private final Optional<RuntimeEventRecorder> eventRecorder;
 
     public DurableAgentRunWorker(
             DurableAgentRunDispatcher dispatcher,
@@ -39,6 +40,30 @@ public final class DurableAgentRunWorker {
             AgentRunRetryPolicy retryPolicy,
             String ownerId,
             Clock clock) {
+        this(
+                dispatcher,
+                execution,
+                checkpoint,
+                finalizer,
+                runtimeStore,
+                effectStore,
+                retryPolicy,
+                ownerId,
+                clock,
+                Optional.empty());
+    }
+
+    private DurableAgentRunWorker(
+            DurableAgentRunDispatcher dispatcher,
+            AgentRunExecution execution,
+            PendingFinalizationStore checkpoint,
+            DurableAgentRunFinalizer finalizer,
+            AgentRuntimeStateStore runtimeStore,
+            ExternalEffectLedgerStore effectStore,
+            AgentRunRetryPolicy retryPolicy,
+            String ownerId,
+            Clock clock,
+            Optional<RuntimeEventRecorder> eventRecorder) {
         this.dispatcher = Objects.requireNonNull(
                 dispatcher, "dispatcher must not be null");
         this.execution = Objects.requireNonNull(
@@ -60,6 +85,8 @@ public final class DurableAgentRunWorker {
         this.ownerId = Objects.requireNonNull(
                 ownerId, "ownerId must not be null");
         this.clock = Objects.requireNonNull(clock, "clock must not be null");
+        this.eventRecorder = Objects.requireNonNull(
+                eventRecorder, "eventRecorder must not be null");
     }
 
     /**
@@ -100,7 +127,7 @@ public final class DurableAgentRunWorker {
                 Optional.empty());
     }
 
-    /** Event-aware process-isolated composition limited to the process timeout owner. */
+    /** Event-aware process isolation and AgentRuntime lease recovery composition. */
     public static DurableAgentRunWorker processIsolated(
             DurableSingleWorkerSchedulerQueue queue,
             AgentRuntimeStateStore runtimeStore,
@@ -174,8 +201,13 @@ public final class DurableAgentRunWorker {
                         runRecordStore,
                         new IsolatedWorkerLauncher(),
                         processTimeout));
+        DurableAgentRunDispatcher dispatcher = eventRecorder
+                .map(recorder -> new DurableAgentRunDispatcher(
+                        queue, runtimeStore, clock, recorder))
+                .orElseGet(() -> new DurableAgentRunDispatcher(
+                        queue, runtimeStore, clock));
         return new DurableAgentRunWorker(
-                new DurableAgentRunDispatcher(queue, runtimeStore, clock),
+                dispatcher,
                 isolatedExecution,
                 checkpoint,
                 new DurableAgentRunFinalizer(
@@ -184,7 +216,8 @@ public final class DurableAgentRunWorker {
                 effectStore,
                 retryPolicy,
                 ownerId,
-                clock);
+                clock,
+                eventRecorder);
     }
 
     public Optional<WorkItemDisposition> runOneCycle(Duration leaseDuration)
@@ -210,8 +243,7 @@ public final class DurableAgentRunWorker {
             Duration leaseDuration) throws IOException {
         DurableAgentRuntime runtime;
         try {
-            runtime = DurableAgentRuntime.recover(
-                    pending.goalId(), runtimeStore, clock);
+            runtime = recoverRuntime(pending.goalId());
         } catch (MissingAgentRuntimeStateException exception) {
             // The intent was recorded but the cycle stopped before the dispatcher
             // created the runtime (or the queue was empty); re-drive with the same
@@ -287,8 +319,7 @@ public final class DurableAgentRunWorker {
         // checkpointed. If cleanup fails, the checkpoint remains and recovery retries this
         // operation without executing the work again.
         execution.cleanupAfterCheckpoint(dispatch);
-        DurableAgentRuntime runtime = DurableAgentRuntime.recover(
-                goalId, runtimeStore, clock);
+        DurableAgentRuntime runtime = recoverRuntime(goalId);
         runtime.completeExecution(
                 agentRunId, ownerId, dispatch.lease().fenceToken());
         finalizer.recordAgentRunResult(goalId, agentRunId, reference);
@@ -315,8 +346,7 @@ public final class DurableAgentRunWorker {
     private Optional<WorkItemDisposition> resolveRetry(
             PendingFinalization pending,
             Duration leaseDuration) throws IOException {
-        DurableAgentRuntime runtime = DurableAgentRuntime.recover(
-                pending.goalId(), runtimeStore, clock);
+        DurableAgentRuntime runtime = recoverRuntime(pending.goalId());
         RuntimeAgentRun latest = runtime.agentRun().orElseThrow(() ->
                 new IllegalStateException("retry-pending Goal has no AgentRun"));
         if (runtime.goal().status() != RuntimeGoalStatus.RETRY_PENDING
@@ -368,6 +398,17 @@ public final class DurableAgentRunWorker {
                 replacement.agentRunId(),
                 replacement.runRecordReference(),
                 leaseDuration);
+    }
+
+    private DurableAgentRuntime recoverRuntime(String goalId) throws IOException {
+        if (eventRecorder.isPresent()) {
+            return DurableAgentRuntime.recover(
+                    goalId,
+                    runtimeStore,
+                    clock,
+                    eventRecorder.orElseThrow());
+        }
+        return DurableAgentRuntime.recover(goalId, runtimeStore, clock);
     }
 
     private String newReplacementAgentRunId(DurableAgentRuntime runtime) {

@@ -11,6 +11,30 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User request on 2026-08-05 to commit, push, and merge the completed lease-timeout Scheduler composition to main
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-05-deliver-lease-timeout-scheduler-runtime-event-composition-to-main.md)
+
+### User continuation request on 2026-08-05
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-05-user-continuation-request.md)
+
+### `ROADMAP.md` and the completed delivery task identify lease-timeout recovery through
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-05-select-recorded-lease-timeout-runtime-event-candidate.md)
+
+### 2026-08-05: Compose Lease Timeout Runtime Event Publication Across Supported Scheduler Execution Commands
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-05-compose-lease-timeout-runtime-event-publication-across-supported-scheduler-execution-commands.md)
+
 ### User request on 2026-08-05 to commit, push, and deliver accumulated runtime-event work to main
 
 Status: Accepted Decision

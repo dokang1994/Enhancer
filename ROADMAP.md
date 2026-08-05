@@ -800,13 +800,14 @@ Current increment:
   all-or-none caller-owned group, publishing only `CANCELLATION_REQUEST_RECORDED` before
   spool acknowledgement while retaining exact repair after capacity or publication
   failure;
-- Integrated process-timeout-only Scheduler publication: `scheduler-cycle`,
+- Integrated process- and lease-timeout Scheduler publication: `scheduler-cycle`,
   `scheduler-drain`, and `scheduler-service` accept the same optional all-or-none event
   store root, publication root, and capacity group. Their shared worker composition
-  injects the resulting recorder only into `ProcessIsolatedAgentRunExecution`, so a
-  watchdog timeout preserves fact -> exact event -> opaque point ordering and retained
-  re-entry repairs publication without another child, RunRecord, retry decision, or
-  terminal queue disposition;
+  injects the resulting recorder into `ProcessIsolatedAgentRunExecution` and only the
+  AgentRuntime recovery performed by its worker and dispatcher. Watchdog and lease
+  timeout owners each preserve source fact -> exact event -> opaque point ordering;
+  retained re-entry repairs publication without another child, lease reclaim, source
+  revision, RunRecord, retry decision, or unrelated owner activation;
 - Contract Verified and Integrated first read-only consumer: one explicit
   `.runtime-event-reference` point is integrity-checked, bound to its deterministic
   filename, parsed into canonical Goal/event identities, and resolved through exactly
@@ -823,8 +824,7 @@ Current increment:
   or cleanup/retention authority;
 - remaining runtime-event work: select another explicit owner composition while
   preserving source-first durability, exact replay, consumer idempotency, and separate
-  application authority; the retained lease-timeout source at the shared Scheduler
-  runtime-recovery seam is the current bounded candidate;
+  application authority;
 - deferred: real authorized external adapters, admission-history compaction/cleanup or
   schema-v1 queue migration, general orphan inventory/cleanup with an explicit retention
   and scan policy, general forward-reference graph/cycle handling, authenticated

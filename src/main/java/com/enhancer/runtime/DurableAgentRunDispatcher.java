@@ -14,17 +14,41 @@ public final class DurableAgentRunDispatcher {
     private final DurableSingleWorkerSchedulerQueue queue;
     private final AgentRuntimeStateStore runtimeStore;
     private final Clock clock;
+    private final Optional<RuntimeEventRecorder> eventRecorder;
 
     public DurableAgentRunDispatcher(
             DurableSingleWorkerSchedulerQueue queue,
             AgentRuntimeStateStore runtimeStore,
             Clock clock) {
+        this(queue, runtimeStore, clock, Optional.empty());
+    }
+
+    public DurableAgentRunDispatcher(
+            DurableSingleWorkerSchedulerQueue queue,
+            AgentRuntimeStateStore runtimeStore,
+            Clock clock,
+            RuntimeEventRecorder eventRecorder) {
+        this(
+                queue,
+                runtimeStore,
+                clock,
+                Optional.of(Objects.requireNonNull(
+                        eventRecorder, "eventRecorder must not be null")));
+    }
+
+    private DurableAgentRunDispatcher(
+            DurableSingleWorkerSchedulerQueue queue,
+            AgentRuntimeStateStore runtimeStore,
+            Clock clock,
+            Optional<RuntimeEventRecorder> eventRecorder) {
         this.queue = Objects.requireNonNull(
                 queue, "queue must not be null");
         this.runtimeStore = Objects.requireNonNull(
                 runtimeStore, "runtimeStore must not be null");
         this.clock = Objects.requireNonNull(
                 clock, "clock must not be null");
+        this.eventRecorder = Objects.requireNonNull(
+                eventRecorder, "eventRecorder must not be null");
     }
 
     public Optional<AgentRunDispatch> claimAndLease(
@@ -70,11 +94,16 @@ public final class DurableAgentRunDispatcher {
             String goalId,
             WorkItem workItem) throws IOException {
         try {
+            if (eventRecorder.isPresent()) {
+                return DurableAgentRuntime.recoverMatching(
+                        goalId,
+                        workItem,
+                        runtimeStore,
+                        clock,
+                        eventRecorder.orElseThrow());
+            }
             return DurableAgentRuntime.recoverMatching(
-                    goalId,
-                    workItem,
-                    runtimeStore,
-                    clock);
+                    goalId, workItem, runtimeStore, clock);
         } catch (MissingAgentRuntimeStateException exception) {
             return DurableAgentRuntime.create(
                     goalId,

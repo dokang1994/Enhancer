@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-08-05 - Compose Lease Timeout Publication Across Scheduler Commands
+
+- Reused the existing optional Scheduler filesystem event configuration across cycle,
+  drain, and service for AgentRuntime lease recovery without adding a CLI option.
+- Threaded the same recorder through WorkItem-matched dispatcher recovery and the
+  worker's direct runtime-recovery sites while leaving finalizer, retry, Tool timeout,
+  verification, cancellation, stagnation, and terminal owners event-free.
+- Added deterministic real-filesystem coverage for one retained LEASE timeout event and
+  opaque point from every supported Scheduler command, plus missing event/point repair
+  and acknowledged-point replay without another source revision, execution, or
+  RunRecord. Commit, push, merge, release, deployment, cleanup, retention, and another
+  owner composition remain separate.
+
 ## 2026-08-05 - Deliver Accumulated Runtime Event Work To Main
 
 - Delivered the verified read-only publication-point resolver, deterministic

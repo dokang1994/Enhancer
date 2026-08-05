@@ -2,81 +2,73 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Deliver the accumulated verified runtime-event point reader, deterministic
-acknowledgement, and process-timeout Scheduler publication work to `main` through
-reviewed commits and verified pushes without rewriting history or widening the released
-capability claim.
+Deliver the completed and freshly verified lease-timeout Scheduler runtime-event
+composition to `main` through reviewed ordinary commits and non-force pushes, while
+preserving the exact implementation scope and recording external delivery evidence.
 
 ## Task ID
 
-deliver-accumulated-runtime-event-work-to-main
+deliver-lease-timeout-scheduler-runtime-event-composition-to-main
 
 ## Context
 
-Three completed tasks remain together as 33 intentional working-tree paths over
-`d272809254919f35d99c528885ab5d39767307c1`: read-only publication-point resolution,
-deterministic acknowledgement/capacity release, and process-timeout-only publication
-from the three supported Scheduler execution commands. Their implementation,
-documentation, decisions, and verification evidence are synchronized locally.
+The completed lease-timeout composition currently exists as fifteen intentional
+working-tree paths directly on local `main`. Fresh local inspection found `HEAD`,
+`main`, and the last known `origin/main` aligned at
+`7efdbd1a64511347995c48d0e252e994cf81ad2d` with zero recorded divergence and an empty
+development-session checkpoint. The user has now explicitly requested commit, push,
+and merge to `main`.
 
-The repository was last observed on `main` tracking `origin/main`, with `HEAD`, `main`,
-and the last fetched `origin/main` aligned. Because the work already resides on `main`,
-an ordinary reviewed commit followed by a successful push advances main directly and
-does not require a synthetic feature branch or merge commit. Fresh fetch and reference
-inspection must confirm that topology before any commit or push.
+Because the work is already based directly on `main`, an ordinary commit followed by a
+successful fast-forward push is the merge result; a synthetic branch or merge commit
+would add no distinct integration. Remote state must still be fetched and reconciled
+before staging, and any divergence or unexpected artifact stops delivery.
 
 ## Justified By
 
-- User request on 2026-08-05 to commit, push, and deliver accumulated runtime-event work to main
+- User request on 2026-08-05 to commit, push, and merge the completed lease-timeout Scheduler composition to main
+- 2026-08-05: Compose Lease Timeout Runtime Event Publication Across Supported Scheduler Execution Commands
 
 ## Approval
 
-The user explicitly requested commit, push, and merge to `main`, then asked the Agent to
-continue. This authorizes local task/decision/evidence synchronization, fresh Git and
-Java 17 verification, staging the exact reviewed accumulated paths, creating ordinary
-non-amending commits, fetching `origin`, pushing the resulting commits to
-`origin/main`, and verifying the remote reference.
-
-If fresh inspection confirms the work is already on an aligned local `main`, direct
-commit and push is the authorized main integration. This approval does not authorize
-force push, history rewrite, amend/rebase/reset, deletion of user work, release tags,
-GitHub issues or pull requests, deployment, package publication, permission or
-credential changes, destructive cleanup, arbitrary external messages, or unrelated
-implementation.
+The user's explicit request authorizes local delivery-task and accepted-decision
+synchronization, bounded read-only delivery review, fresh Java 17 verification, Git
+fetch and inspection, staging of the exact reviewed task paths, ordinary non-amending
+commit creation on the current `main`, non-force push to `origin/main`, direct-main
+integration verification, and a small follow-up evidence commit and push when needed
+to leave canonical records truthful. It does not authorize force push, amend, rebase,
+reset, history rewrite, tag, release, deployment, pull-request or issue mutation,
+branch deletion, destructive action, credential or permission change, paid service,
+external message, or unrelated implementation.
 
 ## Acceptance Criteria
 
-- Fresh checkpoint, branch, remote, status, diff, and reference inspection reconciles
-  the exact accumulated paths with the three completed tasks and finds no unexpected
-  deletion, generated build output, credential material, or unrelated change.
-- Fresh `git fetch origin` confirms `main` can be advanced without overwriting or
-  silently absorbing an unverified divergent remote history. Any divergence stops the
-  task for reconciliation before commit or push.
-- Fresh Java 17 compile/test and governance evidence remains green after the delivery
-  task and accepted decision are synchronized.
-- The exact reviewed accumulated work is staged, cached-diff checked, and committed on
-  `main` with an ordinary commit whose message truthfully covers the reader,
-  acknowledgement, and process-timeout Scheduler publication work.
-- `git push origin main` succeeds without force and fresh remote inspection proves
-  `HEAD`, local `main`, and `origin/main` resolve to the same commit.
-- Delivery evidence is appended once, canonical task/handoff/changelog state is
-  synchronized without duplicating Git-owned history, and any evidence-only follow-up
-  commit is likewise reviewed, pushed, and verified on `origin/main`.
-- Final working tree is clean, all references are aligned, no task authority remains
-  pending, and the artifact-matched checkpoint is recorded `STABLE` and cleared.
+- Fresh fetch and reference inspection prove local `main` is based on the current
+  `origin/main`; divergence, non-fast-forward state, or unexpected paths stops delivery.
+- Bounded independent reviews find the exact implementation and documentation diff
+  coherent, scoped, secret-free, and suitable for direct-main delivery.
+- Fresh Java 17 task-relevant and full build verification passes before the first
+  commit, and `git diff --check` remains clean.
+- The exact reviewed implementation, test, decision, state, roadmap, changelog, task,
+  and verification paths are committed without amend or unrelated artifacts.
+- Successful non-force push makes `origin/main` contain the implementation commit; no
+  synthetic merge commit is created when local and remote `main` have one linear
+  history.
+- Delivery evidence is appended once, owning documents are synchronized, any follow-up
+  evidence commit is pushed, local and remote `main` resolve to the same final commit,
+  the working tree is clean, and an artifact-matched `STABLE` checkpoint is cleared.
 
 ## Out Of Scope
 
-New runtime-event behavior or owner composition; architecture, schema, lifecycle,
-queue, retry, timeout, consumer, cleanup, or retention changes; force push, amend,
-rebase, reset, cherry-pick, history rewrite, branch deletion, tag or release creation,
-pull request/issue/comment creation, deployment, package publication, external runtime
-invocation, credential or permission changes, paid services, destructive actions,
-unrelated formatting, or continuation into the next lease-timeout implementation task.
+Additional runtime-event owners or product behavior; code or test changes beyond the
+already completed lease-timeout composition; force push; amend; rebase; reset; history
+rewrite; synthetic merge commit without a distinct branch; tag; release; deployment;
+pull request; issue; branch deletion; destructive cleanup; paid service; credential or
+permission change; external message; or unrelated formatting.
 
 ## Allowed Tools
 
@@ -98,96 +90,101 @@ Maximum Concurrent Subagents: 3
 Delegation Depth: 1
 Mutation Owner: Primary Agent only
 Evidence Rule: Reports are recommendations and never verification evidence.
-Join Rule: Every dispatched reviewer is joined before staging or lifecycle promotion.
+Join Rule: Every dispatched reviewer is joined before increment completion or session close.
 
 ## Dynamic Workflow
 
-Workflow ID: deliver-accumulated-runtime-event-work-to-main
+Workflow ID: deliver-lease-timeout-scheduler-runtime-event-composition-to-main
 Mode: Sequential
 Increment Limit: 4
 Selection Rule: Select the first dependency-ready Pending increment after reading the
 required evidence for every dependency.
-Stop Conditions: Stop on authority conflict, unexpected path, secret or generated
-artifact, failed verification, remote divergence, rejected/non-fast-forward push,
-artifact mismatch, task drift, exhausted bounds, or unsafe recovery.
+Stop Conditions: Stop on authority conflict, remote divergence, non-fast-forward
+state, unexpected artifact, failed verification, unsafe recovery, checkpoint drift,
+missing authority, exhausted bounds, or an unjoined reviewer.
 
-### Increment 1 - reconcile-delivery-scope
+### Increment 1 - reconcile-delivery-boundary
 
 State: Completed
 Depends On: none
-Scope: Record the accepted delivery decision, inspect the exact accumulated diff and
-Git topology, fetch the remote, and join bounded read-only delivery reviews.
-Exit Criteria: The direct-main delivery topology and exact path set are safe, aligned,
-and free of unexpected or sensitive content.
-Verification: Checkpoint, Git status/diff/name/secret review, branch/upstream/reference
-inspection, fresh fetch, and primary reconciliation of joined recommendations.
-Next Action: Run fresh pre-delivery Java 17 and governance verification.
+Scope: Record the delivery authority, fetch and compare remote `main`, inspect the
+exact changed paths, and reconcile bounded read-only reviews of scope, Git topology,
+and governance.
+Exit Criteria: The delivery decision is indexed, the remote baseline is current and
+non-divergent, and every intended path is classified without secret, generated,
+deletion, or scope concerns.
+Verification: Primary Git/status/diff/reference inspection plus joined read-only
+review reports reconciled against repository authority.
+Next Action: Run fresh claim-bearing verification over the delivery candidate.
 
-### Increment 2 - verify-and-commit-accumulated-work
+### Increment 2 - verify-and-commit-candidate
 
-State: Completed
-Depends On: reconcile-delivery-scope
-Scope: Run claim-bearing verification, stage only the reviewed paths, inspect the cached
-diff, and create the ordinary accumulated-work commit on `main`.
-Exit Criteria: Fresh verification is green and the commit exactly matches the reviewed
-work with no unstaged or unexpected path.
-Verification: Java 17 build/governance checks, `git diff --check`, cached diff check,
-cached name/stat/content review, and post-commit status/reference inspection.
-Next Action: Push the accumulated-work commit to `origin/main` and verify it.
+State: In Progress
+Depends On: reconcile-delivery-boundary
+Scope: Run focused governance and full Java 17 verification, correct only owning
+delivery metadata where fresh evidence requires it, review the final diff, and create
+the ordinary implementation commit from the exact candidate.
+Exit Criteria: Fresh verification is green and one non-amending commit on `main`
+contains only the reviewed delivery candidate.
+Verification: Focused governance tests, full clean build, source counts, staged diff,
+`git diff --check`, and commit inspection.
+Next Action: Push the implementation commit to `origin/main` without force.
 
-### Increment 3 - push-and-verify-main-delivery
+### Increment 3 - push-and-confirm-main
 
-State: Completed
-Depends On: verify-and-commit-accumulated-work
-Scope: Push the ordinary commit to `origin/main` without force and verify the resulting
-remote identity.
-Exit Criteria: Push succeeds and fresh remote inspection proves exact HEAD/local/remote
-main alignment.
-Verification: Raw push output plus fresh fetch or `ls-remote` and exact reference IDs.
-Next Action: Synchronize delivery evidence and close the task.
+State: Pending
+Depends On: verify-and-commit-candidate
+Scope: Non-force push the implementation commit and verify it is contained in current
+remote `main` with a linear direct-main topology.
+Exit Criteria: The push succeeds and fresh remote inspection shows `origin/main`
+contains the implementation commit with no local/remote divergence.
+Verification: Push output, fetch, exact reference comparison, ancestry, and log review.
+Next Action: Synchronize append-only delivery evidence and close the task.
 
-### Increment 4 - synchronize-delivery-evidence
+### Increment 4 - record-delivery-and-close
 
-State: Completed
-Depends On: push-and-verify-main-delivery
-Scope: Append the external delivery evidence once, mark the delivery task complete,
-verify documents, and commit the evidence-only synchronization.
-Exit Criteria: Canonical documents truthfully record the released delivery boundary,
-governance checks pass, and the evidence commit contains no implementation drift.
-Verification: Document/governance tests, diff/cached-diff checks, and post-commit review.
-Next Action: After task completion, push the evidence commit as the authorized release
-step, verify final clean-state reference identity, then stabilize and clear the
-checkpoint without reopening the completed task or adding a third commit.
+State: Pending
+Depends On: push-and-confirm-main
+Scope: Append external delivery evidence once, update only owning task/changelog/state
+metadata that changed, commit and push that synchronization, verify the intended final
+Git state, and clear an artifact-matched stable checkpoint.
+Exit Criteria: Delivery evidence and task state are truthful on remote `main`; local
+and remote refs match, the working tree is clean, and checkpoint inspection is empty.
+Verification: Governance checks, final commit/push/fetch/ref/status/log inspection, and
+checkpoint stable/clear/show results.
+Next Action: Await fresh authority for the next explicit runtime-event owner.
 
 ## Verification
 
-- Required repository documents were read in order for the delivery request. Fresh
-  `checkpoint-show` reported `checkpointStatus=EMPTY` before task activation.
-- Fresh fetch and primary Git inspection found local `main`, `origin/main`, and `HEAD`
-  aligned at `d272809254919f35d99c528885ab5d39767307c1` with zero divergence. The
-  reconciled working tree contains 33 expected paths after removing a handoff date-only
-  change and adding the indexed delivery decision; diff, deletion, generated-output,
-  and credential review found no unexpected content.
+- Required repository documents were reread in constitutional order. Fresh
+  `checkpoint-show` reported `checkpointStatus=EMPTY`.
+- Before delivery-task activation, `HEAD`, local `main`, and the last fetched
+  `origin/main` were all `7efdbd1a64511347995c48d0e252e994cf81ad2d`; recorded
+  divergence was `0 0`.
+- Fresh status found fifteen intentional paths from the completed lease-timeout task,
+  including the indexed delivery decision, with no deletion and no `git diff --check`
+  output. Source discovery found 312 production
+  and 140 test Java files; the owning project-state count requires correction from 139.
+- Fresh authorized `git fetch --prune origin` succeeded. `HEAD`, local `main`, fetched
+  `origin/main`, and their merge base remained
+  `7efdbd1a64511347995c48d0e252e994cf81ad2d` with divergence `0 0`, so the candidate
+  remains a direct fast-forward main delivery.
 - Three bounded read-only delivery reviews joined without mutation or nested
-  delegation. Their recommendations were reconciled by the primary Agent before
-  lifecycle promotion; direct commit and non-force push from aligned `main` remains
-  the minimum requested integration topology.
-- Fresh Java 17 `clean build --no-daemon --console=plain` executed all eight tasks in
-  6 minutes 27 seconds and ran 723 tests across 138 suites: 715 passed, eight
-  environment-dependent cases skipped, and zero failed or errored. Verified source
-  counts remained 312 production and 139 test Java files; fresh `git diff --check`
-  produced no output and the working tree retained exactly 33 expected paths.
-- The ordinary accumulated-work commit was pushed to `origin/main` without force.
-  Direct remote-head inspection and local reference comparison found exact
-  `HEAD`/`main`/`origin/main` identity with zero divergence; no synthetic branch or
-  merge commit was required because the verified work already resided on `main`.
-- Delivery evidence synchronization changed only the owning changelog, Active Task,
-  and append-only verification log. Focused Java 17 decision-index, document-ownership,
-  and Dynamic Workflow verification ran 10 tests across three suites: all passed with
-  zero skipped, failed, or errored; fresh `git diff --check` produced no output.
+  delegation. Primary reconciliation found no blocking issue, deletion, rename,
+  generated output, secret, local absolute path, unrelated change, or authority
+  conflict across the fifteen paths. The low-risk combined missing-event/point replay
+  fixture still proves the current acceptance criteria and requires no scope expansion.
+- Fresh Java 17 focused verification reran the four lease-timeout CLI integration tests
+  and eleven Decision Log, document-ownership, Dynamic Workflow, and runtime package-
+  boundary tests: all fifteen passed with zero skipped, failed, or errored.
+- Fresh Java 17 `clean build --no-daemon --console=plain` executed all eight Gradle
+  tasks in 5 minutes 56 seconds and ran 727 tests across 139 suites: 719 passed, eight
+  environment-dependent cases skipped, and zero failed or errored. Source counts were
+  312 production and 140 test Java files; post-build status retained the exact fifteen
+  candidate paths and `git diff --check` produced no output.
 
 ## Next
 
-After delivery completes, select one remaining explicit runtime-event owner composition,
-with lease-timeout recovery through the shared Scheduler runtime seam as the current
-bounded candidate.
+After delivery closes, select one remaining explicit runtime-event owner composition
+through fresh bounded authority and seam review; do not infer another implementation,
+release, deployment, or external action from this delivery task.

@@ -102,6 +102,24 @@ public final class DurableAgentRuntime {
                 Optional.empty());
     }
 
+    static DurableAgentRuntime recoverMatching(
+            String goalId,
+            WorkItem expectedWorkItem,
+            AgentRuntimeStateStore store,
+            Clock clock,
+            RuntimeEventRecorder eventRecorder) throws IOException {
+        return recoverLoaded(
+                goalId,
+                Optional.of(Objects.requireNonNull(
+                        expectedWorkItem,
+                        "expectedWorkItem must not be null")),
+                store,
+                clock,
+                true,
+                Optional.of(Objects.requireNonNull(
+                        eventRecorder, "eventRecorder must not be null")));
+    }
+
     static DurableAgentRuntime recoverForControlAdmission(
             String goalId,
             AgentRuntimeStateStore store,

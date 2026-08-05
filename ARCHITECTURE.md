@@ -1067,23 +1067,28 @@ policy and adds no scan, retention, cleanup, migration, or cross-store transacti
 The supported `scheduler-cycle`, `scheduler-drain`, and `scheduler-service` commands
 share one optional all-or-none runtime-event store root, publication root, and capacity
 group. The shared Scheduler composition constructs at most one filesystem recorder and
-passes it only to process-isolated execution; omitted configuration remains event-free,
-and finalization, retry control, runtime recovery, lease/Tool timeout, and terminal
-disposition owners receive no recorder through this boundary.
+passes it to process-isolated execution and only the AgentRuntime recovery performed by
+the shared worker and dispatcher; omitted configuration remains event-free, and
+finalization, retry control, Tool timeout, verification, cancellation, stagnation, and
+terminal-disposition owners receive no recorder through this boundary.
 
 Lease-expiry recovery is owned by `DurableAgentRuntime` and the same AgentRuntime state
-that owns leases and reclamation. Schema v3 retains a bounded ordered ledger of exact
-`LeaseTimeoutRecord` values. Reclaim appends the current AgentRun, owner, fence, issue,
-expiry, and observation facts while transitioning `EXECUTING -> READY` in one durable
-revision; unexpired or non-executing recovery adds none. The filesystem store enforces
-an exact prefix and validates a single append against that transition. Event-aware
-recovery derives `TIMEOUT_DETECTED` with `RuntimeTimeoutKind.LEASE`, occurrence at the
-retained lease expiry, Work-message causation, producer `durable-agent-runtime`, and
+that owns leases and reclamation. Current schema v4 retains the bounded ordered ledger
+of exact `LeaseTimeoutRecord` values. Reclaim appends the current AgentRun, owner,
+fence, issue, expiry, and observation facts while transitioning `EXECUTING -> READY` in
+one durable revision; unexpired or non-executing recovery adds none. The filesystem
+store enforces an exact prefix and validates a single append against that transition.
+Event-aware recovery derives `TIMEOUT_DETECTED` with `RuntimeTimeoutKind.LEASE`,
+occurrence at the retained lease expiry, Work-message causation, producer
+`durable-agent-runtime`, and
 stable reference `agent-runtime/<goal>/lease-timeout/<agent-run>/<fence>` only after
 that runtime revision is durable. Replaying the bounded retained ledger repairs missing
 events or publication failure after later runtime progress without another source
-revision. Earlier runtime schemas, automatic post-reclaim execution, concrete
-publication, and supported CLI event composition remain separate.
+revision. The shared supported Scheduler composition supplies its optional recorder to
+both WorkItem-matched dispatcher recovery and direct worker recovery, so cycle, drain,
+and service can materialize the exact event and opaque point without changing reclaim
+authority. Earlier runtime schemas, automatic post-reclaim execution, scans, cleanup,
+retention, and other owner composition remain separate.
 
 The implemented first concrete adapter is `FileSystemRuntimeEventPublisher`, which
 implements the existing port without using `MessageEnvelope`. It publishes exactly one

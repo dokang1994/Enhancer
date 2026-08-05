@@ -10,7 +10,7 @@
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
 - Production source: 312 Java files.
-- Test source: 139 Java files.
+- Test source: 140 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -63,10 +63,10 @@ it does not restate which commit published which increment.
   name in a capacity-bounded schema-v1 integrity envelope, exact-replays without
   rewrite before capacity evaluation, and rejects corrupt, mismatched, symbolic, or
   unusable points. Supported compositions are the optional Control receiver
-  cancellation-request path and the process-timeout-only Scheduler execution path
-  described below. MessageEnvelope evolution, scanning, event application, cleanup,
-  retention, migration, cross-store transaction, and composition for the other event
-  owners remain absent.
+  cancellation-request path and the process- plus lease-timeout Scheduler execution
+  path described below. MessageEnvelope evolution, scanning, event application,
+  cleanup, retention, migration, cross-store transaction, and composition for the
+  other event owners remain absent.
 - Gate 7 isolated-worker Work Message Bus ingress under `com.enhancer.runtime`:
   `IsolatedWorkerMain` publishes the unchanged decoded transport message to its carried
   destination through one fresh `InProcessMessageBus` with exactly one `queue("work")`
@@ -239,8 +239,12 @@ it does not restate which commit published which increment.
   expiry, Work-message causation, producer `durable-agent-runtime`, and stable
   `agent-runtime/<goal>/lease-timeout/<agent-run>/<fence>` reference. Retained-record
   replay repairs missing events and publication failures without another runtime
-  revision. Earlier runtime schemas, automatic post-reclaim execution, supported CLI
-  event composition and owner-specific publisher composition remain absent.
+  revision. The shared `scheduler-cycle`, `scheduler-drain`, and `scheduler-service`
+  composition now supplies its existing optional filesystem recorder to WorkItem-
+  matched dispatcher recovery and direct worker recovery, preserving event-free
+  omission and exact point repair without activating another owner. Earlier runtime
+  schemas, automatic post-reclaim execution, scans, cleanup, retention, and composition
+  for other owners remain absent.
 - Delivery Gate 8 process-timeout fact and runtime-event path:
   `ProcessIsolatedAgentRunExecution` now point-resolves a deterministic
   `process-timeout/<goal>/<agent-run>` fact before spooling or launch. A fresh typed
@@ -254,11 +258,12 @@ it does not restate which commit published which increment.
   another fact or event revision. `scheduler-cycle`, `scheduler-drain`, and
   `scheduler-service` now accept one optional all-or-none event-root, publication-root,
   and bounded-capacity group. Their shared execution composition constructs one
-  filesystem recorder and injects it only into process-isolated execution; omission
-  preserves the prior event-free path. Start failure, completed failure, and success
-  create no process-timeout fact. No AgentRun lifecycle/retry policy, RunRecord,
-  MessageEnvelope, lease/Tool timeout, finalizer, retry, or terminal-disposition event
-  composition changes.
+  filesystem recorder and injects it into process-isolated execution plus only the
+  AgentRuntime recovery paths that own lease-timeout derivation; omission preserves the
+  prior event-free path. Start failure, completed failure, and success create no
+  process-timeout fact. No AgentRun lifecycle/retry policy, RunRecord, MessageEnvelope,
+  Tool timeout, finalizer, retry, verification, cancellation, stagnation, or terminal-
+  disposition event composition is added.
 - Delivery Gate 8 Tool-timeout runtime-event path: event-aware
   `DurableAgentRunFinalizer.recordAgentRunResult` resolves a bound persisted RunRecord,
   persists or exact-replays the matching Result transition, records the separate
