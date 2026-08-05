@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -119,7 +119,7 @@ Next Action: Run fresh claim-bearing verification over the delivery candidate.
 
 ### Increment 2 - verify-and-commit-candidate
 
-State: In Progress
+State: Completed
 Depends On: reconcile-delivery-boundary
 Scope: Run focused governance and full Java 17 verification, correct only owning
 delivery metadata where fresh evidence requires it, review the final diff, and create
@@ -132,7 +132,7 @@ Next Action: Push the implementation commit to `origin/main` without force.
 
 ### Increment 3 - push-and-confirm-main
 
-State: Pending
+State: Completed
 Depends On: verify-and-commit-candidate
 Scope: Non-force push the implementation commit and verify it is contained in current
 remote `main` with a linear direct-main topology.
@@ -143,7 +143,7 @@ Next Action: Synchronize append-only delivery evidence and close the task.
 
 ### Increment 4 - record-delivery-and-close
 
-State: Pending
+State: Completed
 Depends On: push-and-confirm-main
 Scope: Append external delivery evidence once, update only owning task/changelog/state
 metadata that changed, commit and push that synchronization, verify the intended final
@@ -152,7 +152,10 @@ Exit Criteria: Delivery evidence and task state are truthful on remote `main`; l
 and remote refs match, the working tree is clean, and checkpoint inspection is empty.
 Verification: Governance checks, final commit/push/fetch/ref/status/log inspection, and
 checkpoint stable/clear/show results.
-Next Action: Await fresh authority for the next explicit runtime-event owner.
+Next Action: After task completion, commit and non-force push the three-document
+delivery-evidence synchronization, verify final clean-state reference identity, then
+stabilize and clear the checkpoint without reopening the completed task or adding a
+third commit.
 
 ## Verification
 
@@ -182,6 +185,24 @@ Next Action: Await fresh authority for the next explicit runtime-event owner.
   environment-dependent cases skipped, and zero failed or errored. Source counts were
   312 production and 140 test Java files; post-build status retained the exact fifteen
   candidate paths and `git diff --check` produced no output.
+- Exact staging contained the reviewed fifteen paths, cached `git diff --check` was
+  clean, and no unstaged or untracked residue remained. Ordinary non-amending commit
+  `7769c34dcdd8f405842fa824f0602b54c4fc3807` (`feat: publish lease timeout events
+  from scheduler recovery`) contains those fifteen paths and no additional artifact.
+- Non-force `git push origin main` advanced remote main from `7efdbd1` to `7769c34`.
+  A fresh post-push fetch then proved `HEAD`, local `main`, fetched `origin/main`, and
+  their merge base all equal the full implementation commit, with divergence `0 0` and
+  a successful ancestry check. The linear direct-main update is the requested merge
+  result; no synthetic merge commit was created.
+- Delivery evidence synchronization changes only the owning Active Task, changelog,
+  and append-only verification log. `ARCHITECTURE.md`, `PROJECT_STATE.md`, and
+  `ROADMAP.md` already state the delivered capability and require no post-push change;
+  `SESSION_HANDOFF.md` requires no change because no new host-only fact would otherwise
+  be lost.
+- Fresh Java 17 verification over the completed delivery documents ran eleven Decision
+  Log, document-ownership, Dynamic Workflow, and runtime package-boundary tests across
+  four suites with zero skipped, failed, or errored; the three-path delivery-evidence
+  diff had no `git diff --check` output.
 
 ## Next
 

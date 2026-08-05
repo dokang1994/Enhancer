@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-08-05 - Deliver Lease Timeout Scheduler Composition To Main
+
+- Delivered the verified lease-timeout runtime-event publication composition through
+  ordinary commit `7769c34` and a non-force direct-main update.
+- Confirmed by fresh fetch that local and remote `main` contain the same linear commit,
+  so no synthetic branch or merge commit was needed to satisfy the requested merge.
+- Retained the existing Gate 8 maturity and excluded release, deployment, tag, cleanup,
+  retention, history rewrite, and unrelated runtime-event owner work.
+
 ## 2026-08-05 - Compose Lease Timeout Publication Across Scheduler Commands
 
 - Reused the existing optional Scheduler filesystem event configuration across cycle,
