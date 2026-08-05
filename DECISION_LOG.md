@@ -11,6 +11,30 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User request on 2026-08-05 to commit, push, and deliver accumulated runtime-event work to main
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-05-commit-push-and-deliver-accumulated-runtime-event-work-to-main.md)
+
+### 2026-08-05: Compose Process Timeout Runtime Event Publication Across Supported Scheduler Execution Commands
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-05-compose-process-timeout-runtime-event-publication-across-supported-scheduler-execution-commands.md)
+
+### 2026-08-05: Release Runtime Event Publication Capacity Through Deterministic Acknowledgement
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-05-release-runtime-event-publication-capacity-through-deterministic-acknowledgement.md)
+
+### 2026-08-05: Resolve One Runtime Event Publication Point Through A Read-Only Consumer
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-05-resolve-one-runtime-event-publication-point-through-a-read-only-consumer.md)
+
 ### 2026-08-04: Let Primary Agents Select Bounded Development Subagents Adaptively
 
 Status: Accepted Decision

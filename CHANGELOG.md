@@ -1,5 +1,46 @@
 # Changelog
 
+## 2026-08-05 - Compose Process Timeout Publication Across Scheduler Commands
+
+- Added one optional all-or-none runtime-event store root, publication root, and bounded
+  capacity group to `scheduler-cycle`, `scheduler-drain`, and `scheduler-service` while
+  preserving their existing event-free invocation behavior.
+- Routed the resulting filesystem recorder through the shared worker construction only
+  to `ProcessIsolatedAgentRunExecution`, retaining fact -> PROCESS timeout event ->
+  opaque point ordering without composing retry, finalizer, runtime-recovery, lease/
+  Tool-timeout, or terminal-disposition owners.
+- Added real self-JVM evidence across all three commands plus exact acknowledged replay,
+  point resolution, retained checkpoint, and no RunRecord or terminal queue disposition.
+  Commit, push, other owner composition, background service, external delivery,
+  cleanup, and retention remain separate.
+
+## 2026-08-05 - Release Runtime Event Publication Capacity By Acknowledgement
+
+- Added `FileSystemRuntimeEventPointAcknowledger` to fully revalidate one explicit
+  pending or retained acknowledged point and exact event before a same-root atomic
+  rename or revision-free `ALREADY_ACKNOWLEDGED` replay.
+- Extended `FileSystemRuntimeEventPublisher` to recognize exact retained
+  `.runtime-event-received` state before capacity evaluation, count only pending points,
+  prevent pending recreation, and fail closed on conflicting or invalid state.
+- Added the supported `runtime-event-acknowledge` CLI and real-filesystem evidence for
+  first acknowledgement, lost-response replay, pending-capacity release, unchanged
+  event/point content and revision, and nonmutating invalid-state failure.
+- Kept handler delivery, event application, consumer offsets, acknowledged-history
+  bounds, deletion, scans, cleanup/retention, additional owner composition, commit, and
+  delivery separate.
+
+## 2026-08-05 - Resolve Runtime Event Publication Points Read-Only
+
+- Added `FileSystemRuntimeEventPointReader` to validate one explicit regular
+  non-symbolic schema-v1 publication point, deterministic filename and reference
+  grammar, then resolve the exact event from only its bounded Goal stream.
+- Added the supported `runtime-event-read` CLI with explicit event/publication roots and
+  point filename plus bounded typed identity, kind, time, provenance, stream-revision,
+  and reference-count output.
+- Proved exact repeated reads and missing/corrupt failures leave event and publication
+  artifacts unchanged. Acknowledgement, capacity release, scans, event application,
+  cleanup/retention, additional owner composition, commit, and delivery remain separate.
+
 ## 2026-08-04 - Let Primary Agents Select Development Subagents Adaptively
 
 - Replaced one-off development-subagent topology selection with a repository-wide

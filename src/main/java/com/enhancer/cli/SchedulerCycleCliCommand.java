@@ -2,6 +2,7 @@ package com.enhancer.cli;
 
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Optional;
 
 record SchedulerCycleCliCommand(
         Path projectRoot,
@@ -16,5 +17,7 @@ record SchedulerCycleCliCommand(
         String ownerId,
         int maxAttempts,
         Duration leaseDuration,
-        Duration processTimeout) implements SchedulerExecutionCliCommand {
+        Duration processTimeout,
+        Optional<RuntimeEventPublicationCliConfiguration> runtimeEventPublication)
+        implements SchedulerExecutionCliCommand {
 }

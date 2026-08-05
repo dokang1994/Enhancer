@@ -50,6 +50,8 @@ import com.enhancer.runtime.FileSystemAgentRuntimeStateStore;
 import com.enhancer.runtime.FileSystemExternalEffectLedgerStore;
 import com.enhancer.runtime.FileSystemPendingFinalizationStore;
 import com.enhancer.runtime.FileSystemRuntimeEventPublisher;
+import com.enhancer.runtime.FileSystemRuntimeEventPointAcknowledger;
+import com.enhancer.runtime.FileSystemRuntimeEventPointReader;
 import com.enhancer.runtime.FileSystemRuntimeEventStore;
 import com.enhancer.runtime.FileSystemSchedulerQueueStore;
 import com.enhancer.runtime.FileSystemSubmissionManifestStore;
@@ -73,6 +75,8 @@ import com.enhancer.runtime.SchedulerQueueStatus;
 import com.enhancer.runtime.SchedulerRecoveryStatus;
 import com.enhancer.runtime.SchedulerRecoveryStatusReader;
 import com.enhancer.runtime.RuntimeEventRecorder;
+import com.enhancer.runtime.RuntimeEventPointAcknowledgement;
+import com.enhancer.runtime.RuntimeEventPointResolution;
 import com.enhancer.runtime.SubmissionManifestMigrationResult;
 import com.enhancer.runtime.WorkItemDisposition;
 import com.enhancer.session.DevelopmentSessionCheckpoint;
@@ -149,6 +153,12 @@ public final class EnhancerCli {
             }
             if (command instanceof RunRecordListCliCommand list) {
                 return executeRunRecordList(list, stdout);
+            }
+            if (command instanceof RuntimeEventReadCliCommand read) {
+                return executeRuntimeEventRead(read, stdout);
+            }
+            if (command instanceof RuntimeEventAcknowledgeCliCommand acknowledge) {
+                return executeRuntimeEventAcknowledge(acknowledge, stdout);
             }
             if (command instanceof SchedulerStatusCliCommand status) {
                 return executeSchedulerStatus(status, stdout);
@@ -227,6 +237,80 @@ public final class EnhancerCli {
             writeError(stderr, CliExitCode.INTERNAL_ERROR, safeMessage(exception));
             return CliExitCode.INTERNAL_ERROR.code();
         }
+    }
+
+    private int executeRuntimeEventRead(
+            RuntimeEventReadCliCommand command,
+            PrintStream stdout) throws IOException {
+        RuntimeEventPointResolution resolution;
+        try {
+            resolution = new FileSystemRuntimeEventPointReader(
+                    command.publicationRoot(),
+                    new FileSystemRuntimeEventStore(command.runtimeEventRoot()))
+                    .resolve(command.publicationFile());
+        } catch (IllegalArgumentException exception) {
+            throw new CliUsageException(
+                    "runtime-event-read input is invalid: "
+                            + safeMessage(exception),
+                    exception);
+        }
+        writeRuntimeEventResolution(
+                stdout,
+                "AVAILABLE",
+                Optional.empty(),
+                resolution);
+        return 0;
+    }
+
+    private int executeRuntimeEventAcknowledge(
+            RuntimeEventAcknowledgeCliCommand command,
+            PrintStream stdout) throws IOException {
+        RuntimeEventPointAcknowledgement acknowledgement;
+        try {
+            acknowledgement = new FileSystemRuntimeEventPointAcknowledger(
+                    command.publicationRoot(),
+                    new FileSystemRuntimeEventStore(command.runtimeEventRoot()))
+                    .acknowledge(command.publicationFile());
+        } catch (IllegalArgumentException exception) {
+            throw new CliUsageException(
+                    "runtime-event-acknowledge input is invalid: "
+                            + safeMessage(exception),
+                    exception);
+        }
+        writeRuntimeEventResolution(
+                stdout,
+                acknowledgement.status().name(),
+                Optional.of(acknowledgement.acknowledgedFile()),
+                acknowledgement.resolution());
+        return 0;
+    }
+
+    private void writeRuntimeEventResolution(
+            PrintStream stdout,
+            String status,
+            Optional<String> acknowledgedFile,
+            RuntimeEventPointResolution resolution) {
+        var event = resolution.event();
+        var binding = event.binding();
+        List<String> output = new ArrayList<>();
+        output.add("status=" + status);
+        output.add("exitCode=0");
+        acknowledgedFile.ifPresent(file -> output.add("acknowledgedFile=" + file));
+        output.add("reference=" + resolution.reference().reference());
+        output.add("goalId=" + binding.goalId());
+        output.add("eventId=" + event.eventId());
+        output.add("kind=" + event.kind());
+        output.add("occurredAt=" + event.occurredAt());
+        output.add("agentRunId=" + event.agentRunId());
+        output.add("producerId=" + event.producerId());
+        output.add("taskId=" + binding.taskRevision().taskId());
+        output.add("snapshotId=" + binding.snapshotId());
+        output.add("logicalRunId=" + binding.logicalRunId());
+        output.add("correlationId=" + binding.correlationId());
+        output.add("streamRevision=" + resolution.streamRevision());
+        output.add("authoritativeReferences="
+                + event.authoritativeReferences().size());
+        writeBounded(stdout, String.join("\n", output) + "\n");
     }
 
     private int executeCheckpointStart(
@@ -1204,20 +1288,19 @@ public final class EnhancerCli {
             queue = DurableSingleWorkerSchedulerQueue.recover(
                     command.queueId(),
                     new FileSystemSchedulerQueueStore(command.queueRoot()));
-            worker = DurableAgentRunWorker.processIsolated(
+            Optional<RuntimeEventRecorder> eventRecorder =
+                    command.runtimeEventPublication().map(configuration ->
+                            new RuntimeEventRecorder(
+                                    new FileSystemRuntimeEventStore(
+                                            configuration.runtimeEventRoot()),
+                                    new FileSystemRuntimeEventPublisher(
+                                            configuration.publicationRoot(),
+                                            configuration.maxPendingPublications())));
+            worker = processIsolatedSchedulerWorker(
+                    command,
                     queue,
-                    new FileSystemAgentRuntimeStateStore(command.runtimeRoot()),
-                    new FileSystemExternalEffectLedgerStore(command.externalEffectRoot()),
-                    new FileSystemPendingFinalizationStore(command.cycleCheckpointRoot()),
-                    command.projectRoot(),
-                    command.evidenceRoot(),
-                    command.runRecordRoot(),
-                    command.invocationRoot(),
                     runRecordStore,
-                    command.ownerId(),
-                    Clock.systemUTC(),
-                    command.processTimeout(),
-                    AgentRunRetryPolicy.of(command.maxAttempts()));
+                    eventRecorder);
         } catch (MissingSchedulerQueueStateException exception) {
             throw new CliUsageException(
                     "queue configuration is invalid: " + safeMessage(exception),
@@ -1228,6 +1311,53 @@ public final class EnhancerCli {
                     exception);
         }
         return new SchedulerExecution(queue, worker, runRecordStore);
+    }
+
+    private DurableAgentRunWorker processIsolatedSchedulerWorker(
+            SchedulerExecutionCliCommand command,
+            DurableSingleWorkerSchedulerQueue queue,
+            FileSystemRunRecordStore runRecordStore,
+            Optional<RuntimeEventRecorder> eventRecorder) {
+        FileSystemAgentRuntimeStateStore runtimeStore =
+                new FileSystemAgentRuntimeStateStore(command.runtimeRoot());
+        FileSystemExternalEffectLedgerStore effectStore =
+                new FileSystemExternalEffectLedgerStore(command.externalEffectRoot());
+        FileSystemPendingFinalizationStore checkpoint =
+                new FileSystemPendingFinalizationStore(
+                        command.cycleCheckpointRoot());
+        AgentRunRetryPolicy retryPolicy =
+                AgentRunRetryPolicy.of(command.maxAttempts());
+        if (eventRecorder.isPresent()) {
+            return DurableAgentRunWorker.processIsolated(
+                    queue,
+                    runtimeStore,
+                    effectStore,
+                    checkpoint,
+                    command.projectRoot(),
+                    command.evidenceRoot(),
+                    command.runRecordRoot(),
+                    command.invocationRoot(),
+                    runRecordStore,
+                    command.ownerId(),
+                    Clock.systemUTC(),
+                    command.processTimeout(),
+                    retryPolicy,
+                    eventRecorder.orElseThrow());
+        }
+        return DurableAgentRunWorker.processIsolated(
+                queue,
+                runtimeStore,
+                effectStore,
+                checkpoint,
+                command.projectRoot(),
+                command.evidenceRoot(),
+                command.runRecordRoot(),
+                command.invocationRoot(),
+                runRecordStore,
+                command.ownerId(),
+                Clock.systemUTC(),
+                command.processTimeout(),
+                retryPolicy);
     }
 
     private int executeSchedulerSubmit(

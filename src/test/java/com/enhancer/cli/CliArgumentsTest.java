@@ -1,6 +1,7 @@
 package com.enhancer.cli;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.enhancer.runtime.SchedulerPriority;
@@ -8,6 +9,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -357,6 +359,54 @@ class CliArgumentsTest {
     }
 
     @Test
+    void acceptsTheCompleteOptionalRuntimeEventPublicationGroupForEverySchedulerExecutionCommand() {
+        for (String[] arguments : List.of(
+                schedulerCycleArguments("2", "300000", "20000"),
+                schedulerDrainArguments("8"),
+                schedulerServiceArguments("8", "3", "250"))) {
+            SchedulerExecutionCliCommand command =
+                    (SchedulerExecutionCliCommand) assertDoesNotThrow(() ->
+                            CliArguments.parse(withRuntimeEventPublication(
+                                    arguments, "8")));
+            RuntimeEventPublicationCliConfiguration publication =
+                    command.runtimeEventPublication().orElseThrow();
+            assertEquals(
+                    temporaryRoot.resolve("runtime-events")
+                            .toAbsolutePath().normalize(),
+                    publication.runtimeEventRoot());
+            assertEquals(
+                    temporaryRoot.resolve("runtime-event-publications")
+                            .toAbsolutePath().normalize(),
+                    publication.publicationRoot());
+            assertEquals(8, publication.maxPendingPublications());
+        }
+    }
+
+    @Test
+    void rejectsPartialAndOutOfRangeRuntimeEventPublicationForEverySchedulerExecutionCommand() {
+        for (String[] arguments : List.of(
+                schedulerCycleArguments("2", "300000", "20000"),
+                schedulerDrainArguments("8"),
+                schedulerServiceArguments("8", "3", "250"))) {
+            String[] partial = Arrays.copyOf(arguments, arguments.length + 2);
+            partial[arguments.length] = "--runtime-event-root";
+            partial[arguments.length + 1] =
+                    temporaryRoot.resolve("runtime-events").toString();
+            assertThrows(
+                    CliUsageException.class,
+                    () -> CliArguments.parse(partial));
+            assertThrows(
+                    CliUsageException.class,
+                    () -> CliArguments.parse(withRuntimeEventPublication(
+                            arguments, "0")));
+            assertThrows(
+                    CliUsageException.class,
+                    () -> CliArguments.parse(withRuntimeEventPublication(
+                            arguments, "4097")));
+        }
+    }
+
+    @Test
     void parsesSchedulerDrainAsOneBoundedExtensionOfCycleInputs() {
         SchedulerDrainCliCommand drain =
                 (SchedulerDrainCliCommand) CliArguments.parse(
@@ -672,6 +722,22 @@ class CliArgumentsTest {
                 "--lease-millis", leaseMillis,
                 "--process-timeout-millis", processTimeoutMillis
         };
+    }
+
+    private String[] withRuntimeEventPublication(
+            String[] arguments,
+            String maximumPendingPublications) {
+        String[] configured = Arrays.copyOf(arguments, arguments.length + 6);
+        configured[arguments.length] = "--runtime-event-root";
+        configured[arguments.length + 1] =
+                temporaryRoot.resolve("runtime-events").toString();
+        configured[arguments.length + 2] = "--runtime-event-publication-root";
+        configured[arguments.length + 3] =
+                temporaryRoot.resolve("runtime-event-publications").toString();
+        configured[arguments.length + 4] =
+                "--max-pending-runtime-event-publications";
+        configured[arguments.length + 5] = maximumPendingPublications;
+        return configured;
     }
 
     private String[] schedulerExternalEffectStatusArguments(

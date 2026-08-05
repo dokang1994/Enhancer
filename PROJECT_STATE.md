@@ -2,15 +2,15 @@
 
 ## Updated At
 
-2026-08-04
+2026-08-05
 
 ## Repository State
 
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 305 Java files.
-- Test source: 135 Java files.
+- Production source: 312 Java files.
+- Test source: 139 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -19,6 +19,29 @@ it does not restate which commit published which increment.
 ## Capability Maturity
 
 ### Contract Verified
+
+- Delivery Gate 8 deterministic runtime-event publication-point acknowledgement under
+  `com.enhancer.runtime`: `FileSystemRuntimeEventPointAcknowledger` accepts the original
+  canonical pending filename and resolves exactly one pending or deterministic
+  `.runtime-event-received` point without scanning. Both states revalidate the regular
+  non-symbolic integrity envelope, deterministic identity, canonical Goal/event,
+  retained stream, exact event, and derived reference. First acknowledgement performs
+  one same-root non-replacing atomic rename; retained re-entry returns
+  `ALREADY_ACKNOWLEDGED` without mutation. The publisher exact-replays either state
+  before capacity evaluation, counts only pending points, and never recreates an exact
+  acknowledged point. Conflicting, corrupt, foreign, symbolic, or missing state fails
+  closed. The retained receipt proves observation only, not handler delivery or event
+  application, and is not deleted by this contract.
+
+- Delivery Gate 8 read-only runtime-event publication-point consumer under
+  `com.enhancer.runtime`: `FileSystemRuntimeEventPointReader` accepts one explicit
+  canonical `.runtime-event-reference` filename, scans neither caller-owned root,
+  validates the regular non-symbolic schema-v1 integrity point and deterministic
+  SHA-256 filename, parses canonical Goal/event identities, point-resolves exactly one
+  bounded Goal stream, and returns only the exact event plus stream revision after
+  re-deriving the same publication reference. Missing, corrupt, malformed, symbolic,
+  foreign, or mismatched state fails closed, and repeated resolution creates, rewrites,
+  renames, acknowledges, or deletes nothing.
 
 - Delivery Gate 8 immutable runtime-event and append-only store contract under
   `com.enhancer.runtime`: `RuntimeEvent` exposes exactly eight `runtime-event-v1`
@@ -39,10 +62,11 @@ it does not restate which commit published which increment.
   it point-persists only the validated opaque reference under a deterministic SHA-256
   name in a capacity-bounded schema-v1 integrity envelope, exact-replays without
   rewrite before capacity evaluation, and rejects corrupt, mismatched, symbolic, or
-  unusable points. Its first supported composition is the optional Control receiver
-  cancellation-request path described below. MessageEnvelope evolution, consumer/scan,
-  acknowledgement, cleanup, retention, migration, cross-store transaction, and
-  composition for the other event owners remain absent.
+  unusable points. Supported compositions are the optional Control receiver
+  cancellation-request path and the process-timeout-only Scheduler execution path
+  described below. MessageEnvelope evolution, scanning, event application, cleanup,
+  retention, migration, cross-store transaction, and composition for the other event
+  owners remain absent.
 - Gate 7 isolated-worker Work Message Bus ingress under `com.enhancer.runtime`:
   `IsolatedWorkerMain` publishes the unchanged decoded transport message to its carried
   destination through one fresh `InProcessMessageBus` with exactly one `queue("work")`
@@ -170,6 +194,26 @@ it does not restate which commit published which increment.
 
 ### Integrated
 
+- Delivery Gate 8 deterministic runtime-event acknowledgement CLI: the supported
+  `runtime-event-acknowledge` command requires explicit event/publication roots and the
+  original pending filename, composes the filesystem acknowledger and event store, and
+  reports `ACKNOWLEDGED` or `ALREADY_ACKNOWLEDGED` plus the same bounded typed event
+  metadata as the read-only command. Named real-filesystem coverage proves first
+  acknowledgement, lost-response replay, pending-capacity release, publisher replay,
+  fail-closed invalid/conflicting state, and unchanged point/event contents,
+  timestamps, and stream revision. It performs no handler delivery, event application,
+  cleanup, retention, runtime mutation, or Gate promotion.
+
+- Delivery Gate 8 read-only runtime-event point CLI: the supported
+  `runtime-event-read` command requires explicit event/publication roots and one exact
+  point filename, composes the real filesystem reader and event store, and reports only
+  bounded event identity, kind, time, producer, Goal/AgentRun, task/snapshot/run/
+  correlation, stream-revision, and authoritative-reference-count metadata. Named
+  real-filesystem coverage proves exact repeatable reads leave point and stream bytes,
+  timestamps, and revision unchanged, while missing event state does not create a root
+  and corrupt points remain byte-identical. It makes no acknowledgement, delivery,
+  application, transition-authority, or Gate-promotion claim.
+
 - Delivery Gate 12 authenticated cancellation application and runtime-event path:
   `AuthenticatedCancellationApplication` resolves one exact retained `CANCEL` request
   and delegates authentication/authorization to an injected trusted
@@ -207,9 +251,14 @@ it does not restate which commit published which increment.
   event-aware construction then derives `TIMEOUT_DETECTED` with
   `RuntimeTimeoutKind.PROCESS`, Work-message causation, and the fact reference plus
   semantic digest; missing-event and publication-failure recovery exact-replay without
-  another fact or event revision. Start failure, completed failure, and success create
-  no process-timeout fact. No AgentRun lifecycle/retry policy, RunRecord, MessageEnvelope,
-  or CLI event-publisher composition changes.
+  another fact or event revision. `scheduler-cycle`, `scheduler-drain`, and
+  `scheduler-service` now accept one optional all-or-none event-root, publication-root,
+  and bounded-capacity group. Their shared execution composition constructs one
+  filesystem recorder and injects it only into process-isolated execution; omission
+  preserves the prior event-free path. Start failure, completed failure, and success
+  create no process-timeout fact. No AgentRun lifecycle/retry policy, RunRecord,
+  MessageEnvelope, lease/Tool timeout, finalizer, retry, or terminal-disposition event
+  composition changes.
 - Delivery Gate 8 Tool-timeout runtime-event path: event-aware
   `DurableAgentRunFinalizer.recordAgentRunResult` resolves a bound persisted RunRecord,
   persists or exact-replays the matching Result transition, records the separate
@@ -681,9 +730,16 @@ system, not open tasks; each is retired only by a bounded increment of its own.
   connected only through event-aware owner construction and an injected publisher port.
   The supported Control receiver/CLI optionally composes the concrete filesystem
   publisher only for cancellation-request events when all three explicit publication
-  options are present. It has no consumer, and the authenticated application remains a
-  library boundary with no credential or interface composition, process signal, or
-  cancelled queue disposition.
+  options are present. Explicit read-only resolution and deterministic observation
+  acknowledgement exist separately; no arbitrary handler or application consumer is
+  composed. The authenticated application remains a library boundary with no credential
+  or interface composition, process signal, or cancelled queue disposition.
+- `runtime-event-read` is an explicit read-only point consumer. It does not acknowledge
+  or rename a publication, release publisher capacity, retain a consumer offset or
+  receipt, scan for work, apply an event, or define cleanup/retention. The separate
+  `runtime-event-acknowledge` command retains one exact observation receipt and releases
+  pending capacity, but adds no handler, consumer identity/offset, acknowledged-history
+  bound, deletion, application, or cleanup/retention policy.
 - Development-session checkpoints support one active local session per repository and
   have no background timer, token-budget introspection, platform shutdown hook,
   multi-session merge, remote replication, or automatic Git commit/stash behavior.

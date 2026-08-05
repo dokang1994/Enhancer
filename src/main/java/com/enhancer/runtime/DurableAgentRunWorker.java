@@ -83,20 +83,97 @@ public final class DurableAgentRunWorker {
             Clock clock,
             Duration processTimeout,
             AgentRunRetryPolicy retryPolicy) {
+        return composeProcessIsolated(
+                queue,
+                runtimeStore,
+                effectStore,
+                checkpoint,
+                projectRoot,
+                evidenceRoot,
+                runRecordRoot,
+                invocationRoot,
+                runRecordStore,
+                ownerId,
+                clock,
+                processTimeout,
+                retryPolicy,
+                Optional.empty());
+    }
+
+    /** Event-aware process-isolated composition limited to the process timeout owner. */
+    public static DurableAgentRunWorker processIsolated(
+            DurableSingleWorkerSchedulerQueue queue,
+            AgentRuntimeStateStore runtimeStore,
+            ExternalEffectLedgerStore effectStore,
+            PendingFinalizationStore checkpoint,
+            Path projectRoot,
+            Path evidenceRoot,
+            Path runRecordRoot,
+            Path invocationRoot,
+            RunRecordStore runRecordStore,
+            String ownerId,
+            Clock clock,
+            Duration processTimeout,
+            AgentRunRetryPolicy retryPolicy,
+            RuntimeEventRecorder eventRecorder) {
+        return composeProcessIsolated(
+                queue,
+                runtimeStore,
+                effectStore,
+                checkpoint,
+                projectRoot,
+                evidenceRoot,
+                runRecordRoot,
+                invocationRoot,
+                runRecordStore,
+                ownerId,
+                clock,
+                processTimeout,
+                retryPolicy,
+                Optional.of(Objects.requireNonNull(
+                        eventRecorder, "eventRecorder must not be null")));
+    }
+
+    private static DurableAgentRunWorker composeProcessIsolated(
+            DurableSingleWorkerSchedulerQueue queue,
+            AgentRuntimeStateStore runtimeStore,
+            ExternalEffectLedgerStore effectStore,
+            PendingFinalizationStore checkpoint,
+            Path projectRoot,
+            Path evidenceRoot,
+            Path runRecordRoot,
+            Path invocationRoot,
+            RunRecordStore runRecordStore,
+            String ownerId,
+            Clock clock,
+            Duration processTimeout,
+            AgentRunRetryPolicy retryPolicy,
+            Optional<RuntimeEventRecorder> eventRecorder) {
         Objects.requireNonNull(queue, "queue must not be null");
         Objects.requireNonNull(runtimeStore, "runtimeStore must not be null");
         Objects.requireNonNull(effectStore, "effectStore must not be null");
         Objects.requireNonNull(checkpoint, "checkpoint must not be null");
         Objects.requireNonNull(runRecordStore, "runRecordStore must not be null");
         Objects.requireNonNull(clock, "clock must not be null");
-        AgentRunExecution isolatedExecution = new ProcessIsolatedAgentRunExecution(
-                invocationRoot,
-                projectRoot,
-                evidenceRoot,
-                runRecordRoot,
-                runRecordStore,
-                new IsolatedWorkerLauncher(),
-                processTimeout);
+        AgentRunExecution isolatedExecution = eventRecorder
+                .<AgentRunExecution>map(recorder ->
+                        new ProcessIsolatedAgentRunExecution(
+                                invocationRoot,
+                                projectRoot,
+                                evidenceRoot,
+                                runRecordRoot,
+                                runRecordStore,
+                                new IsolatedWorkerLauncher(),
+                                processTimeout,
+                                recorder))
+                .orElseGet(() -> new ProcessIsolatedAgentRunExecution(
+                        invocationRoot,
+                        projectRoot,
+                        evidenceRoot,
+                        runRecordRoot,
+                        runRecordStore,
+                        new IsolatedWorkerLauncher(),
+                        processTimeout));
         return new DurableAgentRunWorker(
                 new DurableAgentRunDispatcher(queue, runtimeStore, clock),
                 isolatedExecution,

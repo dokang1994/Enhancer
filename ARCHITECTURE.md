@@ -1063,8 +1063,13 @@ reference/digest. A persisted fact is checked before spooling or launch, so rest
 repairs or republishes the exact event and exposes the same failure without another
 child. Start failure, non-zero completion, invalid result publication, and successful
 execution create no such fact. This connection changes no AgentRun lifecycle or retry
-policy and adds no scan, retention, cleanup, migration, CLI event transport, or
-cross-store transaction.
+policy and adds no scan, retention, cleanup, migration, or cross-store transaction.
+The supported `scheduler-cycle`, `scheduler-drain`, and `scheduler-service` commands
+share one optional all-or-none runtime-event store root, publication root, and capacity
+group. The shared Scheduler composition constructs at most one filesystem recorder and
+passes it only to process-isolated execution; omitted configuration remains event-free,
+and finalization, retry control, runtime recovery, lease/Tool timeout, and terminal
+disposition owners receive no recorder through this boundary.
 
 Lease-expiry recovery is owned by `DurableAgentRuntime` and the same AgentRuntime state
 that owns leases and reclamation. Schema v3 retains a bounded ordered ledger of exact
@@ -1086,25 +1091,64 @@ validated opaque reference into a caller-owned local root under deterministic po
 name `sha256(reference-utf8).runtime-event-reference`. The schema-v1 point is a bounded
 integrity envelope containing fixed magic and version, declared strict-UTF-8 reference
 length, SHA-256 digest, and the reference itself; it contains no event body, credential,
-authority, route, acknowledgement, or consumer state. Capacity is caller-bounded from
-1 through 4096 points.
+authority, route, acknowledgement field, or application state. Capacity is
+caller-bounded from 1 through 4096 pending points.
 
 Publication forces a same-root candidate and atomically moves it without replacement.
-Before capacity evaluation, an existing deterministic point is fully validated: exact
-content replays without rewrite, while a symbolic, non-regular, oversized, malformed,
-unsupported, digest-invalid, or reference-mismatched point fails closed. Instance-local
-serialization bounds concurrent calls through one adapter; no cross-process lock,
-directory fsync, scan/consumer API, cleanup, retention, or cross-store transaction is
-claimed. Adapter success means only local point acceptance. Source transition -> event
-append/exact replay -> reference-point publication remains the durable order, and a
-publication failure remains recoverable from the already-durable event.
+Before capacity evaluation, an existing deterministic pending point or its retained
+`sha256(reference-utf8).runtime-event-received` sibling is fully validated. Exact state
+replays without rewrite and an acknowledged sibling prevents pending-point recreation;
+both siblings present, or a symbolic, non-regular, oversized, malformed, unsupported,
+digest-invalid, or reference-mismatched point, fails closed. Only pending
+`.runtime-event-reference` files consume capacity. Instance-local serialization bounds
+concurrent calls through one adapter; no cross-process lock, directory fsync, scan,
+cleanup, retention, or cross-store transaction is claimed. Adapter success means only
+local point acceptance. Source transition -> event append/exact replay ->
+reference-point publication remains the durable order, and a publication failure
+remains recoverable from the already-durable event.
 
 The existing `MessageEnvelope` remains sealed to Work, Result, Control, and Handoff.
 Runtime events must not be coerced into one of those meanings. A concrete Message Bus
 publisher requires a separate accepted Gate 7 wire-schema evolution. The current
-publisher remains a caller-supplied port in the named integration paths; no supported
-CLI composition, Message Bus adapter, event consumer, or additional runtime-event
-transition owner is implied by the filesystem point adapter.
+publisher remains a caller-supplied port in the named integration paths; its first
+supported producer composition is the optional cancellation-request path in
+`scheduler-receive-control`. Message Bus adaptation and additional runtime-event
+transition-owner composition remain separate.
+
+The first downstream consumer is deliberately read-only. `FileSystemRuntimeEventPointReader`
+takes one caller-named canonical `.runtime-event-reference` file under an explicit
+publication root and one `RuntimeEventStore`. It scans neither root. The reader requires
+a regular non-symbolic point, decodes the existing bounded strict-UTF-8 integrity
+envelope, proves that the filename is the deterministic SHA-256 name of the decoded
+`runtime-event/<goal>/<event>` reference, point-resolves only that canonical Goal's
+stream, finds the exact event inside its bounded prefix, and re-derives the same
+reference from the event before returning `RuntimeEventPointResolution`.
+
+The separate supported `runtime-event-read` command supplies the event root,
+publication root, and exact point filename explicitly and reports only bounded typed
+identity, kind, time, provenance, stream-revision, and reference-count metadata.
+Repeated success and every failure leave both roots unchanged; missing, corrupt,
+symbolic, malformed, foreign, or mismatched state fails closed. This consumer does not
+acknowledge, rename, delete, scan, apply, route, retry, or grant authority. Durable
+consumer receipts, cleanup/retention, Message Bus delivery, and event application
+require their own contracts.
+
+The separate `FileSystemRuntimeEventPointAcknowledger` accepts that same original
+canonical pending filename and resolves exactly one pending point or its deterministic
+acknowledged sibling without scanning. Both states repeat the reader's full point,
+reference, Goal-stream, exact-event, and derived-reference validation. First
+acknowledgement atomically renames the point in the same root without replacement to
+`.runtime-event-received`; exact acknowledged re-entry validates again and returns
+`ALREADY_ACKNOWLEDGED` without another mutation. The retained acknowledged point is a
+receipt only for this exact observation boundary. It does not prove handler delivery or
+event application, and this contract never deletes the event or point.
+
+The supported `runtime-event-acknowledge` command composes that boundary from explicit
+event/publication roots and the original pending filename, reports acknowledgement
+status and the same bounded event metadata, and preserves point/event contents and the
+event-stream revision. The existing `runtime-event-read` command remains pending-only
+and read-only. Cleanup, retention, bounded acknowledged history, arbitrary handlers,
+consumer identity/offsets, Message Bus delivery, and event application remain separate.
 
 Which connections exist today is stated in `PROJECT_STATE.md`; the cross-boundary connection sequence remains dependency ordered:
 

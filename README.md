@@ -292,12 +292,16 @@ When the parent watchdog receives a typed process timeout, it persists one bound
 `<invocation-root>/.process-timeouts/<goal>/<agent-run>.process-timeout` before the
 command exposes the execution error. Preserve that invocation root: exact reinvocation
 resolves the same fact and fails without launching another child. The supported CLI does
-not yet compose a runtime-event publisher; event-aware library construction can derive
-and repair `RuntimeTimeoutKind.PROCESS` from the persisted fact. Library callers may
-inject `FileSystemRuntimeEventPublisher` to atomically publish only the opaque durable
-event reference into a caller-owned root with a capacity from 1 through 4096. This is a
-local point adapter, not a MessageEnvelope, consumer, acknowledgement, or supported CLI
-composition.
+not publish events by default. To publish only this process-timeout owner from
+`scheduler-cycle`, `scheduler-drain`, or `scheduler-service`, append the complete group
+`--runtime-event-root <event-root>`,
+`--runtime-event-publication-root <point-root>`, and
+`--max-pending-runtime-event-publications <1..4096>`. Supply all three or none. The
+shared composition writes the retained timeout fact first, then exact-appends
+`RuntimeTimeoutKind.PROCESS`, then publishes only its opaque reference. Re-entry repairs
+the retained prefix without another child, and an exact acknowledged point is not
+recreated. This optional mode does not publish lease/Tool timeout, retry, finalizer,
+runtime-recovery, or terminal-disposition events.
 
 AgentRuntime schema v4 also retains a bounded lease-timeout record atomically when
 recovery reclaims an expired executing lease. Event-aware library recovery can derive
@@ -396,6 +400,38 @@ publication fails, retain the same roots and original `.transport` input name: e
 re-entry repairs the missing suffix without rewriting the request, event, or existing
 publication point. The publication directory is a bounded point surface, not an event
 body consumer, scanner, acknowledgement queue, or authenticated control channel.
+
+Read one explicitly named publication point through the separate read-only consumer:
+
+```powershell
+.\scripts\gradle.ps1 run --args="runtime-event-read --runtime-event-root C:\Enhancer\.enhancer\runtime-events --runtime-event-publication-root C:\Enhancer\.enhancer\runtime-event-publications --publication-file <64-lowercase-hex>.runtime-event-reference"
+```
+
+The command validates the point's regular non-symbolic schema-v1 integrity envelope,
+its deterministic filename, the canonical `runtime-event/<goal>/<event>` grammar, and
+the exact event in that Goal's retained stream. It reports bounded event identity,
+kind, time, producer, Goal/AgentRun, task/snapshot/run/correlation provenance, stream
+revision, and authoritative-reference count. It scans neither root and does not create
+a missing event root. Exact repeated reads and failures leave both artifacts unchanged.
+This command does not acknowledge or rename the point, release publication capacity,
+apply the event, mutate runtime state, or claim delivery. Keep the explicit point until
+it is explicitly acknowledged or a separately governed retention contract exists.
+
+Acknowledge that exact resolved observation with the original pending filename:
+
+```powershell
+.\scripts\gradle.ps1 run --args="runtime-event-acknowledge --runtime-event-root C:\Enhancer\.enhancer\runtime-events --runtime-event-publication-root C:\Enhancer\.enhancer\runtime-event-publications --publication-file <64-lowercase-hex>.runtime-event-reference"
+```
+
+The command repeats the full point and event validation before atomically renaming the
+pending point to the deterministic `.runtime-event-received` sibling. It reports
+`ACKNOWLEDGED` on the first success and `ALREADY_ACKNOWLEDGED` when the same original
+filename is retried after an uncertain response. The publisher recognizes that retained
+sibling before capacity evaluation, does not recreate the pending point, and counts only
+pending `.runtime-event-reference` files against capacity. Point/event contents and the
+event-stream revision do not change. This acknowledgement proves only that this exact
+observation boundary completed; it does not run a handler, apply an event, mutate
+runtime state, delete evidence, scan either root, or define cleanup/retention.
 
 These commands publish and record untrusted intent only. They do not authenticate or
 apply cancel, pause, or resume, call Message Bus cancellation, interrupt a worker,

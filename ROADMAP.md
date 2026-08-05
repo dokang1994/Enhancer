@@ -800,8 +800,31 @@ Current increment:
   all-or-none caller-owned group, publishing only `CANCELLATION_REQUEST_RECORDED` before
   spool acknowledgement while retaining exact repair after capacity or publication
   failure;
-- remaining runtime-event work: select a bounded consumer contract or another explicit
-  owner composition while preserving source-first durability and exact replay;
+- Integrated process-timeout-only Scheduler publication: `scheduler-cycle`,
+  `scheduler-drain`, and `scheduler-service` accept the same optional all-or-none event
+  store root, publication root, and capacity group. Their shared worker composition
+  injects the resulting recorder only into `ProcessIsolatedAgentRunExecution`, so a
+  watchdog timeout preserves fact -> exact event -> opaque point ordering and retained
+  re-entry repairs publication without another child, RunRecord, retry decision, or
+  terminal queue disposition;
+- Contract Verified and Integrated first read-only consumer: one explicit
+  `.runtime-event-reference` point is integrity-checked, bound to its deterministic
+  filename, parsed into canonical Goal/event identities, and resolved through exactly
+  one bounded Goal stream. The separate supported `runtime-event-read` command reports
+  bounded typed metadata and proves repeatable reads and failures mutate neither point
+  nor event artifact, create no missing root, and claim no acknowledgement or event
+  application;
+- Contract Verified and Integrated deterministic point acknowledgement: the separate
+  `runtime-event-acknowledge` command fully revalidates one explicit pending or retained
+  acknowledged point and exact event, atomically renames first success to
+  `.runtime-event-received`, exact-replays lost responses, releases pending publisher
+  capacity, and prevents source-owner replay from recreating pending state. It retains
+  observation evidence without handler delivery, event application, deletion, scans,
+  or cleanup/retention authority;
+- remaining runtime-event work: select another explicit owner composition while
+  preserving source-first durability, exact replay, consumer idempotency, and separate
+  application authority; the retained lease-timeout source at the shared Scheduler
+  runtime-recovery seam is the current bounded candidate;
 - deferred: real authorized external adapters, admission-history compaction/cleanup or
   schema-v1 queue migration, general orphan inventory/cleanup with an explicit retention
   and scan policy, general forward-reference graph/cycle handling, authenticated

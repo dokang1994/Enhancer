@@ -26,6 +26,7 @@ import java.util.Objects;
 public final class FileSystemRuntimeEventPublisher
         implements RuntimeEventPublisher {
     public static final String FILE_SUFFIX = ".runtime-event-reference";
+    public static final String ACKNOWLEDGED_FILE_SUFFIX = ".runtime-event-received";
     public static final int MIN_PENDING_PUBLICATIONS = 1;
     public static final int MAX_PENDING_PUBLICATIONS = 4096;
 
@@ -66,8 +67,20 @@ public final class FileSystemRuntimeEventPublisher
                 reference, "reference must not be null");
         prepareRoot();
         Path point = pointPath(checked);
-        if (Files.exists(point, LinkOption.NOFOLLOW_LINKS)) {
+        Path acknowledgedPoint = acknowledgedPointPath(checked);
+        boolean pointExists = Files.exists(point, LinkOption.NOFOLLOW_LINKS);
+        boolean acknowledgedExists =
+                Files.exists(acknowledgedPoint, LinkOption.NOFOLLOW_LINKS);
+        if (pointExists && acknowledgedExists) {
+            throw new IOException(
+                    "runtime event publication has conflicting pending and acknowledged points");
+        }
+        if (pointExists) {
             requireExact(point, checked);
+            return;
+        }
+        if (acknowledgedExists) {
+            requireExact(acknowledgedPoint, checked);
             return;
         }
         if (pendingPublications() >= maxPendingPublications) {
@@ -80,11 +93,18 @@ public final class FileSystemRuntimeEventPublisher
     }
 
     static String pointName(RuntimeEventPublicationReference reference) {
+        return pointIdentity(reference) + FILE_SUFFIX;
+    }
+
+    static String acknowledgedPointName(RuntimeEventPublicationReference reference) {
+        return pointIdentity(reference) + ACKNOWLEDGED_FILE_SUFFIX;
+    }
+
+    private static String pointIdentity(RuntimeEventPublicationReference reference) {
         RuntimeEventPublicationReference checked = Objects.requireNonNull(
                 reference, "reference must not be null");
         return HexFormat.of().formatHex(sha256(
-                        checked.reference().getBytes(StandardCharsets.UTF_8)))
-                + FILE_SUFFIX;
+                        checked.reference().getBytes(StandardCharsets.UTF_8)));
     }
 
     RuntimeEventPublicationReference resolveAcceptedPoint(
@@ -93,12 +113,18 @@ public final class FileSystemRuntimeEventPublisher
                 reference, "reference must not be null");
         prepareRoot();
         Path point = pointPath(checked);
-        if (!Files.exists(point, LinkOption.NOFOLLOW_LINKS)) {
+        Path acknowledgedPoint = acknowledgedPointPath(checked);
+        boolean pointExists = Files.exists(point, LinkOption.NOFOLLOW_LINKS);
+        boolean acknowledgedExists =
+                Files.exists(acknowledgedPoint, LinkOption.NOFOLLOW_LINKS);
+        if (pointExists == acknowledgedExists) {
             throw new IOException(
-                    "runtime event publication point is missing: "
+                    "runtime event publication must resolve exactly one pending or acknowledged point: "
                             + point.getFileName());
         }
-        return requireExact(point, checked);
+        return requireExact(
+                pointExists ? point : acknowledgedPoint,
+                checked);
     }
 
     private void prepareRoot() throws IOException {
@@ -154,6 +180,16 @@ public final class FileSystemRuntimeEventPublisher
     private RuntimeEventPublicationReference requireExact(
             Path point,
             RuntimeEventPublicationReference expected) throws IOException {
+        RuntimeEventPublicationReference resolved = readAcceptedPoint(point);
+        if (!resolved.equals(expected)) {
+            throw new IOException(
+                    "runtime event publication point does not match its deterministic reference");
+        }
+        return resolved;
+    }
+
+    static RuntimeEventPublicationReference readAcceptedPoint(Path point)
+            throws IOException {
         if (!Files.isRegularFile(point, LinkOption.NOFOLLOW_LINKS)) {
             throw new IOException(
                     "runtime event publication point must be a regular file without symbolic links");
@@ -191,14 +227,14 @@ public final class FileSystemRuntimeEventPublisher
             throw new IOException(
                     "runtime event publication digest does not match");
         }
-        RuntimeEventPublicationReference resolved =
-                new RuntimeEventPublicationReference(
-                        decodeUtf8(encodedReference));
-        if (!resolved.equals(expected)) {
+        try {
+            return new RuntimeEventPublicationReference(
+                    decodeUtf8(encodedReference));
+        } catch (IllegalArgumentException exception) {
             throw new IOException(
-                    "runtime event publication point does not match its deterministic reference");
+                    "runtime event publication reference is invalid",
+                    exception);
         }
-        return resolved;
     }
 
     private byte[] encode(RuntimeEventPublicationReference reference) {
@@ -214,7 +250,7 @@ public final class FileSystemRuntimeEventPublisher
                 .array();
     }
 
-    private String decodeUtf8(byte[] encoded) throws IOException {
+    private static String decodeUtf8(byte[] encoded) throws IOException {
         try {
             return StandardCharsets.UTF_8
                     .newDecoder()
@@ -234,6 +270,17 @@ public final class FileSystemRuntimeEventPublisher
         if (!point.startsWith(publicationRoot)) {
             throw new IllegalArgumentException(
                     "runtime event publication point resolves outside its root");
+        }
+        return point;
+    }
+
+    private Path acknowledgedPointPath(
+            RuntimeEventPublicationReference reference) {
+        Path point = publicationRoot.resolve(
+                acknowledgedPointName(reference)).normalize();
+        if (!point.startsWith(publicationRoot)) {
+            throw new IllegalArgumentException(
+                    "acknowledged runtime event publication point resolves outside its root");
         }
         return point;
     }

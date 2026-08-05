@@ -2,6 +2,7 @@ package com.enhancer.cli;
 
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Optional;
 
 /** Inputs shared by supported foreground Scheduler execution commands. */
 interface SchedulerExecutionCliCommand extends CliCommand {
@@ -30,4 +31,6 @@ interface SchedulerExecutionCliCommand extends CliCommand {
     Duration leaseDuration();
 
     Duration processTimeout();
+
+    Optional<RuntimeEventPublicationCliConfiguration> runtimeEventPublication();
 }

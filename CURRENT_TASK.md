@@ -2,98 +2,91 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Establish a repository-wide adaptive development-subagent policy so the primary Agent
-selects bounded subagents when independent analysis, comparison, risk review, or test
-surface review materially improves a task, while keeping a single-agent topology for
-small, sequential, or tightly coupled work.
+Deliver the accumulated verified runtime-event point reader, deterministic
+acknowledgement, and process-timeout Scheduler publication work to `main` through
+reviewed commits and verified pushes without rewriting history or widening the released
+capability claim.
 
 ## Task ID
 
-govern-adaptive-development-subagent-delegation
+deliver-accumulated-runtime-event-work-to-main
 
 ## Context
 
-The repository currently permits subagents only through one-off task authority even
-though Constitution Section 7 already permits read-only inspection and normal local
-implementation steps inside the user request and Active Task. This makes execution
-topology a repeated chat decision rather than a bounded primary-Agent responsibility.
+Three completed tasks remain together as 33 intentional working-tree paths over
+`d272809254919f35d99c528885ab5d39767307c1`: read-only publication-point resolution,
+deterministic acknowledgement/capacity release, and process-timeout-only publication
+from the three supported Scheduler execution commands. Their implementation,
+documentation, decisions, and verification evidence are synchronized locally.
 
-This task governs Codex development sessions over this repository. It does not
-implement or promote the Gate 13 product runtime, background execution, typed Handoff
-delivery, or multi-agent capability maturity. The user supplies the work authority;
-the primary Agent selects the smallest useful execution topology inside that envelope.
+The repository was last observed on `main` tracking `origin/main`, with `HEAD`, `main`,
+and the last fetched `origin/main` aligned. Because the work already resides on `main`,
+an ordinary reviewed commit followed by a successful push advances main directly and
+does not require a synthetic feature branch or merge commit. Fresh fetch and reference
+inspection must confirm that topology before any commit or push.
 
 ## Justified By
 
-- 2026-08-04: Let Primary Agents Select Bounded Development Subagents Adaptively
+- User request on 2026-08-05 to commit, push, and deliver accumulated runtime-event work to main
 
 ## Approval
 
-The user requested a repository configuration in which the primary Agent automatically
-judges whether a task is large enough or otherwise benefits from subagents, and directed
-that the policy contain no per-use explicit-user-approval condition for subagent
-selection.
+The user explicitly requested commit, push, and merge to `main`, then asked the Agent to
+continue. This authorizes local task/decision/evidence synchronization, fresh Git and
+Java 17 verification, staging the exact reviewed accumulated paths, creating ordinary
+non-amending commits, fetching `origin`, pushing the resulting commits to
+`origin/main`, and verifying the remote reference.
 
-This task authorizes one accepted development-session delegation decision, a structural
-RED/GREEN document contract, synchronization of Agent instructions, compact workflow,
-Architecture/mirror, human README, affected prompts, governance state, evidence, and
-history, plus fresh verification. Existing authority rules still govern the underlying
-work and every privileged action; delegation cannot create new scope, Tools,
-permissions, budget, lifecycle state, or external/destructive authority.
-
-After local completion, the user explicitly authorized committing the complete verified
-working tree, pushing it, and merging it into `main`. Because the working branch is
-already `main`, the authorized delivery is one commit directly on `main`, followed by a
-push to `origin/main` and an exact local/remote synchronization check; no synthetic
-merge commit or temporary branch is required.
+If fresh inspection confirms the work is already on an aligned local `main`, direct
+commit and push is the authorized main integration. This approval does not authorize
+force push, history rewrite, amend/rebase/reset, deletion of user work, release tags,
+GitHub issues or pull requests, deployment, package publication, permission or
+credential changes, destructive cleanup, arbitrary external messages, or unrelated
+implementation.
 
 ## Acceptance Criteria
 
-- The primary Agent evaluates adaptive delegation for non-trivial tasks and selects the
-  smallest topology whose expected quality, risk, or latency benefit exceeds
-  coordination cost.
-- The policy names positive selection signals and explicit single-agent conditions,
-  requires concrete independent scopes and join criteria, and works with or without a
-  Dynamic Workflow.
-- Development subagents are read-only by default and bounded to at most three concurrent
-  children, one delegation level, three dispatches per increment, and six per Active
-  Task. Nested delegation, background continuation, and shared-worktree parallel
-  mutation remain prohibited.
-- The primary Agent alone reconciles repository authority, mutates files/checkpoints/Git,
-  classifies RED/GREEN, reads raw verification, synthesizes reports, and makes lifecycle
-  claims. Subagent reports remain recommendations, never authority or verification.
-- Dynamic Workflow increment selection remains sequential; adaptive delegation may
-  parallelize only independent bounded read-only work inside the selected increment and
-  does not create a second task or runtime capability.
-- Fresh structural RED/GREEN, governance regression, full Java 17 build, and final diff
-  checks pass, with the decision, instructions, architecture, state, task, evidence,
-  changelog, README, prompts, and handoff reviewed and synchronized where affected.
-- The complete verified 27-path working tree is staged without generated output,
-  deletions, or credentials, committed with a subagent-governance documentation message,
-  and delivered so `main`, `origin/main`, and `HEAD` resolve to the same commit.
+- Fresh checkpoint, branch, remote, status, diff, and reference inspection reconciles
+  the exact accumulated paths with the three completed tasks and finds no unexpected
+  deletion, generated build output, credential material, or unrelated change.
+- Fresh `git fetch origin` confirms `main` can be advanced without overwriting or
+  silently absorbing an unverified divergent remote history. Any divergence stops the
+  task for reconciliation before commit or push.
+- Fresh Java 17 compile/test and governance evidence remains green after the delivery
+  task and accepted decision are synchronized.
+- The exact reviewed accumulated work is staged, cached-diff checked, and committed on
+  `main` with an ordinary commit whose message truthfully covers the reader,
+  acknowledgement, and process-timeout Scheduler publication work.
+- `git push origin main` succeeds without force and fresh remote inspection proves
+  `HEAD`, local `main`, and `origin/main` resolve to the same commit.
+- Delivery evidence is appended once, canonical task/handoff/changelog state is
+  synchronized without duplicating Git-owned history, and any evidence-only follow-up
+  commit is likewise reviewed, pushed, and verified on `origin/main`.
+- Final working tree is clean, all references are aligned, no task authority remains
+  pending, and the artifact-matched checkpoint is recorded `STABLE` and cleared.
 
 ## Out Of Scope
 
-Constitution amendment; Gate 13 product/runtime implementation or maturity promotion;
-typed Handoff or MessageEnvelope changes; Scheduler, background, supervisor, or worker
-runtime behavior; subagent mutation; shared-worktree parallel writes; nested delegation;
-more than three concurrent subagents; automatic approval; scope, Tool, permission,
-budget, or lifecycle expansion; release, deployment, destructive action,
-credential/security change, paid service, external message, or unrelated work.
+New runtime-event behavior or owner composition; architecture, schema, lifecycle,
+queue, retry, timeout, consumer, cleanup, or retention changes; force push, amend,
+rebase, reset, cherry-pick, history rewrite, branch deletion, tag or release creation,
+pull request/issue/comment creation, deployment, package publication, external runtime
+invocation, credential or permission changes, paid services, destructive actions,
+unrelated formatting, or continuation into the next lease-timeout implementation task.
 
 ## Allowed Tools
 
 - read-file
 - subagent-read-only
-- write-tests
 - write-docs
 - verify
 - checkpoint
 - git-inspect
+- git-fetch
 - git-stage
 - git-commit
 - git-push
@@ -101,127 +94,92 @@ credential/security change, paid service, external message, or unrelated work.
 ## Subagent Coordination
 
 Coordinator: Primary Agent
-Selection Basis: Governance/self-hosting rule changes benefit from independent bounded
-policy, conflict, and test-surface review.
 Maximum Concurrent Subagents: 3
 Delegation Depth: 1
 Mutation Owner: Primary Agent only
 Evidence Rule: Reports are recommendations and never verification evidence.
-Join Rule: All three declared reports must be joined and reconciled before the policy
-contract is accepted.
-
-- Delegation Policy Analyst: recommend automatic selection and single-agent criteria,
-  bounds, ownership, synthesis, and stop conditions.
-- Governance Conflict Analyst: verify constitutional compatibility and distinguish
-  development delegation from Gate 13 runtime authority.
-- Governance Test Analyst: identify affected instruction surfaces, structural RED/GREEN
-  assertions, and regression scope.
+Join Rule: Every dispatched reviewer is joined before staging or lifecycle promotion.
 
 ## Dynamic Workflow
 
-Workflow ID: adaptive-development-subagent-governance
+Workflow ID: deliver-accumulated-runtime-event-work-to-main
 Mode: Sequential
-Increment Limit: 5
+Increment Limit: 4
 Selection Rule: Select the first dependency-ready Pending increment after reading the
 required evidence for every dependency.
-Stop Conditions: Stop on missing subagent join, unresolved repository-authority
-conflict, failed verification, task drift, overlapping mutation, scope or authority
-expansion, exhausted bounds, stagnation, or unsafe recovery.
+Stop Conditions: Stop on authority conflict, unexpected path, secret or generated
+artifact, failed verification, remote divergence, rejected/non-fast-forward push,
+artifact mismatch, task drift, exhausted bounds, or unsafe recovery.
 
-### Increment 1 - analyze-adaptive-delegation-policy
+### Increment 1 - reconcile-delivery-scope
 
 State: Completed
 Depends On: none
-Scope: Join three bounded read-only reviews of delegation policy, governance conflicts,
-and the structural test surface, then reconcile them against repository authority.
-Exit Criteria: All reports are joined without mutation or nested delegation, and the
-primary review identifies one Constitution-compatible development-session policy.
-Verification: Primary structural review of Constitution Sections 7 and 9, AGENTS,
-Architecture, RFC-0009, existing decisions, prompts, tests, checkpoint, and diff.
-Next Action: Record the accepted policy and focused structural RED contract.
+Scope: Record the accepted delivery decision, inspect the exact accumulated diff and
+Git topology, fetch the remote, and join bounded read-only delivery reviews.
+Exit Criteria: The direct-main delivery topology and exact path set are safe, aligned,
+and free of unexpected or sensitive content.
+Verification: Checkpoint, Git status/diff/name/secret review, branch/upstream/reference
+inspection, fresh fetch, and primary reconciliation of joined recommendations.
+Next Action: Run fresh pre-delivery Java 17 and governance verification.
 
-### Increment 2 - specify-adaptive-delegation-contract
+### Increment 2 - verify-and-commit-accumulated-work
 
-State: Completed
-Depends On: analyze-adaptive-delegation-policy
-Scope: Record one indexed Accepted Decision and a focused failing structural test for
-the adaptive delegation rules and required instruction surfaces.
-Exit Criteria: The decision and RED remain inside this task, distinguish development
-delegation from Gate 13 runtime, and fail only on the missing policy connections.
-Verification: Decision/index/task structural review and focused Java 17 RED output.
-Next Action: Synchronize the minimum governed instruction surfaces.
+State: In Progress
+Depends On: reconcile-delivery-scope
+Scope: Run claim-bearing verification, stage only the reviewed paths, inspect the cached
+diff, and create the ordinary accumulated-work commit on `main`.
+Exit Criteria: Fresh verification is green and the commit exactly matches the reviewed
+work with no unstaged or unexpected path.
+Verification: Java 17 build/governance checks, `git diff --check`, cached diff check,
+cached name/stat/content review, and post-commit status/reference inspection.
+Next Action: Push the accumulated-work commit to `origin/main` and verify it.
 
-### Increment 3 - implement-adaptive-delegation-docs
+### Increment 3 - push-and-verify-main-delivery
 
-State: Completed
-Depends On: specify-adaptive-delegation-contract
-Scope: Add the bounded automatic selection algorithm, ownership and stop rules, Dynamic
-Workflow interaction, and product-runtime distinction to the owning documents.
-Exit Criteria: Focused structural GREEN passes and no policy grants new underlying
-work, Tool, external, destructive, delivery, or lifecycle authority.
-Verification: Focused Java 17 delegation and document-governance suites.
-Next Action: Run full verification and synchronize final evidence/state/history.
+State: Pending
+Depends On: verify-and-commit-accumulated-work
+Scope: Push the ordinary commit to `origin/main` without force and verify the resulting
+remote identity.
+Exit Criteria: Push succeeds and fresh remote inspection proves exact HEAD/local/remote
+main alignment.
+Verification: Raw push output plus fresh fetch or `ls-remote` and exact reference IDs.
+Next Action: Synchronize delivery evidence and close the task.
 
-### Increment 4 - verify-adaptive-delegation-governance
+### Increment 4 - synchronize-delivery-evidence
 
-State: Completed
-Depends On: implement-adaptive-delegation-docs
-Scope: Run full and post-synchronization verification, review the final diff, and close
-a stable artifact-matched checkpoint.
-Exit Criteria: All declared checks pass, every increment is Completed, all reports are
-joined, owned documents are current, and the diff stays inside the approved policy
-boundary.
-Verification: Fresh Java 17 full build, focused governance tests, and final diff review.
-Next Action: Stage and deliver the user-authorized verified working tree.
-
-### Increment 5 - deliver-adaptive-delegation-and-accumulated-verified-work
-
-State: Completed
-Depends On: verify-adaptive-delegation-governance
-Scope: Stage the complete verified 27-path working tree, run cached boundary checks,
-commit it directly on the already-current `main` branch with the requested
-subagent-documentation subject, push to `origin/main`, and verify exact synchronization.
-Exit Criteria: Cached checks pass, one commit contains the complete intended change set,
-the push succeeds, and `HEAD`, `main`, and `origin/main` name the same commit with a clean
-working tree.
-Verification: Cached whitespace/status/stat review, commit inspection, push output,
-post-push fetch-independent reference comparison, and clean final status.
-Next Action: Record delivery evidence, stabilize the checkpoint, and clear it.
+State: Pending
+Depends On: push-and-verify-main-delivery
+Scope: Append the external delivery evidence once, mark the delivery task complete,
+verify documents, and commit the evidence-only synchronization.
+Exit Criteria: Canonical documents truthfully record the released delivery boundary,
+governance checks pass, and the evidence commit contains no implementation drift.
+Verification: Document/governance tests, diff/cached-diff checks, and post-commit review.
+Next Action: After task completion, push the evidence commit as the authorized release
+step, verify final clean-state reference identity, then stabilize and clear the
+checkpoint without reopening the completed task or adding a third commit.
 
 ## Verification
 
-- Three bounded read-only subagents joined without editing, testing, checkpoint
-  mutation, or nested delegation. Their reports were treated as recommendations only.
-- Primary review found no Constitution amendment is needed: Section 7 permits bounded
-  in-scope local inspection, while Section 9 is satisfied by this user-requested policy
-  task and its accepted decision. Gate 13 runtime contracts remain unchanged.
-- The indexed decision and focused structural test compile under Java 17. Focused RED
-  ran all three `DynamicWorkflowDocumentTest` cases: the two existing workflow cases
-  passed and the new adaptive-delegation case failed only on the eight missing governed
-  policy connections.
-- Focused GREEN recompiled production and tests and ran 23 tests across six delegation,
-  decision-index, ownership, package-boundary, Planner, and Context suites: 22 passed,
-  one Windows environment-dependent symbolic-link case skipped, and zero failed or
-  errored. Fresh `git diff --check` was clean.
-- Fresh Java 17 `clean build --no-daemon --console=plain` completed in 6 minutes 45
-  seconds with all eight tasks executed. It assembled distributions and ran 710 tests
-  across 134 suites: 703 passed, seven environment-dependent cases skipped, and zero
-  failed or errored. Production and test source counts are 305 and 135; fresh
-  `git diff --check` was clean.
-- Post-synchronization Java 17 verification recompiled production and tests and reran
-  the six focused governance suites in 1 minute 57 seconds: 22 of 23 tests passed, the
-  one Windows environment-dependent symbolic-link case skipped, and zero failed or
-  errored. Fresh `git diff --check` was clean.
-- Cached delivery review covered exactly 27 paths with 1,736 insertions and 148
-  deletions; `git diff --cached --check` was clean, with no deleted file or generated
-  build output. Commit `3d4e4e5949eaf544f9035b96945a724e2b8ba44b` used the requested
-  `docs: govern adaptive project subagent usage` subject and retained the accumulated
-  verified runtime-event work in its body.
-- `git push origin main` advanced the remote from `ae7d733` to `3d4e4e5`. Fresh local
-  reference comparison found `HEAD`, `main`, and `origin/main` at the exact same full
-  commit identity with a clean working tree.
+- Required repository documents were read in order for the delivery request. Fresh
+  `checkpoint-show` reported `checkpointStatus=EMPTY` before task activation.
+- Fresh fetch and primary Git inspection found local `main`, `origin/main`, and `HEAD`
+  aligned at `d272809254919f35d99c528885ab5d39767307c1` with zero divergence. The
+  reconciled working tree contains 33 expected paths after removing a handoff date-only
+  change and adding the indexed delivery decision; diff, deletion, generated-output,
+  and credential review found no unexpected content.
+- Three bounded read-only delivery reviews joined without mutation or nested
+  delegation. Their recommendations were reconciled by the primary Agent before
+  lifecycle promotion; direct commit and non-force push from aligned `main` remains
+  the minimum requested integration topology.
+- Fresh Java 17 `clean build --no-daemon --console=plain` executed all eight tasks in
+  6 minutes 27 seconds and ran 723 tests across 138 suites: 715 passed, eight
+  environment-dependent cases skipped, and zero failed or errored. Verified source
+  counts remained 312 production and 139 test Java files; fresh `git diff --check`
+  produced no output and the working tree retained exactly 33 expected paths.
 
 ## Next
 
-After authorized delivery is verified, resume the recorded runtime-event path by
-selecting a bounded consumer contract or another explicit owner composition.
+After delivery completes, select one remaining explicit runtime-event owner composition,
+with lease-timeout recovery through the shared Scheduler runtime seam as the current
+bounded candidate.

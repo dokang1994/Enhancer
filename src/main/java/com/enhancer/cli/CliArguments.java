@@ -36,6 +36,10 @@ final class CliArguments {
     private static final Set<String> REPLAY_OPTIONS = Set.of("run-record-root", "reference");
     private static final Set<String> RUN_RECORD_LIST_OPTIONS =
             Set.of("run-record-root", "limit");
+    private static final Set<String> RUNTIME_EVENT_POINT_OPTIONS = Set.of(
+            "runtime-event-root",
+            "runtime-event-publication-root",
+            "publication-file");
     private static final Set<String> SCHEDULER_STATUS_OPTIONS =
             Set.of("queue-root", "queue-id", "limit");
     private static final Set<String> SCHEDULER_RECOVERY_STATUS_OPTIONS =
@@ -118,6 +122,10 @@ final class CliArguments {
             "max-cycles",
             "max-consecutive-idle-cycles",
             "idle-wait-millis");
+    private static final Set<String> SCHEDULER_EXECUTION_OPTIONAL_OPTIONS = Set.of(
+            "runtime-event-root",
+            "runtime-event-publication-root",
+            "max-pending-runtime-event-publications");
     private static final Set<String> SCHEDULER_RECEIVE_WORK_OPTIONS = Set.of(
             "transport-spool-root",
             "message-file",
@@ -133,10 +141,8 @@ final class CliArguments {
             "destination-name",
             "runtime-root",
             "goal-id");
-    private static final Set<String> SCHEDULER_RECEIVE_CONTROL_OPTIONAL_OPTIONS = Set.of(
-            "runtime-event-root",
-            "runtime-event-publication-root",
-            "max-pending-runtime-event-publications");
+    private static final Set<String> SCHEDULER_RECEIVE_CONTROL_OPTIONAL_OPTIONS =
+            SCHEDULER_EXECUTION_OPTIONAL_OPTIONS;
     private static final Set<String> SCHEDULER_SPOOL_WORK_OPTIONS = Set.of(
             "project-root",
             "transport-spool-root",
@@ -207,7 +213,8 @@ final class CliArguments {
     static CliCommand parse(String[] arguments) {
         if (arguments == null || arguments.length == 0) {
             throw new CliUsageException(
-                    "command is required: run, replay, run-record-list, scheduler-submit, "
+                    "command is required: run, replay, run-record-list, "
+                    + "runtime-event-read, runtime-event-acknowledge, scheduler-submit, "
                     + "scheduler-submit-generated, scheduler-status, "
                             + "scheduler-recovery-status, "
                             + "scheduler-external-effect-status, "
@@ -226,6 +233,10 @@ final class CliArguments {
             case "replay" -> parseReplay(parseOptions(arguments, REPLAY_OPTIONS));
             case "run-record-list" -> parseRunRecordList(
                     parseOptions(arguments, RUN_RECORD_LIST_OPTIONS));
+            case "runtime-event-read" -> parseRuntimeEventRead(
+                    parseOptions(arguments, RUNTIME_EVENT_POINT_OPTIONS));
+            case "runtime-event-acknowledge" -> parseRuntimeEventAcknowledge(
+                    parseOptions(arguments, RUNTIME_EVENT_POINT_OPTIONS));
             case "scheduler-status" -> parseSchedulerStatus(
                     parseOptions(arguments, SCHEDULER_STATUS_OPTIONS));
             case "scheduler-recovery-status" -> parseSchedulerRecoveryStatus(
@@ -266,11 +277,20 @@ final class CliArguments {
                                 "submission-id"));
             }
             case "scheduler-cycle" -> parseSchedulerCycle(
-                    parseOptions(arguments, SCHEDULER_CYCLE_OPTIONS));
+                    parseOptions(
+                            arguments,
+                            SCHEDULER_CYCLE_OPTIONS,
+                            SCHEDULER_EXECUTION_OPTIONAL_OPTIONS));
             case "scheduler-drain" -> parseSchedulerDrain(
-                    parseOptions(arguments, SCHEDULER_DRAIN_OPTIONS));
+                    parseOptions(
+                            arguments,
+                            SCHEDULER_DRAIN_OPTIONS,
+                            SCHEDULER_EXECUTION_OPTIONAL_OPTIONS));
             case "scheduler-service" -> parseSchedulerService(
-                    parseOptions(arguments, SCHEDULER_SERVICE_OPTIONS));
+                    parseOptions(
+                            arguments,
+                            SCHEDULER_SERVICE_OPTIONS,
+                            SCHEDULER_EXECUTION_OPTIONAL_OPTIONS));
             case "scheduler-receive-work" -> parseSchedulerReceiveWork(
                     parseOptions(
                             arguments,
@@ -362,6 +382,40 @@ final class CliArguments {
                 digest,
                 path(options.get("evidence-root"), "evidence-root"),
                 path(options.get("run-record-root"), "run-record-root"));
+    }
+
+    private static RuntimeEventReadCliCommand parseRuntimeEventRead(
+            Map<String, String> options) {
+        return new RuntimeEventReadCliCommand(
+                path(options.get("runtime-event-root"), "runtime-event-root"),
+                path(
+                        options.get("runtime-event-publication-root"),
+                        "runtime-event-publication-root"),
+                canonicalRuntimeEventPublicationFile(options));
+    }
+
+    private static RuntimeEventAcknowledgeCliCommand parseRuntimeEventAcknowledge(
+            Map<String, String> options) {
+        return new RuntimeEventAcknowledgeCliCommand(
+                path(options.get("runtime-event-root"), "runtime-event-root"),
+                path(
+                        options.get("runtime-event-publication-root"),
+                        "runtime-event-publication-root"),
+                canonicalRuntimeEventPublicationFile(options));
+    }
+
+    private static String canonicalRuntimeEventPublicationFile(
+            Map<String, String> options) {
+        String publicationFile = nonBlank(
+                options.get("publication-file"), "publication-file");
+        if (!publicationFile.matches(
+                "[0-9a-f]{64}\\Q"
+                        + FileSystemRuntimeEventPublisher.FILE_SUFFIX
+                        + "\\E")) {
+            throw new CliUsageException(
+                    "publication-file must be one canonical runtime-event reference point");
+        }
+        return publicationFile;
     }
 
     private static ReplayCliCommand parseReplay(Map<String, String> options) {
@@ -489,7 +543,8 @@ final class CliArguments {
                 ownerId,
                 (int) maxAttempts,
                 leaseDuration,
-                processTimeout);
+                processTimeout,
+                optionalRuntimeEventPublication(options));
     }
 
     private static SchedulerDrainCliCommand parseSchedulerDrain(
@@ -516,6 +571,7 @@ final class CliArguments {
                 cycle.maxAttempts(),
                 cycle.leaseDuration(),
                 cycle.processTimeout(),
+                cycle.runtimeEventPublication(),
                 (int) maxCycles);
     }
 
@@ -552,6 +608,7 @@ final class CliArguments {
                 cycle.maxAttempts(),
                 cycle.leaseDuration(),
                 cycle.processTimeout(),
+                cycle.runtimeEventPublication(),
                 policy);
     }
 
@@ -582,28 +639,28 @@ final class CliArguments {
 
     private static SchedulerReceiveControlCliCommand parseSchedulerReceiveControl(
             Map<String, String> options) {
-        List<String> publicationOptions = List.of(
-                "runtime-event-root",
-                "runtime-event-publication-root",
-                "max-pending-runtime-event-publications");
-        long supplied = publicationOptions.stream()
-                .filter(options::containsKey)
-                .count();
-        if (supplied != 0 && supplied != publicationOptions.size()) {
-            throw new CliUsageException(
-                    "runtime event publication options must be supplied together");
-        }
-        Optional<RuntimeEventPublicationCliConfiguration> publication =
-                supplied == 0
-                        ? Optional.empty()
-                        : Optional.of(runtimeEventPublication(options));
         return new SchedulerReceiveControlCliCommand(
                 path(options.get("transport-spool-root"), "transport-spool-root"),
                 canonicalTransportFile(options.get("message-file")),
                 nonBlank(options.get("destination-name"), "destination-name"),
                 path(options.get("runtime-root"), "runtime-root"),
                 canonicalUuid(options.get("goal-id"), "goal-id"),
-                publication);
+                optionalRuntimeEventPublication(options));
+    }
+
+    private static Optional<RuntimeEventPublicationCliConfiguration>
+            optionalRuntimeEventPublication(Map<String, String> options) {
+        long supplied = SCHEDULER_EXECUTION_OPTIONAL_OPTIONS.stream()
+                .filter(options::containsKey)
+                .count();
+        if (supplied != 0
+                && supplied != SCHEDULER_EXECUTION_OPTIONAL_OPTIONS.size()) {
+            throw new CliUsageException(
+                    "runtime event publication options must be supplied together");
+        }
+        return supplied == 0
+                ? Optional.empty()
+                : Optional.of(runtimeEventPublication(options));
     }
 
     private static RuntimeEventPublicationCliConfiguration runtimeEventPublication(

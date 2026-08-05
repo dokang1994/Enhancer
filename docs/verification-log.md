@@ -4028,3 +4028,145 @@ Outcome:
   link case skipped, and zero failed or errored.
 - Fresh `git diff --check` produced no output. Only `CURRENT_TASK.md` and this append-only
   verification log remained changed for the final evidence synchronization commit.
+
+## 2026-08-05 - Resolve One Runtime Event Publication Point Read-Only
+
+- The repository authority set was read in required order, `checkpoint-show` initially
+  reported `EMPTY`, and the clean baseline had `HEAD`, `main`, and `origin/main` at
+  `d272809254919f35d99c528885ab5d39767307c1`. Three bounded read-only subagents joined;
+  the primary Agent reconciled their consumer, owner-composition, and governance reports
+  as recommendations only and selected explicit read-only point resolution without
+  acknowledgement.
+- Focused Java 17 RED compiled two new CLI integration cases. The successful resolution
+  case failed only because `runtime-event-read` did not exist, while missing/corrupt
+  point behavior already failed closed. The minimum implementation added strict point
+  integrity and deterministic binding checks, exact one-Goal stream resolution, and a
+  supported repeatable CLI without point/event mutation, scan, acknowledgement, or
+  application.
+- Focused GREEN ran 12 tests across the new CLI integration and existing filesystem
+  publisher/store suites: 10 passed, two Windows symbolic-link cases skipped, and zero
+  failed or errored. Expanded runtime-event and governance regression ran 128 tests
+  across 15 suites: 126 passed, two symbolic-link cases skipped, and zero failed or
+  errored.
+- Fresh Java 17 `clean build --no-daemon --console=plain` executed all eight tasks and
+  ran 712 tests across 135 suites: 705 passed, seven environment-dependent cases
+  skipped, and zero failed or errored. Verified source counts were 308 production Java
+  files and 136 test Java files.
+- After owned-document synchronization, selected verification ran 22 tests across six
+  suites: 20 passed, two symbolic-link cases skipped, and zero failed or errored. After
+  the Active Task and all four Dynamic Workflow increments were marked `Completed`,
+  final CLI and document-governance verification ran 12 tests across four suites: all
+  12 passed with zero skipped, failed, or errored. Fresh `git diff --check` produced no
+  output after both stages.
+- No runtime-event acknowledgement, rename, deletion, scan, application, capacity
+  release, additional event-owner composition, commit, push, merge, release,
+  deployment, destructive action, or external effect was performed.
+
+## 2026-08-05 - Deterministic Runtime Event Point Acknowledgement
+
+- The required repository authority set was read in order and `checkpoint-show`
+  initially reported `EMPTY`. The working tree contained exactly the 17 expected paths
+  from the completed read-only consumer, while `HEAD`, `main`, and `origin/main` all
+  remained `d272809254919f35d99c528885ab5d39767307c1`. Three bounded read-only reports
+  were joined and reconciled by the primary Agent as recommendations only.
+- Core Java 17 RED failed compilation only on 13 expected missing acknowledgement
+  symbols. After the exact point acknowledgement and publisher replay implementation,
+  focused core GREEN ran 11 tests across three suites: nine passed, two Windows
+  symbolic-link assumptions skipped, and zero failed or errored. CLI RED then ran two
+  integration cases: invalid state already failed closed and the success case failed
+  only with `unknown command: runtime-event-acknowledge`.
+- Focused CLI/runtime-event GREEN ran 17 tests across five suites: 14 passed, three
+  Windows symbolic-link assumptions skipped, and zero failed or errored. Expanded
+  runtime-event, Scheduler-owner, CLI, and governance regression ran 157 tests across
+  18 suites: 154 passed, the same three assumptions skipped, and zero failed or
+  errored. Fresh `git diff --check` produced no output after both stages.
+- Fresh Java 17 `clean build --no-daemon --console=plain` executed all eight tasks and
+  ran 717 tests across 137 suites: 709 passed, eight environment-dependent cases
+  skipped, and zero failed or errored. Verified source counts were 312 production Java
+  files and 138 test Java files.
+- After Architecture/mirror, Project State, Roadmap, README, changelog, and Active Task
+  synchronization, focused runtime-event and governance verification ran 52 tests
+  across 10 suites: 49 passed, three symbolic-link assumptions skipped, and zero failed
+  or errored. `SESSION_HANDOFF.md` required no change because its three host-only facts
+  remained current.
+- After the Active Task and all five Dynamic Workflow increments were marked
+  `Completed`, final acknowledgement, publisher, decision-index, document-ownership,
+  and workflow verification ran 21 tests across six suites: 19 passed, two symbolic-
+  link assumptions skipped, and zero failed or errored. Fresh `git diff --check`
+  produced no output.
+- Final status/stat/name and code/decision/document review retained exactly 24 expected
+  changed paths: the preceding read-only consumer plus this deterministic
+  acknowledgement increment. No deletion, generated build output, credential,
+  invocation against an actual user runtime point, arbitrary handler or application,
+  cleanup/retention action, commit, push, merge, release, deployment, destructive
+  action, external message, or other external effect entered the work.
+
+## 2026-08-05 - Compose Process Timeout Runtime Event Publication Across Scheduler Commands
+
+- The required repository authority set was read in order and fresh `checkpoint-show`
+  reported `EMPTY`. The working tree retained exactly the 24 expected paths from the
+  completed runtime-event read and acknowledgement tasks; `HEAD`, `main`, and
+  `origin/main` remained aligned at
+  `d272809254919f35d99c528885ab5d39767307c1`. Three bounded read-only reports were
+  joined and reconciled by the primary Agent as recommendations only.
+- Focused Java 17 RED ran the new shared Scheduler publication-group parser contract and
+  failed only with `unknown option: --runtime-event-root`. The minimum implementation
+  added one optional all-or-none event-root, publication-root, and capacity group to
+  cycle, drain, and service, then routed one filesystem recorder through their shared
+  Worker construction only to `ProcessIsolatedAgentRunExecution`.
+- Focused GREEN ran 30 tests across `CliArgumentsTest` and the real self-JVM process-
+  timeout CLI integration suite; all passed. The four integration invocations proved
+  cycle/drain/service fact -> `TIMEOUT_DETECTED(PROCESS)` -> opaque point ordering,
+  existing point resolution, retained fact/event identity, acknowledged replay without
+  pending recreation, retained cycle checkpoint, and no RunRecord or terminal queue
+  disposition.
+- Expanded timeout-owner, Worker, Scheduler, Control receiver, event store/recorder/
+  publisher, point read, and acknowledgement regression ran 81 tests across 13 suites:
+  77 passed, four Windows symbolic-link assumptions skipped, and zero failed or
+  errored. Focused decision-index, document-ownership, Dynamic Workflow, and runtime
+  package-boundary verification ran 11 tests across four suites; all passed.
+- Fresh Java 17 `clean build --no-daemon --console=plain` completed in 5 minutes 41
+  seconds with all eight tasks executed and ran 723 tests across 138 suites: 715 passed,
+  eight environment-dependent cases skipped, and zero failed or errored. Verified
+  source counts were 312 production Java files and 139 test Java files. Fresh
+  `git diff --check` produced no output before final evidence synchronization.
+- The implementation composes no recorder into runtime recovery, finalization, retry,
+  lease/Tool timeout, stagnation, cancellation, or terminal-disposition owners. No
+  invocation against an actual user Scheduler/runtime root, commit, push, merge,
+  release, deployment, external adapter/message, destructive action, cleanup, or
+  retention operation was performed.
+
+## 2026-08-05 - Reconcile Accumulated Runtime Event Main Delivery Scope
+
+- The required repository authority set was read in order and fresh `checkpoint-show`
+  initially reported `EMPTY`. A delivery checkpoint was started before mutating the
+  Active Task or accepted delivery decision.
+- Fresh `git fetch origin` and primary reference inspection found `HEAD`, local `main`,
+  and `origin/main` aligned at `d272809254919f35d99c528885ab5d39767307c1`, with
+  `main...origin/main` at zero commits in either direction and the remote baseline an
+  ancestor of local `main`.
+- Primary status, diff, deletion, generated-output, credential, and content review
+  reconciled exactly 33 intended paths: the completed read-only point resolver,
+  deterministic acknowledgement/capacity release, process-timeout Scheduler
+  publication work, and this indexed delivery authority. A date-only handoff change
+  was removed because no session-only fact changed. Fresh `git diff --check` produced
+  no output.
+- Three bounded read-only reviewers joined without mutation or nested delegation. The
+  primary Agent reconciled their scope, Git-topology, and governance recommendations
+  and retained direct ordinary commits plus non-force pushes from aligned `main` as the
+  requested integration path. No commit, push, merge commit, release, deployment,
+  destructive operation, or unrelated implementation occurred in this increment.
+
+## 2026-08-05 - Verify Accumulated Runtime Event Work For Main Commit
+
+- Fresh Java 17 `clean build --no-daemon --console=plain` executed all eight tasks in
+  6 minutes 27 seconds and ran 723 tests across 138 suites: 715 passed, eight
+  environment-dependent cases skipped, and zero failed or errored. Verified source
+  counts remained 312 production and 139 test Java files.
+- Fresh working-tree review retained exactly 33 intended paths and `git diff --check`
+  produced no output. Explicit allowlist staging selected those same 33 paths with no
+  unstaged path or deletion, generated-output path, or sensitive added-line match.
+- The first cached whitespace check identified one extra blank line at the end of an
+  accepted-decision file. The line was removed and the file explicitly restaged; the
+  repeated `git diff --cached --check` then produced no output. Final cached review
+  contained 2,386 insertions and 261 deletions across the same 33 paths.
