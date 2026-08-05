@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -125,7 +125,7 @@ Next Action: Run fresh pre-delivery Java 17 and governance verification.
 
 ### Increment 2 - verify-and-commit-accumulated-work
 
-State: In Progress
+State: Completed
 Depends On: reconcile-delivery-scope
 Scope: Run claim-bearing verification, stage only the reviewed paths, inspect the cached
 diff, and create the ordinary accumulated-work commit on `main`.
@@ -137,7 +137,7 @@ Next Action: Push the accumulated-work commit to `origin/main` and verify it.
 
 ### Increment 3 - push-and-verify-main-delivery
 
-State: Pending
+State: Completed
 Depends On: verify-and-commit-accumulated-work
 Scope: Push the ordinary commit to `origin/main` without force and verify the resulting
 remote identity.
@@ -148,7 +148,7 @@ Next Action: Synchronize delivery evidence and close the task.
 
 ### Increment 4 - synchronize-delivery-evidence
 
-State: Pending
+State: Completed
 Depends On: push-and-verify-main-delivery
 Scope: Append the external delivery evidence once, mark the delivery task complete,
 verify documents, and commit the evidence-only synchronization.
@@ -177,6 +177,14 @@ checkpoint without reopening the completed task or adding a third commit.
   environment-dependent cases skipped, and zero failed or errored. Verified source
   counts remained 312 production and 139 test Java files; fresh `git diff --check`
   produced no output and the working tree retained exactly 33 expected paths.
+- The ordinary accumulated-work commit was pushed to `origin/main` without force.
+  Direct remote-head inspection and local reference comparison found exact
+  `HEAD`/`main`/`origin/main` identity with zero divergence; no synthetic branch or
+  merge commit was required because the verified work already resided on `main`.
+- Delivery evidence synchronization changed only the owning changelog, Active Task,
+  and append-only verification log. Focused Java 17 decision-index, document-ownership,
+  and Dynamic Workflow verification ran 10 tests across three suites: all passed with
+  zero skipped, failed, or errored; fresh `git diff --check` produced no output.
 
 ## Next
 

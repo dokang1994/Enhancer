@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-08-05 - Deliver Accumulated Runtime Event Work To Main
+
+- Delivered the verified read-only publication-point resolver, deterministic
+  acknowledgement/capacity release, and process-timeout publication composition for
+  Scheduler cycle, drain, and service together on `main`.
+- Used ordinary direct-main integration from an aligned local/remote baseline and a
+  non-force push; no temporary branch, synthetic merge commit, history rewrite,
+  release tag, deployment, or additional runtime-event owner entered the delivery.
+
 ## 2026-08-05 - Compose Process Timeout Publication Across Scheduler Commands
 
 - Added one optional all-or-none runtime-event store root, publication root, and bounded
