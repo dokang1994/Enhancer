@@ -10,7 +10,7 @@
   duplicated `.ai/workflow.md` and `README.md` checkpoint, dynamic-workflow, and
   adaptive-subagent sections to references to their owning `AGENTS.md` sections.
 - Recorded the consolidation and its delivery authorization as accepted decisions and
-  prepared the documentation-only change for reviewed direct-main delivery.
+  delivered the documentation-only change directly to `main`.
 
 ## 2026-08-05 - Deliver Lease Timeout Scheduler Composition To Main
 

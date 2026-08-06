@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -101,7 +101,7 @@ Next Action: Run fresh full Java 17 verification over the corrected delivery can
 
 ### Increment 2 - verify-and-commit-candidate
 
-State: In Progress
+State: Completed
 Depends On: reconcile-delivery-boundary
 Scope: Run fresh full Java 17 verification, append its evidence once, verify the final
 document set, review the exact diff, and create the ordinary consolidation commit.
@@ -113,7 +113,7 @@ Next Action: Push the consolidation commit to `origin/main` without force.
 
 ### Increment 3 - push-and-confirm-main
 
-State: Pending
+State: Completed
 Depends On: verify-and-commit-candidate
 Scope: Non-force push the consolidation commit and verify it is contained in current
 remote `main` with a linear direct-main topology.
@@ -124,7 +124,7 @@ Next Action: Synchronize append-only delivery evidence and close the task.
 
 ### Increment 4 - record-delivery-and-close
 
-State: Pending
+State: Completed
 Depends On: push-and-confirm-main
 Scope: Append external delivery evidence once, update only owning task and changelog
 facts, verify the synchronization, commit and push it, then close the checkpoint.
