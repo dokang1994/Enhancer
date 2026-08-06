@@ -11,6 +11,18 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User request on 2026-08-05 to commit, push, and merge the AGENTS.md ownership consolidation to main
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-05-commit-push-and-merge-the-agents-md-ownership-consolidation-to-main.md)
+
+### 2026-08-05: Consolidate Development Workflow Policy Ownership In AGENTS.md
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-05-consolidate-development-workflow-policy-ownership-in-agents-md.md)
+
 ### User request on 2026-08-05 to commit, push, and merge the completed lease-timeout Scheduler composition to main
 
 Status: Accepted Decision

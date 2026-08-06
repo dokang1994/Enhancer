@@ -4289,3 +4289,29 @@ Outcome:
 - Fresh Java 17 Decision Log, document-ownership, Dynamic Workflow, and runtime package-
   boundary verification ran eleven tests across four suites: all passed with zero
   skipped, failed, or errored. Fresh `git diff --check` produced no output.
+
+## 2026-08-06 - Verify AGENTS.md Workflow Policy Ownership Consolidation
+
+- Required repository authority was reread in order and fresh checkpoint inspection
+  was empty before delivery recovery. A bounded read-only review found that
+  `.ai/workflow.md` still duplicated the checkpoint, dynamic-workflow, and adaptive-
+  subagent policies and that `CHANGELOG.md` prematurely described an unperformed
+  delivery. The minimum documentation correction reduced the `.ai/` policy bodies to
+  owning `AGENTS.md` references, removed the premature delivery claim, and restored the
+  active task's bounded sequential Dynamic Workflow cursor.
+- The first fresh full Java 17 test run executed 727 tests and classified one aligned
+  failure: `DynamicWorkflowDocumentTest` rejected the active task because it lacked the
+  required live `## Dynamic Workflow` structure. After the task-owned document
+  correction, the focused three-test suite passed with no failure or skip.
+- An authorized fresh `git fetch --prune origin` then proved `HEAD`, local `main`,
+  fetched `origin/main`, and their merge base all equal
+  `ccbfd36a78659bad6a517b10aa84972739d05326`, with divergence `0 0`. The eight-path
+  documentation candidate contained no code, test, deletion, generated artifact,
+  secret, or unresolved document-ownership conflict, and `git diff --check` produced
+  no output.
+- The repeated full Java 17 `test --no-daemon --console=plain` run completed in
+  5 minutes 48 seconds across 139 suites and 727 tests: 719 passed, eight
+  environment-dependent cases skipped, and zero failed or errored. No commit, push,
+  merge, release, deployment, destructive action, permission change, credential
+  change, paid service, external message, or unrelated implementation occurred in
+  this verification increment.

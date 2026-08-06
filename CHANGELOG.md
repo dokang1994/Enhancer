@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-08-05 - Consolidate Development Workflow Policy Ownership In AGENTS.md
+
+- Declared `AGENTS.md` the single AI-agent entrypoint (this repository intentionally
+  has no `CLAUDE.md`) and added working rules stating that the document-ownership
+  guards make every Markdown edit test-relevant and that build/setup/test commands are
+  owned by `README.md`.
+- Moved development-session checkpoint command usage into `AGENTS.md` and reduced the
+  duplicated `.ai/workflow.md` and `README.md` checkpoint, dynamic-workflow, and
+  adaptive-subagent sections to references to their owning `AGENTS.md` sections.
+- Recorded the consolidation and its delivery authorization as accepted decisions and
+  prepared the documentation-only change for reviewed direct-main delivery.
+
 ## 2026-08-05 - Deliver Lease Timeout Scheduler Composition To Main
 
 - Delivered the verified lease-timeout runtime-event publication composition through

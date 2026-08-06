@@ -563,70 +563,19 @@ either submission command on that identity until the explicit migration succeeds
 
 ## Development Session Checkpoints
 
-Forced termination recovery does not depend on `SESSION_HANDOFF.md` being updated at
-session close. One machine-written checkpoint lives under the Git-ignored
-`.enhancer/session-checkpoint/` directory and records only execution position, evidence
-references, and artifact identities bound to the active task contract.
-
-Use the application commands `checkpoint-start`, `checkpoint-record`,
-`checkpoint-show`, and `checkpoint-clear`. `checkpoint-start` records a pending atomic
-step and refuses to replace an active run. `checkpoint-record` requires the current
-`runId` and `expected-revision`, accepts repeatable `--artifact` and `--evidence`
-options, and records `STEP_PENDING`, `STEP_SUCCEEDED`, `STEP_FAILED`, or `STABLE`.
-`checkpoint-show` is the first recovery command in a new session. `checkpoint-clear`
-works only for a stable checkpoint whose task contract and artifact manifest still
-match.
-
-Example through the Gradle application runner:
-
-```powershell
-.\gradlew.bat run --args="checkpoint-show --project-root C:\Enhancer"
-```
-
-The checkpoint is not verification, task, maturity, or delivery authority. Resume still
-requires canonical document loading, `git status`/diff inspection, and fresh applicable
-tests.
+The development-session checkpoint workflow and its `checkpoint-start`,
+`checkpoint-record`, `checkpoint-show`, and `checkpoint-clear` commands are owned by
+`AGENTS.md` (Development Session Checkpoint Commands).
 
 ## Document-Driven Dynamic Increment Workflows
 
-`CURRENT_TASK.md` remains the one approved Active Task. When that task contains several
-related pre-authorized increments, an optional `## Dynamic Workflow` section may record
-two through sixteen sequential increments with stable identities, dependencies, state,
-scope, exit criteria, verification, and next action.
-
-Only one increment may be `In Progress`. After its fresh evidence is read and its exit
-criteria pass, the first ordered dependency-ready pending increment may be selected.
-Failure, a blocked dependency, stagnation, exhausted bounds, task drift, new authority,
-or unsafe recovery stops the workflow. Increment state never widens the parent task's
-approval or Tool scope and never grants commit, push, merge, release, deployment,
-destructive action, background execution, parallel agents, or multi-agent authority.
-
-The workflow cursor belongs to `CURRENT_TASK.md`; atomic execution position belongs to
-the development-session checkpoint; verification evidence belongs to the append-only
-`docs/verification-log.md`. This document structure supports governed sequential
-development today and is not the future Gate 10 Workflow Engine or Gate 13 orchestration
-runtime.
+The dynamic increment workflow contract is owned by `AGENTS.md` (Dynamic Workflow
+Rules).
 
 ## Adaptive Development Subagents
 
-For non-trivial repository work, the primary Agent evaluates whether independent
-read-only subagents will materially improve quality, risk coverage, or elapsed time
-relative to coordination cost. Useful cases include separate component/document
-analysis, architecture or governance review, alternative comparison, and independent
-test-surface analysis. Small, sequential, tightly coupled, overlapping-write, or
-ambiguous tasks remain single-agent.
-
-The development policy uses at most three concurrent subagents and one delegation
-level. Every assignment has a concrete scope and join result; children do not edit the
-shared worktree, run in the background, mutate checkpoints or Git, or make verification
-and completion claims. The primary Agent owns all changes, reads raw evidence, and
-reconciles every recommendation against repository authority. Delegation never expands
-the task, Tools, permissions, privileged actions, or lifecycle state.
-
-This policy works with or without `## Dynamic Workflow`. A workflow still selects one
-increment sequentially; only independent read-only inspection inside that increment may
-run concurrently. It configures repository development sessions and does not implement
-the Gate 13 multi-agent product runtime.
+The adaptive development subagent policy is owned by `AGENTS.md` (Adaptive Development
+Subagent Delegation).
 
 ## Development Setup
 

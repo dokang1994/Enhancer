@@ -4,6 +4,10 @@
 
 `CONSTITUTION.md` is the highest-priority document in this repository. Every AI Agent must read it before planning or editing.
 
+This repository intentionally has no `CLAUDE.md`; `AGENTS.md` is the single
+entrypoint for every AI agent, including Claude Code. Do not propose creating
+one. Point each new session here first.
+
 ## Required Reading Order
 
 Before planning or editing, read these files in order:
@@ -35,6 +39,11 @@ Before planning or editing, read these files in order:
 - Preserve the lifecycle states defined by the Constitution: Proposal, Accepted Decision, Active Task, Implemented, Verified, Completed, and Released.
 - Update project documents whenever implementation state, task state, roadmap, architecture, or decisions change.
 - Write each fact to its owning document only, per Constitution Section 4. The next task belongs to `CURRENT_TASK.md`, capability maturity to `PROJECT_STATE.md`, verification evidence to `docs/verification-log.md`, and delivery history to git and `CHANGELOG.md`. Delete duplicates instead of synchronizing them.
+- Constitution Section 4 is executable: architecture tests scan every project
+  Markdown file, and the Gradle test task declares all `.md` files as inputs.
+  Any Markdown edit can fail the build, so rerun tests after document changes.
+- Build, setup, and test invocation commands are owned by `README.md`
+  (Development Setup); read them there instead of guessing Gradle invocations.
 - Run relevant tests before reporting completion when tests exist.
 - For observable feature and bug-fix behavior, use test-first unless `CURRENT_TASK.md` documents a justified alternative verification.
 - Classify RED failures against the active task, accepted decisions, Architecture, and repository settings. Proceed with the minimum implementation when the test contract is aligned; separate unrelated, flaky, conflicting, scope-expanding, or newly privileged failures instead of absorbing them.
@@ -50,6 +59,31 @@ Before planning or editing, read these files in order:
   then record `STEP_SUCCEEDED` or `STEP_FAILED` immediately afterward. Include every
   currently changed path in the artifact manifest and references to raw evidence; do not
   copy canonical project facts into the checkpoint.
+
+## Development Session Checkpoint Commands
+
+Forced termination recovery does not depend on `SESSION_HANDOFF.md` being updated at
+session close. One machine-written checkpoint lives under the Git-ignored
+`.enhancer/session-checkpoint/` directory and records only execution position, evidence
+references, and artifact identities bound to the active task contract.
+
+Use the application commands `checkpoint-start`, `checkpoint-record`, `checkpoint-show`,
+and `checkpoint-clear`. `checkpoint-start` records a pending atomic step and refuses to
+replace an active run. `checkpoint-record` requires the current `runId` and
+`expected-revision`, accepts repeatable `--artifact` and `--evidence` options, and
+records `STEP_PENDING`, `STEP_SUCCEEDED`, `STEP_FAILED`, or `STABLE`. `checkpoint-show`
+is the first recovery command in a new session. `checkpoint-clear` works only for a
+stable checkpoint whose task contract and artifact manifest still match.
+
+Example through the Gradle application runner:
+
+```powershell
+.\gradlew.bat run --args="checkpoint-show --project-root C:\Enhancer"
+```
+
+The checkpoint is not verification, task, maturity, or delivery authority. Resume still
+requires canonical document loading, `git status`/diff inspection, and fresh applicable
+tests.
 
 ## Adaptive Development Subagent Delegation
 
@@ -119,6 +153,8 @@ multi-agent execution and changes no capability maturity.
   destructive-action, paid-service, permission-change, external-message, background,
   or product-runtime multi-agent authority. Adaptive read-only development delegation
   is governed only by the section above and stays inside the selected increment.
+- This document structure supports governed sequential development today and is not
+  the future Gate 10 Workflow Engine or Gate 13 orchestration runtime.
 
 ## Document Driven Development
 
