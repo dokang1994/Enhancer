@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-08-06 - Repair Terminal Result Recovery Ordering
+
+- Made `DurableAgentRunWorker` exact-replay a checkpointed latest `COMPLETED` or
+  `FAILED` Result before retry control or terminal queue disposition recovery.
+- Added focused mismatch cases proving a changed checkpoint RunRecord reference fails
+  before retry decisions, terminal dispositions, execution, or checkpoint clearing,
+  while the established active-work requeue preference remains intact.
+- Preserved the existing finalizer API, retry policy, queue/runtime/checkpoint schemas,
+  and event-free supported Scheduler construction. Finalizer recorder composition across
+  cycle, drain, and service remains a separate next task.
+
+## 2026-08-06 - Compose Retry Runtime Events Across Scheduler Commands
+
+- Reused the existing optional Scheduler filesystem event configuration across cycle,
+  drain, and service for retry decision and replacement-start publication without a new
+  CLI option, root, schema, or publisher.
+- Made the process-isolated Worker conditionally construct its retry controller with the
+  same recorder and injected clock, preserving event-free omission and source-first
+  exact replay from the existing decision and replacement checkpoints.
+- Added a named real-filesystem CLI integration that drives two failed attempts through
+  admitted decision, retry start, and final refusal on all three commands, retaining two
+  RunRecords, one failed queue disposition, three opaque event points, and no pending
+  cycle checkpoint. Finalizer and other event owners, commit, push, release, deployment,
+  cleanup, and retention remain separate.
+
 ## 2026-08-05 - Consolidate Development Workflow Policy Ownership In AGENTS.md
 
 - Declared `AGENTS.md` the single AI-agent entrypoint (this repository intentionally

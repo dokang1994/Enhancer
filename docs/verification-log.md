@@ -4336,3 +4336,86 @@ Outcome:
 - No force push, amend, rebase, reset, history rewrite, tag, release, deployment, pull
   request, issue, branch deletion, destructive cleanup, permission or credential
   change, paid service, external message, or unrelated implementation was performed.
+
+## 2026-08-06 - Compose Retry Runtime Event Publication Across Supported Scheduler Execution Commands
+
+- Required repository authority was reread in order, `checkpoint-show` returned
+  `EMPTY`, `git status` was clean on aligned local and cached remote `main` at
+  `9822d72b3474c9586ef9feaeabfa29716bc9afc3`, and two bounded read-only reviews
+  independently selected the Worker-to-retry-controller seam over the broader finalizer
+  composition. Both reviewers joined before implementation and made no repository,
+  checkpoint, test, or Git mutation.
+- The test-first RED added one named real-filesystem CLI integration across
+  `scheduler-cycle`, `scheduler-drain`, and `scheduler-service`. Its three cases reached
+  terminal Scheduler failure and then each failed at the expected
+  `MissingRuntimeEventStreamException` in 52.192 seconds, proving the configured Worker
+  retained no retry-controller event composition. The no-daemon option was omitted on
+  this first run; complete XML was produced but the outer wrapper did not return, so the
+  owned verification process was terminated after the XML was read.
+- The minimum production change conditionally constructs
+  `DurableAgentRunRetryController` with the Worker's existing recorder and injected clock
+  while preserving the original event-free constructor when configuration is omitted.
+  The same three-case test then passed in 55.929 seconds with zero failure, error, or
+  skip. It observed admitted decision -> replacement start -> refused decision, exact
+  shared binding and causation, three opaque points, two retained RunRecords, one failed
+  queue disposition, and a cleared cycle checkpoint for every supported command.
+- A normally returning Java 17 `--no-daemon` focused regression completed in 2 minutes
+  13 seconds across five retry-controller, Worker, process-timeout, lease-timeout, and
+  new CLI suites: all 50 tests passed with zero failure, error, or skip.
+- Fresh Java 17 `clean test --no-daemon --console=plain` completed in 7 minutes 4
+  seconds. It ran 730 tests across 140 suites: 722 passed, eight Windows symbolic-link
+  setup cases skipped, and zero failed or errored. All four Gradle tasks executed,
+  including fresh production/test compilation under the repository's strict lint.
+  Source counts were 312 production and 141 test Java files.
+- No user Scheduler/runtime root, commit, push, merge, release, deployment, external
+  adapter/message, cleanup, retention, destructive action, permission or credential
+  change, paid service, or unrelated implementation was invoked or performed.
+
+## 2026-08-06 - Repair Terminal Result Recovery Ordering Before Later Side Effects
+
+- Required repository authority was reread in order, `checkpoint-show` returned
+  `EMPTY`, and the existing sixteen-path uncommitted retry-composition work was
+  reconciled before selecting the recorded next task. Two bounded read-only reviews
+  independently found that Worker `resume` bypassed `recordAgentRunResult` for terminal
+  AgentRuns; both joined before mutation and performed no repository, checkpoint, test,
+  or Git write.
+- The first test compile failed because the new assertions named a nonexistent queue
+  snapshot accessor. After correcting only the test projection, the aligned RED ran 21
+  Worker tests: the two new cases alone failed because a checkpoint RunRecord reference
+  differing from the retained terminal Result produced no exception before retry or
+  terminal-disposition recovery.
+- The minimum production change exact-replays a latest `COMPLETED` or `FAILED` Result
+  before the existing Goal-state branches. The first GREEN attempt exposed an overly
+  strict test assertion that also prohibited the accepted active-work-to-pending restart
+  recovery; the assertions were narrowed to forbid retry and terminal disposition while
+  retaining that one-shot recovery preference.
+- Focused Java 17 verification then ran 65 tests across Worker, finalizer,
+  retry-controller, and real-filesystem Worker suites in 55 seconds: all passed with
+  zero failures, errors, or skips. This includes the finalizer's existing exact
+  verification, Tool-timeout, and stagnation repair cases.
+- Fresh Java 17 `clean test --no-daemon --console=plain` completed in 7 minutes 5
+  seconds. It ran 732 tests across 140 suites: 724 passed, eight Windows symbolic-link
+  setup cases skipped, and zero failed or errored. All four Gradle tasks executed,
+  including fresh production/test compilation under strict lint.
+- No finalizer recorder was composed into a supported Scheduler command. No commit,
+  push, merge, release, deployment, destructive action, permission or credential
+  change, paid service, external message, cleanup, retention, schema change, or
+  unrelated implementation occurred.
+
+## 2026-08-07 - Verify Retry Event And Terminal Result Recovery Delivery Candidate
+
+- Session recovery reread repository authority in order and reconciled active checkpoint
+  revision 3 with the exact eighteen-path working-tree candidate. The checkpoint task
+  contract and every artifact matched; local `HEAD` and cached `origin/main` both
+  resolved to `9822d72b3474c9586ef9feaeabfa29716bc9afc3` with divergence `0 0`.
+- Fresh Java 17 `clean build --no-daemon --console=plain` completed in 7 minutes 2
+  seconds with all eight Gradle tasks executed. It ran 732 tests across 140 suites: 724
+  passed, eight Windows environment-dependent cases skipped, and zero failed or
+  errored. Production and test compilation covered 312 and 141 Java source files under
+  the repository's strict lint configuration.
+- Fresh `git diff --check` produced no output, and post-build status retained exactly
+  the reviewed eighteen implementation, test, decision, owning-document, task,
+  changelog, and verification paths without generated build output.
+- No commit, push, merge, force operation, release, deployment, pull request, issue,
+  destructive cleanup, permission or credential change, paid service, external
+  message, or unrelated implementation was performed in this verification step.

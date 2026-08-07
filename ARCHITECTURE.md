@@ -631,6 +631,12 @@ idempotently before decision, after decision, after replacement checkpoint, afte
 after rollover, or after RunRecord checkpointing. The Goal ledger is created only at
 Goal-start execution, never invented while deciding retry. Queue, runtime, ledger,
 RunRecord, and checkpoint remain separate stores without a cross-store transaction.
+When restart finds the checkpointed latest AgentRun already `COMPLETED` or `FAILED`, the
+Worker first exact-replays `recordAgentRunResult` with that checkpoint's RunRecord
+reference. Only successful Result replay may then enter retry control or terminal queue
+disposition recovery and checkpoint clearing, so a missing verification, Tool-timeout,
+or stagnation event remains repairable before the later side effect. A mismatched
+checkpoint reference fails closed; event-free replay advances no runtime revision.
 Cleanup failure retains the checkpoint and retries without re-execution; pre-reference
 execution can still orphan a RunRecord under the accepted at-least-once contract. The
 dispatcher and finalizer must share one queue instance. `processIsolated` selects the real
@@ -883,6 +889,15 @@ checkpointed canonical replacement identity may then append only the admitted Ag
 or a refused decision may abandon the Goal; both action re-entries are idempotent. The
 controller has no queue, worker, Tool, adapter, lease, or execution authority.
 
+The event-aware process-isolated Worker composition passes its one optional recorder
+and injected clock into this retry controller. The supported `scheduler-cycle`,
+`scheduler-drain`, and `scheduler-service` commands therefore publish
+`RETRY_DECISION_RECORDED` only after the decision-bearing runtime revision and
+`RETRY_STARTED` only after the checkpointed replacement AgentRun. Decision-publication
+failure re-enters from `RETRY_PENDING`; start-publication failure re-enters from the
+retained replacement checkpoint and `ACTIVE` Goal. Exact replay advances neither source
+nor event revision. Omitting the event option group preserves the event-free controller.
+
 The runtime payload is schema v2 with an ordered immutable AgentRun list, a latest
 projection, Goal-wide monotonic fences, and an ordered typed retry-decision ledger.
 Persistence enforces exact history and decision prefixes and rejects truncation,
@@ -1067,10 +1082,10 @@ policy and adds no scan, retention, cleanup, migration, or cross-store transacti
 The supported `scheduler-cycle`, `scheduler-drain`, and `scheduler-service` commands
 share one optional all-or-none runtime-event store root, publication root, and capacity
 group. The shared Scheduler composition constructs at most one filesystem recorder and
-passes it to process-isolated execution and only the AgentRuntime recovery performed by
-the shared worker and dispatcher; omitted configuration remains event-free, and
-finalization, retry control, Tool timeout, verification, cancellation, stagnation, and
-terminal-disposition owners receive no recorder through this boundary.
+passes it to process-isolated execution, the AgentRuntime recovery performed by the
+shared worker and dispatcher, and the Worker's retry controller; omitted configuration
+remains event-free. Finalization, Tool timeout, verification, cancellation, stagnation,
+and terminal-disposition owners receive no recorder through this boundary.
 
 Lease-expiry recovery is owned by `DurableAgentRuntime` and the same AgentRuntime state
 that owns leases and reclamation. Current schema v4 retains the bounded ordered ledger

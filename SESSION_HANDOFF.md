@@ -10,7 +10,7 @@ the active task in `CURRENT_TASK.md`, and delivery history in `CHANGELOG.md` and
 
 ## Updated At
 
-2026-08-04
+2026-08-06
 
 ## Session-Only State
 
@@ -22,3 +22,6 @@ the active task in `CURRENT_TASK.md`, and delivery history in `CHANGELOG.md` and
   execution policy. This is a host constraint, not a repository test failure.
 - The complete process-isolated regression suite can exceed five minutes on this host;
   use a command bound of at least fifteen minutes for a claim-bearing full build.
+- On this host a focused `scripts/gradle.ps1 test` invocation without `--no-daemon`
+  produced complete test XML but did not return through the outer PowerShell wrapper.
+  Supplying `--no-daemon` returned normally after stopping its single-use daemon.

@@ -2,7 +2,7 @@
 
 ## Updated At
 
-2026-08-05
+2026-08-06
 
 ## Repository State
 
@@ -10,7 +10,7 @@
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
 - Production source: 312 Java files.
-- Test source: 140 Java files.
+- Test source: 141 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -63,7 +63,7 @@ it does not restate which commit published which increment.
   name in a capacity-bounded schema-v1 integrity envelope, exact-replays without
   rewrite before capacity evaluation, and rejects corrupt, mismatched, symbolic, or
   unusable points. Supported compositions are the optional Control receiver
-  cancellation-request path and the process- plus lease-timeout Scheduler execution
+  cancellation-request path and the process-, lease-, and retry-event Scheduler execution
   path described below. MessageEnvelope evolution, scanning, event application,
   cleanup, retention, migration, cross-store transaction, and composition for the
   other event owners remain absent.
@@ -194,6 +194,18 @@ it does not restate which commit published which increment.
 
 ### Integrated
 
+- Delivery Gate 8 retry decision/start Scheduler runtime-event publication: the
+  optional recorder already shared by `scheduler-cycle`, `scheduler-drain`, and
+  `scheduler-service` is now supplied with the Worker's injected clock to
+  `DurableAgentRunRetryController`. The controller persists or exact-replays each
+  attempt-bound decision before `RETRY_DECISION_RECORDED` and the checkpointed
+  replacement AgentRun before `RETRY_STARTED`. A named real-filesystem CLI integration
+  proves the admitted-decision -> retry-started -> refused-decision sequence through all
+  three commands, with exact common binding, three bounded opaque points, two retained
+  RunRecords, one failed queue disposition, and a cleared cycle checkpoint. Omitted
+  event options remain event-free; finalizer, verification, Tool-timeout, stagnation,
+  cancellation, and terminal-disposition publication remain uncomposed here.
+
 - Delivery Gate 8 deterministic runtime-event acknowledgement CLI: the supported
   `runtime-event-acknowledge` command requires explicit event/publication roots and the
   original pending filename, composes the filesystem acknowledger and event store, and
@@ -296,8 +308,9 @@ it does not restate which commit published which increment.
   first event occurrence. Named filesystem evidence proves decision-before-start order,
   replacement-persistence isolation, publisher recovery after a later `READY` revision,
   and missing-event repair after later runtime progress without another runtime or event
-  revision. Refused abandonment, existing event-free construction, supported Worker/CLI
-  event composition and owner-specific concrete-adapter composition remain absent.
+  revision. The supported Worker/CLI composition now supplies the concrete adapter when
+  the complete event option group is present; omission remains event-free, and refused
+  abandonment creates no retry-started fact.
 - Delivery Gate 8 retry-decision runtime-event path: the event-aware
   `DurableAgentRunRetryController` persists or exact-replays the admitted or refused
   attempt-bound decision before deriving one deterministic `RETRY_DECISION_RECORDED`
@@ -308,9 +321,9 @@ it does not restate which commit published which increment.
   `RuntimeEventRecorder` reuses the first persisted occurrence during publication
   recovery. Named filesystem evidence proves exact replay without either stream
   revision advancing, runtime-persistence isolation, event-append recovery, and
-  publisher-failure recovery under a later clock. Existing construction remains
-  event-free, `RETRY_STARTED` is not connected, and no supported Worker/CLI composition
-  or supported concrete-adapter composition exists.
+  publisher-failure recovery under a later clock. The supported Worker/CLI composition
+  now supplies the concrete adapter and continues into the separate retry-started fact
+  for an admitted decision; omission preserves the event-free controller.
 - Delivery Gate 8 terminal WorkItem runtime-event path: the event-aware
   `DurableAgentRunFinalizer` applies or re-enters the exact verified-completed or failed
   queue partition and confirms the target before deriving `WORK_ITEM_TERMINATED` from
@@ -355,9 +368,10 @@ it does not restate which commit published which increment.
   not promoted: retry-decision, retry-started, Tool/process/lease-timeout, stagnation,
   cancellation-request/application, verification, and terminal WorkItem owners reach
   the recorder and an injected publisher port. The concrete filesystem reference-point
-  adapter is now optionally composed only by the supported Control receiver for
-  cancellation-request events; Scheduler cycle/drain/service and the other owners do
-  not construct it. Budgets, Memory, broader authenticated control application,
+  adapter is optionally composed by the supported Control receiver for cancellation-
+  request events and by Scheduler cycle/drain/service for process timeout, lease
+  timeout, retry decision, and retry start events. Other owners remain uncomposed.
+  Budgets, Memory, broader authenticated control application,
   production adapters, and role workers remain owned by Gates 9 through 13.
 - Gate 7 isolated-worker Work/Result Message Bus path: the real child JVM receives the
   parent-spooled Work transport point, routes it through the fresh Work queue into the
@@ -427,7 +441,7 @@ it does not restate which commit published which increment.
 - Gate 8 generated-input submission CLI: the separate `scheduler-submit-generated` command takes one caller-retained submission UUID and the caller-owned intent, generates the queue/correlation/logical-run identities and occurrence time, and captures the repository-memory snapshot only on first use inside the envelope factory. It accepts the same optional `--priority NORMAL|EXPEDITED` input (default `NORMAL`, other values rejected), persists it into the manifest on first use, compares it against the stored manifest on replay before consulting the clock or recapturing context, and reports the effective `priority` in bounded output. A named real-filesystem CLI integration proves first-use generation with the derived identities in bounded output, fresh-instance exact replay without manifest bytes or queue-revision change, conflict fail-closed under the same submission UUID including a changed priority, effective-priority input/output/persistence for an `EXPEDITED` submission and the defaulted `NORMAL` omission, and first-use task-mismatch refusal. No worker, cycle, or polling is added.
 - Gate 8 recovery-only Scheduler CLI: `scheduler-cycle` recovers one caller-identified existing durable queue, composes `DurableAgentRunWorker.processIsolated` with explicit filesystem roots, system UTC clock, bounded retry/lease/child-timeout policy, and runs exactly one recoverable cycle. Bounded output and stable exits distinguish `IDLE`, `VERIFIED_COMPLETED`, terminal Scheduler `FAILED`, usage/configuration, and internal corruption/execution failure. A named integration prepares work through `DurableWorkItemAdmissionHandler`, resumes an already persisted cycle-intent prefix, launches the real child JVM, resolves one RunRecord, observes terminal queue disposition, and verifies checkpoint cleanup. The command creates no queue, admits no work, polls nothing, and makes no Gate 8 Operational claim.
 - Gate 7-to-Gate 8 durable work admission: `DurableWorkItemAdmissionHandler` retains one exact delivered work envelope, derives a stable canonical WorkItem UUID through a fixed bijective domain transform, creates dependency-free `NORMAL` `QueuedWork`, and reports success only after `DurableSingleWorkerSchedulerQueue` persists it. Checked storage failure remains visible through bus retry/dead-letter without in-memory exposure. A named real-filesystem integration admits through the production handler, runs the process-isolated Scheduler cycle to terminal disposition, restarts queue and bus, and accepts exact replay without another queue revision, WorkItem, RunRecord, or dead letter. Same-bus replay remains duplicate-free; changed content under the same message/WorkItem identity fails closed.
-- Gate 8 retry-aware Worker recovery (connection #6): `DurableAgentRunWorker` now creates or recovers one exact empty Goal ledger before first execution, records/replays the durable controller decision at `RETRY_PENDING`, checkpoints a canonical replacement AgentRun identity before append, rolls the cycle intent to that attempt without the prior RunRecord reference, and continues through the existing fenced execution/finalization path while the WorkItem remains active. Refusal abandons the Goal and produces one queue `FAILED` disposition. Schema-v2 `PendingFinalization` preserves the replacement phase and rejects incompatible v1 artifacts. Focused recovery covers five durable interruption prefixes and unresolved-effect refusal; a named real-filesystem queue/runtime/ledger/checkpoint/RunRecord path proves first-attempt failure followed by Verified replacement completion. No external adapter, compensation, cross-attempt effect-key reuse, backoff, authenticated control, or supported entry point is added.
+- Gate 8 retry-aware Worker recovery (connection #6): `DurableAgentRunWorker` now creates or recovers one exact empty Goal ledger before first execution, records/replays the durable controller decision at `RETRY_PENDING`, checkpoints a canonical replacement AgentRun identity before append, rolls the cycle intent to that attempt without the prior RunRecord reference, and continues through the existing fenced execution/finalization path while the WorkItem remains active. On restart, a checkpointed latest `COMPLETED` or `FAILED` AgentRun exact-replays its retained Result binding before retry control or terminal queue disposition; a mismatched reference fails before those side effects, while valid event-free replay advances no runtime revision. Refusal abandons the Goal and produces one queue `FAILED` disposition. Schema-v2 `PendingFinalization` preserves the replacement phase and rejects incompatible v1 artifacts. Focused recovery covers the five retry prefixes, unresolved-effect refusal, and terminal-Result mismatch ordering; a named real-filesystem queue/runtime/ledger/checkpoint/RunRecord path proves first-attempt failure followed by Verified replacement completion. No external adapter, compensation, cross-attempt effect-key reuse, backoff, authenticated control, or supported finalizer-event composition is added.
 - Gate 7-to-Gate 8 durable control-request queue path: `RuntimeControlAdmissionHandler` consumes an exact control envelope from the real in-process queue, recovers the named durable Goal, and persists the bounded request before returning. Store I/O becomes a handler failure under the bus's existing bounded retry/dead-letter behavior, and a fresh bus replay against a fresh filesystem-store instance remains idempotent at the durable consumer. This integrates request delivery only; producer and reason remain diagnostic data and no unauthenticated state transition is applied.
 - Gate 8 process-isolated durable worker composition: `DurableAgentRunWorker.processIsolated` selects `ProcessIsolatedAgentRunExecution` with the real self-JVM launcher, the caller-supplied filesystem artifact roots and durable stores, and one queue instance shared by dispatcher and finalizer. A named filesystem integration drives a real WorkItem through the child JVM, both spool directions, Gate 1-4 execution, RunRecord resolution, runtime terminal state, and queue disposition. The returned reference is checkpointed before the owned Goal/AgentRun spool is retired; a cleanup failure keeps the checkpoint and retries cleanup without child re-execution. The recovery-only CLI now selects this composition without adding submission, polling, or a whole-gate Operational claim.
 - Gate 8 worker-over-real-execution path under `com.enhancer.runtime`: `DurableAgentRunWorker` wired with the real `AgentLoopAgentRunExecution` over one shared `FileSystemRunRecordStore` and real filesystem queue/runtime/checkpoint/evidence stores drives a verified claim and its dependent to `VERIFIED_COMPLETED` with really persisted, resolvable RunRecords and a cleared checkpoint. A digest-mismatch claim records the failed attempt at `RETRY_PENDING`, keeps the WorkItem active and its dependent blocked, retains the cycle intent/reference, and makes the next cycle return empty without executing again (`FileSystemAgentLoopWorkerIntegrationTest`). Execution remains read-only and uses either the payload-declared target/digest or the approved-source fallback.
@@ -730,11 +744,12 @@ system, not open tasks; each is retired only by a bounded increment of its own.
   establish whether an ambiguous prepared effect occurred, authorize replay or
   compensation, or make the sequential multi-store observation atomic.
 - An unresolved external-effect `PREPARED` record is intentionally not replayed automatically; an owning adapter or user must establish deduplication, compensation, application, or explicit recovery evidence. The retry controller refuses it.
-- Retry-decision, retry-started, Tool/process/lease-timeout, stagnation, cancellation
-  application, verification, and terminal WorkItem runtime-event recording are
-  connected only through event-aware owner construction and an injected publisher port.
-  The supported Control receiver/CLI optionally composes the concrete filesystem
-  publisher only for cancellation-request events when all three explicit publication
+- Tool-timeout, stagnation, cancellation application, verification, and terminal
+  WorkItem runtime-event recording remain connected only through event-aware owner
+  construction and an injected publisher port. The supported Control receiver/CLI
+  optionally composes the concrete filesystem publisher for cancellation-request
+  events, while Scheduler cycle/drain/service compose it for process timeout, lease
+  timeout, retry decision, and retry start events when all three explicit publication
   options are present. Explicit read-only resolution and deterministic observation
   acknowledgement exist separately; no arbitrary handler or application consumer is
   composed. The authenticated application remains a library boundary with no credential

@@ -287,25 +287,35 @@ The bounded result status is `IDLE`, `VERIFIED_COMPLETED`, or `FAILED`. Idle and
 verified completion exit `0`; terminal failed work exits `40`. Missing queue state or
 malformed input exits `2`, while corrupt state and unexpected execution/storage errors
 exit `70`. Preserve every named root to resume a checkpointed cycle after interruption.
+On restart, a checkpoint whose latest AgentRun already retains a terminal Result is
+revalidated through that exact RunRecord reference before retry control or terminal
+queue disposition. Reference drift fails closed with the checkpoint retained; correct
+the conflicting artifact rather than resubmitting the work.
 
 When the parent watchdog receives a typed process timeout, it persists one bound fact at
 `<invocation-root>/.process-timeouts/<goal>/<agent-run>.process-timeout` before the
 command exposes the execution error. Preserve that invocation root: exact reinvocation
 resolves the same fact and fails without launching another child. The supported CLI does
-not publish events by default. To publish only this process-timeout owner from
+not publish events by default. To publish the currently supported Scheduler-owned
+process-timeout, lease-timeout, retry-decision, and retry-start facts from
 `scheduler-cycle`, `scheduler-drain`, or `scheduler-service`, append the complete group
 `--runtime-event-root <event-root>`,
 `--runtime-event-publication-root <point-root>`, and
 `--max-pending-runtime-event-publications <1..4096>`. Supply all three or none. The
 shared composition writes the retained timeout fact first, then exact-appends
-`RuntimeTimeoutKind.PROCESS`, then publishes only its opaque reference. Re-entry repairs
-the retained prefix without another child, and an exact acknowledged point is not
-recreated. This optional mode does not publish lease/Tool timeout, retry, finalizer,
-runtime-recovery, or terminal-disposition events.
+`RuntimeTimeoutKind.PROCESS`; lease recovery likewise persists its exact timeout record
+before the derived event. Retry control persists each decision before
+`RETRY_DECISION_RECORDED` and the replacement AgentRun before `RETRY_STARTED`. Every
+event publishes only its opaque reference. Re-entry repairs retained prefixes without
+another child, lease reclaim, retry decision, or replacement AgentRun, and an exact
+acknowledged point is not recreated. One retrying cycle can create several pending
+points; if the caller-selected capacity fills between them, acknowledge a retained point
+and repeat the same command to continue exact recovery. This optional mode does not
+publish Tool-timeout, finalizer, verification, stagnation, cancellation-application, or
+terminal-disposition events.
 
-AgentRuntime schema v4 also retains a bounded lease-timeout record atomically when
-recovery reclaims an expired executing lease. Event-aware library recovery can derive
-and repair `RuntimeTimeoutKind.LEASE` from that retained record. The same schema can
+AgentRuntime schema v4 retains the bounded lease-timeout and retry-decision histories
+used by this supported recovery path. The same schema can
 atomically apply one exact retained `CANCEL` only through a trusted
 `ControlRequestAuthorizer`, then derive and repair `CANCELLATION_APPLIED`; envelope
 metadata alone never authenticates. Runtime schemas v1 through v3 are unsupported and

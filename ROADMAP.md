@@ -543,12 +543,14 @@ Whole-gate assessment:
   isolated child Work and parent Result paths now both cross real Message Bus queues, so
   the earlier worker-communication blocker is closed. The bounded single-agent
   Scheduler/runtime foundation is Integrated and retains Operational explicit workflows,
-  and the retry-decision, retry-started, Tool-timeout, stagnation,
+  and the Tool-timeout, stagnation,
   cancellation-request, verification, and terminal WorkItem transition owners now reach a
   persist-after-source recorder and injected publisher port. A concrete filesystem
   reference-point adapter implements that port, and the optional Control receiver is
-  its first supported construction for cancellation-request events. No consumer or
-  supported composition for the other owners exists. Whole-gate promotion remains
+  its first supported construction for cancellation-request events. The same shared
+  Scheduler construction supports process timeout, lease timeout, retry decision, and
+  retry start owners. No supported composition for the remaining owners exists.
+  Whole-gate promotion remains
   blocked by broader publication/consumption and later-gate budgets,
   Memory, authenticated control application, production adapters, and role workers;
 - existing queue-active, checkpoint, deterministic lost-acknowledgement point, and
@@ -657,6 +659,12 @@ Current increment:
 - Contract Verified continuation for connection #6: schema-v2 immutable attempt and retry-decision prefixes preserve exact history, failed results keep the WorkItem active through durable `RETRY_PENDING`, result recording is split from terminal queue disposition, and the current worker parks with its intent/reference retained instead of failing the queue or running a replacement;
 - Contract Verified continuation for connection #6: `DurableAgentRunRetryController` resolves the existing retry-pending runtime and exact Goal ledger, persists the typed decision with versioned semantic ledger evidence before action, then idempotently appends only a caller-checkpointed admitted AgentRun identity or abandons a refused Goal without queue or execution authority;
 - Integrated continuation for connection #6: the retry-aware Worker creates or recovers the exact Goal ledger before execution, checkpoints a replacement identity before append, executes admitted attempts through the existing fenced path, and recovers every durable retry prefix to one final verified or failed queue disposition on real filesystem stores;
+- Integrated recovery-order continuation for connection #6: when a checkpoint names an
+  already `COMPLETED` or `FAILED` latest AgentRun, the Worker exact-replays the retained
+  Result through the finalizer before retry control or terminal queue disposition.
+  Reference drift fails before those later side effects, preserving the existing
+  verification, Tool-timeout, and stagnation repair seam without yet composing its
+  recorder into supported Scheduler commands;
 - Integrated durable submission path: an immutable manifest persists before queue creation, exact replay changes neither manifest nor queue revision, changed-content identity reuse and queue-capacity drift fail closed, and `scheduler-submit` connects the governed active task plus repository-memory snapshot to this path using only explicit roots, identities, time, capacity, capability, target, and digest inputs without executing work;
 - Integrated supported entry point: `scheduler-cycle` recovers one explicitly identified existing durable queue, composes the real process-isolated Worker and filesystem stores, and runs exactly one recoverable cycle with bounded idle/verified/failed status and stable exits; it creates no queue, admits no work, and makes no Operational promotion;
 - Operational sub-path: the documented operator workflow invokes `scheduler-submit` and `scheduler-cycle` separately over one shared explicit queue root/identity. A named real-filesystem CLI integration plus an actual Enhancer-repository smoke run prove admitted work remains pending before the cycle, the real child JVM reaches verified terminal disposition, exact submission replay does not revise the terminal queue or duplicate a RunRecord, and a later explicit cycle reports idle; recovery preserves each command's distinct roots, output, and failure ownership without a wrapper or polling;
@@ -808,6 +816,15 @@ Current increment:
   timeout owners each preserve source fact -> exact event -> opaque point ordering;
   retained re-entry repairs publication without another child, lease reclaim, source
   revision, RunRecord, retry decision, or unrelated owner activation;
+- Integrated retry Scheduler publication: the same optional Scheduler event group now
+  injects its recorder and Worker clock into `DurableAgentRunRetryController`.
+  Attempt-bound decision persistence precedes `RETRY_DECISION_RECORDED`, checkpointed
+  replacement append precedes `RETRY_STARTED`, and the existing retry checkpoint
+  branches exact-replay either fact after append, publication, or capacity failure.
+  Named real-filesystem CLI evidence across cycle, drain, and service observes the
+  admitted decision, replacement start, and final refused decision with two RunRecords
+  and one terminal failed queue disposition. Omission remains event-free and no
+  finalizer or other owner is activated;
 - Contract Verified and Integrated first read-only consumer: one explicit
   `.runtime-event-reference` point is integrity-checked, bound to its deterministic
   filename, parsed into canonical Goal/event identities, and resolved through exactly

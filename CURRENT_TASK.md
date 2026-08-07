@@ -2,66 +2,72 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Deliver the completed and freshly verified AGENTS.md workflow-policy ownership
-consolidation to `main` through a reviewed ordinary commit and non-force push, then
-record delivery evidence once with a small follow-up evidence commit.
+Deliver the completed retry runtime-event composition and terminal Result recovery-order
+correction to `main` through an exact reviewed ordinary commit and non-force push, then
+record delivery evidence once in a small follow-up evidence commit.
 
 ## Task ID
 
-deliver-agents-md-ownership-consolidation-to-main
+deliver-retry-event-and-terminal-result-recovery-work-to-main
 
 ## Context
 
-The working tree holds the documentation-only consolidation that moved
-development-session checkpoint commands, dynamic workflow rules, and the adaptive
-development subagent policy under `AGENTS.md` ownership, reduced the matching
-`.ai/workflow.md` and three `README.md` sections to references, added the two
-`AGENTS.md` entrypoint and Markdown-guard working rules, and recorded the accepted
-decisions. Local `main` is based on the current `origin/main`. Because the work is
-already based directly on `main`, an ordinary commit followed by a successful
-non-force push is the merge result; a synthetic branch or merge commit would add no
-distinct integration.
+The working tree contains two completed Gate 8 increments. The first supplies the
+Worker's existing optional Scheduler recorder to retry control across
+`scheduler-cycle`, `scheduler-drain`, and `scheduler-service`. The second ensures a
+retained terminal Result exact-replays through the finalizer before retry decisions or
+terminal queue disposition recovery. Their code, tests, decisions, architecture,
+maturity, roadmap, README, changelog, handoff, and append-only verification evidence are
+present in one reviewed candidate.
+
+Local `main` and cached `origin/main` resolve to the same baseline. Because the candidate
+is already based directly on `main`, an ordinary commit followed by a successful
+non-force push is the requested merge result; a synthetic branch or merge commit would
+add no distinct integration.
 
 ## Justified By
 
-- User request on 2026-08-05 to commit, push, and merge the AGENTS.md ownership consolidation to main
-- 2026-08-05: Consolidate Development Workflow Policy Ownership In AGENTS.md
+- User request on 2026-08-06 to commit, push, and merge the completed retry-event and terminal-result recovery work to main
+- 2026-08-06: Compose Retry Runtime Event Publication Across Supported Scheduler Execution Commands
+- 2026-08-06: Replay Terminal Result Before Retry Or Queue Disposition Recovery
 
 ## Approval
 
 The user's explicit request authorizes delivery-task and accepted-decision
-synchronization, fresh verification, Git fetch and inspection, staging of the exact
-reviewed paths, ordinary non-amending commit creation on the current `main`,
-non-force push to `origin/main`, direct-main integration verification, and a small
-follow-up evidence commit and push. It does not authorize force push, amend, rebase,
-reset, history rewrite, tag, release, deployment, pull-request or issue mutation,
-branch deletion, destructive action, credential or permission change, paid service,
-external message, or unrelated implementation.
+synchronization, fresh verification and fetch, staging of the exact reviewed paths,
+ordinary non-amending commits on the current `main`, non-force pushes to
+`origin/main`, direct-main integration verification, and a small follow-up delivery-
+evidence commit and push. It does not authorize force push, amend, rebase, reset,
+history rewrite, tag, release, deployment, pull-request or issue mutation, branch
+deletion, destructive cleanup, credential or permission change, paid service, external
+message, or unrelated implementation.
 
 ## Acceptance Criteria
 
-- Fresh fetch and reference inspection prove local `main` is based on the current
+- Fresh fetch and reference inspection prove local `main` is based on current
   `origin/main`; divergence or unexpected paths stops delivery.
-- Fresh full Java 17 test verification passes over the final document set before the
-  commit, and `git diff --check` remains clean.
-- The exact reviewed documentation, decision, task, and changelog paths are committed
-  without amend or unrelated artifacts.
-- Successful non-force push makes `origin/main` contain the commit with a linear
-  direct-main history and no synthetic merge commit.
-- Delivery evidence is appended once, owning documents are synchronized, the follow-up
-  evidence commit is pushed, local and remote `main` resolve to the same final commit,
-  and the working tree is clean.
+- Independent read-only review finds no unresolved scope, governance, secret, generated-
+  artifact, or commit-boundary issue in the exact candidate.
+- Fresh full Java 17 verification passes over the final candidate and
+  `git diff --check` remains clean.
+- One ordinary non-amending candidate commit contains exactly the reviewed code, tests,
+  decisions, owning documents, task, changelog, and verification evidence.
+- A successful non-force push makes `origin/main` contain that commit in a linear
+  direct-main history, satisfying the requested merge without a synthetic merge commit.
+- Delivery evidence is appended once, owning delivery documents are synchronized, the
+  follow-up evidence commit is pushed, local and remote `main` match, the worktree is
+  clean, and the stable checkpoint is cleared.
 
 ## Out Of Scope
 
-Code or test changes; force push; amend; rebase; reset; history rewrite; synthetic
-merge commit; tag; release; deployment; pull request; issue; branch deletion;
-destructive cleanup; paid service; credential or permission change; external message;
-or unrelated formatting.
+Further finalizer recorder composition; new code, tests, schemas, runtime behavior, or
+CLI options; force push; amend; rebase; reset; history rewrite; synthetic merge commit;
+tag; release; deployment; pull request; issue; branch deletion; destructive cleanup;
+paid service; credential or permission change; external message; or unrelated changes.
 
 ## Allowed Tools
 
@@ -77,7 +83,7 @@ or unrelated formatting.
 
 ## Dynamic Workflow
 
-Workflow ID: deliver-agents-md-ownership-consolidation-to-main
+Workflow ID: deliver-retry-event-and-terminal-result-recovery-work-to-main
 Mode: Sequential
 Increment Limit: 4
 Selection Rule: Select the first dependency-ready Pending increment after reading the
@@ -90,56 +96,63 @@ bounds, or an unjoined reviewer.
 
 State: Completed
 Depends On: none
-Scope: Fetch and compare remote `main`, reconcile the independent documentation review,
-and correct only ownership or lifecycle conflicts inside the consolidation.
-Exit Criteria: The remote baseline is current and non-divergent, and every intended path
-is classified without unresolved ownership, premature-delivery, secret, generated, or
-scope concerns.
-Verification: Primary Git/status/diff/reference inspection plus the joined read-only
-review reconciled against repository authority.
-Next Action: Run fresh full Java 17 verification over the corrected delivery candidate.
+Scope: Fetch and compare remote `main`, reconcile the exact working-tree candidate and
+one independent read-only review against repository authority.
+Exit Criteria: The remote baseline is current and non-divergent, every intended path is
+classified, and no unresolved ownership, secret, generated-artifact, or scope concern
+remains.
+Verification: Git status/diff/reference inspection, remote fetch, and primary
+reconciliation of the joined review.
+Next Action: Run fresh full Java 17 verification over the delivery candidate.
 
 ### Increment 2 - verify-and-commit-candidate
 
-State: Completed
+State: In Progress
 Depends On: reconcile-delivery-boundary
-Scope: Run fresh full Java 17 verification, append its evidence once, verify the final
-document set, review the exact diff, and create the ordinary consolidation commit.
+Scope: Run fresh full Java 17 verification, append candidate evidence once, review the
+exact staged diff, and create the ordinary candidate commit.
 Exit Criteria: Fresh verification is green and one non-amending commit on `main`
-contains only the reviewed consolidation candidate.
+contains exactly the reviewed candidate.
 Verification: Full Java 17 tests, document-governance tests, `git diff --check`, staged
 path inspection, and commit inspection.
-Next Action: Push the consolidation commit to `origin/main` without force.
+Next Action: Push the candidate commit to `origin/main` without force.
 
 ### Increment 3 - push-and-confirm-main
 
-State: Completed
+State: Pending
 Depends On: verify-and-commit-candidate
-Scope: Non-force push the consolidation commit and verify it is contained in current
-remote `main` with a linear direct-main topology.
+Scope: Non-force push the candidate commit and verify current remote `main` contains it
+with a linear direct-main topology.
 Exit Criteria: The push succeeds and fresh remote inspection shows `origin/main`
-contains the consolidation commit with no local/remote divergence.
-Verification: Push output, fetch, exact reference comparison, ancestry, and log review.
-Next Action: Synchronize append-only delivery evidence and close the task.
+contains the candidate commit with no local/remote divergence.
+Verification: Push output, fetch, exact reference comparison, merge-base/ancestry, and
+log inspection.
+Next Action: Append delivery evidence and close the task.
 
 ### Increment 4 - record-delivery-and-close
 
-State: Completed
+State: Pending
 Depends On: push-and-confirm-main
 Scope: Append external delivery evidence once, update only owning task and changelog
 facts, verify the synchronization, commit and push it, then close the checkpoint.
 Exit Criteria: Delivery evidence and task state are truthful on remote `main`; local and
-remote refs match, the working tree is clean, and the stable checkpoint is cleared.
+remote refs match, the worktree is clean, and the stable checkpoint is cleared.
 Verification: Document-governance tests, final commit/push/fetch/reference/status/log
 inspection, and checkpoint stable/clear/show results.
 Next Action: End the delivery session without selecting unrelated implementation.
 
 ## Verification
 
-- Fresh candidate evidence is recorded in `docs/verification-log.md` under
-  `2026-08-06 - Verify AGENTS.md Workflow Policy Ownership Consolidation`.
+- Increment 1: fresh `git fetch origin main --prune` completed, and local `HEAD`,
+  fetched `origin/main`, and their merge base all resolved to
+  `9822d72b3474c9586ef9feaeabfa29716bc9afc3` with divergence `0 0` and a successful
+  ancestry check. One bounded read-only review classified the original seventeen paths
+  plus this delivery decision/task synchronization, found no secret, generated-
+  artifact, ownership, scope, or commit-boundary blocker, and joined without mutation.
 
 ## Next
 
-After delivery closes, no further work is selected by this task; a later session
-selects its own bounded task from repository authority.
+After this delivery task closes, select a separate test-first task to conditionally
+supply the existing optional Scheduler recorder to `DurableAgentRunFinalizer` across
+`scheduler-cycle`, `scheduler-drain`, and `scheduler-service`, proving exact Result-side
+event order and recovery without new CLI options or owner authority.

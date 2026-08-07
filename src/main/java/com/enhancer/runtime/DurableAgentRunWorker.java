@@ -78,10 +78,17 @@ public final class DurableAgentRunWorker {
                 effectStore, "effectStore must not be null");
         this.retryPolicy = Objects.requireNonNull(
                 retryPolicy, "retryPolicy must not be null");
-        this.retryController = new DurableAgentRunRetryController(
-                runtimeStore,
-                effectStore,
-                new AgentRunRetryDecider());
+        this.retryController = eventRecorder
+                .map(recorder -> new DurableAgentRunRetryController(
+                        runtimeStore,
+                        effectStore,
+                        new AgentRunRetryDecider(),
+                        clock,
+                        recorder))
+                .orElseGet(() -> new DurableAgentRunRetryController(
+                        runtimeStore,
+                        effectStore,
+                        new AgentRunRetryDecider()));
         this.ownerId = Objects.requireNonNull(
                 ownerId, "ownerId must not be null");
         this.clock = Objects.requireNonNull(clock, "clock must not be null");
@@ -127,7 +134,7 @@ public final class DurableAgentRunWorker {
                 Optional.empty());
     }
 
-    /** Event-aware process isolation and AgentRuntime lease recovery composition. */
+    /** Event-aware process isolation, AgentRuntime lease recovery, and retry composition. */
     public static DurableAgentRunWorker processIsolated(
             DurableSingleWorkerSchedulerQueue queue,
             AgentRuntimeStateStore runtimeStore,
@@ -255,6 +262,18 @@ public final class DurableAgentRunWorker {
                     leaseDuration);
         }
         Optional<RuntimeAgentRun> run = runtime.agentRun();
+        if (run.isPresent()
+                && (run.orElseThrow().status() == RuntimeAgentRunStatus.COMPLETED
+                        || run.orElseThrow().status()
+                                == RuntimeAgentRunStatus.FAILED)) {
+            finalizer.recordAgentRunResult(
+                    pending.goalId(),
+                    pending.agentRunId(),
+                    pending.runRecordReference().orElseThrow(() ->
+                            new IllegalStateException(
+                                    "terminal AgentRun requires a recorded "
+                                            + "RunRecord reference")));
+        }
         if (runtime.goal().status() == RuntimeGoalStatus.RETRY_PENDING) {
             return resolveRetry(pending, leaseDuration);
         }

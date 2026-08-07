@@ -298,6 +298,122 @@ class DurableAgentRunWorkerTest {
     }
 
     @Test
+    void validatesCheckpointedResultBeforeRecoveringTerminalQueueDisposition()
+            throws Exception {
+        Stores s = stores();
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.create(QUEUE_ID, 8, s.queueStore());
+        WorkItem work = workItem(WORK_ID);
+        queue.enqueue(new QueuedWork(work, List.of()));
+        s.checkpointStore().record(
+                new PendingFinalization(GOAL_ID, AGENT_RUN_ID, Optional.empty()));
+        AgentRunDispatch dispatch =
+                new DurableAgentRunDispatcher(queue, s.runtimeStore(), CLOCK)
+                        .claimAndLease(GOAL_ID, AGENT_RUN_ID, OWNER_ID, LEASE)
+                        .orElseThrow();
+        String retainedReference =
+                s.runRecordStore().persist(runRecord(true)).reference();
+        String mismatchedReference =
+                "run-record/00000000-0000-0000-0000-000000000999";
+        PendingFinalization checkpoint = new PendingFinalization(
+                GOAL_ID, AGENT_RUN_ID, Optional.of(mismatchedReference));
+        s.checkpointStore().record(checkpoint);
+        DurableAgentRuntime runtime =
+                DurableAgentRuntime.recover(GOAL_ID, s.runtimeStore(), CLOCK);
+        runtime.completeExecution(
+                AGENT_RUN_ID, OWNER_ID, dispatch.lease().fenceToken());
+        runtime.recordResult(
+                AGENT_RUN_ID,
+                terminalResultEnvelope(
+                        work, retainedReference, VerificationStatus.VERIFIED));
+        long runtimeRevision = runtime.revision();
+
+        IllegalStateException failure = assertThrows(
+                IllegalStateException.class,
+                () -> worker(s, forbiddenExecution()).runOneCycle(LEASE));
+
+        assertEquals(
+                "terminal AgentRun was finalized with a different RunRecord",
+                failure.getMessage());
+        assertEquals(
+                runtimeRevision,
+                DurableAgentRuntime.recover(GOAL_ID, s.runtimeStore(), CLOCK)
+                        .revision());
+        SchedulerQueueState queueState = s.queueStore().resolve(QUEUE_ID);
+        assertTrue(queueState.activeWork().isEmpty());
+        assertEquals(
+                List.of(WORK_ID),
+                queueState.pendingWork().stream()
+                        .map(pending -> pending.workItem().workItemId())
+                        .toList());
+        assertEquals(
+                Optional.of(WORK_ID), queueState.recoveryPreferredWorkItemId());
+        assertTrue(queueState.completedWorkItemIds().isEmpty());
+        assertTrue(queueState.failedWorkItemIds().isEmpty());
+        assertEquals(Optional.of(checkpoint), s.checkpointStore().findPending());
+    }
+
+    @Test
+    void validatesCheckpointedResultBeforeDecidingRetry() throws Exception {
+        Stores s = stores();
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.create(QUEUE_ID, 8, s.queueStore());
+        WorkItem work = workItem(WORK_ID);
+        queue.enqueue(new QueuedWork(work, List.of()));
+        s.checkpointStore().record(
+                new PendingFinalization(GOAL_ID, AGENT_RUN_ID, Optional.empty()));
+        AgentRunDispatch dispatch =
+                new DurableAgentRunDispatcher(queue, s.runtimeStore(), CLOCK)
+                        .claimAndLease(GOAL_ID, AGENT_RUN_ID, OWNER_ID, LEASE)
+                        .orElseThrow();
+        DurableExternalEffectLedger.create(
+                GOAL_ID, s.runtimeStore(), s.effectStore(), CLOCK);
+        String retainedReference =
+                s.runRecordStore().persist(runRecord(false)).reference();
+        String mismatchedReference =
+                "run-record/00000000-0000-0000-0000-000000000998";
+        PendingFinalization checkpoint = new PendingFinalization(
+                GOAL_ID, AGENT_RUN_ID, Optional.of(mismatchedReference));
+        s.checkpointStore().record(checkpoint);
+        DurableAgentRuntime runtime =
+                DurableAgentRuntime.recover(GOAL_ID, s.runtimeStore(), CLOCK);
+        runtime.completeExecution(
+                AGENT_RUN_ID, OWNER_ID, dispatch.lease().fenceToken());
+        new DurableAgentRunFinalizer(
+                        queue, s.runtimeStore(), s.runRecordStore(), CLOCK)
+                .recordAgentRunResult(
+                        GOAL_ID, AGENT_RUN_ID, retainedReference);
+        long runtimeRevision = DurableAgentRuntime.recover(
+                        GOAL_ID, s.runtimeStore(), CLOCK)
+                .revision();
+
+        IllegalStateException failure = assertThrows(
+                IllegalStateException.class,
+                () -> worker(s, forbiddenExecution()).runOneCycle(LEASE));
+
+        assertEquals(
+                "terminal AgentRun was finalized with a different RunRecord",
+                failure.getMessage());
+        DurableAgentRuntime recovered =
+                DurableAgentRuntime.recover(GOAL_ID, s.runtimeStore(), CLOCK);
+        assertEquals(runtimeRevision, recovered.revision());
+        assertEquals(RuntimeGoalStatus.RETRY_PENDING, recovered.goal().status());
+        assertTrue(recovered.retryDecisions().isEmpty());
+        SchedulerQueueState queueState = s.queueStore().resolve(QUEUE_ID);
+        assertTrue(queueState.activeWork().isEmpty());
+        assertEquals(
+                List.of(WORK_ID),
+                queueState.pendingWork().stream()
+                        .map(pending -> pending.workItem().workItemId())
+                        .toList());
+        assertEquals(
+                Optional.of(WORK_ID), queueState.recoveryPreferredWorkItemId());
+        assertTrue(queueState.completedWorkItemIds().isEmpty());
+        assertTrue(queueState.failedWorkItemIds().isEmpty());
+        assertEquals(Optional.of(checkpoint), s.checkpointStore().findPending());
+    }
+
+    @Test
     void reDrivesWithSameIdentitiesAfterCrashWhileExecuting() throws Exception {
         Stores s = stores();
         DurableSingleWorkerSchedulerQueue queue =

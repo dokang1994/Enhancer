@@ -11,6 +11,36 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User request on 2026-08-06 to commit, push, and merge the completed retry-event and terminal-result recovery work to main
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-06-commit-push-and-merge-completed-retry-event-and-terminal-result-recovery-work-to-main.md)
+
+### User continuation request after retry runtime-event composition on 2026-08-06
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-06-continue-with-terminal-result-recovery-ordering.md)
+
+### 2026-08-06: Replay Terminal Result Before Retry Or Queue Disposition Recovery
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-06-replay-terminal-result-before-retry-or-queue-disposition-recovery.md)
+
+### User continuation request on 2026-08-06
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-06-user-continuation-request.md)
+
+### 2026-08-06: Compose Retry Runtime Event Publication Across Supported Scheduler Execution Commands
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-06-compose-retry-runtime-event-publication-across-supported-scheduler-execution-commands.md)
+
 ### User request on 2026-08-05 to commit, push, and merge the AGENTS.md ownership consolidation to main
 
 Status: Accepted Decision
