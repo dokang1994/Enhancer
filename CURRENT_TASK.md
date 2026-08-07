@@ -2,27 +2,24 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Deliver the completed retry runtime-event composition and terminal Result recovery-order
-correction to `main` through an exact reviewed ordinary commit and non-force push, then
-record delivery evidence once in a small follow-up evidence commit.
+Deliver the completed Result-side Scheduler runtime-event composition to `main` through
+an exact reviewed ordinary commit and non-force push, then record delivery evidence once
+in a small follow-up evidence commit.
 
 ## Task ID
 
-deliver-retry-event-and-terminal-result-recovery-work-to-main
+deliver-result-side-scheduler-runtime-event-composition-to-main
 
 ## Context
 
-The working tree contains two completed Gate 8 increments. The first supplies the
-Worker's existing optional Scheduler recorder to retry control across
-`scheduler-cycle`, `scheduler-drain`, and `scheduler-service`. The second ensures a
-retained terminal Result exact-replays through the finalizer before retry decisions or
-terminal queue disposition recovery. Their code, tests, decisions, architecture,
-maturity, roadmap, README, changelog, handoff, and append-only verification evidence are
-present in one reviewed candidate.
+The working tree contains one completed Gate 8 increment that supplies the existing
+optional Scheduler runtime-event recorder to Result finalization across cycle, drain,
+and service. Its code, tests, decisions, architecture, maturity, roadmap, README,
+changelog, and append-only verification evidence form one reviewed candidate.
 
 Local `main` and cached `origin/main` resolve to the same baseline. Because the candidate
 is already based directly on `main`, an ordinary commit followed by a successful
@@ -31,27 +28,26 @@ add no distinct integration.
 
 ## Justified By
 
-- User request on 2026-08-06 to commit, push, and merge the completed retry-event and terminal-result recovery work to main
-- 2026-08-06: Compose Retry Runtime Event Publication Across Supported Scheduler Execution Commands
-- 2026-08-06: Replay Terminal Result Before Retry Or Queue Disposition Recovery
+- User request on 2026-08-07 to commit, push, and merge the completed Result-side Scheduler runtime-event work to main
+- 2026-08-07: Compose Result-Side Runtime Event Publication Across Supported Scheduler Execution Commands
 
 ## Approval
 
 The user's explicit request authorizes delivery-task and accepted-decision
 synchronization, fresh verification and fetch, staging of the exact reviewed paths,
-ordinary non-amending commits on the current `main`, non-force pushes to
-`origin/main`, direct-main integration verification, and a small follow-up delivery-
-evidence commit and push. It does not authorize force push, amend, rebase, reset,
-history rewrite, tag, release, deployment, pull-request or issue mutation, branch
-deletion, destructive cleanup, credential or permission change, paid service, external
-message, or unrelated implementation.
+ordinary non-amending commits on the current `main`, non-force pushes to `origin/main`,
+direct-main integration verification, and a small follow-up delivery-evidence commit
+and push. It does not authorize force push, amend, rebase, reset, history rewrite, tag,
+release, deployment, pull-request or issue mutation, branch deletion, destructive
+cleanup, credential or permission change, paid service, external message, or unrelated
+implementation.
 
 ## Acceptance Criteria
 
 - Fresh fetch and reference inspection prove local `main` is based on current
   `origin/main`; divergence or unexpected paths stops delivery.
-- Independent read-only review finds no unresolved scope, governance, secret, generated-
-  artifact, or commit-boundary issue in the exact candidate.
+- Independent read-only review finds no unresolved scope, governance, secret,
+  generated-artifact, or commit-boundary issue in the exact candidate.
 - Fresh full Java 17 verification passes over the final candidate and
   `git diff --check` remains clean.
 - One ordinary non-amending candidate commit contains exactly the reviewed code, tests,
@@ -64,10 +60,11 @@ message, or unrelated implementation.
 
 ## Out Of Scope
 
-Further finalizer recorder composition; new code, tests, schemas, runtime behavior, or
-CLI options; force push; amend; rebase; reset; history rewrite; synthetic merge commit;
-tag; release; deployment; pull request; issue; branch deletion; destructive cleanup;
-paid service; credential or permission change; external message; or unrelated changes.
+Further runtime-event or cancellation implementation; new code, tests, schemas, runtime
+behavior, or CLI options; force push; amend; rebase; reset; history rewrite; synthetic
+merge commit; tag; release; deployment; pull request; issue; branch deletion;
+destructive cleanup; paid service; credential or permission change; external message;
+or unrelated changes.
 
 ## Allowed Tools
 
@@ -83,7 +80,7 @@ paid service; credential or permission change; external message; or unrelated ch
 
 ## Dynamic Workflow
 
-Workflow ID: deliver-retry-event-and-terminal-result-recovery-work-to-main
+Workflow ID: deliver-result-side-scheduler-runtime-event-composition-to-main
 Mode: Sequential
 Increment Limit: 4
 Selection Rule: Select the first dependency-ready Pending increment after reading the
@@ -96,30 +93,30 @@ bounds, or an unjoined reviewer.
 
 State: Completed
 Depends On: none
-Scope: Fetch and compare remote `main`, reconcile the exact working-tree candidate and
-one independent read-only review against repository authority.
+Scope: Fetch and compare remote `main`, reconcile the exact working-tree candidate, and
+join independent read-only review against repository authority.
 Exit Criteria: The remote baseline is current and non-divergent, every intended path is
 classified, and no unresolved ownership, secret, generated-artifact, or scope concern
 remains.
 Verification: Git status/diff/reference inspection, remote fetch, and primary
-reconciliation of the joined review.
+reconciliation of joined reviews.
 Next Action: Run fresh full Java 17 verification over the delivery candidate.
 
 ### Increment 2 - verify-and-commit-candidate
 
-State: Completed
+State: In Progress
 Depends On: reconcile-delivery-boundary
-Scope: Run fresh full Java 17 verification, append candidate evidence once, review the
-exact staged diff, and create the ordinary candidate commit.
+Scope: Run fresh full Java 17 verification, review the exact staged diff, and create the
+ordinary candidate commit.
 Exit Criteria: Fresh verification is green and one non-amending commit on `main`
 contains exactly the reviewed candidate.
-Verification: Full Java 17 tests, document-governance tests, `git diff --check`, staged
+Verification: Full Java 17 build, document-governance tests, `git diff --check`, staged
 path inspection, and commit inspection.
 Next Action: Push the candidate commit to `origin/main` without force.
 
 ### Increment 3 - push-and-confirm-main
 
-State: Completed
+State: Pending
 Depends On: verify-and-commit-candidate
 Scope: Non-force push the candidate commit and verify current remote `main` contains it
 with a linear direct-main topology.
@@ -131,7 +128,7 @@ Next Action: Append delivery evidence and close the task.
 
 ### Increment 4 - record-delivery-and-close
 
-State: Completed
+State: Pending
 Depends On: push-and-confirm-main
 Scope: Append external delivery evidence once, update only owning task and changelog
 facts, verify the synchronization, commit and push it, then close the checkpoint.
@@ -144,32 +141,27 @@ Next Action: End the delivery session without selecting unrelated implementation
 ## Verification
 
 - Increment 1: fresh `git fetch origin main --prune` completed, and local `HEAD`,
-  fetched `origin/main`, and their merge base all resolved to
-  `9822d72b3474c9586ef9feaeabfa29716bc9afc3` with divergence `0 0` and a successful
-  ancestry check. One bounded read-only review classified the original seventeen paths
-  plus this delivery decision/task synchronization, found no secret, generated-
-  artifact, ownership, scope, or commit-boundary blocker, and joined without mutation.
-- Increment 2: fresh Java 17 `clean build --no-daemon --console=plain` executed all
-  eight tasks and ran 732 tests across 140 suites: 724 passed, eight Windows
-  environment-dependent cases skipped, and zero failed or errored. After correcting
-  two EOF whitespace findings, the repeated eleven-test document-governance suite and
-  staged `git diff --check` were clean. Ordinary non-amending commit
-  `f4e9c08f2f62de93d72e271d87ca5683a53aaab6` contains the exact eighteen reviewed paths
-  over parent `9822d72b3474c9586ef9feaeabfa29716bc9afc3`, with no unstaged residue.
-- Increment 3: a fresh pre-push fetch kept `origin/main` at the candidate parent with
-  local divergence `1 0` and successful remote-ancestor proof. Non-force
-  `git push origin main` advanced remote `main` from `9822d72` to `f4e9c08`; a fresh
-  post-push fetch then proved exact `HEAD`/local-main/remote-main/FETCH_HEAD/merge-base
-  identity at the candidate, divergence `0 0`, and successful candidate ancestry.
-- Increment 4: delivery evidence was appended once and only `CURRENT_TASK.md`,
-  `CHANGELOG.md`, and `docs/verification-log.md` changed after candidate delivery.
-  Fresh Java 17 Decision Log, document-ownership, Dynamic Workflow, and runtime package-
-  boundary verification ran eleven tests across four suites with zero skip, failure, or
-  error, and `git diff --check` was clean before the follow-up evidence commit.
+  fetched `origin/main`, `FETCH_HEAD`, and their merge base all resolve to
+  `f7d81685d0639f9ecea2985052e7ad3a6a83d398` with divergence `0 0` and successful
+  remote-ancestor proof. Two bounded read-only reviews joined without mutation. They
+  classified the implementation candidate plus delivery decision as sixteen exact
+  paths and found no secret, generated-artifact, ownership, scope, topology, or commit-
+  boundary blocker after removal of an unnecessary `write-code` task permission.
+- Pre-delivery candidate evidence: fresh Java 17 `clean build --no-daemon
+  --console=plain` completed with all eight Gradle tasks executed. It ran 735 tests
+  across 141 suites: 727 passed, eight Windows environment-dependent cases skipped, and
+  zero failed or errored. Before delivery-task activation the exact implementation
+  candidate contained fifteen intended paths with clean `git diff --check` output; the
+  accepted delivery decision is the sixteenth current path.
+- Increment 2 verification prefix: fresh Java 17 `clean build --no-daemon
+  --console=plain` over the complete sixteen-path delivery candidate completed in 7
+  minutes 30 seconds with all eight Gradle tasks executed. It ran 735 tests across 141
+  suites: 727 passed, eight Windows environment-dependent cases skipped, and zero
+  failed or errored. Fresh tracked `git diff --check` produced no output.
 
 ## Next
 
-After this delivery task closes, select a separate test-first task to conditionally
-supply the existing optional Scheduler recorder to `DurableAgentRunFinalizer` across
-`scheduler-cycle`, `scheduler-drain`, and `scheduler-service`, proving exact Result-side
-event order and recovery without new CLI options or owner authority.
+After this delivery task closes, select a separate architecture-first task to define a
+supported authenticated-cancellation application surface and trusted authorizer
+composition before supplying its existing event-aware owner. Do not infer credentials,
+CLI authority, or cancellation queue disposition.

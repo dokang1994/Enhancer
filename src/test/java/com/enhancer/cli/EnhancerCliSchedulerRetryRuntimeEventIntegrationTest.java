@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.enhancer.bus.MessageEnvelope;
 import com.enhancer.bus.WorkPayload;
+import com.enhancer.kernel.VerificationStatus;
 import com.enhancer.run.FileSystemRunRecordStore;
 import com.enhancer.runtime.AgentRunRetryRefusalReason;
 import com.enhancer.runtime.DurableAgentRuntime;
@@ -24,6 +25,7 @@ import com.enhancer.runtime.RuntimeEventReferenceKind;
 import com.enhancer.runtime.RuntimeEventStream;
 import com.enhancer.runtime.RuntimeGoalStatus;
 import com.enhancer.runtime.WorkItem;
+import com.enhancer.runtime.WorkItemDisposition;
 import com.enhancer.workspace.ApprovedTaskRevision;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -80,12 +82,15 @@ class EnhancerCliSchedulerRetryRuntimeEventIntegrationTest {
 
         RuntimeEventStream stream = new FileSystemRuntimeEventStore(
                 layout.eventRoot()).resolve(GOAL_ID);
-        assertEquals(3, stream.revision());
+        assertEquals(6, stream.revision());
         assertEquals(
                 List.of(
+                        RuntimeEventKind.VERIFICATION_RECORDED,
                         RuntimeEventKind.RETRY_DECISION_RECORDED,
                         RuntimeEventKind.RETRY_STARTED,
-                        RuntimeEventKind.RETRY_DECISION_RECORDED),
+                        RuntimeEventKind.VERIFICATION_RECORDED,
+                        RuntimeEventKind.RETRY_DECISION_RECORDED,
+                        RuntimeEventKind.WORK_ITEM_TERMINATED),
                 stream.events().stream().map(RuntimeEvent::kind).toList());
 
         RuntimeEventBinding expectedBinding = new RuntimeEventBinding(
@@ -95,15 +100,29 @@ class EnhancerCliSchedulerRetryRuntimeEventIntegrationTest {
                 workItem.snapshotId(),
                 workItem.logicalRunId(),
                 workItem.workMessage().correlationId());
-        RuntimeEvent admitted = stream.events().get(0);
-        RuntimeEvent started = stream.events().get(1);
-        RuntimeEvent refused = stream.events().get(2);
+        RuntimeEvent firstVerification = stream.events().get(0);
+        RuntimeEvent admitted = stream.events().get(1);
+        RuntimeEvent started = stream.events().get(2);
+        RuntimeEvent replacementVerification = stream.events().get(3);
+        RuntimeEvent refused = stream.events().get(4);
+        RuntimeEvent terminated = stream.events().get(5);
+        assertEquals(expectedBinding, firstVerification.binding());
         assertEquals(expectedBinding, admitted.binding());
         assertEquals(expectedBinding, started.binding());
+        assertEquals(expectedBinding, replacementVerification.binding());
         assertEquals(expectedBinding, refused.binding());
+        assertEquals(expectedBinding, terminated.binding());
+        assertEquals(FIRST_AGENT_RUN_ID, firstVerification.agentRunId());
         assertEquals(FIRST_AGENT_RUN_ID, admitted.agentRunId());
         assertEquals(replacementAgentRunId, started.agentRunId());
+        assertEquals(replacementAgentRunId,
+                replacementVerification.agentRunId());
         assertEquals(replacementAgentRunId, refused.agentRunId());
+        assertEquals(replacementAgentRunId, terminated.agentRunId());
+        assertEquals(
+                new RuntimeEventDetail.VerificationRecorded(
+                        VerificationStatus.REJECTED),
+                firstVerification.detail());
         assertEquals(
                 new RuntimeEventDetail.RetryDecisionRecorded(
                         true, Optional.empty()),
@@ -112,10 +131,21 @@ class EnhancerCliSchedulerRetryRuntimeEventIntegrationTest {
                 new RuntimeEventDetail.RetryStarted(FIRST_AGENT_RUN_ID),
                 started.detail());
         assertEquals(
+                new RuntimeEventDetail.VerificationRecorded(
+                        VerificationStatus.REJECTED),
+                replacementVerification.detail());
+        assertEquals(
                 new RuntimeEventDetail.RetryDecisionRecorded(
                         false,
                         Optional.of(AgentRunRetryRefusalReason.ATTEMPTS_EXHAUSTED)),
                 refused.detail());
+        assertEquals(
+                new RuntimeEventDetail.WorkItemTerminated(
+                        WorkItemDisposition.FAILED),
+                terminated.detail());
+        assertEquals(
+                runtime.agentRuns().get(0).resultMessage().orElseThrow().messageId(),
+                firstVerification.causationId().orElseThrow());
         assertEquals(
                 runtime.agentRuns().get(0).resultMessage().orElseThrow().messageId(),
                 admitted.causationId().orElseThrow());
@@ -123,6 +153,15 @@ class EnhancerCliSchedulerRetryRuntimeEventIntegrationTest {
         assertEquals(
                 runtime.agentRuns().get(1).resultMessage().orElseThrow().messageId(),
                 refused.causationId().orElseThrow());
+        assertEquals(refused.causationId(), replacementVerification.causationId());
+        assertEquals(refused.causationId(), terminated.causationId());
+        assertEquals(
+                List.of(
+                        RuntimeEventReferenceKind.RESULT_MESSAGE,
+                        RuntimeEventReferenceKind.RUN_RECORD),
+                firstVerification.authoritativeReferences().stream()
+                        .map(reference -> reference.kind())
+                        .toList());
         assertEquals(
                 List.of(
                         RuntimeEventReferenceKind.RETRY_DECISION,
@@ -139,14 +178,26 @@ class EnhancerCliSchedulerRetryRuntimeEventIntegrationTest {
                         .toList());
         assertEquals(
                 List.of(
+                        RuntimeEventReferenceKind.RESULT_MESSAGE,
+                        RuntimeEventReferenceKind.RUN_RECORD),
+                replacementVerification.authoritativeReferences().stream()
+                        .map(reference -> reference.kind())
+                        .toList());
+        assertEquals(
+                List.of(
                         RuntimeEventReferenceKind.RETRY_DECISION,
                         RuntimeEventReferenceKind.RUNTIME_STATE),
                 refused.authoritativeReferences().stream()
                         .map(reference -> reference.kind())
                         .toList());
+        assertEquals(
+                List.of(RuntimeEventReferenceKind.SCHEDULER_QUEUE),
+                terminated.authoritativeReferences().stream()
+                        .map(reference -> reference.kind())
+                        .toList());
 
         List<Path> points = pendingPoints(layout.publicationRoot());
-        assertEquals(3, points.size());
+        assertEquals(6, points.size());
         for (Path point : points) {
             Execution read = executeRead(layout, point.getFileName().toString());
             assertEquals(0, read.exitCode(), read.stderr());
@@ -258,7 +309,7 @@ class EnhancerCliSchedulerRetryRuntimeEventIntegrationTest {
                 "--runtime-event-root", layout.eventRoot().toString(),
                 "--runtime-event-publication-root",
                 layout.publicationRoot().toString(),
-                "--max-pending-runtime-event-publications", "3"));
+                "--max-pending-runtime-event-publications", "6"));
         return arguments.toArray(String[]::new);
     }
 

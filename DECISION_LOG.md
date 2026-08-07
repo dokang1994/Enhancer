@@ -11,6 +11,24 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User request on 2026-08-07 to commit, push, and merge the completed Result-side Scheduler runtime-event work to main
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-07-commit-push-and-merge-result-side-scheduler-runtime-event-work-to-main.md)
+
+### 2026-08-07: Compose Result-Side Runtime Event Publication Across Supported Scheduler Execution Commands
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-07-compose-result-side-runtime-event-publication-across-supported-scheduler-execution-commands.md)
+
+### User continuation request on 2026-08-07
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-07-user-continuation-request.md)
+
 ### User request on 2026-08-06 to commit, push, and merge the completed retry-event and terminal-result recovery work to main
 
 Status: Accepted Decision

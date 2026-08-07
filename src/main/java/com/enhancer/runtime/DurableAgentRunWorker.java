@@ -213,12 +213,16 @@ public final class DurableAgentRunWorker {
                         queue, runtimeStore, clock, recorder))
                 .orElseGet(() -> new DurableAgentRunDispatcher(
                         queue, runtimeStore, clock));
+        DurableAgentRunFinalizer finalizer = eventRecorder
+                .map(recorder -> new DurableAgentRunFinalizer(
+                        queue, runtimeStore, runRecordStore, clock, recorder))
+                .orElseGet(() -> new DurableAgentRunFinalizer(
+                        queue, runtimeStore, runRecordStore, clock));
         return new DurableAgentRunWorker(
                 dispatcher,
                 isolatedExecution,
                 checkpoint,
-                new DurableAgentRunFinalizer(
-                        queue, runtimeStore, runRecordStore, clock),
+                finalizer,
                 runtimeStore,
                 effectStore,
                 retryPolicy,

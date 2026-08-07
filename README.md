@@ -297,7 +297,8 @@ When the parent watchdog receives a typed process timeout, it persists one bound
 command exposes the execution error. Preserve that invocation root: exact reinvocation
 resolves the same fact and fails without launching another child. The supported CLI does
 not publish events by default. To publish the currently supported Scheduler-owned
-process-timeout, lease-timeout, retry-decision, and retry-start facts from
+process-timeout, lease-timeout, retry-decision, retry-start, verification, Tool-timeout,
+stagnation, and terminal WorkItem facts from
 `scheduler-cycle`, `scheduler-drain`, or `scheduler-service`, append the complete group
 `--runtime-event-root <event-root>`,
 `--runtime-event-publication-root <point-root>`, and
@@ -305,14 +306,16 @@ process-timeout, lease-timeout, retry-decision, and retry-start facts from
 shared composition writes the retained timeout fact first, then exact-appends
 `RuntimeTimeoutKind.PROCESS`; lease recovery likewise persists its exact timeout record
 before the derived event. Retry control persists each decision before
-`RETRY_DECISION_RECORDED` and the replacement AgentRun before `RETRY_STARTED`. Every
-event publishes only its opaque reference. Re-entry repairs retained prefixes without
-another child, lease reclaim, retry decision, or replacement AgentRun, and an exact
-acknowledged point is not recreated. One retrying cycle can create several pending
-points; if the caller-selected capacity fills between them, acknowledge a retained point
-and repeat the same command to continue exact recovery. This optional mode does not
-publish Tool-timeout, finalizer, verification, stagnation, cancellation-application, or
-terminal-disposition events.
+`RETRY_DECISION_RECORDED` and the replacement AgentRun before `RETRY_STARTED`.
+Finalization persists or exact-replays the Result before verification, optional Tool
+timeout and stagnation; terminal queue disposition persists before
+`WORK_ITEM_TERMINATED`. Every event publishes only its opaque reference. Re-entry repairs
+retained prefixes without another child, lease reclaim, retry decision, replacement
+AgentRun, Result transition, RunRecord, or queue disposition, and an exact acknowledged
+point is not recreated. One cycle can create several pending points; if the caller-
+selected capacity fills between them, acknowledge a retained point and repeat the same
+command to continue exact recovery. This optional mode does not publish authenticated
+cancellation-application events.
 
 AgentRuntime schema v4 retains the bounded lease-timeout and retry-decision histories
 used by this supported recovery path. The same schema can

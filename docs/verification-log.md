@@ -4445,3 +4445,31 @@ Outcome:
 - No force push, amend, rebase, reset, history rewrite, tag, release, deployment, pull
   request, issue, branch deletion, destructive cleanup, permission or credential
   change, paid service, external message, or unrelated implementation was performed.
+
+## 2026-08-07 - Compose Result-Side Runtime Events Across Scheduler Commands
+
+- Required repository authority was reread in order, `checkpoint-show` returned
+  `EMPTY`, and the clean worktree at
+  `f7d81685d0639f9ecea2985052e7ad3a6a83d398` was reconciled before planning. Two
+  bounded read-only reviews independently identified the event-free finalizer
+  construction as the missing composition seam and joined without repository,
+  checkpoint, test, or Git mutation.
+- The named real-filesystem CLI RED ran three parameterized cases. Cycle, drain, and
+  service each unexpectedly exited successfully with verified completion because the
+  shared Worker composition had not supplied the configured recorder to the finalizer;
+  this failure was classified as aligned with the Active Task, accepted decisions,
+  Architecture, and repository Java 17 settings.
+- The minimum production change conditionally supplies the existing recorder and
+  injected clock to `DurableAgentRunFinalizer`. The new recovery integration and the
+  updated retry integration passed six cases. An expanded nine-suite run then exposed
+  three stale lease-timeout expectations; after aligning that existing test with the
+  supported lease-timeout -> verification -> termination sequence, all 68 tests passed
+  in 4 minutes 2 seconds with zero skips, failures, or errors.
+- Fresh Java 17 `clean build --no-daemon --console=plain` completed in 8 minutes with
+  all eight Gradle tasks executed. It ran 735 tests across 141 suites: 727 passed,
+  eight Windows environment-dependent cases skipped, and zero failed or errored,
+  including fresh production and test compilation under the repository's strict lint.
+- No CLI option, event kind, schema, transition authority, cancellation application,
+  user Scheduler/runtime root, commit, push, merge, release, deployment, destructive
+  action, permission or credential change, paid service, external message, cleanup,
+  retention, or unrelated implementation was introduced or performed.

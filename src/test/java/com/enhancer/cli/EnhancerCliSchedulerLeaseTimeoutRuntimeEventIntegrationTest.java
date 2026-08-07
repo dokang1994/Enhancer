@@ -90,15 +90,27 @@ class EnhancerCliSchedulerLeaseTimeoutRuntimeEventIntegrationTest {
 
         RuntimeEventStream stream = new FileSystemRuntimeEventStore(
                 layout.eventRoot()).resolve(GOAL_ID);
-        assertEquals(1, stream.revision());
-        assertEquals(1, stream.events().size());
+        assertEquals(3, stream.revision());
+        assertEquals(
+                List.of(
+                        RuntimeEventKind.TIMEOUT_DETECTED,
+                        RuntimeEventKind.VERIFICATION_RECORDED,
+                        RuntimeEventKind.WORK_ITEM_TERMINATED),
+                stream.events().stream().map(RuntimeEvent::kind).toList());
         assertLeaseTimeoutEvent(stream.events().get(0), seeded.workItem(), timeout);
-        Path point = solePendingPoint(layout.publicationRoot());
-        Execution read = executeRead(layout, point.getFileName().toString());
-        assertEquals(0, read.exitCode(), read.stderr());
-        assertTrue(read.stdout().contains("status=AVAILABLE"), read.stdout());
-        assertTrue(read.stdout().contains("goalId=" + GOAL_ID), read.stdout());
-        assertTrue(read.stdout().contains("kind=TIMEOUT_DETECTED"), read.stdout());
+        List<Path> points = pendingPoints(layout.publicationRoot());
+        assertEquals(3, points.size());
+        StringBuilder pointOutput = new StringBuilder();
+        for (Path point : points) {
+            Execution read = executeRead(layout, point.getFileName().toString());
+            assertEquals(0, read.exitCode(), read.stderr());
+            assertTrue(read.stdout().contains("status=AVAILABLE"), read.stdout());
+            assertTrue(read.stdout().contains("goalId=" + GOAL_ID), read.stdout());
+            pointOutput.append(read.stdout());
+        }
+        assertTrue(pointOutput.toString().contains("kind=TIMEOUT_DETECTED"));
+        assertTrue(pointOutput.toString().contains("kind=VERIFICATION_RECORDED"));
+        assertTrue(pointOutput.toString().contains("kind=WORK_ITEM_TERMINATED"));
 
         assertEquals(Set.of(WORK_ID), recoverQueue(layout).completedWorkItemIds());
         assertEquals(1, new FileSystemRunRecordStore(layout.recordRoot())
@@ -358,7 +370,7 @@ class EnhancerCliSchedulerLeaseTimeoutRuntimeEventIntegrationTest {
         arguments.addAll(List.of(
                 "--runtime-event-root", layout.eventRoot().toString(),
                 "--runtime-event-publication-root", layout.publicationRoot().toString(),
-                "--max-pending-runtime-event-publications", "1"));
+                "--max-pending-runtime-event-publications", "3"));
         return arguments.toArray(String[]::new);
     }
 

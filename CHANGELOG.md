@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-08-07 - Compose Result-Side Runtime Events Across Scheduler Commands
+
+- Reused the existing optional Scheduler filesystem event recorder in
+  `DurableAgentRunFinalizer` across cycle, drain, and service without adding a CLI
+  option, schema, event kind, or transition authority.
+- Added a capacity-one real-filesystem recovery integration proving durable Result,
+  verification, queue disposition, and termination ordering across all three commands;
+  acknowledgement and exact re-entry add no child execution, RunRecord, source/event
+  revision, or disposition.
+- Updated retry and lease-timeout integrations to assert the full multi-owner event
+  sequences introduced by finalizer composition while preserving event-free omission.
+
 ## 2026-08-07 - Deliver Retry Event And Terminal Result Recovery To Main
 
 - Delivered the retry runtime-event Scheduler composition and terminal Result

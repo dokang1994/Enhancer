@@ -641,7 +641,10 @@ Cleanup failure retains the checkpoint and retries without re-execution; pre-ref
 execution can still orphan a RunRecord under the accepted at-least-once contract. The
 dispatcher and finalizer must share one queue instance. `processIsolated` selects the real
 child launcher and per-cycle spools with the same explicit retry policy and ledger store;
-it adds no external-adapter behavior.
+when the optional Scheduler recorder is present, the same injected clock and recorder
+also construct the finalizer so terminal Result replay repairs verification, Tool-timeout,
+stagnation, and terminal-disposition publication before later checkpoint progress.
+Recorder omission retains the event-free finalizer. No external-adapter behavior is added.
 
 `scheduler-cycle` is the first supported Scheduler entry point. It is a recovery-only
 one-cycle boundary over an already-existing durable queue: the caller supplies every
@@ -1083,9 +1086,12 @@ The supported `scheduler-cycle`, `scheduler-drain`, and `scheduler-service` comm
 share one optional all-or-none runtime-event store root, publication root, and capacity
 group. The shared Scheduler composition constructs at most one filesystem recorder and
 passes it to process-isolated execution, the AgentRuntime recovery performed by the
-shared worker and dispatcher, and the Worker's retry controller; omitted configuration
-remains event-free. Finalization, Tool timeout, verification, cancellation, stagnation,
-and terminal-disposition owners receive no recorder through this boundary.
+shared worker and dispatcher, the Worker's retry controller, and
+`DurableAgentRunFinalizer`; omitted configuration remains event-free. The checkpointed
+terminal Result is exact-replayed through finalization before retry or queue-disposition
+recovery, preserving verification -> optional Tool timeout -> optional stagnation before
+later retry facts and queue disposition -> termination afterward. Cancellation
+application receives no recorder through this boundary.
 
 Lease-expiry recovery is owned by `DurableAgentRuntime` and the same AgentRuntime state
 that owns leases and reclamation. Current schema v4 retains the bounded ordered ledger
@@ -1130,10 +1136,11 @@ remains recoverable from the already-durable event.
 The existing `MessageEnvelope` remains sealed to Work, Result, Control, and Handoff.
 Runtime events must not be coerced into one of those meanings. A concrete Message Bus
 publisher requires a separate accepted Gate 7 wire-schema evolution. The current
-publisher remains a caller-supplied port in the named integration paths; its first
-supported producer composition is the optional cancellation-request path in
-`scheduler-receive-control`. Message Bus adaptation and additional runtime-event
-transition-owner composition remain separate.
+publisher remains a caller-supplied port in the named integration paths. Supported
+producer compositions are the optional cancellation-request path in
+`scheduler-receive-control` and the shared Scheduler execution path for process, lease,
+retry, verification, Tool-timeout, stagnation, and terminal-disposition facts. Message
+Bus adaptation and supported authenticated-cancellation application remain separate.
 
 The first downstream consumer is deliberately read-only. `FileSystemRuntimeEventPointReader`
 takes one caller-named canonical `.runtime-event-reference` file under an explicit

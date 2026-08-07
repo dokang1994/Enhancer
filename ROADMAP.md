@@ -548,8 +548,9 @@ Whole-gate assessment:
   persist-after-source recorder and injected publisher port. A concrete filesystem
   reference-point adapter implements that port, and the optional Control receiver is
   its first supported construction for cancellation-request events. The same shared
-  Scheduler construction supports process timeout, lease timeout, retry decision, and
-  retry start owners. No supported composition for the remaining owners exists.
+  Scheduler construction supports process timeout, lease timeout, retry decision/start,
+  verification, Tool timeout, stagnation, and terminal WorkItem owners. Authenticated
+  cancellation application remains without a supported interface composition.
   Whole-gate promotion remains
   blocked by broader publication/consumption and later-gate budgets,
   Memory, authenticated control application, production adapters, and role workers;
@@ -663,8 +664,8 @@ Current increment:
   already `COMPLETED` or `FAILED` latest AgentRun, the Worker exact-replays the retained
   Result through the finalizer before retry control or terminal queue disposition.
   Reference drift fails before those later side effects, preserving the existing
-  verification, Tool-timeout, and stagnation repair seam without yet composing its
-  recorder into supported Scheduler commands;
+  verification, Tool-timeout, and stagnation repair seam; the shared supported
+  Scheduler composition now supplies its recorder to that finalizer;
 - Integrated durable submission path: an immutable manifest persists before queue creation, exact replay changes neither manifest nor queue revision, changed-content identity reuse and queue-capacity drift fail closed, and `scheduler-submit` connects the governed active task plus repository-memory snapshot to this path using only explicit roots, identities, time, capacity, capability, target, and digest inputs without executing work;
 - Integrated supported entry point: `scheduler-cycle` recovers one explicitly identified existing durable queue, composes the real process-isolated Worker and filesystem stores, and runs exactly one recoverable cycle with bounded idle/verified/failed status and stable exits; it creates no queue, admits no work, and makes no Operational promotion;
 - Operational sub-path: the documented operator workflow invokes `scheduler-submit` and `scheduler-cycle` separately over one shared explicit queue root/identity. A named real-filesystem CLI integration plus an actual Enhancer-repository smoke run prove admitted work remains pending before the cycle, the real child JVM reaches verified terminal disposition, exact submission replay does not revise the terminal queue or duplicate a RunRecord, and a later explicit cycle reports idle; recovery preserves each command's distinct roots, output, and failure ownership without a wrapper or polling;
@@ -811,11 +812,11 @@ Current increment:
 - Integrated process- and lease-timeout Scheduler publication: `scheduler-cycle`,
   `scheduler-drain`, and `scheduler-service` accept the same optional all-or-none event
   store root, publication root, and capacity group. Their shared worker composition
-  injects the resulting recorder into `ProcessIsolatedAgentRunExecution` and only the
-  AgentRuntime recovery performed by its worker and dispatcher. Watchdog and lease
+  injects the resulting recorder into `ProcessIsolatedAgentRunExecution`, AgentRuntime
+  recovery, retry control, and finalization. Watchdog and lease
   timeout owners each preserve source fact -> exact event -> opaque point ordering;
   retained re-entry repairs publication without another child, lease reclaim, source
-  revision, RunRecord, retry decision, or unrelated owner activation;
+  revision, RunRecord, retry decision, or duplicate owner source transition;
 - Integrated retry Scheduler publication: the same optional Scheduler event group now
   injects its recorder and Worker clock into `DurableAgentRunRetryController`.
   Attempt-bound decision persistence precedes `RETRY_DECISION_RECORDED`, checkpointed
@@ -823,8 +824,16 @@ Current increment:
   branches exact-replay either fact after append, publication, or capacity failure.
   Named real-filesystem CLI evidence across cycle, drain, and service observes the
   admitted decision, replacement start, and final refused decision with two RunRecords
-  and one terminal failed queue disposition. Omission remains event-free and no
-  finalizer or other owner is activated;
+  and one terminal failed queue disposition. The finalizer composition now interleaves
+  verification before each decision and termination after final refusal; omission
+  remains event-free;
+- Integrated Result-side Scheduler publication: the same optional event group supplies
+  the recorder and injected clock to `DurableAgentRunFinalizer`. A capacity-one
+  real-filesystem CLI fixture across cycle, drain, and service proves durable Result ->
+  verification -> durable queue disposition -> termination ordering and exact
+  acknowledgement/re-entry without another child, RunRecord, source/event revision, or
+  disposition. Existing focused owner tests retain Tool-timeout and stagnation ordering
+  and repair evidence;
 - Contract Verified and Integrated first read-only consumer: one explicit
   `.runtime-event-reference` point is integrity-checked, bound to its deterministic
   filename, parsed into canonical Goal/event identities, and resolved through exactly
@@ -839,9 +848,10 @@ Current increment:
   capacity, and prevents source-owner replay from recreating pending state. It retains
   observation evidence without handler delivery, event application, deletion, scans,
   or cleanup/retention authority;
-- remaining runtime-event work: select another explicit owner composition while
-  preserving source-first durability, exact replay, consumer idempotency, and separate
-  application authority;
+- remaining runtime-event work: define a supported authenticated-cancellation
+  application surface before composing its existing event-aware owner, preserving
+  trusted authorization, source-first durability, exact replay, consumer idempotency,
+  and separate application authority;
 - deferred: real authorized external adapters, admission-history compaction/cleanup or
   schema-v1 queue migration, general orphan inventory/cleanup with an explicit retention
   and scan policy, general forward-reference graph/cycle handling, authenticated
