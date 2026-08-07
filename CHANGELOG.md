@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-08-07 - Deliver Retry Event And Terminal Result Recovery To Main
+
+- Delivered the retry runtime-event Scheduler composition and terminal Result
+  recovery-order correction in ordinary commit
+  `f4e9c08f2f62de93d72e271d87ca5683a53aaab6`.
+- Advanced `origin/main` linearly from `9822d72` to `f4e9c08` through a non-force push;
+  a fresh fetch proved exact local/remote/merge-base identity and no synthetic merge.
+- Synchronized the owning delivery task, changelog, and append-only delivery evidence
+  in the authorized follow-up evidence boundary without changing implementation,
+  architecture, maturity, roadmap position, or host-only handoff facts.
+
 ## 2026-08-06 - Repair Terminal Result Recovery Ordering
 
 - Made `DurableAgentRunWorker` exact-replay a checkpointed latest `COMPLETED` or

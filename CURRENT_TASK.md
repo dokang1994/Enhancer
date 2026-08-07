@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -107,7 +107,7 @@ Next Action: Run fresh full Java 17 verification over the delivery candidate.
 
 ### Increment 2 - verify-and-commit-candidate
 
-State: In Progress
+State: Completed
 Depends On: reconcile-delivery-boundary
 Scope: Run fresh full Java 17 verification, append candidate evidence once, review the
 exact staged diff, and create the ordinary candidate commit.
@@ -119,7 +119,7 @@ Next Action: Push the candidate commit to `origin/main` without force.
 
 ### Increment 3 - push-and-confirm-main
 
-State: Pending
+State: Completed
 Depends On: verify-and-commit-candidate
 Scope: Non-force push the candidate commit and verify current remote `main` contains it
 with a linear direct-main topology.
@@ -131,7 +131,7 @@ Next Action: Append delivery evidence and close the task.
 
 ### Increment 4 - record-delivery-and-close
 
-State: Pending
+State: Completed
 Depends On: push-and-confirm-main
 Scope: Append external delivery evidence once, update only owning task and changelog
 facts, verify the synchronization, commit and push it, then close the checkpoint.
@@ -149,6 +149,23 @@ Next Action: End the delivery session without selecting unrelated implementation
   ancestry check. One bounded read-only review classified the original seventeen paths
   plus this delivery decision/task synchronization, found no secret, generated-
   artifact, ownership, scope, or commit-boundary blocker, and joined without mutation.
+- Increment 2: fresh Java 17 `clean build --no-daemon --console=plain` executed all
+  eight tasks and ran 732 tests across 140 suites: 724 passed, eight Windows
+  environment-dependent cases skipped, and zero failed or errored. After correcting
+  two EOF whitespace findings, the repeated eleven-test document-governance suite and
+  staged `git diff --check` were clean. Ordinary non-amending commit
+  `f4e9c08f2f62de93d72e271d87ca5683a53aaab6` contains the exact eighteen reviewed paths
+  over parent `9822d72b3474c9586ef9feaeabfa29716bc9afc3`, with no unstaged residue.
+- Increment 3: a fresh pre-push fetch kept `origin/main` at the candidate parent with
+  local divergence `1 0` and successful remote-ancestor proof. Non-force
+  `git push origin main` advanced remote `main` from `9822d72` to `f4e9c08`; a fresh
+  post-push fetch then proved exact `HEAD`/local-main/remote-main/FETCH_HEAD/merge-base
+  identity at the candidate, divergence `0 0`, and successful candidate ancestry.
+- Increment 4: delivery evidence was appended once and only `CURRENT_TASK.md`,
+  `CHANGELOG.md`, and `docs/verification-log.md` changed after candidate delivery.
+  Fresh Java 17 Decision Log, document-ownership, Dynamic Workflow, and runtime package-
+  boundary verification ran eleven tests across four suites with zero skip, failure, or
+  error, and `git diff --check` was clean before the follow-up evidence commit.
 
 ## Next
 
