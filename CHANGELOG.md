@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-08-11 - Deliver Authenticated Cancellation To Main
+
+- Delivered the authorizer-injected filesystem cancellation application, detached
+  signed exact-request grant verifier, public-only trust policy, deterministic audit
+  store, and audit-backed authorizer in ordinary commit
+  `5dd221773ed7e0a98ec5508dbd1a3334ba003f21`.
+- Advanced `origin/main` linearly from `6b62632` to `5dd2217` through a non-force push;
+  a fresh fetch proved exact local/remote/merge-base identity and no synthetic merge.
+- Synchronized the owning delivery task, changelog, and append-only delivery evidence
+  in the authorized follow-up evidence boundary without changing implementation,
+  architecture, maturity, roadmap position, or host-only handoff facts.
+
 ## 2026-08-11 - Implement The Detached Signed Cancellation Authorizer Core
 
 - Added a bounded canonical detached cancellation grant and exact retained-request

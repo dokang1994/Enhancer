@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -111,7 +111,7 @@ Next Action: Run fresh full Java 17 verification over the delivery candidate.
 
 ### Increment 2 - verify-and-commit-candidate
 
-State: In Progress
+State: Completed
 Depends On: reconcile-delivery-boundary
 Scope: Run fresh full Java 17 verification, review the exact staged diff, and create the
 ordinary candidate commit.
@@ -123,7 +123,7 @@ Next Action: Push the candidate commit to `origin/main` without force.
 
 ### Increment 3 - push-and-confirm-main
 
-State: Pending
+State: Completed
 Depends On: verify-and-commit-candidate
 Scope: Non-force push the candidate commit and verify current remote `main` contains it
 with a linear direct-main topology.
@@ -135,7 +135,7 @@ Next Action: Append delivery evidence and close the task.
 
 ### Increment 4 - record-delivery-and-close
 
-State: Pending
+State: Completed
 Depends On: push-and-confirm-main
 Scope: Append external delivery evidence once, update only owning task and changelog
 facts, verify the synchronization, commit and push it, then close the checkpoint.
@@ -171,6 +171,23 @@ Next Action: End the delivery session without selecting unrelated implementation
   29 seconds with all eight Gradle tasks executed. It ran 751 tests across 144 suites:
   742 passed, nine Windows environment-dependent cases skipped, and zero failed or
   errored. Fresh tracked `git diff --check` produced no output.
+- Increment 2 delivery boundary: the Decision Log, document-ownership, Dynamic
+  Workflow, and runtime package-boundary suite passed 11 tests with zero skip, failure,
+  or error. Exact staging covered 32 paths, staged `git diff --check` produced no
+  output, no unstaged or untracked residue remained, and ordinary non-amending commit
+  `5dd221773ed7e0a98ec5508dbd1a3334ba003f21` contains those exact paths over parent
+  `6b626323dca1e8194ca2f42cf71e16210c7a227e`.
+- Increment 3: a fresh pre-push fetch kept `origin/main` at the candidate parent with
+  divergence `0 1` in `origin/main...HEAD` order and successful remote-ancestor proof.
+  Non-force `git push origin main:main` advanced remote `main` from `6b62632` to
+  `5dd2217`; a fresh post-push fetch proved exact `HEAD`/local-main/remote-main/
+  `FETCH_HEAD`/merge-base identity at the candidate, divergence `0 0`, and successful
+  candidate ancestry. This linear direct-main update is the requested merge result;
+  no synthetic merge commit exists.
+- Increment 4 delivery synchronization is limited to `CURRENT_TASK.md`, `CHANGELOG.md`,
+  and `docs/verification-log.md`. Architecture, capability maturity, roadmap position,
+  accepted decisions, implementation, tests, and `SESSION_HANDOFF.md` require no
+  further change after candidate delivery.
 
 ## Next
 
