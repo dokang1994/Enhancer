@@ -550,10 +550,12 @@ Whole-gate assessment:
   its first supported construction for cancellation-request events. The same shared
   Scheduler construction supports process timeout, lease timeout, retry decision/start,
   verification, Tool timeout, stagnation, and terminal WorkItem owners. Authenticated
-  cancellation application remains without a supported interface composition.
+  cancellation now has a separate supported authorizer-injected filesystem application
+  surface with optional concrete `CANCELLATION_APPLIED` publication; authenticated
+  interface adapters and cancelled queue disposition remain.
   Whole-gate promotion remains
   blocked by broader publication/consumption and later-gate budgets,
-  Memory, authenticated control application, production adapters, and role workers;
+  Memory, authenticated control interfaces, production adapters, and role workers;
 - existing queue-active, checkpoint, deterministic lost-acknowledgement point, and
   expired-lease recovery satisfy the accepted at-least-once correctness prefixes. A
   general orphan inventory or cleanup feature is not silently required and would need a
@@ -581,7 +583,8 @@ Whole-gate assessment:
   another execution, RunRecord, effect outcome, runtime transition, or queue revision.
   Unresolved `PREPARED` external effects remain fail-closed and await their owning
   adapter/recovery policy. Further whole-gate work returns to the broader gaps already
-  assigned to production adapters, authenticated controls, service operation, and
+  assigned to production adapters, authenticated interface adapters and remaining
+  controls, service operation, and
   role-based workers rather than inventing another acknowledgement fixture.
 - the first migration boundary is Contract Verified and Integrated: an explicit
   stopped-Scheduler maintenance command losslessly converts only the schema-v1
@@ -848,10 +851,12 @@ Current increment:
   capacity, and prevents source-owner replay from recreating pending state. It retains
   observation evidence without handler delivery, event application, deletion, scans,
   or cleanup/retention authority;
-- remaining runtime-event work: define a supported authenticated-cancellation
-  application surface before composing its existing event-aware owner, preserving
-  trusted authorization, source-first durability, exact replay, consumer idempotency,
-  and separate application authority;
+- Contract Verified authenticated-interface core: a bounded canonical short-lived
+  detached exact-request grant is verified with Ed25519 against injected public-only
+  trust policy and a deterministic non-secret integrity-checked authorization audit
+  point persists before the existing shared cancellation application; production
+  trust-policy loading, proof production/private keys, credentials, and CLI composition
+  remain unimplemented;
 - deferred: real authorized external adapters, admission-history compaction/cleanup or
   schema-v1 queue migration, general orphan inventory/cleanup with an explicit retention
   and scan policy, general forward-reference graph/cycle handling, authenticated
@@ -868,7 +873,7 @@ Ordered connection sequence:
 | 1 | terminal queue disposition | Gate 8; distinguish verified completion from failure before changing dependency satisfaction |
 | 2 | RunRecord-backed result finalization | Gate 7 result delivery and Gate 8 runtime; persist/resolve RunRecord, persist terminal runtime state, then persist matching queue disposition |
 | 3 | process-isolated worker and local IPC | Gate 7 transport, Gate 8 worker runtime, and Gate 11 Tool controls; checkpoint the returned RunRecord reference before retiring the per-cycle spool and acknowledging execution |
-| 4 | durable cancel/pause/resume | Gate 7 control delivery and Gate 8 request state now exist; Gate 12 authenticated application remains |
+| 4 | durable cancel/pause/resume | Gate 7 control delivery and Gate 8 request state now exist; Gate 12 has a shared authenticated-cancel application surface, while interface authentication, queue disposition, and pause/resume application remain |
 | 5 | external-effect execution and adapter evidence | The bounded Gate 8 ledger and current-fence checks exist; the owning Tool/adapter must execute with stable effect identity and establish the applied/deduplicated/compensated/recovery outcome |
 | 6 | retry through additional AgentRuns | Gate 8; separate attempt failure from terminal WorkItem disposition, preserve immutable attempt/decision history, keep the queue active across admitted retries, and bound attempts, effects, recovery, and final disposition |
 | 7 | typed handoff and multi-agent execution | Gate 13; requires an Operational single-agent runtime and measured baseline |
@@ -991,6 +996,36 @@ Status: Planned
 Dependencies:
 
 - stable operational runtime, Workspace, MCP, and plugin APIs.
+
+Implemented bounded shared-API prerequisite:
+
+- `FileSystemAuthenticatedCancellationApplication` delegates one exact retained
+  `CANCEL` to the existing terminal transition owner while requiring a caller-supplied
+  trusted `ControlRequestAuthorizer`;
+- optional all-or-none filesystem event configuration composes durable
+  `CANCELLATION_APPLIED` storage and opaque reference publication with exact replay;
+- no CLI/API/editor/Desktop authentication adapter, credential provider, queue
+  disposition, process signal, or `PAUSE`/`RESUME` application is implied, and the
+  overall gate remains Planned.
+
+Contract Verified authenticated-interface core:
+
+- the first composition uses a short-lived detached signed exact-request grant whose
+  trust domain, Goal, complete retained Control request digest, `CANCEL`, authorization,
+  issuer/key/subject, policy revision, and issue/expiry times are verified against
+  separately provisioned operator-owned public trust policy;
+- a deterministic non-secret authorization audit point persists before approval;
+  pre-runtime retry revalidates the identical transient proof against current time,
+  trust, and revocation, while an already durable terminal cancellation retains its
+  existing replay and suffix-repair semantics;
+- `AuditBackedSignedCancellationAuthorizer` performs current target/request/signature/
+  policy/time/lifetime/subject/key/revocation validation and persists or exact-resolves
+  the integrity-checked audit before approval; malformed proof, changed identity reuse,
+  corruption, and persistence failure fail closed;
+- the first future consumer is a separately authorized production CLI cancellation-
+  application command. Production trust-policy loading, proof production/private
+  keys, CLI composition, credentials, IdP/session integration, queue/process behavior,
+  and pause/resume remain unimplemented, so Gate 12 remains Planned.
 
 Scope:
 

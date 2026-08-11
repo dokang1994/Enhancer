@@ -4509,3 +4509,90 @@ Outcome:
 - No force push, amend, rebase, reset, history rewrite, tag, release, deployment, pull
   request, issue, branch deletion, destructive cleanup, permission or credential
   change, paid service, external message, or unrelated implementation was performed.
+
+## 2026-08-11 - Compose The Authenticated Cancellation Filesystem Application API
+
+- Required repository authority was reread in order, the initial checkpoint was empty,
+  and the clean local/remote `main` baseline was reconciled at
+  `6b626323dca1e8194ca2f42cf71e16210c7a227e`. Two bounded read-only reviews joined
+  without mutation and independently checked the acyclic package boundary, mandatory
+  trusted-authorizer injection, recovery ordering, and focused test surface.
+- The architecture-first increment added the accepted filesystem application-surface
+  decision and passed 11 decision-index, document-ownership, dynamic-workflow, and
+  runtime package-boundary tests with zero skip, failure, or error. The focused RED
+  then failed compilation only on 12 missing-symbol diagnostics for the two planned
+  public types; no unrelated failure was absorbed.
+- The minimum implementation added
+  `FileSystemAuthenticatedCancellationApplication` and
+  `FileSystemRuntimeEventPublicationConfiguration`. Fresh focused Java 17 verification
+  passed 13 tests covering the new real-filesystem surface, the existing transition
+  owner, and the dynamic-workflow document with production and test lint enforced as
+  errors.
+- Fresh Java 17 `clean build --no-daemon --console=plain` completed in 7 minutes 41
+  seconds with all eight Gradle tasks executed. It ran 739 tests across 142 suites: 731
+  passed, eight Windows environment-dependent cases skipped, and zero failed or
+  errored. Production and test compilation covered 314 and 143 Java source files.
+- Fresh `git diff --check` produced no output, and status before this append retained
+  exactly the reviewed 13 implementation, test, decision, and owning-document paths.
+  No CLI or credential adapter, queue disposition, process signal, Tool/external-effect
+  cancellation, commit, push, merge, release, deployment, destructive action,
+  permission change, paid service, external message, cleanup, retention, or unrelated
+  implementation occurred.
+
+## 2026-08-11 - Specify The First Authenticated Cancellation Interface Composition
+
+- Required repository authority and the active recovery checkpoint were reconciled
+  against the preserved uncommitted application-surface boundary before planning. Two
+  bounded read-only architecture/security reviews joined without mutation and
+  independently confirmed the missing issuer/key/proof/expiry/policy/revocation audit
+  facts, unsafe self-approval inputs, deterministic audit need, and recoverable prefix
+  ordering.
+- The accepted decision selects a short-lived detached signed exact-request grant
+  verified against separately provisioned operator-owned public trust policy. It binds
+  the whole retained request plus Goal, `CANCEL`, authorization, issuer/key/subject,
+  policy, and issue/expiry facts; private credentials and raw proof are excluded from
+  Enhancer persistence. A dedicated non-secret authorization audit point precedes the
+  existing terminal runtime application.
+- Fresh focused Decision Log, document-ownership, Dynamic Workflow, and runtime package-
+  boundary verification passed 11 tests across 4 suites with zero skip, failure, or
+  error. `git diff --check` produced no output.
+- The first full Gradle test attempt reached `:test` but the host command limit ended it
+  after 240 seconds; the checkpoint recorded that attempt as failed rather than treating
+  it as evidence. A fresh rerun with an appropriate limit completed successfully in 7
+  minutes 17 seconds and ran 739 tests across 142 suites: 731 passed, eight Windows
+  environment-dependent cases skipped, and zero failed or errored.
+- No production/test code, runtime/event schema, credential, trust store, CLI/API/
+  editor/Desktop adapter, queue disposition, process signal, Message Bus cancellation,
+  Tool/external-effect cancellation, commit, push, merge, release, deployment,
+  destructive action, permission change, paid service, external message, cleanup,
+  retention, or unrelated implementation was introduced or performed.
+
+## 2026-08-11 - Implement The Detached Signed Cancellation Authorizer Core
+
+- Required repository authority, the active task, checkpoint, Git status, and preserved
+  uncommitted filesystem-application/architecture boundary were reconciled before
+  implementation. Two bounded read-only reviews joined without mutation and identified
+  the missing canonical Goal input before audit; the accepted port correction removed
+  the envelope-only authorization path.
+- Focused RED compilation failed only on 96 expected missing-symbol diagnostics for the
+  planned grant, trust, verifier, audit, and authorizer types. The minimum Java 17 core
+  then implemented bounded canonical proof/request framing, public-only Ed25519 trust,
+  current policy/time/lifetime/key/revocation validation, deterministic non-secret
+  audit persistence, and audit-before-approval composition.
+- Fresh focused verification passed 22 tests across 4 suites: 21 passed, one Windows
+  symbolic-link setup case skipped, and zero failed or errored. Coverage includes exact
+  approval/replay, malformed and non-canonical proof, signature/target/request/policy/
+  time/lifetime/subject/key/revocation denial, changed authorization reuse, audit
+  corruption/schema/UTF-8 refusal, and real-runtime audit-only-prefix recovery.
+- Fresh Decision Log, document-ownership, Dynamic Workflow, and runtime package-boundary
+  verification passed 11 tests across 4 suites with zero skip, failure, or error.
+- Fresh Java 17 `clean build --no-daemon --console=plain` completed in 8 minutes 51
+  seconds with all eight Gradle tasks executed. It ran 751 tests across 144 suites: 742
+  passed, nine Windows environment-dependent cases skipped, and zero failed or errored.
+  Production and test compilation covered 322 and 145 Java source files.
+- Fresh `git diff --check` produced no output. Final status retained the reviewed 31-path
+  preserved-plus-current boundary. No production trust-policy loader, proof producer,
+  private-key or credential/session handling, CLI/API/editor/Desktop adapter, queue or
+  process behavior, pause/resume, runtime/event schema change, commit, push, merge,
+  release, deployment, destructive action, permission change, paid service, external
+  message, cleanup/retention, or unrelated implementation was introduced or performed.

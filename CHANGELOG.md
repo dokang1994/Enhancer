@@ -1,5 +1,48 @@
 # Changelog
 
+## 2026-08-11 - Implement The Detached Signed Cancellation Authorizer Core
+
+- Added a bounded canonical detached cancellation grant and exact retained-request
+  digest, immutable public-only Ed25519 trust policy, current signature/target/request/
+  policy/time/lifetime/subject/key/revocation verification, and deterministic actor
+  derivation.
+- Added the integrity-checked deterministic authorization audit point and audit-backed
+  authorizer, preserving first observation on exact replay and failing closed on
+  malformed proof, changed authorization reuse, corruption, or persistence failure.
+- Added real-filesystem recovery coverage for audit-before-runtime ordering, valid
+  audit-only replay, exact-expiry refusal, denial isolation, and unchanged runtime/event
+  state on authorization or audit failure.
+- Kept production trust-policy loading, proof production/private keys, credentials,
+  IdP/session integration, CLI composition, queue/process behavior, pause/resume,
+  commit, and push outside this increment.
+
+## 2026-08-11 - Specify The First Authenticated Cancellation Interface Composition
+
+- Selected a short-lived detached signed exact-request grant, verified against
+  separately provisioned operator-owned public trust policy, as the first admissible
+  source for an interface-composed `ControlRequestAuthorizer`.
+- Fixed the complete retained-request, Goal, `CANCEL`, authorization, issuer/key/
+  subject, policy, issue/expiry, clock, rotation, revocation, and self-approval denial
+  boundaries without introducing a credential or interface implementation.
+- Specified a deterministic non-secret authorization audit point before runtime
+  application, current validation for an audit-only retry, and preservation of the
+  existing terminal-runtime event/publication recovery semantics.
+- Named a separately authorized production CLI cancellation-application command as the
+  first future consumer; verifier, trust configuration, audit store, CLI, credentials,
+  IdP/session integration, queue/process behavior, and pause/resume remain unimplemented.
+
+## 2026-08-11 - Compose The Authenticated Cancellation Filesystem Application API
+
+- Added the supported `FileSystemAuthenticatedCancellationApplication` with mandatory
+  runtime root, injected clock, and trusted `ControlRequestAuthorizer`, delegating the
+  exact Goal and retained Control identity to the existing terminal transition owner.
+- Added the all-or-none `FileSystemRuntimeEventPublicationConfiguration` for optional
+  concrete event-store, recorder, and bounded reference-point publisher composition.
+- Added real-filesystem coverage for approved `CANCELLATION_APPLIED` publication,
+  byte- and revision-stable replay without reauthorization, denial isolation,
+  event-free omission, and configuration bounds. No CLI or credential adapter, queue
+  disposition, process signal, Tool/effect cancellation, commit, or push was added.
+
 ## 2026-08-07 - Deliver Result-Side Scheduler Runtime Events To Main
 
 - Delivered the Result-side Scheduler runtime-event composition and exact publication

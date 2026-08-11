@@ -81,7 +81,7 @@ public final class AuthenticatedCancellationApplication {
                     "cancellation application requires a retained CANCEL request");
         }
         ControlAuthorizationDecision decision = Objects.requireNonNull(
-                authorizer.authorize(request),
+                authorizer.authorize(canonicalGoalId, request),
                 "authorizer decision must not be null");
         if (decision instanceof ControlAuthorizationDecision.Denied denied) {
             throw new ControlAuthorizationDeniedException(denied.reason());

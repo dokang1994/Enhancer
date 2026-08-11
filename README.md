@@ -324,6 +324,21 @@ atomically apply one exact retained `CANCEL` only through a trusted
 metadata alone never authenticates. Runtime schemas v1 through v3 are unsupported and
 require separate migration work.
 
+The supported shared Java composition is
+`FileSystemAuthenticatedCancellationApplication`. Its event-free constructor requires
+the AgentRuntime root, an injected `Clock`, and a trusted
+`ControlRequestAuthorizer`. Its event-aware constructor additionally accepts one
+`FileSystemRuntimeEventPublicationConfiguration` containing the event root,
+publication root, and capacity from `1` through `4096`; it persists the terminal
+runtime record before appending the event and publishing its opaque point. This is not
+a CLI authentication path and supplies no default authorizer. The reusable
+`AuditBackedSignedCancellationAuthorizer` accepts transient bounded proof bytes, an
+injected public-only `CancellationGrantTrustPolicy`, clock, and
+`CancellationAuthorizationAuditStore`; it verifies the exact Goal/request and persists
+the audit before approval. Enhancer still supplies no production trust-policy loader,
+proof producer, private-key handling, or credential/session provider, and this path
+does not cancel a queue, process, Tool, or external effect.
+
 ## Drain Ready Scheduler Work
 
 `scheduler-drain` uses the same recovery inputs as `scheduler-cycle` but invokes

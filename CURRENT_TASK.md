@@ -2,24 +2,25 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Deliver the completed Result-side Scheduler runtime-event composition to `main` through
-an exact reviewed ordinary commit and non-force push, then record delivery evidence once
-in a small follow-up evidence commit.
+Deliver the completed authenticated-cancellation application, signed-grant
+authorization core, and owning documents to `main` through an exact reviewed ordinary
+commit and non-force push, then record delivery evidence once in a small follow-up
+evidence commit.
 
 ## Task ID
 
-deliver-result-side-scheduler-runtime-event-composition-to-main
+deliver-authenticated-cancellation-work-to-main
 
 ## Context
 
-The working tree contains one completed Gate 8 increment that supplies the existing
-optional Scheduler runtime-event recorder to Result finalization across cycle, drain,
-and service. Its code, tests, decisions, architecture, maturity, roadmap, README,
-changelog, and append-only verification evidence form one reviewed candidate.
+The working tree contains one completed 31-path boundary spanning the supported
+authorizer-injected filesystem cancellation application, detached signed exact-request
+grant architecture, public-only Ed25519 trust policy, deterministic authorization audit
+store, audit-backed authorizer, tests, decisions, and owning documents.
 
 Local `main` and cached `origin/main` resolve to the same baseline. Because the candidate
 is already based directly on `main`, an ordinary commit followed by a successful
@@ -28,19 +29,21 @@ add no distinct integration.
 
 ## Justified By
 
-- User request on 2026-08-07 to commit, push, and merge the completed Result-side Scheduler runtime-event work to main
-- 2026-08-07: Compose Result-Side Runtime Event Publication Across Supported Scheduler Execution Commands
+- User request on 2026-08-11 to commit, push, and merge the authenticated cancellation work to main
+- 2026-08-11: Pass The Canonical Goal Into Cancellation Authorization Before Audit
+- 2026-08-11: Authenticate Cancellation Interfaces With Detached Signed Exact-Request Grants
+- 2026-08-11: Compose Authenticated Cancellation Through An Authorizer-Injected Filesystem Application Surface
 
 ## Approval
 
 The user's explicit request authorizes delivery-task and accepted-decision
-synchronization, fresh verification and fetch, staging of the exact reviewed paths,
-ordinary non-amending commits on the current `main`, non-force pushes to `origin/main`,
-direct-main integration verification, and a small follow-up delivery-evidence commit
-and push. It does not authorize force push, amend, rebase, reset, history rewrite, tag,
-release, deployment, pull-request or issue mutation, branch deletion, destructive
-cleanup, credential or permission change, paid service, external message, or unrelated
-implementation.
+synchronization, correction of the stale compact architecture mirror inside the same
+candidate, fresh verification and fetch, staging of the exact reviewed paths, ordinary
+non-amending commits on the current `main`, non-force pushes to `origin/main`, direct-
+main integration verification, and a small follow-up delivery-evidence commit and push.
+It does not authorize force push, amend, rebase, reset, history rewrite, tag, release,
+deployment, pull-request or issue mutation, branch deletion, destructive cleanup,
+credential or permission change, paid service, external message, or unrelated work.
 
 ## Acceptance Criteria
 
@@ -48,8 +51,9 @@ implementation.
   `origin/main`; divergence or unexpected paths stops delivery.
 - Independent read-only review finds no unresolved scope, governance, secret,
   generated-artifact, or commit-boundary issue in the exact candidate.
-- Fresh full Java 17 verification passes over the final candidate and
-  `git diff --check` remains clean.
+- The stale compact architecture mirror is corrected without changing the accepted
+  implementation boundary, and fresh full Java 17 verification plus
+  `git diff --check` pass over the final candidate.
 - One ordinary non-amending candidate commit contains exactly the reviewed code, tests,
   decisions, owning documents, task, changelog, and verification evidence.
 - A successful non-force push makes `origin/main` contain that commit in a linear
@@ -60,9 +64,11 @@ implementation.
 
 ## Out Of Scope
 
-Further runtime-event or cancellation implementation; new code, tests, schemas, runtime
-behavior, or CLI options; force push; amend; rebase; reset; history rewrite; synthetic
-merge commit; tag; release; deployment; pull request; issue; branch deletion;
+Further cancellation implementation; production trust-policy loading, proof production
+or private-key handling; credentials or identity-provider integration; new runtime
+behavior, schema, CLI option, queue disposition, process signal, pause/resume, or Tool/
+external-effect cancellation; force push; amend; rebase; reset; history rewrite;
+synthetic merge commit; tag; release; deployment; pull request; issue; branch deletion;
 destructive cleanup; paid service; credential or permission change; external message;
 or unrelated changes.
 
@@ -80,7 +86,7 @@ or unrelated changes.
 
 ## Dynamic Workflow
 
-Workflow ID: deliver-result-side-scheduler-runtime-event-composition-to-main
+Workflow ID: deliver-authenticated-cancellation-work-to-main
 Mode: Sequential
 Increment Limit: 4
 Selection Rule: Select the first dependency-ready Pending increment after reading the
@@ -93,18 +99,19 @@ bounds, or an unjoined reviewer.
 
 State: Completed
 Depends On: none
-Scope: Fetch and compare remote `main`, reconcile the exact working-tree candidate, and
-join independent read-only review against repository authority.
+Scope: Fetch and compare remote `main`, reconcile the exact working-tree candidate,
+correct the stale compact architecture mirror, and join independent read-only review
+against repository authority.
 Exit Criteria: The remote baseline is current and non-divergent, every intended path is
-classified, and no unresolved ownership, secret, generated-artifact, or scope concern
-remains.
-Verification: Git status/diff/reference inspection, remote fetch, and primary
-reconciliation of joined reviews.
+classified, the compact mirror is current, and no unresolved ownership, secret,
+generated-artifact, scope, or commit-boundary concern remains.
+Verification: Git status/diff/reference inspection, remote fetch, document-governance
+checks, and primary reconciliation of joined reviews.
 Next Action: Run fresh full Java 17 verification over the delivery candidate.
 
 ### Increment 2 - verify-and-commit-candidate
 
-State: Completed
+State: In Progress
 Depends On: reconcile-delivery-boundary
 Scope: Run fresh full Java 17 verification, review the exact staged diff, and create the
 ordinary candidate commit.
@@ -116,7 +123,7 @@ Next Action: Push the candidate commit to `origin/main` without force.
 
 ### Increment 3 - push-and-confirm-main
 
-State: Completed
+State: Pending
 Depends On: verify-and-commit-candidate
 Scope: Non-force push the candidate commit and verify current remote `main` contains it
 with a linear direct-main topology.
@@ -128,7 +135,7 @@ Next Action: Append delivery evidence and close the task.
 
 ### Increment 4 - record-delivery-and-close
 
-State: Completed
+State: Pending
 Depends On: push-and-confirm-main
 Scope: Append external delivery evidence once, update only owning task and changelog
 facts, verify the synchronization, commit and push it, then close the checkpoint.
@@ -140,45 +147,34 @@ Next Action: End the delivery session without selecting unrelated implementation
 
 ## Verification
 
-- Increment 1: fresh `git fetch origin main --prune` completed, and local `HEAD`,
-  fetched `origin/main`, `FETCH_HEAD`, and their merge base all resolve to
-  `f7d81685d0639f9ecea2985052e7ad3a6a83d398` with divergence `0 0` and successful
-  remote-ancestor proof. Two bounded read-only reviews joined without mutation. They
-  classified the implementation candidate plus delivery decision as sixteen exact
-  paths and found no secret, generated-artifact, ownership, scope, topology, or commit-
-  boundary blocker after removal of an unnecessary `write-code` task permission.
-- Pre-delivery candidate evidence: fresh Java 17 `clean build --no-daemon
-  --console=plain` completed with all eight Gradle tasks executed. It ran 735 tests
-  across 141 suites: 727 passed, eight Windows environment-dependent cases skipped, and
-  zero failed or errored. Before delivery-task activation the exact implementation
-  candidate contained fifteen intended paths with clean `git diff --check` output; the
-  accepted delivery decision is the sixteenth current path.
+- Pre-delivery implementation evidence: fresh Java 17 `clean build --no-daemon
+  --console=plain` completed all eight Gradle tasks in 8 minutes 51 seconds. A final
+  post-document full `test` completed in 8 minutes 3 seconds. Both ran 751 tests across
+  144 suites: 742 passed, nine Windows environment-dependent cases skipped, and zero
+  failed or errored. Fresh `git diff --check` produced no output.
+- Delivery activation: `checkpoint-show` returned `EMPTY`; current `HEAD`, local
+  `main`, cached `origin/main`, and their divergence resolve to
+  `6b626323dca1e8194ca2f42cf71e16210c7a227e` and `0 0`. The working tree contains the
+  completed 31-path implementation boundary before this delivery decision/task
+  synchronization.
+- Increment 1: fresh `git fetch origin main --prune` completed. `HEAD`, local `main`,
+  `origin/main`, `FETCH_HEAD`, and merge base all remain
+  `6b626323dca1e8194ca2f42cf71e16210c7a227e`, divergence is `0 0`, and the remote-
+  ancestor check succeeds. Two bounded read-only reviews joined without mutation and
+  classified the 31-path implementation boundary plus one delivery-decision path. They
+  found no remaining scope, ownership, secret, generated-artifact, topology, or commit-
+  boundary blocker after the compact architecture mirror correction. Fresh Decision
+  Log, document-ownership, Dynamic Workflow, and runtime package-boundary verification
+  passed 11 tests across 4 suites with zero skip, failure, or error.
 - Increment 2 verification prefix: fresh Java 17 `clean build --no-daemon
-  --console=plain` over the complete sixteen-path delivery candidate completed in 7
-  minutes 30 seconds with all eight Gradle tasks executed. It ran 735 tests across 141
-  suites: 727 passed, eight Windows environment-dependent cases skipped, and zero
-  failed or errored. Fresh tracked `git diff --check` produced no output.
-- Increment 2 delivery boundary: the eleven-test Decision Log, document-ownership,
-  Dynamic Workflow, and runtime package-boundary suite passed with zero skip, failure,
-  or error. Exact staging covered sixteen paths, cached `git diff --check` produced no
-  output, no unstaged residue remained, and ordinary non-amending commit
-  `4d4996541795581608f3417e1e73f87243ddb3cd` contains those exact paths over parent
-  `f7d81685d0639f9ecea2985052e7ad3a6a83d398`.
-- Increment 3: a fresh pre-push fetch kept `origin/main` at the candidate parent with
-  local divergence `0 1` in `origin/main...HEAD` order and successful remote-ancestor
-  proof. Non-force `git push origin main` advanced remote `main` from `f7d8168` to
-  `4d49965`; a fresh post-push fetch then proved exact `HEAD`/local-main/remote-main/
-  `FETCH_HEAD`/merge-base identity at the candidate, divergence `0 0`, and successful
-  candidate ancestry.
-- Increment 4: delivery evidence was appended once and only `CURRENT_TASK.md`,
-  `CHANGELOG.md`, and `docs/verification-log.md` changed after candidate delivery.
-  Fresh Java 17 Decision Log, document-ownership, Dynamic Workflow, and runtime package-
-  boundary verification reran eleven tests across four suites with zero skip, failure,
-  or error, and `git diff --check` was clean before the follow-up evidence commit.
+  --console=plain` over the complete 32-path delivery candidate completed in 9 minutes
+  29 seconds with all eight Gradle tasks executed. It ran 751 tests across 144 suites:
+  742 passed, nine Windows environment-dependent cases skipped, and zero failed or
+  errored. Fresh tracked `git diff --check` produced no output.
 
 ## Next
 
-After this delivery task closes, select a separate architecture-first task to define a
-supported authenticated-cancellation application surface and trusted authorizer
-composition before supplying its existing event-aware owner. Do not infer credentials,
-CLI authority, or cancellation queue disposition.
+After this delivery task closes, define and implement the operator-owned production
+trust bootstrap before composing `scheduler-apply-cancel`. Do not accept a trust root,
+issuer, policy, clock, or revocation override from the same invocation as the proof,
+and do not infer credential issuance, queue disposition, or process signalling.

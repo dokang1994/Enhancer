@@ -6,6 +6,7 @@ import java.io.IOException;
 /** Trusted Gate 12 port; envelope metadata alone is never authorization. */
 @FunctionalInterface
 public interface ControlRequestAuthorizer {
-    ControlAuthorizationDecision authorize(MessageEnvelope retainedRequest)
-            throws IOException;
+    ControlAuthorizationDecision authorize(
+            String canonicalGoalId,
+            MessageEnvelope retainedRequest) throws IOException;
 }

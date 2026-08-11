@@ -11,6 +11,48 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User request on 2026-08-11 to commit, push, and merge the authenticated cancellation work to main
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-11-commit-push-and-merge-authenticated-cancellation-work-to-main.md)
+
+### 2026-08-11: Pass The Canonical Goal Into Cancellation Authorization Before Audit
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-11-pass-the-canonical-goal-into-cancellation-authorization-before-audit.md)
+
+### User continuation request after authenticated cancellation interface architecture on 2026-08-11
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-11-user-continuation-request-after-authenticated-cancellation-interface-architecture.md)
+
+### 2026-08-11: Authenticate Cancellation Interfaces With Detached Signed Exact-Request Grants
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-11-authenticate-cancellation-interfaces-with-detached-signed-exact-request-grants.md)
+
+### User continuation request after the authenticated cancellation application API on 2026-08-11
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-11-user-continuation-request-after-authenticated-cancellation-application-api.md)
+
+### User continuation request on 2026-08-11
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-11-user-continuation-request.md)
+
+### 2026-08-11: Compose Authenticated Cancellation Through An Authorizer-Injected Filesystem Application Surface
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-11-compose-authenticated-cancellation-through-an-authorizer-injected-filesystem-application-surface.md)
+
 ### User request on 2026-08-07 to commit, push, and merge the completed Result-side Scheduler runtime-event work to main
 
 Status: Accepted Decision

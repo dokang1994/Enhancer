@@ -319,7 +319,10 @@ retention policy. Gate 12 remains the authenticated application owner.
 
 The first Gate 12 application boundary is `AuthenticatedCancellationApplication` over
 one exact retained `CANCEL` request. A trusted `ControlRequestAuthorizer` port receives
-that retained envelope and returns a typed approved or denied result. Approval binds a
+the already canonical application Goal plus that retained envelope and returns a typed
+approved or denied result. Supplying the Goal before authorization is required because
+the envelope carries no Goal and an audit-backed authorizer must verify the target
+before persistence. No legacy envelope-only authorization path exists. Approval binds a
 canonical authorization identity, bounded actor, exact Goal and Control-message
 identities, `CANCEL`, and authorization time. Envelope producer/reason, transport
 acceptance, and durable admission remain diagnostic or recovery facts and cannot create
@@ -343,6 +346,86 @@ binding, Control-message causation, producer
 publication without reauthorization or another runtime revision. Credential issuance,
 supported interface composition, concrete event transport, queue disposition, and
 runtime schema v1-v3 migration remain separate.
+
+The first supported composition is the authorizer-injected filesystem application
+surface, not a self-authorizing CLI. `FileSystemAuthenticatedCancellationApplication`
+accepts an explicit runtime-state root, injected clock, and mandatory trusted
+`ControlRequestAuthorizer`, then delegates the exact Goal and retained Control-message
+identities to the unchanged transition owner. Its event-free construction adds no event
+artifact. Its event-aware construction requires one
+`FileSystemRuntimeEventPublicationConfiguration`, which groups both explicit roots and
+the bounded pending capacity and composes `FileSystemRuntimeEventStore` ->
+`RuntimeEventRecorder` -> `FileSystemRuntimeEventPublisher` as one all-or-none value.
+
+The durable order stays retained request -> trusted authorization -> terminal runtime
+revision -> event append/exact replay -> opaque point publication/exact replay. Source
+persistence failure reaches no event; a later event or publication failure re-enters
+from the retained cancellation record without reauthorization or another runtime
+revision. This facade remains under `com.enhancer.runtime` because that package already
+owns the transition and adapters, while the runtime has an existing dependency on the
+application package through Agent Loop execution; placing the facade in application
+would create a source cycle. The future Gate 12 CLI/API/editor/Desktop adapter is the
+named downstream consumer and must supply an authorizer from its own authenticated
+composition root. No actor, authorization UUID, envelope metadata, CLI field, default
+authorizer, credential, queue disposition, process signal, Tool/effect cancellation, or
+`PAUSE`/`RESUME` authority enters through this surface.
+
+The specified first authenticated-interface composition uses a short-lived detached
+signed exact-request grant. The grant and its path remain untrusted input. A separately
+provisioned operator-owned trust policy supplies the audience/trust domain, accepted
+issuer and subject/action scope, public verification keys and fingerprints, fixed
+algorithms, configuration and policy revisions, maximum lifetime, bounded clock skew,
+key validity, and revocation effective facts. The same invocation, repository,
+retained envelope, ambient username/environment, or proof cannot supply or replace that
+authority. Enhancer neither issues nor retains the private signing key, password,
+bearer/session token, raw proof, or signature.
+
+Versioned domain-separated canonical signed bytes bind the intended trust domain,
+canonical Goal, retained Control message, authorization, issuer, key, and issuer-scoped
+subject identities, explicit `CANCEL`, issued and expiry times, policy revision, and a
+SHA-256 digest of a deterministic length-framed projection of every retained envelope
+and Control-payload field. The verified issuer/subject deterministically supplies the
+actor and the signed issue time supplies `authorizedAt`; an injected clock supplies a
+separate verification observation. Caller actor/authorization fields, producer,
+reason, OS identity, unsigned files, repository content, ownership, or possession can
+never create approval.
+
+The authorization-specific immutable `CancellationAuthorizationAuditRecord`,
+deterministically keyed by `authorizationId` through
+`FileSystemCancellationAuthorizationAuditStore`, persists before `Approved`. Its
+integrity envelope holds normalized
+non-secret claims, request/proof digests, issuer/subject/actor, key ID/fingerprint and
+fixed algorithm, issue/expiry/verification times, trust and policy revisions,
+revocation evidence, and verifier version. Exact replay is revision-free; changed ID
+reuse, corruption, or audit persistence failure fails closed. The random-reference
+generic Evidence Store is not this authorization authority or replay index.
+
+`AuditBackedSignedCancellationAuthorizer` is the reusable concrete authorizer. It
+strictly parses a bounded canonical proof, verifies Ed25519 against an immutable
+injected public-only `CancellationGrantTrustPolicy`, revalidates target, complete
+request digest, time, lifetime, subject, key validity, and revocation on every
+pre-runtime attempt, and persists or exact-resolves the audit before returning
+approval. It accepts no private key or trust override and supplies no trust-policy
+loader or proof producer.
+
+The extended order is retained request -> current proof/trust/time/revocation
+validation -> authorization audit persist/exact replay -> approved terminal runtime
+revision -> event append/exact replay -> point publication/exact replay. There is no
+cross-store transaction. An audit-only prefix is not evergreen approval: while runtime
+is absent, retry needs the identical transient proof and current validation. A durable
+runtime record remains terminal historical truth and keeps its existing authorization-
+bypassing suffix recovery after expiry, rotation, or revocation; missing audit is
+reported as degraded rather than fabricated from the smaller runtime record.
+
+The named first future consumer is a separately authorized production CLI
+cancellation-application command (working name `scheduler-apply-cancel`). It accepts
+only Goal, retained Control-message identity, and proof path as untrusted request input,
+receives the verifier and trust policy from its independent trusted composition root,
+and calls the shared filesystem application. Existing spool/receive commands remain
+transport and admission only. Implementing the operator-owned production trust-policy
+loader and CLI composition, and creating credentials, private-key handling,
+IdP/session integration, trust-store mutation, queue disposition, process signalling,
+or pause/resume remain separate authorized work.
 
 The supported Control producer is intentionally narrower than authenticated control.
 `ControlSpoolPublisher`, exposed through one `scheduler-spool-control` point command,

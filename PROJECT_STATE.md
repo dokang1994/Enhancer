@@ -2,15 +2,15 @@
 
 ## Updated At
 
-2026-08-07
+2026-08-11
 
 ## Repository State
 
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 312 Java files.
-- Test source: 142 Java files.
+- Production source: 322 Java files.
+- Test source: 145 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -251,10 +251,23 @@ it does not restate which commit published which increment.
   reauthorization and advances no revision. Event-aware construction then derives
   `CANCELLATION_APPLIED` from retained application time, Control causation, exact Work
   binding, and stable Control-message/application references. Named filesystem evidence
-  proves missing-event repair and publication-failure replay. Credential issuance,
-  supported interfaces, process signalling, queue disposition, Tool/effect cancellation,
-  `PAUSE`/`RESUME`, supported publisher composition, and event consumption remain
-  absent.
+  proves missing-event repair and publication-failure replay. The supported shared
+  `FileSystemAuthenticatedCancellationApplication` now requires one explicit runtime
+  root, injected clock, and trusted authorizer; its separate event-aware constructor
+  accepts one all-or-none `FileSystemRuntimeEventPublicationConfiguration` and composes
+  the concrete event store, recorder, and reference-point publisher. Real-filesystem
+  coverage proves approved publication, exact replay without reauthorization or byte/
+  revision change, denial isolation, event-free omission, and capacity bounds.
+  `AuditBackedSignedCancellationAuthorizer` is the first concrete implementation: one
+  bounded canonical detached grant is verified with Ed25519 against an immutable
+  injected public-only `CancellationGrantTrustPolicy`, then one deterministic
+  integrity-checked `CancellationAuthorizationAuditRecord` is persisted before
+  approval. Exact retry preserves the first audit bytes, current validation denies
+  expired or revoked audit-only prefixes, and changed identity reuse, malformed proof,
+  corruption, or audit failure fails closed. Production trust-policy loading, private
+  signing material, credential issuance, proof production, CLI/API/editor/Desktop
+  authentication adapters, process signalling, queue disposition, Tool/effect
+  cancellation, `PAUSE`/`RESUME`, and event consumption remain absent.
 - Delivery Gate 8 lease-timeout fact and runtime-event path: AgentRuntime schema v4
   retains at most 256 ordered exact `LeaseTimeoutRecord` values. Expired
   `EXECUTING -> READY` reclamation atomically appends the current AgentRun, owner,
@@ -385,8 +398,10 @@ it does not restate which commit published which increment.
   adapter is optionally composed by the supported Control receiver for cancellation-
   request events and by Scheduler cycle/drain/service for process timeout, lease
   timeout, retry decision/start, verification, Tool timeout, stagnation, and terminal
-  WorkItem events. Authenticated cancellation application remains uncomposed.
-  Budgets, Memory, broader authenticated control application,
+  WorkItem events. The supported authorizer-injected filesystem application surface
+  separately composes authenticated cancellation and optional
+  `CANCELLATION_APPLIED` publication without adding an interface adapter.
+  Budgets, Memory, broader authenticated control interfaces,
   production adapters, and role workers remain owned by Gates 9 through 13.
 - Gate 7 isolated-worker Work/Result Message Bus path: the real child JVM receives the
   parent-spooled Work transport point, routes it through the fresh Work queue into the
@@ -630,7 +645,7 @@ it does not restate which commit published which increment.
   authenticating or applying the request.
   The governed file-spool transport publisher-to-receiver path is also Integrated and
   preserves hop-level refusal separately from delivery and admission. Handoff Message
-  Bus flow, authenticated control application, topic,
+  Bus flow, authenticated interface adapters and queue disposition, topic,
   cancellation/cascade-ordering/backpressure, durable bus persistence, cleanup and
   retention policy, and reliability branches beyond the named control retry/dead-letter
   path remain contract-only.
@@ -651,7 +666,8 @@ it does not restate which commit published which increment.
   Integrated acknowledgement with revision-free `.received` re-entry and released
   pending transport capacity. Durable bus journaling and cleanup/retention remain Gate 7
   protocol work. Production external adapters,
-  authenticated control application, model/context budgets, Memory runtime,
+  authenticated interface adapters and remaining typed controls, model/context
+  budgets, Memory runtime,
   background/supervisor topology, and broader production wiring remain owned by Gates 9
   through 13.
 - Gate 8 remains `Specified - Next` after closing the pre-migration assessment's
@@ -663,7 +679,7 @@ it does not restate which commit published which increment.
   The supported bounded service and point spool-to-admission gaps are now closed.
   Whole-gate blockers remain separated by owner: Gate 7 owns durable bus journaling,
   remaining reliability connections, and cleanup/retention policy; Gate 12 owns
-  authenticated control application;
+  authenticated interface adapters, queue disposition, and remaining typed controls;
   Gate 11 owns production
   external-effect adapters; Gates 9 and 10 own model/context budgets and Memory runtime;
   and Gate 13 owns background/supervisor topology and role-based workers. Existing
@@ -765,9 +781,11 @@ system, not open tasks; each is retired only by a bounded increment of its own.
   Tool timeout, stagnation, and terminal WorkItem events when all three explicit
   publication options are present. Explicit read-only resolution and deterministic
   observation acknowledgement exist separately; no arbitrary handler or application
-  consumer is composed. Authenticated cancellation application remains a library
-  boundary with no credential or supported interface composition, process signal, or
-  cancelled queue disposition.
+  consumer is composed. Authenticated cancellation now has one supported shared
+  filesystem application surface with a mandatory injected trusted authorizer and
+  optional all-or-none event publication, but no credential provider, supported CLI/
+  API/editor/Desktop authentication adapter, process signal, or cancelled queue
+  disposition.
 - `runtime-event-read` is an explicit read-only point consumer. It does not acknowledge
   or rename a publication, release publisher capacity, retain a consumer offset or
   receipt, scan for work, apply an event, or define cleanup/retention. The separate

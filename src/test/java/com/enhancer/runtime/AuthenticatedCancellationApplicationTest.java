@@ -53,7 +53,9 @@ class AuthenticatedCancellationApplicationTest {
                 controlMessage(ControlSignal.CANCEL));
         CancellationApplicationRecord source =
                 new AuthenticatedCancellationApplication(
-                        store, APPLIED_CLOCK, request -> approved(request.messageId()))
+                        store,
+                        APPLIED_CLOCK,
+                        (ignoredGoal, request) -> approved(request.messageId()))
                         .apply(GOAL_ID, CONTROL_MESSAGE_ID);
         long sourceRevision = store.resolve(GOAL_ID).revision();
         FileSystemRuntimeEventStore eventStore = new FileSystemRuntimeEventStore(
@@ -64,7 +66,7 @@ class AuthenticatedCancellationApplicationTest {
                 new AuthenticatedCancellationApplication(
                         store,
                         Clock.fixed(APPLIED_CLOCK.instant().plusSeconds(30), ZoneOffset.UTC),
-                        ignored -> {
+                        (ignoredGoal, ignoredRequest) -> {
                             throw new AssertionError("durable replay must not reauthorize");
                         },
                         new RuntimeEventRecorder(eventStore, published::add))
@@ -113,7 +115,7 @@ class AuthenticatedCancellationApplicationTest {
                 new AuthenticatedCancellationApplication(
                         store,
                         APPLIED_CLOCK,
-                        request -> approved(request.messageId()),
+                        (ignoredGoal, request) -> approved(request.messageId()),
                         failingRecorder)
                         .apply(GOAL_ID, CONTROL_MESSAGE_ID));
         long sourceRevision = store.resolve(GOAL_ID).revision();
@@ -123,7 +125,7 @@ class AuthenticatedCancellationApplicationTest {
         new AuthenticatedCancellationApplication(
                 store,
                 Clock.fixed(APPLIED_CLOCK.instant().plusSeconds(60), ZoneOffset.UTC),
-                ignored -> {
+                (ignoredGoal, ignoredRequest) -> {
                     throw new AssertionError("durable replay must not reauthorize");
                 },
                 new RuntimeEventRecorder(eventStore, replayed::add))
@@ -150,7 +152,8 @@ class AuthenticatedCancellationApplicationTest {
                 AGENT_RUN_ID, "cancellation-owner", Duration.ofMinutes(5));
         runtime.recordControlRequest(controlMessage(ControlSignal.CANCEL));
         AtomicInteger authorizations = new AtomicInteger();
-        ControlRequestAuthorizer authorizer = request -> {
+        ControlRequestAuthorizer authorizer = (goalId, request) -> {
+            assertEquals(GOAL_ID, goalId);
             authorizations.incrementAndGet();
             return approved(request.messageId());
         };
@@ -183,7 +186,7 @@ class AuthenticatedCancellationApplicationTest {
                 new AuthenticatedCancellationApplication(
                         new FileSystemAgentRuntimeStateStore(temporaryRoot),
                         Clock.fixed(APPLIED_CLOCK.instant().plusSeconds(20), ZoneOffset.UTC),
-                        ignored -> {
+                        (ignoredGoal, ignoredRequest) -> {
                             throw new AssertionError("exact replay must not reauthorize");
                         })
                         .apply(GOAL_ID, CONTROL_MESSAGE_ID);
@@ -202,7 +205,8 @@ class AuthenticatedCancellationApplicationTest {
                 new AuthenticatedCancellationApplication(
                         store,
                         APPLIED_CLOCK,
-                        ignored -> new ControlAuthorizationDecision.Denied(
+                        (ignoredGoal, ignoredRequest) ->
+                                new ControlAuthorizationDecision.Denied(
                                 "actor lacks cancellation authority"),
                         new RuntimeEventRecorder(
                                 new FileSystemRuntimeEventStore(
@@ -224,7 +228,8 @@ class AuthenticatedCancellationApplicationTest {
                 new AuthenticatedCancellationApplication(
                         store,
                         APPLIED_CLOCK,
-                        request -> new ControlAuthorizationDecision.Approved(
+                        (ignoredGoal, request) ->
+                                new ControlAuthorizationDecision.Approved(
                                 AUTHORIZATION_ID,
                                 "operator-17",
                                 "00000000-0000-0000-0000-000000004999",
@@ -247,7 +252,7 @@ class AuthenticatedCancellationApplicationTest {
                 new AuthenticatedCancellationApplication(
                         store,
                         APPLIED_CLOCK,
-                        request -> {
+                        (ignoredGoal, request) -> {
                             authorizations.incrementAndGet();
                             return approved(request.messageId());
                         });
@@ -276,7 +281,9 @@ class AuthenticatedCancellationApplicationTest {
 
         CancellationApplicationRecord applied =
                 new AuthenticatedCancellationApplication(
-                        store, APPLIED_CLOCK, request -> approved(request.messageId()))
+                        store,
+                        APPLIED_CLOCK,
+                        (ignoredGoal, request) -> approved(request.messageId()))
                         .apply(GOAL_ID, CONTROL_MESSAGE_ID);
 
         AgentRuntimeState persisted = store.resolve(GOAL_ID);
