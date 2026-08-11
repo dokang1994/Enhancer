@@ -4473,3 +4473,39 @@ Outcome:
   user Scheduler/runtime root, commit, push, merge, release, deployment, destructive
   action, permission or credential change, paid service, external message, cleanup,
   retention, or unrelated implementation was introduced or performed.
+
+## 2026-08-07 - Deliver Result-Side Scheduler Runtime Events To Main
+
+- Required repository authority was reread in order, `checkpoint-show` returned
+  `EMPTY`, and the exact fifteen-path implementation candidate was reconciled with the
+  new delivery decision as a sixteen-path delivery boundary. Two bounded read-only
+  reviews joined without mutation; after removing one unnecessary `write-code` task
+  permission they found no secret, generated-artifact, ownership, scope, topology, or
+  commit-boundary blocker.
+- Fresh `git fetch origin main --prune` proved `HEAD`, local `main`, fetched
+  `origin/main`, `FETCH_HEAD`, and merge base all equal
+  `f7d81685d0639f9ecea2985052e7ad3a6a83d398`, with divergence `0 0` and successful
+  remote-ancestor proof before verification and staging.
+- Fresh Java 17 `clean build --no-daemon --console=plain` completed in 7 minutes 30
+  seconds with all eight Gradle tasks executed. It ran 735 tests across 141 suites: 727
+  passed, eight Windows environment-dependent cases skipped, and zero failed or
+  errored. The follow-up Decision Log, document-ownership, Dynamic Workflow, and runtime
+  package-boundary suite ran eleven tests with zero skip, failure, or error.
+- Exact staging covered sixteen paths, cached `git diff --check` produced no output,
+  and ordinary non-amending commit
+  `4d4996541795581608f3417e1e73f87243ddb3cd` contains exactly those paths over parent
+  `f7d81685d0639f9ecea2985052e7ad3a6a83d398` with no unstaged residue.
+- A fresh pre-push fetch kept remote `main` at the candidate parent, local divergence
+  at one candidate commit, and the remote as an ancestor. Non-force
+  `git push origin main` advanced remote `main` from `f7d8168` to `4d49965`; a fresh
+  post-push fetch proved exact `HEAD`, local-main, remote-main, `FETCH_HEAD`, and merge-
+  base identity at the candidate, divergence `0 0`, and successful candidate ancestry.
+  This linear direct-main update is the requested merge result; no synthetic merge
+  commit exists.
+- Delivery synchronization changes only `CURRENT_TASK.md`, `CHANGELOG.md`, and this
+  append-only verification log. Architecture, capability maturity, roadmap position,
+  accepted decisions, implementation, tests, and `SESSION_HANDOFF.md` require no
+  further change after candidate delivery.
+- No force push, amend, rebase, reset, history rewrite, tag, release, deployment, pull
+  request, issue, branch deletion, destructive cleanup, permission or credential
+  change, paid service, external message, or unrelated implementation was performed.

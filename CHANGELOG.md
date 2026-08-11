@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-07 - Deliver Result-Side Scheduler Runtime Events To Main
+
+- Delivered the Result-side Scheduler runtime-event composition and exact publication
+  recovery in ordinary commit `4d4996541795581608f3417e1e73f87243ddb3cd`.
+- Advanced `origin/main` linearly from `f7d8168` to `4d49965` through a non-force push;
+  a fresh fetch proved exact local/remote/merge-base identity and no synthetic merge.
+- Synchronized the owning delivery task, changelog, and append-only delivery evidence
+  in the authorized follow-up evidence boundary without changing implementation,
+  architecture, maturity, roadmap position, or host-only handoff facts.
+
 ## 2026-08-07 - Compose Result-Side Runtime Events Across Scheduler Commands
 
 - Reused the existing optional Scheduler filesystem event recorder in
