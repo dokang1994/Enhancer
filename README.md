@@ -335,9 +335,15 @@ a CLI authentication path and supplies no default authorizer. The reusable
 `AuditBackedSignedCancellationAuthorizer` accepts transient bounded proof bytes, an
 injected public-only `CancellationGrantTrustPolicy`, clock, and
 `CancellationAuthorizationAuditStore`; it verifies the exact Goal/request and persists
-the audit before approval. Enhancer still supplies no production trust-policy loader,
-proof producer, private-key handling, or credential/session provider, and this path
-does not cancel a queue, process, Tool, or external effect.
+the audit before approval. `PinnedFileCancellationGrantTrustPolicyLoader` can construct
+that immutable policy from one absolute normalized exact-real regular file and one
+independently provisioned lowercase SHA-256 of its complete canonical UTF-8 bytes. It
+performs one bounded no-follow read, hashes and parses the same public-only Ed25519
+snapshot, and uses the digest as `configurationRevision`; it provides no writer,
+discovery, fallback, cache, private material, or CLI option. Enhancer does not yet bind
+the path and pin to protected installed application metadata and still supplies no
+proof producer, private-key handling, credential/session provider, or supported
+cancellation CLI. This path does not cancel a queue, process, Tool, or external effect.
 
 ## Drain Ready Scheduler Work
 

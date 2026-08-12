@@ -408,6 +408,34 @@ pre-runtime attempt, and persists or exact-resolves the audit before returning
 approval. It accepts no private key or trust override and supplies no trust-policy
 loader or proof producer.
 
+The first trust-loader prerequisite is
+`PinnedFileCancellationGrantTrustPolicyLoader`. Its absolute normalized policy-file
+path and lowercase SHA-256 pin over the complete exact file bytes are immutable trusted
+construction inputs supplied outside request parsing. The future proof command cannot
+accept, discover, infer, or override either input from CLI fields, environment/JVM
+properties, current directory, project repository, retained request, proof, or ambient
+identity. The loader itself is not the installed pin source; a later interface
+composition must bind it to protected immutable deployment metadata.
+
+The loader performs one bounded no-follow read of an existing exact-real regular non-
+symbolic file, checks the injected digest over those bytes, and parses that same snapshot
+without reopening, writing, repairing, scanning, fallback, or caching. Its strict
+canonical UTF-8 v1 line format fixes field order and contains configuration identity,
+audience, policy revision, lifetime/skew seconds, and sorted Ed25519 key/subject entries
+with X.509 SubjectPublicKeyInfo bytes, fingerprint, validity, and optional revocation.
+Exact internal re-encoding rejects alternate spellings, CR/comments/blank/unknown lines,
+duplicates, and trailing content. The verified file digest becomes the immutable policy
+`configurationRevision`; `policyRevision` remains the signed compatibility boundary.
+No private material, writer, arbitrary algorithm, or permissive default exists.
+
+An independently protected pin, not portable owner/ACL inspection, is the approval
+anchor. Modification of the public file can then only preserve the exact pinned policy
+or cause denial. Deployment should still protect file and ancestor writability, but
+provisioning, permission mutation, rotation, installed pin replacement, and application-
+version anti-rollback are separate operations. Each future cancellation command loads a
+fresh snapshot before authorizer construction, so audit-only retry observes current
+pinned key/revocation facts while durable runtime replay remains unchanged.
+
 The extended order is retained request -> current proof/trust/time/revocation
 validation -> authorization audit persist/exact replay -> approved terminal runtime
 revision -> event append/exact replay -> point publication/exact replay. There is no
@@ -422,10 +450,10 @@ cancellation-application command (working name `scheduler-apply-cancel`). It acc
 only Goal, retained Control-message identity, and proof path as untrusted request input,
 receives the verifier and trust policy from its independent trusted composition root,
 and calls the shared filesystem application. Existing spool/receive commands remain
-transport and admission only. Implementing the operator-owned production trust-policy
-loader and CLI composition, and creating credentials, private-key handling,
-IdP/session integration, trust-store mutation, queue disposition, process signalling,
-or pause/resume remain separate authorized work.
+transport and admission only. Binding the pinned loader to protected installed metadata
+and composing the CLI, and creating credentials, private-key handling, IdP/session
+integration, trust-store mutation, queue disposition, process signalling, or
+pause/resume remain separate authorized work.
 
 The supported Control producer is intentionally narrower than authenticated control.
 `ControlSpoolPublisher`, exposed through one `scheduler-spool-control` point command,

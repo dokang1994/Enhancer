@@ -9,8 +9,8 @@
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 322 Java files.
-- Test source: 145 Java files.
+- Production source: 323 Java files.
+- Test source: 147 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -264,10 +264,19 @@ it does not restate which commit published which increment.
   integrity-checked `CancellationAuthorizationAuditRecord` is persisted before
   approval. Exact retry preserves the first audit bytes, current validation denies
   expired or revoked audit-only prefixes, and changed identity reuse, malformed proof,
-  corruption, or audit failure fails closed. Production trust-policy loading, private
-  signing material, credential issuance, proof production, CLI/API/editor/Desktop
-  authentication adapters, process signalling, queue disposition, Tool/effect
-  cancellation, `PAUSE`/`RESUME`, and event consumption remain absent.
+  corruption, or audit failure fails closed. Exact retry also requires the current
+  trust-configuration revision and revocation fact to match the retained audit while
+  preserving the first verification observation time. The Contract Verified
+  `PinnedFileCancellationGrantTrustPolicyLoader` loads one absolute normalized exact-
+  real regular non-symbolic file through one bounded no-follow read, verifies an
+  independently injected complete-file SHA-256, strictly parses and internally
+  re-encodes the same canonical UTF-8 public-only Ed25519 policy bytes, and derives
+  `configurationRevision` from that digest. It has no writer, discovery, fallback,
+  cache, private material, or supported interface binding. Protected installed
+  path/pin metadata, private signing material, credential issuance, proof production,
+  CLI/API/editor/Desktop authentication adapters, process signalling, queue
+  disposition, Tool/effect cancellation, `PAUSE`/`RESUME`, and event consumption
+  remain absent.
 - Delivery Gate 8 lease-timeout fact and runtime-event path: AgentRuntime schema v4
   retains at most 256 ordered exact `LeaseTimeoutRecord` values. Expired
   `EXECUTING -> READY` reclamation atomically appends the current AgentRun, owner,
@@ -783,8 +792,10 @@ system, not open tasks; each is retired only by a bounded increment of its own.
   observation acknowledgement exist separately; no arbitrary handler or application
   consumer is composed. Authenticated cancellation now has one supported shared
   filesystem application surface with a mandatory injected trusted authorizer and
-  optional all-or-none event publication, but no credential provider, supported CLI/
-  API/editor/Desktop authentication adapter, process signal, or cancelled queue
+  optional all-or-none event publication plus a Contract Verified independently pinned
+  read-only public trust-policy loader seam. The loader is not yet bound to protected
+  installed path/pin metadata, so there is still no credential provider, supported
+  CLI/API/editor/Desktop authentication adapter, process signal, or cancelled queue
   disposition.
 - `runtime-event-read` is an explicit read-only point consumer. It does not acknowledge
   or rename a publication, release publisher capacity, retain a consumer offset or

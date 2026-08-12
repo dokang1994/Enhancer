@@ -854,9 +854,13 @@ Current increment:
 - Contract Verified authenticated-interface core: a bounded canonical short-lived
   detached exact-request grant is verified with Ed25519 against injected public-only
   trust policy and a deterministic non-secret integrity-checked authorization audit
-  point persists before the existing shared cancellation application; production
-  trust-policy loading, proof production/private keys, credentials, and CLI composition
-  remain unimplemented;
+  point persists before the existing shared cancellation application;
+- Contract Verified pinned trust-loader prerequisite: one absolute normalized policy
+  path and independently provisioned whole-file SHA-256 admit only one bounded no-follow
+  read of the same strict canonical UTF-8 public-only Ed25519 policy bytes, with exact
+  digest-derived configuration revision and no writer, discovery, fallback, or cache.
+  Protected installed path/pin binding, proof production/private keys, credentials, and
+  CLI composition remain unimplemented;
 - deferred: real authorized external adapters, admission-history compaction/cleanup or
   schema-v1 queue migration, general orphan inventory/cleanup with an explicit retention
   and scan policy, general forward-reference graph/cycle handling, authenticated
@@ -1021,9 +1025,16 @@ Contract Verified authenticated-interface core:
 - `AuditBackedSignedCancellationAuthorizer` performs current target/request/signature/
   policy/time/lifetime/subject/key/revocation validation and persists or exact-resolves
   the integrity-checked audit before approval; malformed proof, changed identity reuse,
-  corruption, and persistence failure fail closed;
+  changed trust-configuration revision or revocation fact, corruption, and persistence
+  failure fail closed;
+- `PinnedFileCancellationGrantTrustPolicyLoader` is the Contract Verified read-only
+  bootstrap prerequisite: it accepts one exact absolute normalized file and one
+  independently provisioned complete-file SHA-256, performs one bounded no-follow read,
+  parses only the same strict canonical UTF-8 public-only Ed25519 snapshot, and derives
+  its configuration revision from the digest without a writer, discovery, fallback, or
+  cache;
 - the first future consumer is a separately authorized production CLI cancellation-
-  application command. Production trust-policy loading, proof production/private
+  application command. Protected installed path/pin metadata, proof production/private
   keys, CLI composition, credentials, IdP/session integration, queue/process behavior,
   and pause/resume remain unimplemented, so Gate 12 remains Planned.
 

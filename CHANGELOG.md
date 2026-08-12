@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-08-11 - Implement The Pinned Cancellation Trust Policy Loader
+
+- Added `PinnedFileCancellationGrantTrustPolicyLoader`, requiring an absolute normalized
+  exact-real policy file plus an independently provisioned complete-file lowercase
+  SHA-256. It performs one bounded no-follow read, verifies and parses the same byte
+  snapshot, and accepts only its strict canonical UTF-8 public-only Ed25519 v1 format.
+- Derived `CancellationGrantTrustPolicy.configurationRevision` from the exact file
+  digest and kept policy revision distinct. The loader has no writer, discovery,
+  fallback, cache, private-key field, CLI binding, or installed metadata source.
+- Tightened authorization-audit exact replay so current trust-configuration revision
+  and revocation facts cannot reuse an older authorization identity while retry
+  observation time remains revision-free.
+- Added real-filesystem coverage for path, pin, format, bounds, key material,
+  rotation/rollback, exact audit provenance, authorizer integration, and current
+  revocation denial without audit/runtime/event mutation. Protected installed pin
+  binding and `scheduler-apply-cancel` remain separate work.
+- Fresh focused verification ran 10 tests (9 passed and 1 Windows symbolic-link setup
+  skipped), architecture/document governance passed 11 of 11 tests, and the Java 17
+  `clean build` ran 761 tests across 146 suites (751 passed, 10 environment-dependent
+  skips, 0 failures, 0 errors) with all 8 Gradle tasks executed.
+
 ## 2026-08-11 - Deliver Authenticated Cancellation To Main
 
 - Delivered the authorizer-injected filesystem cancellation application, detached

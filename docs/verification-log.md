@@ -4633,3 +4633,41 @@ Outcome:
 - No force push, amend, rebase, reset, history rewrite, tag, release, deployment, pull
   request, issue, branch deletion, destructive cleanup, permission or credential
   change, paid service, external message, or unrelated implementation was performed.
+
+## Pinned Cancellation Trust Policy Loader Verification
+
+- Required repository authority was reread in order; `checkpoint-show` returned
+  `EMPTY`; and `HEAD`, local `main`, and `origin/main` were equal at
+  `59d644ddc46fdb49f505eaf932464b3e44e9a915` with divergence `0 0` before the task.
+  Two bounded read-only security/format reviews joined or were stopped after converging
+  on an independently provisioned whole-file pin, exact path identity, one bounded
+  no-follow read, same-byte parse, public-only canonical content, and later installed
+  pin-source binding.
+- Focused RED reached `compileTestJava` after production compilation and failed only on
+  17 expected missing symbols for the planned loader and its file-size bound. The
+  minimum loader then compiled under Java 17 `-Xlint:all -Werror` and its first 7-test
+  focused run had 6 passes, one privilege-dependent Windows symbolic-link setup skip,
+  zero failures, and zero errors.
+- An integration RED then reproduced unsafe exact-audit replay across a changed pinned
+  trust `configurationRevision`: the expected `IOException` was absent. The minimum
+  fix compares the current trust configuration revision and revocation fact while
+  retaining revision-free verification observation time. Fresh combined loader and
+  application verification ran 10 tests: 9 passed, the same symbolic-link setup case
+  skipped, and zero failed or errored.
+- Real-filesystem coverage proves exact digest-derived audit provenance, strict UTF-8
+  canonical parsing, absolute normalized exact-real path and bounded no-follow reads,
+  Ed25519 public-only key enforcement, pin mismatch and malformed-input refusal,
+  rotation/rollback denial, and current revocation denial before audit/runtime/event
+  mutation.
+- Fresh Decision Log, document-ownership, Dynamic Workflow, and runtime package-boundary
+  verification passed all 11 tests across 4 suites with zero skip, failure, or error.
+  A pre-final owning-document `git diff --check` produced no output.
+- Fresh Java 17 `clean build --no-daemon --console=plain` completed in 10 minutes 2
+  seconds with all 8 Gradle tasks executed. It ran 761 tests across 146 suites: 751
+  passed, 10 Windows environment-dependent cases skipped, and zero failed or errored.
+  Strict compilation covered 323 production and 147 test Java source files.
+- Scope held: no CLI/API/editor/Desktop adapter, installed metadata source, writer,
+  policy provisioning or rotation, permission/ACL change, private key or credential,
+  proof producer, queue/process/Tool/effect cancellation, pause/resume, commit, push,
+  merge, release, deployment, destructive action, paid service, external message,
+  cleanup/retention, or unrelated implementation was introduced or performed.

@@ -2,75 +2,75 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Deliver the completed authenticated-cancellation application, signed-grant
-authorization core, and owning documents to `main` through an exact reviewed ordinary
-commit and non-force push, then record delivery evidence once in a small follow-up
-evidence commit.
+Commit, push, and merge the completed pinned cancellation trust-policy loader candidate
+to `main`, then record and deliver the resulting evidence without changing the verified
+implementation boundary.
 
 ## Task ID
 
-deliver-authenticated-cancellation-work-to-main
+deliver-pinned-cancellation-trust-policy-loader-to-main
 
 ## Context
 
-The working tree contains one completed 31-path boundary spanning the supported
-authorizer-injected filesystem cancellation application, detached signed exact-request
-grant architecture, public-only Ed25519 trust policy, deterministic authorization audit
-store, audit-backed authorizer, tests, decisions, and owning documents.
-
-Local `main` and cached `origin/main` resolve to the same baseline. Because the candidate
-is already based directly on `main`, an ordinary commit followed by a successful
-non-force push is the requested merge result; a synthetic branch or merge commit would
-add no distinct integration.
+The loader implementation task is completed with fresh focused, architecture, and full
+Java 17 verification. The working tree contains the reviewed implementation, tests,
+accepted design/continuation decisions, and owning document synchronization. The user
+now explicitly authorizes commit, push, and merge to `main`.
 
 ## Justified By
 
-- User request on 2026-08-11 to commit, push, and merge the authenticated cancellation work to main
-- 2026-08-11: Pass The Canonical Goal Into Cancellation Authorization Before Audit
-- 2026-08-11: Authenticate Cancellation Interfaces With Detached Signed Exact-Request Grants
-- 2026-08-11: Compose Authenticated Cancellation Through An Authorizer-Injected Filesystem Application Surface
+- Commit, push, and merge the pinned cancellation trust-policy loader to main
+- 2026-08-11: Pin Canonical Cancellation Trust Policy Bytes Outside The Request Invocation
+- User continuation request after authenticated cancellation main delivery on 2026-08-11
 
 ## Approval
 
-The user's explicit request authorizes delivery-task and accepted-decision
-synchronization, correction of the stale compact architecture mirror inside the same
-candidate, fresh verification and fetch, staging of the exact reviewed paths, ordinary
-non-amending commits on the current `main`, non-force pushes to `origin/main`, direct-
-main integration verification, and a small follow-up delivery-evidence commit and push.
-It does not authorize force push, amend, rebase, reset, history rewrite, tag, release,
-deployment, pull-request or issue mutation, branch deletion, destructive cleanup,
-credential or permission change, paid service, external message, or unrelated work.
+The user's explicit request authorizes exact candidate inspection, bounded read-only
+delivery review, fresh fetch and verification, exact staging, ordinary non-amending
+commit, non-force push from local `main` to `origin/main`, the linear main-branch merge
+result, post-push fetch/ancestry/divergence verification, owning delivery synchronization
+in `CURRENT_TASK.md`, `CHANGELOG.md`, and `docs/verification-log.md`, one ordinary
+follow-up evidence commit and non-force push, and checkpoint maintenance through the
+final clean synchronized state.
+
+It does not authorize candidate implementation changes except a required delivery-
+blocking correction within the accepted loader task, force push, amend, rebase, reset,
+history rewrite, tag, release, deployment, pull request, issue, branch deletion,
+destructive cleanup, permission or credential change, paid service, external message,
+or unrelated work.
 
 ## Acceptance Criteria
 
-- Fresh fetch and reference inspection prove local `main` is based on current
-  `origin/main`; divergence or unexpected paths stops delivery.
-- Independent read-only review finds no unresolved scope, governance, secret,
-  generated-artifact, or commit-boundary issue in the exact candidate.
-- The stale compact architecture mirror is corrected without changing the accepted
-  implementation boundary, and fresh full Java 17 verification plus
-  `git diff --check` pass over the final candidate.
-- One ordinary non-amending candidate commit contains exactly the reviewed code, tests,
-  decisions, owning documents, task, changelog, and verification evidence.
-- A successful non-force push makes `origin/main` contain that commit in a linear
-  direct-main history, satisfying the requested merge without a synthetic merge commit.
-- Delivery evidence is appended once, owning delivery documents are synchronized, the
-  follow-up evidence commit is pushed, local and remote `main` match, the worktree is
-  clean, and the stable checkpoint is cleared.
+- Two bounded read-only delivery reviews join with no unresolved blocker, and the exact
+  candidate contains no secret, generated artifact, private key, unrelated path, or
+  document-ownership conflict.
+- A fresh fetch proves `origin/main` still equals the candidate parent with successful
+  remote ancestry and zero pre-candidate divergence.
+- Fresh Java 17 focused/architecture/full verification and `git diff --check` pass on
+  the exact delivery candidate after this authorization document is included.
+- Exact staging contains only the reviewed candidate paths; staged diff check passes;
+  one ordinary non-amending implementation commit is created on `main`.
+- A fresh pre-push fetch proves the remote still equals the candidate parent, then one
+  non-force `main:main` push advances `origin/main`; a fresh post-push fetch proves
+  exact local/remote/fetch/merge-base identity and zero divergence.
+- Delivery facts are synchronized only in their owning task/changelog/verification
+  documents, freshly checked, committed once without amendment, and non-force pushed
+  after another remote-parent check.
+- Final `HEAD`, local `main`, `origin/main`, fetched main, and merge base are identical;
+  divergence is `0 0`, the worktree is clean, final governance verification passes,
+  and the stable checkpoint is cleared to `EMPTY`.
 
 ## Out Of Scope
 
-Further cancellation implementation; production trust-policy loading, proof production
-or private-key handling; credentials or identity-provider integration; new runtime
-behavior, schema, CLI option, queue disposition, process signal, pause/resume, or Tool/
-external-effect cancellation; force push; amend; rebase; reset; history rewrite;
-synthetic merge commit; tag; release; deployment; pull request; issue; branch deletion;
-destructive cleanup; paid service; credential or permission change; external message;
-or unrelated changes.
+Loader behavior changes beyond a delivery-blocking correction, installed metadata or
+CLI composition, proof/private-key/credential work, force push, amend, rebase, reset,
+history rewrite, tag, release, deployment, pull request, issue, branch deletion,
+destructive cleanup, permission or credential change, paid service, external message,
+or unrelated work.
 
 ## Allowed Tools
 
@@ -86,112 +86,75 @@ or unrelated changes.
 
 ## Dynamic Workflow
 
-Workflow ID: deliver-authenticated-cancellation-work-to-main
+Workflow ID: deliver-pinned-cancellation-trust-policy-loader-to-main
 Mode: Sequential
-Increment Limit: 4
-Selection Rule: Select the first dependency-ready Pending increment after reading the
-required evidence for every dependency.
-Stop Conditions: Stop on authority conflict, remote divergence, unexpected artifacts,
-failed verification, unsafe recovery, checkpoint drift, missing authority, exhausted
-bounds, or an unjoined reviewer.
+Increment Limit: 3
+Selection Rule: Select the first dependency-ready Pending increment after reading fresh
+evidence for every dependency.
+Stop Conditions: Stop on reviewer blocker, scope drift, verification failure, unexpected
+staged content, remote drift, ancestry failure, checkpoint mismatch, unauthorized Git
+operation, or an unjoined reviewer.
 
-### Increment 1 - reconcile-delivery-boundary
+### Increment 1 - review-and-verify-candidate
 
 State: Completed
 Depends On: none
-Scope: Fetch and compare remote `main`, reconcile the exact working-tree candidate,
-correct the stale compact architecture mirror, and join independent read-only review
-against repository authority.
-Exit Criteria: The remote baseline is current and non-divergent, every intended path is
-classified, the compact mirror is current, and no unresolved ownership, secret,
-generated-artifact, scope, or commit-boundary concern remains.
-Verification: Git status/diff/reference inspection, remote fetch, document-governance
-checks, and primary reconciliation of joined reviews.
-Next Action: Run fresh full Java 17 verification over the delivery candidate.
+Scope: Independently review the exact delivery boundary, fetch current remote state,
+and rerun fresh candidate verification after adding delivery authorization.
+Exit Criteria: No review blocker or scope leak; remote remains the candidate parent;
+focused, architecture, full, and diff verification pass.
+Verification: Joined read-only reports, exact diff/name/status review, fresh fetch and
+ancestry checks, focused tests, architecture tests, Java 17 clean build, and diff check.
+Next Action: Stage exactly the reviewed candidate and create the implementation commit.
 
-### Increment 2 - verify-and-commit-candidate
+### Increment 2 - commit-and-push-candidate
 
-State: Completed
-Depends On: reconcile-delivery-boundary
-Scope: Run fresh full Java 17 verification, review the exact staged diff, and create the
-ordinary candidate commit.
-Exit Criteria: Fresh verification is green and one non-amending commit on `main`
-contains exactly the reviewed candidate.
-Verification: Full Java 17 build, document-governance tests, `git diff --check`, staged
-path inspection, and commit inspection.
-Next Action: Push the candidate commit to `origin/main` without force.
+State: In Progress
+Depends On: review-and-verify-candidate
+Scope: Stage only the reviewed paths, create one ordinary implementation commit, and
+advance `origin/main` with a non-force push after a fresh remote-parent check.
+Exit Criteria: Exact staged path/content review passes; commit parent is the observed
+remote main; post-push refs and merge base equal the candidate with zero divergence.
+Verification: Cached name/status/stat/diff check, commit inspection, fresh fetch before
+and after push, ancestry proof, ref equality, and divergence count.
+Next Action: Synchronize and deliver only post-push evidence-owning documents.
 
-### Increment 3 - push-and-confirm-main
+### Increment 3 - synchronize-delivery-evidence
 
-State: Completed
-Depends On: verify-and-commit-candidate
-Scope: Non-force push the candidate commit and verify current remote `main` contains it
-with a linear direct-main topology.
-Exit Criteria: The push succeeds and fresh remote inspection shows `origin/main`
-contains the candidate commit with no local/remote divergence.
-Verification: Push output, fetch, exact reference comparison, merge-base/ancestry, and
-log inspection.
-Next Action: Append delivery evidence and close the task.
-
-### Increment 4 - record-delivery-and-close
-
-State: Completed
-Depends On: push-and-confirm-main
-Scope: Append external delivery evidence once, update only owning task and changelog
-facts, verify the synchronization, commit and push it, then close the checkpoint.
-Exit Criteria: Delivery evidence and task state are truthful on remote `main`; local and
-remote refs match, the worktree is clean, and the stable checkpoint is cleared.
-Verification: Document-governance tests, final commit/push/fetch/reference/status/log
-inspection, and checkpoint stable/clear/show results.
-Next Action: End the delivery session without selecting unrelated implementation.
+State: Pending
+Depends On: commit-and-push-candidate
+Scope: Record the actual delivery facts in the task, changelog, and append-only
+verification log; verify, commit, and non-force push that evidence boundary.
+Exit Criteria: Exactly three owning documents form the follow-up commit; final refs,
+merge base, divergence, worktree, governance tests, and checkpoint are synchronized.
+Verification: Document governance tests, diff/staged review, fresh fetches, commit/tree
+inspection, non-force push, final ref/ancestry/status checks, stable/clear/show.
+Next Action: End on clean `main` and preserve the installed pin-metadata plus
+`scheduler-apply-cancel` composition as the next separately authorized task.
 
 ## Verification
 
-- Pre-delivery implementation evidence: fresh Java 17 `clean build --no-daemon
-  --console=plain` completed all eight Gradle tasks in 8 minutes 51 seconds. A final
-  post-document full `test` completed in 8 minutes 3 seconds. Both ran 751 tests across
-  144 suites: 742 passed, nine Windows environment-dependent cases skipped, and zero
-  failed or errored. Fresh `git diff --check` produced no output.
-- Delivery activation: `checkpoint-show` returned `EMPTY`; current `HEAD`, local
-  `main`, cached `origin/main`, and their divergence resolve to
-  `6b626323dca1e8194ca2f42cf71e16210c7a227e` and `0 0`. The working tree contains the
-  completed 31-path implementation boundary before this delivery decision/task
-  synchronization.
-- Increment 1: fresh `git fetch origin main --prune` completed. `HEAD`, local `main`,
-  `origin/main`, `FETCH_HEAD`, and merge base all remain
-  `6b626323dca1e8194ca2f42cf71e16210c7a227e`, divergence is `0 0`, and the remote-
-  ancestor check succeeds. Two bounded read-only reviews joined without mutation and
-  classified the 31-path implementation boundary plus one delivery-decision path. They
-  found no remaining scope, ownership, secret, generated-artifact, topology, or commit-
-  boundary blocker after the compact architecture mirror correction. Fresh Decision
-  Log, document-ownership, Dynamic Workflow, and runtime package-boundary verification
-  passed 11 tests across 4 suites with zero skip, failure, or error.
-- Increment 2 verification prefix: fresh Java 17 `clean build --no-daemon
-  --console=plain` over the complete 32-path delivery candidate completed in 9 minutes
-  29 seconds with all eight Gradle tasks executed. It ran 751 tests across 144 suites:
-  742 passed, nine Windows environment-dependent cases skipped, and zero failed or
-  errored. Fresh tracked `git diff --check` produced no output.
-- Increment 2 delivery boundary: the Decision Log, document-ownership, Dynamic
-  Workflow, and runtime package-boundary suite passed 11 tests with zero skip, failure,
-  or error. Exact staging covered 32 paths, staged `git diff --check` produced no
-  output, no unstaged or untracked residue remained, and ordinary non-amending commit
-  `5dd221773ed7e0a98ec5508dbd1a3334ba003f21` contains those exact paths over parent
-  `6b626323dca1e8194ca2f42cf71e16210c7a227e`.
-- Increment 3: a fresh pre-push fetch kept `origin/main` at the candidate parent with
-  divergence `0 1` in `origin/main...HEAD` order and successful remote-ancestor proof.
-  Non-force `git push origin main:main` advanced remote `main` from `6b62632` to
-  `5dd2217`; a fresh post-push fetch proved exact `HEAD`/local-main/remote-main/
-  `FETCH_HEAD`/merge-base identity at the candidate, divergence `0 0`, and successful
-  candidate ancestry. This linear direct-main update is the requested merge result;
-  no synthetic merge commit exists.
-- Increment 4 delivery synchronization is limited to `CURRENT_TASK.md`, `CHANGELOG.md`,
-  and `docs/verification-log.md`. Architecture, capability maturity, roadmap position,
-  accepted decisions, implementation, tests, and `SESSION_HANDOFF.md` require no
-  further change after candidate delivery.
+- Session activation reread required repository authority in order; `checkpoint-show`
+  returned `EMPTY`; and `HEAD`, local `main`, and observed `origin/main` equal
+  `59d644ddc46fdb49f505eaf932464b3e44e9a915` with divergence `0 0`.
+- Two bounded read-only reviews joined. They found no implementation, secret,
+  generated-artifact, scope, topology, or staging blocker after the primary moved the
+  loader verification block to the append-only log EOF and activated this delivery
+  task/decision.
+- Fresh `git fetch origin main --prune` proved `HEAD`, local `main`, `origin/main`,
+  `FETCH_HEAD`, and merge base equal
+  `59d644ddc46fdb49f505eaf932464b3e44e9a915`, with divergence `0 0` and successful
+  remote-ancestor proof.
+- Fresh focused loader/application plus Decision Log, document-ownership, Dynamic
+  Workflow, and runtime package-boundary verification ran 21 tests across 6 suites: 20
+  passed, 1 Windows symbolic-link setup case skipped, and 0 failed or errored.
+- Fresh Java 17 `clean build --no-daemon --console=plain` completed in 8 minutes 32
+  seconds with all 8 Gradle tasks executed. It ran 761 tests across 146 suites: 751
+  passed, 10 Windows environment-dependent cases skipped, and 0 failed or errored.
+  The exact candidate contains 16 paths and `git diff --check` produced no output.
 
 ## Next
 
-After this delivery task closes, define and implement the operator-owned production
-trust bootstrap before composing `scheduler-apply-cancel`. Do not accept a trust root,
-issuer, policy, clock, or revocation override from the same invocation as the proof,
-and do not infer credential issuance, queue disposition, or process signalling.
+After delivery, bind the loader's policy path and pin to protected installed application
+metadata and compose `scheduler-apply-cancel` without exposing either as proof-command
+input. Do not infer private-key, credential, queue/process, or pause/resume authority.

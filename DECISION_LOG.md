@@ -11,6 +11,24 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### Commit, push, and merge the pinned cancellation trust-policy loader to main
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-11-commit-push-and-merge-pinned-cancellation-trust-policy-loader-to-main.md)
+
+### 2026-08-11: Pin Canonical Cancellation Trust Policy Bytes Outside The Request Invocation
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-11-pin-canonical-cancellation-trust-policy-bytes-outside-the-request-invocation.md)
+
+### User continuation request after authenticated cancellation main delivery on 2026-08-11
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-11-user-continuation-after-authenticated-cancellation-main-delivery.md)
+
 ### User request on 2026-08-11 to commit, push, and merge the authenticated cancellation work to main
 
 Status: Accepted Decision

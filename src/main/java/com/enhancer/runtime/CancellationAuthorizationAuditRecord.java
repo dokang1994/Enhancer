@@ -171,9 +171,12 @@ public record CancellationAuthorizationAuditRecord(
                 && publicKeySha256.equals(authorization.publicKeySha256())
                 && signatureAlgorithm.equals(authorization.signatureAlgorithm())
                 && trustConfigurationId.equals(authorization.trustConfigurationId())
+                && trustConfigurationRevision.equals(
+                        authorization.trustConfigurationRevision())
                 && policyRevision.equals(authorization.policyRevision())
                 && issuedAt.equals(authorization.issuedAt())
                 && expiresAt.equals(authorization.expiresAt())
+                && keyRevokedAt.equals(authorization.keyRevokedAt())
                 && verifierVersion.equals(authorization.verifierVersion());
     }
 
