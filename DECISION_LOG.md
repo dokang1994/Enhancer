@@ -11,6 +11,54 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### 2026-08-12: Expose Maintenance Through A Distinct Typed Operator Launcher
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-12-expose-maintenance-through-a-distinct-typed-operator-launcher.md)
+
+### User continuation request on 2026-08-12 after maintenance state-machine completion
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-12-user-continuation-after-maintenance-state-machine.md)
+
+### User continuation request on 2026-08-12 after the maintenance contract was completed
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-12-user-continuation-after-maintenance-contract.md)
+
+### 2026-08-12: Implement Cancellation Trust Maintenance With A Persistent Stateless Lock
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-12-implement-cancellation-trust-maintenance-with-a-persistent-stateless-lock.md)
+
+### 2026-08-12: Separate Cancellation Trust Maintenance From Runtime Authority
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-12-separate-cancellation-trust-maintenance-from-runtime-authority.md)
+
+### User continuation request after installed cancellation trust CLI completion on 2026-08-12
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-12-user-continuation-after-installed-cancellation-trust-cli.md)
+
+### 2026-08-12: Bind Cancellation Trust To The Protected Application Installation
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-12-bind-cancellation-trust-to-the-protected-application-installation.md)
+
+### User continuation request on 2026-08-12
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-12-user-continuation-request.md)
+
 ### Commit, push, and merge the pinned cancellation trust-policy loader to main
 
 Status: Accepted Decision

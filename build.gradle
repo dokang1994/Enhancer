@@ -16,6 +16,13 @@ application {
     mainClass = 'com.enhancer.cli.EnhancerCli'
 }
 
+tasks.register('cancellationTrustMaintenance', JavaExec) {
+    group = 'application'
+    description = 'Runs the separately authorized cancellation trust operator entry point.'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.enhancer.maintenance.CancellationTrustMaintenanceOperator'
+}
+
 repositories {
     mavenCentral()
 }

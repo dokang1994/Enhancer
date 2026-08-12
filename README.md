@@ -340,10 +340,42 @@ that immutable policy from one absolute normalized exact-real regular file and o
 independently provisioned lowercase SHA-256 of its complete canonical UTF-8 bytes. It
 performs one bounded no-follow read, hashes and parses the same public-only Ed25519
 snapshot, and uses the digest as `configurationRevision`; it provides no writer,
-discovery, fallback, cache, private material, or CLI option. Enhancer does not yet bind
-the path and pin to protected installed application metadata and still supplies no
-proof producer, private-key handling, credential/session provider, or supported
-cancellation CLI. This path does not cancel a queue, process, Tool, or external effect.
+discovery, fallback, cache, private material, or CLI option.
+
+The installed distribution now exposes the supported cancellation application command:
+
+```powershell
+.\bin\enhancer.bat scheduler-apply-cancel --runtime-root C:\Enhancer\.enhancer\runtime --goal-id <canonical-goal-uuid> --control-message-id <retained-cancel-message-uuid> --proof-file C:\protected-input\cancel.proof --authorization-audit-root C:\Enhancer\.enhancer\cancellation-audit
+```
+
+Production derives trust only from the exact installed Enhancer JAR and its fixed
+`enhancer-cancellation-trust-metadata-v1` sibling. That strict canonical file contains
+exactly `enhancer-installed-cancellation-trust-v1`, an absolute normalized
+`policyPath`, and a lowercase `policySha256`, each on its own LF-terminated line. The
+application JAR, metadata, and installation ancestors must be protected from runtime-
+principal writes. The command does not accept or discover trust overrides through CLI,
+environment/JVM properties, working directory, repository, request, or proof. Running
+this production command through Gradle's exploded class directory therefore fails
+closed; use the installed distribution. To publish the supported cancellation event,
+append the complete existing runtime-event option group. Exit `0` reports the durable
+`CANCELLATION_APPLIED` fact, denial exits `20`, invalid input/installed configuration
+exits `2`, and unexpected storage/publication failure exits `70`. Enhancer still
+supplies no proof producer, private-key handling, credential/session provider, queue or
+process cancellation, Tool/effect cancellation, or `PAUSE`/`RESUME` application.
+
+The operator-maintenance protocol, state machine, and distinct Java operator entry point
+are documented in
+[`docs/cancellation-trust-maintenance.md`](docs/cancellation-trust-maintenance.md). It is
+not a runtime command or installed distribution launcher. Repository-local development
+may select it with the fixed `cancellationTrustMaintenance` Gradle task and exact
+`install`/`rotate` arguments; all repository verification uses isolated temporary
+installation trees. The library computes the pin from one
+validated public-policy snapshot, publishes immutable content-addressed policy first,
+and switches fixed metadata last under a persistent stateless lock plus expected-current
+compare-and-swap. Its verification uses test-owned temporary installation trees only;
+this repository still does not install an operator start script, invoke it on a real
+installation, change permissions, clean old artifacts, deploy it, or prevent a privileged
+rollback of the application and trust files together.
 
 ## Drain Ready Scheduler Work
 

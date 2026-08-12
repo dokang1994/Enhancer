@@ -57,12 +57,26 @@ public final class PinnedFileCancellationGrantTrustPolicyLoader {
     }
 
     public CancellationGrantTrustPolicy load() throws IOException {
-        validateExactRegularFile();
-        byte[] content = readOneBoundedSnapshot();
-        byte[] actualDigest = sha256Bytes(content);
+        CanonicalSnapshot snapshot = readCanonicalSnapshot(policyFile);
+        byte[] actualDigest = HexFormat.of().parseHex(snapshot.sha256());
         if (!MessageDigest.isEqual(expectedDigest, actualDigest)) {
             throw new IOException("cancellation trust policy does not match its pin");
         }
+        return snapshot.policy();
+    }
+
+    /** Reads and validates one exact canonical public-only policy snapshot. */
+    public static CanonicalSnapshot readCanonicalSnapshot(Path policyFile)
+            throws IOException {
+        Path checkedPath = Objects.requireNonNull(
+                policyFile, "policyFile must not be null");
+        if (!checkedPath.isAbsolute() || !checkedPath.equals(checkedPath.normalize())) {
+            throw new IllegalArgumentException(
+                    "policyFile must be an absolute normalized path");
+        }
+        validateExactRegularFile(checkedPath);
+        byte[] content = readOneBoundedSnapshot(checkedPath);
+        byte[] actualDigest = sha256Bytes(content);
         String actualSha256 = HexFormat.of().formatHex(actualDigest);
         try {
             CancellationGrantTrustPolicy policy = parse(content, actualSha256);
@@ -71,13 +85,13 @@ public final class PinnedFileCancellationGrantTrustPolicyLoader {
                 throw new IOException(
                         "cancellation trust policy is not in canonical form");
             }
-            return policy;
+            return new CanonicalSnapshot(policy, actualSha256, content);
         } catch (IllegalArgumentException exception) {
             throw new IOException("invalid cancellation trust policy", exception);
         }
     }
 
-    private void validateExactRegularFile() throws IOException {
+    private static void validateExactRegularFile(Path policyFile) throws IOException {
         Path parent = policyFile.getParent();
         if (parent == null
                 || !Files.isDirectory(parent, LinkOption.NOFOLLOW_LINKS)
@@ -94,7 +108,7 @@ public final class PinnedFileCancellationGrantTrustPolicyLoader {
         }
     }
 
-    private byte[] readOneBoundedSnapshot() throws IOException {
+    private static byte[] readOneBoundedSnapshot(Path policyFile) throws IOException {
         try (FileChannel channel = FileChannel.open(
                 policyFile, StandardOpenOption.READ, LinkOption.NOFOLLOW_LINKS)) {
             long declaredSize = channel.size();
@@ -323,6 +337,26 @@ public final class PinnedFileCancellationGrantTrustPolicyLoader {
         } catch (NoSuchAlgorithmException exception) {
             throw new IllegalStateException("SHA-256 is unavailable", exception);
         }
+    }
+
+    /** Canonical public policy and digest derived from one defensive byte snapshot. */
+    public static final class CanonicalSnapshot {
+        private final CancellationGrantTrustPolicy policy;
+        private final String sha256;
+        private final byte[] bytes;
+
+        private CanonicalSnapshot(
+                CancellationGrantTrustPolicy policy, String sha256, byte[] bytes) {
+            this.policy = Objects.requireNonNull(policy, "policy must not be null");
+            this.sha256 = lowercaseSha256(sha256);
+            this.bytes = Objects.requireNonNull(bytes, "bytes must not be null").clone();
+        }
+
+        public CancellationGrantTrustPolicy policy() { return policy; }
+
+        public String sha256() { return sha256; }
+
+        public byte[] bytes() { return bytes.clone(); }
     }
 
     private static final class Cursor {

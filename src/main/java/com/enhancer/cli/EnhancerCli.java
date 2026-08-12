@@ -35,7 +35,13 @@ import com.enhancer.run.FinalizedAgentRun;
 import com.enhancer.run.ResolvedRunRecord;
 import com.enhancer.run.RunRecord;
 import com.enhancer.runtime.AgentRunRetryPolicy;
+import com.enhancer.runtime.AuditBackedSignedCancellationAuthorizer;
 import com.enhancer.runtime.BoundedSchedulerService;
+import com.enhancer.runtime.CancellationApplicationRecord;
+import com.enhancer.runtime.CancellationGrantTrustPolicy;
+import com.enhancer.runtime.CancellationProofFileReader;
+import com.enhancer.runtime.ControlAuthorizationDeniedException;
+import com.enhancer.runtime.ControlRequestAuthorizer;
 import com.enhancer.runtime.ControlSpoolPublisher;
 import com.enhancer.runtime.DurableAgentRunWorker;
 import com.enhancer.runtime.DurableControlMessageReceiveResult;
@@ -47,12 +53,15 @@ import com.enhancer.runtime.DurableWorkSubmissionService;
 import com.enhancer.runtime.DurableWorkMessageReceiveResult;
 import com.enhancer.runtime.DurableWorkMessageReceiver;
 import com.enhancer.runtime.FileSystemAgentRuntimeStateStore;
+import com.enhancer.runtime.FileSystemAuthenticatedCancellationApplication;
+import com.enhancer.runtime.FileSystemCancellationAuthorizationAuditStore;
 import com.enhancer.runtime.FileSystemExternalEffectLedgerStore;
 import com.enhancer.runtime.FileSystemPendingFinalizationStore;
 import com.enhancer.runtime.FileSystemRuntimeEventPublisher;
 import com.enhancer.runtime.FileSystemRuntimeEventPointAcknowledger;
 import com.enhancer.runtime.FileSystemRuntimeEventPointReader;
 import com.enhancer.runtime.FileSystemRuntimeEventStore;
+import com.enhancer.runtime.FileSystemRuntimeEventPublicationConfiguration;
 import com.enhancer.runtime.FileSystemSchedulerQueueStore;
 import com.enhancer.runtime.FileSystemSubmissionManifestStore;
 import com.enhancer.runtime.ForegroundSchedulerDrain;
@@ -61,7 +70,10 @@ import com.enhancer.runtime.GeneratedSubmissionIdentities;
 import com.enhancer.runtime.GeneratedSubmissionRequest;
 import com.enhancer.runtime.MissingSchedulerQueueStateException;
 import com.enhancer.runtime.MissingAgentRuntimeStateException;
+import com.enhancer.runtime.InstalledCancellationTrustMetadata;
+import com.enhancer.runtime.InstalledCancellationTrustMetadataLoader;
 import com.enhancer.runtime.PendingFinalizationMigrationResult;
+import com.enhancer.runtime.PinnedFileCancellationGrantTrustPolicyLoader;
 import com.enhancer.runtime.ExternalEffectStatus;
 import com.enhancer.runtime.SchedulerDrainResult;
 import com.enhancer.runtime.SchedulerServiceResult;
@@ -103,6 +115,8 @@ import com.enhancer.workspace.WorkspaceSnapshot;
 import com.enhancer.workspace.WorkspaceSourceObservation;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
@@ -125,14 +139,36 @@ public final class EnhancerCli {
     private static final int MAX_ITERATIONS = 5;
     private static final int STAGNATION_THRESHOLD = 3;
     private final BrainComposer brainComposer;
+    private final CancellationTrustMetadataSource cancellationTrustMetadataSource;
+    private final Clock cancellationClock;
 
     public EnhancerCli() {
         this.brainComposer = this::composeBrain;
+        this.cancellationTrustMetadataSource = this::loadInstalledCancellationTrustMetadata;
+        this.cancellationClock = Clock.systemUTC();
     }
 
     EnhancerCli(BrainComposer brainComposer) {
+        this(
+                brainComposer,
+                () -> {
+                    throw new IOException(
+                            "installed cancellation trust metadata is unavailable");
+                },
+                Clock.systemUTC());
+    }
+
+    EnhancerCli(
+            BrainComposer brainComposer,
+            CancellationTrustMetadataSource cancellationTrustMetadataSource,
+            Clock cancellationClock) {
         this.brainComposer = Objects.requireNonNull(
                 brainComposer, "brainComposer must not be null");
+        this.cancellationTrustMetadataSource = Objects.requireNonNull(
+                cancellationTrustMetadataSource,
+                "cancellationTrustMetadataSource must not be null");
+        this.cancellationClock = Objects.requireNonNull(
+                cancellationClock, "cancellationClock must not be null");
     }
 
     public static void main(String[] arguments) {
@@ -214,6 +250,9 @@ public final class EnhancerCli {
             if (command instanceof SchedulerSubmitCliCommand submit) {
                 return executeSchedulerSubmit(submit, stdout);
             }
+            if (command instanceof SchedulerApplyCancelCliCommand cancel) {
+                return executeSchedulerApplyCancel(cancel, stdout);
+            }
             if (command instanceof GeneratedSubmitCliCommand generated) {
                 return executeGeneratedSubmit(generated, stdout);
             }
@@ -233,6 +272,12 @@ public final class EnhancerCli {
         } catch (DevelopmentSessionCheckpointConflictException exception) {
             writeError(stderr, CliExitCode.USAGE_OR_CONFIGURATION, exception.getMessage());
             return CliExitCode.USAGE_OR_CONFIGURATION.code();
+        } catch (CancellationCliConfigurationException exception) {
+            writeError(stderr, CliExitCode.USAGE_OR_CONFIGURATION, exception.getMessage());
+            return CliExitCode.USAGE_OR_CONFIGURATION.code();
+        } catch (ControlAuthorizationDeniedException exception) {
+            writeError(stderr, CliExitCode.POLICY_DENIED, exception.getMessage());
+            return CliExitCode.POLICY_DENIED.code();
         } catch (Exception exception) {
             writeError(stderr, CliExitCode.INTERNAL_ERROR, safeMessage(exception));
             return CliExitCode.INTERNAL_ERROR.code();
@@ -260,6 +305,96 @@ public final class EnhancerCli {
                 Optional.empty(),
                 resolution);
         return 0;
+    }
+
+    private int executeSchedulerApplyCancel(
+            SchedulerApplyCancelCliCommand command,
+            PrintStream stdout) throws IOException {
+        ControlRequestAuthorizer lazyAuthorizer = (goalId, retainedRequest) -> {
+            byte[] proof;
+            CancellationGrantTrustPolicy policy;
+            try {
+                proof = new CancellationProofFileReader().read(command.proofFile());
+                InstalledCancellationTrustMetadata metadata =
+                        cancellationTrustMetadataSource.load();
+                policy = new PinnedFileCancellationGrantTrustPolicyLoader(
+                        metadata.policyFile(), metadata.expectedSha256()).load();
+            } catch (IOException | IllegalArgumentException exception) {
+                throw new CancellationCliConfigurationException(
+                        "scheduler-apply-cancel configuration is invalid: "
+                                + safeMessage(exception),
+                        exception);
+            }
+            return new AuditBackedSignedCancellationAuthorizer(
+                    proof,
+                    policy,
+                    cancellationClock,
+                    new FileSystemCancellationAuthorizationAuditStore(
+                            command.authorizationAuditRoot()))
+                    .authorize(goalId, retainedRequest);
+        };
+        FileSystemAuthenticatedCancellationApplication application =
+                command.runtimeEventPublication()
+                        .map(configuration ->
+                                new FileSystemAuthenticatedCancellationApplication(
+                                        command.runtimeRoot(),
+                                        cancellationClock,
+                                        lazyAuthorizer,
+                                        runtimeEventConfiguration(configuration)))
+                        .orElseGet(() ->
+                                new FileSystemAuthenticatedCancellationApplication(
+                                        command.runtimeRoot(),
+                                        cancellationClock,
+                                        lazyAuthorizer));
+        final CancellationApplicationRecord record;
+        try {
+            record = application.apply(command.goalId(), command.controlMessageId());
+        } catch (MissingAgentRuntimeStateException | IllegalArgumentException exception) {
+            throw new CliUsageException(
+                    "scheduler-apply-cancel input is invalid: "
+                            + safeMessage(exception),
+                    exception);
+        }
+        writeBounded(stdout, String.join("\n",
+                "status=CANCELLATION_APPLIED",
+                "exitCode=0",
+                "goalId=" + record.goalId(),
+                "controlMessageId=" + record.controlMessageId(),
+                "authorizationId=" + record.authorizationId(),
+                "actorId=" + record.actorId(),
+                "agentRunId=" + record.agentRunId(),
+                "authorizedAt=" + record.authorizedAt(),
+                "appliedAt=" + record.appliedAt(),
+                "reference=" + record.reference()) + "\n");
+        return 0;
+    }
+
+    private static FileSystemRuntimeEventPublicationConfiguration
+            runtimeEventConfiguration(
+                    RuntimeEventPublicationCliConfiguration configuration) {
+        return new FileSystemRuntimeEventPublicationConfiguration(
+                configuration.runtimeEventRoot(),
+                configuration.publicationRoot(),
+                configuration.maxPendingPublications());
+    }
+
+    private InstalledCancellationTrustMetadata loadInstalledCancellationTrustMetadata()
+            throws IOException {
+        try {
+            URI location = EnhancerCli.class.getProtectionDomain()
+                    .getCodeSource()
+                    .getLocation()
+                    .toURI();
+            if (!"file".equals(location.getScheme())) {
+                throw new IOException(
+                        "Enhancer application CodeSource must use the file scheme");
+            }
+            Path applicationJar = Path.of(location).toAbsolutePath().normalize();
+            return new InstalledCancellationTrustMetadataLoader(applicationJar).load();
+        } catch (URISyntaxException | IllegalArgumentException exception) {
+            throw new IOException(
+                    "Enhancer application CodeSource is not an installed JAR", exception);
+        }
     }
 
     private int executeRuntimeEventAcknowledge(
@@ -1563,6 +1698,16 @@ public final class EnhancerCli {
             long graphDecisions,
             int impactExecutions,
             int impactDecisions) {
+    }
+
+    private static final class CancellationCliConfigurationException
+            extends IOException {
+        private static final long serialVersionUID = 1L;
+
+        private CancellationCliConfigurationException(
+                String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 
     private CliExitCode exitCode(RunRecord record) {

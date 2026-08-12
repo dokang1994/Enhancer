@@ -1,5 +1,68 @@
 # Changelog
 
+## 2026-08-12 - Add The Separate Cancellation Trust Operator Main
+
+- Added `CancellationTrustMaintenanceOperator` as a distinct Java main outside
+  `EnhancerCli`, scheduler, runtime, audit, and event authority. Its exact install/rotate
+  grammar rejects unknown, duplicate, reordered, relative, control-bearing, overlong,
+  and operation-incompatible inputs before state-machine invocation.
+- Added finite typed maintenance reasons and bounded stack-free output. Direct JVM
+  success exits `0`, configuration exits `2`, safe existing-binding/lock/stale refusal
+  exits `20`, and durability/unexpected failure exits `70` without parsing or exposing
+  exception details.
+- Added a repository-local `cancellationTrustMaintenance` Gradle `JavaExec` selector
+  while preserving `EnhancerCli` as the application main and adding no installed start
+  script/distribution. All invocations were isolated temporary-tree tests; no real
+  installation, permission, cleanup, deployment, commit, push, or merge occurred.
+
+## 2026-08-12 - Implement Installed Cancellation Trust Maintenance
+
+- Added an unexposed `com.enhancer.maintenance` INSTALL/ROTATE state machine outside
+  runtime and CLI authority. It derives the policy digest from one bounded canonical
+  public-only snapshot, publishes immutable content-addressed policy first, and switches
+  canonical fixed metadata last through required atomic moves.
+- Added a persistent stateless nonblocking installation lock, initial/final metadata
+  CAS, no-write exact replay including lost-success-response recovery, production-reader
+  revalidation, collision refusal, and retained non-authoritative candidates with no
+  fallback, rollback, overwrite, scan, or cleanup.
+- Added isolated temporary-tree failure injection, contention, stale/drift, replay,
+  corruption/private/symbolic-path, collision, retention, snapshot-invariant, and
+  runtime-separation tests. No production launcher, real installation write, permission
+  change, deployment, cleanup, commit, push, or merge was performed.
+
+## 2026-08-12 - Specify Installed Cancellation Trust Maintenance
+
+- Specified a future operator-only public trust maintenance boundary separate from
+  `EnhancerCli`, `scheduler-*`, runtime requests, proofs, audit, AgentRuntime, and events.
+  Metadata v1 remains unchanged and the new pin must be computed internally from one
+  exact validated canonical public-policy snapshot.
+- Fixed policy-first/fixed-metadata-last atomic publication, content-addressed retained
+  policies, INSTALL refusal, ROTATE nonblocking lock plus expected-current metadata CAS,
+  exact replay, stale-writer refusal, and an old-or-exact-new failure matrix with no
+  automatic fallback, rollback, overwrite, cleanup, or private material.
+- Corrected the stale current-state limitation that still described the installed trust
+  binding and supported cancellation CLI as absent. This specification added no writer,
+  installation mutation, permission/security-control change, credential handling,
+  rotation execution, privileged anti-rollback claim, commit, or external delivery.
+
+## 2026-08-12 - Bind Installed Cancellation Trust And Compose The CLI
+
+- Added a strict bounded installation metadata loader anchored only to the exact-real
+  non-symbolic Enhancer application JAR and its fixed trust-metadata sibling. The
+  canonical metadata supplies the absolute policy path and independently protected
+  lowercase SHA-256 without CLI, environment/JVM, working-directory, repository,
+  request, proof, or ambient-identity discovery.
+- Added `scheduler-apply-cancel` over the existing pinned policy, signed exact-request
+  authorizer, deterministic authorization audit, filesystem application, and optional
+  event publisher. A lazy authorizer preserves terminal replay without transient proof
+  or trust reads; success exposes bounded durable metadata, denial exits `20`, invalid
+  input/installation configuration exits `2`, and unexpected durable failure exits `70`.
+- Added bounded no-follow proof-file reading and focused coverage for metadata format/
+  anchor failures, trust-override rejection, signed application, denial/configuration
+  isolation, and event suffix recovery after proof and policy deletion. No metadata or
+  policy writer, installer, private key, credential, queue/process/Tool/effect
+  cancellation, `PAUSE`/`RESUME`, commit, or external delivery was added.
+
 ## 2026-08-12 - Deliver The Pinned Cancellation Trust Policy Loader To Main
 
 - Delivered the independently pinned canonical public-only cancellation trust-policy

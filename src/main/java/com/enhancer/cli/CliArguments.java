@@ -143,6 +143,12 @@ final class CliArguments {
             "goal-id");
     private static final Set<String> SCHEDULER_RECEIVE_CONTROL_OPTIONAL_OPTIONS =
             SCHEDULER_EXECUTION_OPTIONAL_OPTIONS;
+    private static final Set<String> SCHEDULER_APPLY_CANCEL_OPTIONS = Set.of(
+            "runtime-root",
+            "goal-id",
+            "control-message-id",
+            "proof-file",
+            "authorization-audit-root");
     private static final Set<String> SCHEDULER_SPOOL_WORK_OPTIONS = Set.of(
             "project-root",
             "transport-spool-root",
@@ -220,6 +226,7 @@ final class CliArguments {
                             + "scheduler-external-effect-status, "
                             + "scheduler-invocation-status, scheduler-cycle, "
                             + "scheduler-drain, scheduler-service, "
+                            + "scheduler-apply-cancel, "
                             + "scheduler-receive-work, scheduler-receive-control, "
                             + "scheduler-spool-work, scheduler-spool-control, "
                             + "scheduler-migrate-cycle-checkpoint, "
@@ -301,6 +308,11 @@ final class CliArguments {
                             arguments,
                             SCHEDULER_RECEIVE_CONTROL_OPTIONS,
                             SCHEDULER_RECEIVE_CONTROL_OPTIONAL_OPTIONS));
+            case "scheduler-apply-cancel" -> parseSchedulerApplyCancel(
+                    parseOptions(
+                            arguments,
+                            SCHEDULER_APPLY_CANCEL_OPTIONS,
+                            SCHEDULER_EXECUTION_OPTIONAL_OPTIONS));
             case "scheduler-spool-work" -> parseSchedulerSpoolWork(
                     parseOptions(arguments, SCHEDULER_SPOOL_WORK_OPTIONS));
             case "scheduler-spool-control" -> parseSchedulerSpoolControl(
@@ -336,6 +348,19 @@ final class CliArguments {
                 nonBlank(options.single().get("step"), "step"),
                 nonBlank(options.single().get("next-action"), "next-action"),
                 options.repeated().getOrDefault("artifact", List.of()));
+    }
+
+    private static SchedulerApplyCancelCliCommand parseSchedulerApplyCancel(
+            Map<String, String> options) {
+        return new SchedulerApplyCancelCliCommand(
+                path(options.get("runtime-root"), "runtime-root"),
+                canonicalUuid(options.get("goal-id"), "goal-id"),
+                canonicalUuid(
+                        options.get("control-message-id"), "control-message-id"),
+                path(options.get("proof-file"), "proof-file"),
+                path(options.get("authorization-audit-root"),
+                        "authorization-audit-root"),
+                optionalRuntimeEventPublication(options));
     }
 
     private static CheckpointRecordCliCommand parseCheckpointRecord(String[] arguments) {

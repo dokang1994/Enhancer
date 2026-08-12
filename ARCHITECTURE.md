@@ -445,15 +445,54 @@ runtime record remains terminal historical truth and keeps its existing authoriz
 bypassing suffix recovery after expiry, rotation, or revocation; missing audit is
 reported as degraded rather than fabricated from the smaller runtime record.
 
-The named first future consumer is a separately authorized production CLI
-cancellation-application command (working name `scheduler-apply-cancel`). It accepts
-only Goal, retained Control-message identity, and proof path as untrusted request input,
-receives the verifier and trust policy from its independent trusted composition root,
-and calls the shared filesystem application. Existing spool/receive commands remain
-transport and admission only. Binding the pinned loader to protected installed metadata
-and composing the CLI, and creating credentials, private-key handling, IdP/session
-integration, trust-store mutation, queue disposition, process signalling, or
-pause/resume remain separate authorized work.
+The first production consumer is `scheduler-apply-cancel`. It accepts runtime and audit
+storage roots, canonical Goal and retained Control-message identities, and one proof
+file, plus the existing optional all-or-none event publication group. It cannot accept
+trust path/pin/metadata, clock, issuer/key/actor, credential, or approval overrides.
+Production derives a sole installation anchor from the exact-real non-symbolic JAR
+CodeSource for `EnhancerCli`, then reads only its fixed sibling
+`enhancer-cancellation-trust-metadata-v1`. That strict bounded canonical UTF-8 point
+contains the absolute normalized policy path and lowercase SHA-256 consumed by the
+pinned loader. The JAR, metadata, and ancestor installation directories are assumed to
+be deployment-protected from the runtime principal; portable ACL/owner inspection is
+not approval authority, and missing or exploded installation state fails closed.
+
+The command injects a lazy authorizer into the shared filesystem application. Only a
+new authorization attempt reads one exact-real no-follow proof snapshot, installed
+metadata, and a fresh pinned public policy before signed verification and deterministic
+audit. A retained terminal cancellation bypasses those transient inputs and may repair
+the event/publication suffix after proof expiry, trust rotation, revocation, or source
+unavailability. Success reports the bounded durable application record as
+`CANCELLATION_APPLIED` without guessing first application versus replay or exposing
+proof/trust material. Input and installed configuration failures exit `2`, signed-policy
+denial exits `20`, and unexpected durable storage/publication failure exits `70`.
+Existing spool/receive commands remain transport and admission only. Metadata/policy
+writers, provisioning, permissions, rotation and application-version anti-rollback,
+credentials, private-key handling, IdP/session integration, trust-store mutation, queue
+disposition, process signalling, Tool/effect cancellation, and pause/resume remain
+separate authorized work.
+
+The implemented operator-maintenance state machine is separate from that runtime
+surface. `CancellationTrustMaintenanceOperator` is its distinct operator-only Java main,
+selected only by the fixed repository-local `cancellationTrustMaintenance` Gradle
+`JavaExec` task; it is not an `EnhancerCli`/scheduler/runtime command or an installed
+distribution launcher. It keeps metadata v1, computes the new pin internally from one validated
+canonical public-only policy snapshot, publishes an immutable content-addressed policy
+first, and switches the sole fixed metadata point last through a validated same-
+directory candidate and required atomic move. INSTALL refuses an existing binding;
+ROTATE holds one installation-scoped nonblocking operating-system lock and requires the
+expected digest of complete current metadata as compare-and-swap, rechecking it just
+before the switch. Exact current rotation replays without rewrite, stale rotation is
+refused, old public policies are retained, and no failure triggers fallback, rollback,
+overwrite, or cleanup. The lock and CAS prevent cooperative lost updates, not a
+privileged rollback: real application-version anti-rollback requires a separately
+protected monotonic release/package/keystore/TPM anchor. The detailed phase and recovery
+contract is in `docs/cancellation-trust-maintenance.md`. The repository implementation
+and launcher have been verified only in test-owned temporary installation trees. Typed
+finite maintenance reasons map direct-JVM results to success `0`, configuration `2`,
+safe refusal `20`, or durability `70`; Gradle selects the main class but does not promise
+to propagate child exit codes unchanged. No installed start script, real-install
+invocation, permission change, cleanup, or deployment is implemented or performed.
 
 The supported Control producer is intentionally narrower than authenticated control.
 `ControlSpoolPublisher`, exposed through one `scheduler-spool-control` point command,

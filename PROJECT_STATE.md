@@ -272,11 +272,28 @@ it does not restate which commit published which increment.
   independently injected complete-file SHA-256, strictly parses and internally
   re-encodes the same canonical UTF-8 public-only Ed25519 policy bytes, and derives
   `configurationRevision` from that digest. It has no writer, discovery, fallback,
-  cache, private material, or supported interface binding. Protected installed
-  path/pin metadata, private signing material, credential issuance, proof production,
-  CLI/API/editor/Desktop authentication adapters, process signalling, queue
-  disposition, Tool/effect cancellation, `PAUSE`/`RESUME`, and event consumption
-  remain absent.
+  cache, or private material. The supported production `scheduler-apply-cancel` CLI now
+  binds that loader only through a strict bounded fixed metadata sibling of the exact-
+  real installed Enhancer JAR CodeSource. It accepts runtime/audit storage, canonical
+  Goal/retained-Control identities, a bounded no-follow proof file, and the optional
+  all-or-none event group, while rejecting request-selected trust, actor, clock, issuer,
+  key, credential, or approval overrides. Lazy authorizer composition preserves
+  terminal replay without proof/trust reads and can repair optional event publication.
+  Named real-filesystem tests prove signed proof -> audit -> runtime application,
+  denial/configuration isolation, and suffix recovery after proof/policy deletion.
+  The separate `com.enhancer.maintenance` state machine is Contract Verified in
+  isolated temporary installation trees: INSTALL and ROTATE derive one public policy
+  digest internally from the canonical snapshot, publish immutable content-addressed
+  policy before canonical fixed metadata, serialize cooperative writers with a
+  persistent stateless lock, reject stale CAS, and exact-replay without rewrite,
+  fallback, rollback, overwrite, scan, or cleanup. A production launcher, real
+  operator Java main and repository-local Gradle selector are Contract Verified with
+  strict arguments, bounded public output, typed direct-JVM exit `2`/`20`/`70`, and zero
+  runtime CLI coupling. Installed launcher packaging, real installer/provisioning and
+  permission mutation, real-install rotation/application anti-rollback,
+  private signing material, credential issuance, proof production, API/editor/Desktop
+  authentication adapters, process signalling, queue disposition, Tool/effect
+  cancellation, `PAUSE`/`RESUME`, and event consumption remain absent.
 - Delivery Gate 8 lease-timeout fact and runtime-event path: AgentRuntime schema v4
   retains at most 256 ordered exact `LeaseTimeoutRecord` values. Expired
   `EXECUTING -> READY` reclamation atomically appends the current AgentRun, owner,
@@ -792,11 +809,11 @@ system, not open tasks; each is retired only by a bounded increment of its own.
   observation acknowledgement exist separately; no arbitrary handler or application
   consumer is composed. Authenticated cancellation now has one supported shared
   filesystem application surface with a mandatory injected trusted authorizer and
-  optional all-or-none event publication plus a Contract Verified independently pinned
-  read-only public trust-policy loader seam. The loader is not yet bound to protected
-  installed path/pin metadata, so there is still no credential provider, supported
-  CLI/API/editor/Desktop authentication adapter, process signal, or cancelled queue
-  disposition.
+  optional all-or-none event publication plus the installed-pinned public trust-policy
+  binding and supported `scheduler-apply-cancel` CLI described above. There is still no
+  operator provisioning/rotation surface, installer or permission mutation, privileged
+  application-version anti-rollback anchor, credential provider, API/editor/Desktop
+  authentication adapter, process signal, or cancelled queue disposition.
 - `runtime-event-read` is an explicit read-only point consumer. It does not acknowledge
   or rename a publication, release publisher capacity, retain a consumer offset or
   receipt, scan for work, apply an event, or define cleanup/retention. The separate

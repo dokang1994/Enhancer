@@ -1033,10 +1033,24 @@ Contract Verified authenticated-interface core:
   parses only the same strict canonical UTF-8 public-only Ed25519 snapshot, and derives
   its configuration revision from the digest without a writer, discovery, fallback, or
   cache;
-- the first future consumer is a separately authorized production CLI cancellation-
-  application command. Protected installed path/pin metadata, proof production/private
-  keys, CLI composition, credentials, IdP/session integration, queue/process behavior,
-  and pause/resume remain unimplemented, so Gate 12 remains Planned.
+- the first production consumer is the supported `scheduler-apply-cancel` CLI. It binds
+  path/pin only from a fixed strict bounded sibling of the exact installed JAR, reads one
+  bounded no-follow proof, composes the signed authorizer/audit/filesystem application,
+  preserves authorization-bypassing terminal replay, and optionally publishes the
+  existing event. It exposes no request-selected trust, actor, key, clock, credential,
+  or approval field;
+- the operator-maintenance state machine is now Contract Verified as an unexposed
+  library separate from runtime, with a distinct Contract Verified Java operator main
+  selected only by one repository-local Gradle task: it keeps metadata v1, derives the pin internally,
+  publishes content-addressed policy before fixed metadata, distinguishes INSTALL
+  refusal from ROTATE persistent stateless lock plus expected-current CAS, exact-replays
+  current binding including lost-response recovery, retains old artifacts, and makes no
+  automatic rollback or privileged anti-rollback claim;
+- installed operator start-script/distribution packaging, real installer/provisioning
+  and permission mutation, real-install rotation execution/application anti-rollback,
+  proof production/private keys, credentials, IdP/session integration, API/editor/
+  Desktop authentication, queue/process/Tool/effect behavior, and pause/resume remain
+  unimplemented, so Gate 12 remains Planned.
 
 Scope:
 

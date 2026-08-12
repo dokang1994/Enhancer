@@ -4722,3 +4722,157 @@ Outcome:
 - Git history owns the subsequent task-closure commit identity. No implementation,
   architecture, capability maturity, roadmap position, next-task scope, or host-only
   handoff fact changed during closure.
+
+## 2026-08-12 - Installed Cancellation Trust And CLI Composition Verification
+
+- Session activation reread repository authority in required order, recovered an empty
+  checkpoint, and proved the clean local and remote `main` refs equal at
+  `3367c987fc1d3aaab5ead506e5c243dfad3bbd25` with divergence `0 0`. Two bounded
+  read-only reviews joined and independently recommended the fixed installed-JAR anchor,
+  strict metadata/proof readers, request surface, exit mapping, and lazy replay-safe
+  authorizer composition used by the accepted contract.
+- Focused RED failed at test compilation on only the absent installed metadata loader,
+  proof reader, and CLI command types. Minimum implementation then passed the four new
+  suites: 11 tests, zero failures/errors/skips. The real-filesystem integration proves
+  signed proof -> deterministic audit -> terminal runtime application and optional
+  event suffix repair after deleting proof and policy and replacing the trust source
+  with one that must not be called. Malformed proof exits `20` and unavailable installed
+  trust exits `2` without audit/runtime/event mutation.
+- Fresh focused CLI, metadata/proof, pinned-loader/application, signed-authorizer, and
+  architecture regressions emitted 10 suites and ran 38 tests: 37 passed, one Windows
+  symbolic-link setup case skipped, and zero failed or errored. Fresh post-document
+  Decision Log, document-ownership, Dynamic Workflow, and runtime package-boundary
+  verification passed all 11 tests.
+- Fresh Java 17 `clean build --no-daemon --console=plain` completed in 7 minutes 55
+  seconds with all 8 Gradle tasks executed. It ran 772 tests across 150 suites: 762
+  passed, 10 Windows environment-dependent cases skipped, and zero failed or errored.
+  `git diff --check` produced no output.
+- A subsequent governance rerun found one document-only RED: `CURRENT_TASK.md` still
+  declared the parent `In Progress` after all four increments became `Completed`.
+  The parent status was corrected to `Completed`; no implementation or test contract
+  changed. Fresh Java 17 `clean build` then completed in 7 minutes 40 seconds with all
+  8 tasks executed over the final document state and again ran 772 tests across 150
+  suites: 762 passed, 10 skipped, and zero failed or errored. This final run supersedes
+  the document-only RED, and `git diff --check` again produced no output.
+- The implementation changes only the installed public trust binding, bounded proof
+  read, supported cancellation CLI composition, focused tests, accepted decisions, and
+  owning architecture/state/task/roadmap/readme/handoff/changelog documents. No
+  metadata/policy writer, installer, permission mutation, private key, credential,
+  queue/process/Tool/effect cancellation, `PAUSE`/`RESUME`, commit, push, merge,
+  release, deployment, paid service, or external message was performed.
+
+## 2026-08-12 - Installed Cancellation Trust Maintenance Specification Verification
+
+- Required repository authority was reread, `checkpoint-show` returned `EMPTY`, and
+  local `HEAD`, `main`, and `origin/main` remained equal at
+  `3367c987fc1d3aaab5ead506e5c243dfad3bbd25` with divergence `0 0`. The existing 23
+  changed paths from the prior completed installed-trust/CLI increment were preserved.
+- One bounded read-only security review joined. It confirmed that actual installed-file
+  writes and permission/security-control mutation require separate explicit authority,
+  recommended metadata v1 plus separate operator/runtime principals, internally derived
+  pin, content-addressed policy-first/metadata-last publication, INSTALL refusal,
+  ROTATE lock plus expected-current metadata CAS, exact replay and artifact retention,
+  and rejected local generation fields as a privileged anti-rollback claim.
+- Fresh Decision Log, document-ownership, Dynamic Workflow, and runtime package-boundary
+  verification passed all 11 tests. Structural verification found all 10 required
+  maintenance-contract headings and all 8 declared failure/recovery rows, zero stale
+  current-state claims, zero production maintenance implementations, zero runtime
+  maintenance options, zero unexpected changed paths, and no diff-check finding.
+- One earlier structural command incorrectly classified the prior completed CLI Java
+  diff as new specification implementation after its 11 governance tests had passed.
+  It changed nothing and was superseded by a baseline-aware changed-path allowlist plus
+  direct searches for maintenance writer types and runtime CLI options.
+- The first final-document governance run then found one real document-only RED: the
+  parent task still said `In Progress` after all three increments became `Completed`.
+  The parent status was corrected to `Completed`; no specification or implementation
+  contract changed, and fresh final verification follows in this entry.
+- Fresh final Decision Log, document-ownership, Dynamic Workflow, and runtime package-
+  boundary verification then passed all 11 tests. The structural checks again found all
+  10 required headings and 8 failure rows, zero stale claims, zero maintenance writer or
+  runtime option, and no `git diff --check` finding.
+- The specification keeps metadata v1, separates operator maintenance from runtime,
+  requires old-or-exact-new loadability, and explicitly leaves real provisioning,
+  rotation execution, permission enforcement, cleanup, and privileged rollback defense
+  unimplemented. No Java production/test behavior, real installation state, permission,
+  credential, private key, commit, push, merge, release, deployment, paid service, or
+  external message was changed.
+
+## 2026-08-12 - Installed Cancellation Trust Maintenance State Machine Verification
+
+- Required authority was reread in repository order, `checkpoint-show` returned `EMPTY`,
+  and `HEAD`, local `main`, and `origin/main` remained equal at
+  `3367c987fc1d3aaab5ead506e5c243dfad3bbd25` with divergence `0 0`. Existing prior
+  installed-trust/CLI changes were preserved; no commit or external delivery occurred.
+- One bounded read-only security review joined. It found and helped resolve two contract
+  contradictions: the fixed operating-system lock artifact is persistent and stateless,
+  so only active contention refuses; and exact-new no-write replay precedes stale-CAS
+  refusal so an atomic rotation whose response was lost is recoverable. It also required
+  private snapshot constructors, defensive byte access, pre-switch exact policy/path
+  revalidation, portable-Java atomic-move limits, and runtime/launcher separation.
+- Focused RED failed at test compilation on only 65 absent maintenance implementation
+  symbols. An earlier implementation draft briefly crossed the sequential workflow
+  cursor before RED was finalized; that checkpoint step was recorded failed, the
+  implementation was removed, the genuine RED boundary was restored, and increments
+  then proceeded sequentially through focused INSTALL and ROTATE GREEN evidence.
+- Focused final verification ran 25 tests across maintenance, production trust/metadata
+  snapshots, and runtime-separation suites with zero failures. It covered INSTALL,
+  ROTATE, persistent-lock contention, initial/final CAS, no-write exact replay, lost-
+  response recovery, every declared injected failure boundary, content-addressed
+  collision, private/unknown content, symbolic path where supported, missing/corrupt
+  current state, old/new-only loadability, and abandoned candidate retention in isolated
+  JUnit temporary installation trees.
+- The first full regression correctly failed one of 787 tests because the Active Task's
+  user-continuation heading lacked its matching Accepted Decision index entry. The
+  missing decision/index pair was added, and fresh Decision Log, document-ownership,
+  Dynamic Workflow, runtime-boundary, and maintenance-separation verification passed.
+- Fresh final Java 17 `test --no-daemon --console=plain` completed in 7 minutes 21
+  seconds and ran 787 tests across 152 suites: 777 passed, 10 environment-dependent
+  cases skipped, and zero failed or errored. `git diff --check` produced no output, and
+  direct CLI/build searches found zero maintenance package or command exposure.
+- The implementation remains an unexposed library verified only against test-owned
+  temporary paths. No production launcher, real installation write/rotation, ACL,
+  owner/permission/security-control change, cleanup, deployment, privileged anti-
+  rollback anchor, private key, credential, commit, push, merge, release, paid service,
+  or external message was performed.
+
+## 2026-08-12 - Cancellation Trust Operator Main Verification
+
+- Required authority was reread in repository order, `checkpoint-show` returned `EMPTY`,
+  and local `HEAD`, `main`, and `origin/main` remained equal at
+  `3367c987fc1d3aaab5ead506e5c243dfad3bbd25` with divergence `0 0`. Prior uncommitted
+  installed-trust/CLI/maintenance work was preserved.
+- One bounded read-only security review joined after the new Active Task and Accepted
+  Decisions authorized only the repository-local operator main, Gradle selector, and
+  temporary-tree tests. It required exact ordered arguments, no defaults/fallbacks,
+  reason-owned failure categories, bounded token-only errors, path control/length
+  rejection, direct-JVM exit verification, and preservation of the runtime application
+  main and distribution boundary.
+- Focused RED first failed on seven absent launcher/failure symbols. After adding finite
+  failure reasons it narrowed to the sole absent operator class, proving the typed source
+  contract compiled before launcher implementation.
+- Focused final verification ran 22 tests across operator, state-machine, and separation
+  suites with zero failures. It proved INSTALL, ROTATE exact replay without timestamp or
+  byte rewrite, existing binding, active lock contention, stale CAS, invalid/private
+  candidate and missing installation classification, injected durability isolation,
+  bounded/control-safe output, and direct child-JVM exit `2`, `20`, and `70` using only
+  JUnit-owned temporary installation trees.
+- The first focused GREEN attempt correctly failed only because the previous
+  architecture guard banned any maintenance main in `build.gradle`. The guard was
+  refined, not removed: `application.mainClass` remains `EnhancerCli`, exactly one fixed
+  `cancellationTrustMaintenance` `JavaExec` task selects the operator main, no
+  start-script/distribution configuration exists, CLI source has no maintenance name or
+  import, and the operator has no CLI/runtime/scheduler/audit/event dependency.
+- Fresh full Java 17 `test --no-daemon --console=plain` completed in 7 minutes 19 seconds
+  and ran 796 tests across 153 suites: 786 passed, 10 environment-dependent cases
+  skipped, and zero failed or errored. Fresh Decision Log, document ownership, Dynamic
+  Workflow, runtime-boundary, and launcher-separation tests then passed; `git diff
+  --check` emitted no finding and runtime CLI maintenance search returned zero hits.
+- The Gradle task is a repository-local main selector; Gradle may translate a nonzero
+  child exit into task failure, so exact exit-code claims belong to the directly tested
+  Java process and the emitted `exitCode` token. No installed launcher, distribution,
+  real installation write/rotation, ACL/permission change, cleanup, deployment, external
+  anti-rollback, commit, push, merge, release, paid service, or external message occurred.
+- Session close document synchronization was briefly blocked when the Windows sandbox
+  write helper was canceled four times. The active checkpoint recorded `STEP_FAILED`
+  with zero artifact mismatch; a later continuation recovered revision 10, reread all
+  authority, confirmed the unchanged worktree, and appended this entry once.

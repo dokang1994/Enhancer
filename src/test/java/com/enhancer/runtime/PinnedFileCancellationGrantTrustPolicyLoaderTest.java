@@ -32,6 +32,22 @@ class PinnedFileCancellationGrantTrustPolicyLoaderTest {
     Path temporaryRoot;
 
     @Test
+    void canonicalSnapshotDefensivelyOwnsItsBytesAndDigest() throws Exception {
+        KeyPair keyPair = ed25519();
+        byte[] content = canonicalPolicy(keyPair, "-");
+        Path path = write("snapshot.conf", content);
+
+        PinnedFileCancellationGrantTrustPolicyLoader.CanonicalSnapshot snapshot =
+                PinnedFileCancellationGrantTrustPolicyLoader.readCanonicalSnapshot(path);
+        byte[] exposed = snapshot.bytes();
+        exposed[0] ^= 1;
+
+        assertEquals(sha256(content), snapshot.sha256());
+        assertArrayEquals(content, snapshot.bytes());
+        assertEquals(snapshot.sha256(), snapshot.policy().configurationRevision());
+    }
+
+    @Test
     void loadsCanonicalPinnedPublicPolicyAndDerivesConfigurationRevision()
             throws Exception {
         KeyPair keyPair = ed25519();

@@ -10,7 +10,7 @@ the active task in `CURRENT_TASK.md`, and delivery history in `CHANGELOG.md` and
 
 ## Updated At
 
-2026-08-06
+2026-08-12
 
 ## Session-Only State
 
@@ -25,3 +25,10 @@ the active task in `CURRENT_TASK.md`, and delivery history in `CHANGELOG.md` and
 - On this host a focused `scripts/gradle.ps1 test` invocation without `--no-daemon`
   produced complete test XML but did not return through the outer PowerShell wrapper.
   Supplying `--no-daemon` returned normally after stopping its single-use daemon.
+- Windows atomic file moves and overlapping `FileLock` contention are supported by this
+  host's test filesystem; maintenance verification used only JUnit-owned temporary
+  installation trees and did not address any real installation path.
+- The direct JVM operator subprocess tests preserve exit codes `2`, `20`, and `70` on
+  this host. The Gradle `JavaExec` task selects the operator main but Gradle may translate
+  a nonzero child exit to its own task-failure code; the emitted `exitCode` token retains
+  the operator classification.
