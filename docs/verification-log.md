@@ -4671,3 +4671,36 @@ Outcome:
   proof producer, queue/process/Tool/effect cancellation, pause/resume, commit, push,
   merge, release, deployment, destructive action, paid service, external message,
   cleanup/retention, or unrelated implementation was introduced or performed.
+
+## 2026-08-12 - Deliver The Pinned Cancellation Trust Policy Loader To Main
+
+- Required repository authority and the empty recovery checkpoint were reconciled
+  against the completed 15-path loader boundary before a delivery decision and Active
+  Task were added. Two bounded read-only reviews joined without mutation. They found no
+  implementation, secret, generated-artifact, scope, topology, or staging blocker
+  after the primary moved the loader verification entry to the append-only log EOF.
+- Fresh `git fetch origin main --prune` proved `HEAD`, local `main`, `origin/main`,
+  `FETCH_HEAD`, and merge base equal
+  `59d644ddc46fdb49f505eaf932464b3e44e9a915`, with divergence `0 0` and successful
+  remote-ancestor proof before delivery verification.
+- Fresh focused loader/application plus Decision Log, document-ownership, Dynamic
+  Workflow, and runtime package-boundary verification ran 21 tests across 6 suites: 20
+  passed, one Windows symbolic-link setup case skipped, and zero failed or errored.
+  Fresh Java 17 `clean build --no-daemon --console=plain` completed in 8 minutes 32
+  seconds with all 8 Gradle tasks executed and ran 761 tests across 146 suites: 751
+  passed, 10 Windows environment-dependent cases skipped, and zero failed or errored.
+- Exact staging covered 16 paths, cached `git diff --check` produced no output, and no
+  unstaged or untracked residue remained. Ordinary non-amending commit
+  `c3fc29313b862d4b35361cea05b8eb66259c37a5` contains exactly those paths over parent
+  `59d644ddc46fdb49f505eaf932464b3e44e9a915`.
+- A fresh pre-push fetch kept remote `main` at the candidate parent with divergence
+  `0 1` in `origin/main...HEAD` order and successful ancestry. Non-force
+  `git push origin main:main` advanced remote `main` from `59d644d` to `c3fc293`; a
+  fresh post-push fetch proved exact `HEAD`, local-main, remote-main, `FETCH_HEAD`, and
+  merge-base identity at the candidate with divergence `0 0`. This linear direct-main
+  update is the requested merge result and no synthetic merge commit exists.
+- The authorized follow-up changes only `CURRENT_TASK.md`, `CHANGELOG.md`, and this
+  append-only verification log. No force push, amend, rebase, reset, history rewrite,
+  tag, release, deployment, pull request, issue, branch deletion, destructive cleanup,
+  permission or credential change, paid service, external message, or unrelated work
+  was performed.

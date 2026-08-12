@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-08-12 - Deliver The Pinned Cancellation Trust Policy Loader To Main
+
+- Delivered the independently pinned canonical public-only cancellation trust-policy
+  loader and exact authorization-audit replay correction in ordinary commit
+  `c3fc29313b862d4b35361cea05b8eb66259c37a5`.
+- Advanced `origin/main` linearly from `59d644d` to `c3fc293` through a non-force push;
+  a fresh fetch proved exact local/remote/fetched/merge-base identity, zero divergence,
+  and no synthetic merge commit.
+- Delivery synchronization changes only the owning task, changelog, and append-only
+  verification evidence. Protected installed pin metadata and
+  `scheduler-apply-cancel` remain the next separately authorized task.
+
 ## 2026-08-11 - Implement The Pinned Cancellation Trust Policy Loader
 
 - Added `PinnedFileCancellationGrantTrustPolicyLoader`, requiring an absolute normalized

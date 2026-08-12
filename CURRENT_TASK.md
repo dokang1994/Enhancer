@@ -109,7 +109,7 @@ Next Action: Stage exactly the reviewed candidate and create the implementation 
 
 ### Increment 2 - commit-and-push-candidate
 
-State: In Progress
+State: Completed
 Depends On: review-and-verify-candidate
 Scope: Stage only the reviewed paths, create one ordinary implementation commit, and
 advance `origin/main` with a non-force push after a fresh remote-parent check.
@@ -121,7 +121,7 @@ Next Action: Synchronize and deliver only post-push evidence-owning documents.
 
 ### Increment 3 - synchronize-delivery-evidence
 
-State: Pending
+State: In Progress
 Depends On: commit-and-push-candidate
 Scope: Record the actual delivery facts in the task, changelog, and append-only
 verification log; verify, commit, and non-force push that evidence boundary.
@@ -152,6 +152,17 @@ Next Action: End on clean `main` and preserve the installed pin-metadata plus
   seconds with all 8 Gradle tasks executed. It ran 761 tests across 146 suites: 751
   passed, 10 Windows environment-dependent cases skipped, and 0 failed or errored.
   The exact candidate contains 16 paths and `git diff --check` produced no output.
+- Exact staging contained the reviewed 16 paths, cached `git diff --check` passed, and
+  no unstaged or untracked residue remained. Ordinary non-amending commit
+  `c3fc29313b862d4b35361cea05b8eb66259c37a5` contains exactly those paths over parent
+  `59d644ddc46fdb49f505eaf932464b3e44e9a915`.
+- A fresh pre-push fetch kept remote `main` at the candidate parent with divergence
+  `0 1` in `origin/main...HEAD` order and successful remote-ancestor proof. Non-force
+  `git push origin main:main` advanced remote `main` from `59d644d` to `c3fc293`.
+  A fresh post-push fetch proved exact `HEAD`, local `main`, `origin/main`,
+  `FETCH_HEAD`, and merge-base identity at the candidate with divergence `0 0`.
+  This linear direct-main update is the requested merge result; no synthetic merge
+  commit exists.
 
 ## Next
 
