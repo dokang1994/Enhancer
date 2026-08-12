@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -121,7 +121,7 @@ Next Action: Synchronize and deliver only post-push evidence-owning documents.
 
 ### Increment 3 - synchronize-delivery-evidence
 
-State: In Progress
+State: Completed
 Depends On: commit-and-push-candidate
 Scope: Record the actual delivery facts in the task, changelog, and append-only
 verification log; verify, commit, and non-force push that evidence boundary.
@@ -163,6 +163,14 @@ Next Action: End on clean `main` and preserve the installed pin-metadata plus
   `FETCH_HEAD`, and merge-base identity at the candidate with divergence `0 0`.
   This linear direct-main update is the requested merge result; no synthetic merge
   commit exists.
+- The delivery-evidence boundary changed only `CURRENT_TASK.md`, `CHANGELOG.md`, and
+  `docs/verification-log.md`; fresh governance verification passed all 11 tests and
+  cached diff review proved exactly those 3 paths. Ordinary non-amending commit
+  `fdfa90928ce3cfef7b5b032f02c10f2af80ac211` was non-force pushed from parent
+  `c3fc29313b862d4b35361cea05b8eb66259c37a5`. A fresh post-push fetch proved exact
+  `HEAD`, local `main`, `origin/main`, `FETCH_HEAD`, and merge-base identity at
+  `fdfa90928ce3cfef7b5b032f02c10f2af80ac211`, with divergence `0 0` and a clean
+  worktree.
 
 ## Next
 
