@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -96,7 +96,7 @@ insufficient authority, or any requirement for force/history rewriting.
 
 ### Increment 1 - prepare-delivery-commit
 
-State: In Progress
+State: Completed
 
 Depends On: none
 
@@ -113,7 +113,7 @@ Next Action: Fast-forward `main` to the delivery commit.
 
 ### Increment 2 - merge-and-push-main
 
-State: Pending
+State: Completed
 
 Depends On: prepare-delivery-commit
 
@@ -130,7 +130,7 @@ Next Action: Record delivery history and close the task.
 
 ### Increment 3 - close-delivery-record
 
-State: Pending
+State: Completed
 
 Depends On: merge-and-push-main
 
@@ -155,8 +155,19 @@ installation enforcement.
   158 suites: 812 passed, 10 environment-dependent cases skipped, and zero failed or
   errored. Its final governance, structural, Git, and checkpoint verification also
   passed after the last production/test change.
+- Pre-commit governance ran 7 tests across three suites with zero failures, errors, or
+  skips, `git diff --check` was clean, and the checkpoint matched all 71 artifacts.
+- Commit `e49c847c2c30fe2ac5a03cc3ed7f052c6afa0d09` contains the complete 71-file
+  verified manifest on `codex/windows-installation-permission-adapter`. Its sole parent
+  is the prior shared base `3e192436c053f40d6d78dd8cfd60dc6adff35d6e`.
+- `main` was fast-forward merged with `--ff-only` from `3e19243` to `e49c847`; no
+  synthetic merge commit or history rewrite occurred. A non-force push advanced
+  `origin/main` through the same range.
+- Fresh post-push fetch verified `HEAD`, `main`, and `origin/main` all equal
+  `e49c847c2c30fe2ac5a03cc3ed7f052c6afa0d09` with divergence `0 0` and a clean
+  worktree. Final delivery-record governance and closure commit follow this evidence.
 
 ## Next
 
-Record the delivery decision, run fresh governance, and create the scoped delivery
-commit on a local branch before the fast-forward merge into `main`.
+Await separate authority for a real/default/native Windows gateway, real installation
+enforcement, deployment, cleanup, release, or tag.

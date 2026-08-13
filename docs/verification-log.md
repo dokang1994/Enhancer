@@ -5051,3 +5051,25 @@ Outcome:
   14 seconds and again ran 822 tests across 158 suites: 812 passed, 10 skipped, and zero
   failed or errored. The governance/structure/Git inspection after this final Markdown
   append is the checkpoint-close evidence.
+
+## 2026-08-13 - Windows Installation Permission Boundary Delivery Verification
+
+- Delivery began from a clean checkpoint state on `main`; `HEAD`, `main`, and
+  `origin/main` were equal at `3e192436c053f40d6d78dd8cfd60dc6adff35d6e` with
+  divergence `0 0`. The user explicitly authorized commit, push, and merge.
+- Fresh pre-commit Markdown-sensitive governance ran 7 tests across three suites with
+  zero failures, errors, or skips. `git diff --check` was clean and the checkpoint
+  matched the complete 71-file manifest without drift.
+- The delivery branch `codex/windows-installation-permission-adapter` committed the
+  manifest as `e49c847c2c30fe2ac5a03cc3ed7f052c6afa0d09`, whose sole parent is the prior
+  shared base. Commit inspection found 71 paths, a clean diff check, and no unstaged or
+  untracked remainder.
+- A fresh fetch showed `origin/main` still at the shared base. `git merge --ff-only`
+  advanced local `main` to `e49c847`, and a non-force push advanced `origin/main` from
+  `3e19243` to `e49c847`. No synthetic merge commit or history rewrite occurred.
+- A fresh post-push fetch verified `HEAD`, `main`, and `origin/main` all equal
+  `e49c847c2c30fe2ac5a03cc3ed7f052c6afa0d09`, divergence `0 0`, and clean status.
+  Final delivery-record governance and closure commit/push follow this append-only entry.
+- No force push, rebase, amend, reset, release, tag, deployment, real installation,
+  Windows identity/permission observation or mutation, cleanup, paid service, or external
+  message beyond the requested Git remote update occurred.

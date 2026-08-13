@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-08-13 - Deliver The Windows Installation Permission Boundary To Main
+
+- Committed the verified operator distribution, platform-neutral installation permission
+  contracts, and fake-gateway Windows adapter boundary as
+  `e49c847c2c30fe2ac5a03cc3ed7f052c6afa0d09` on a local delivery branch.
+- Fast-forward merged `main` from `3e19243` to `e49c847` with `--ff-only` and advanced
+  `origin/main` through a non-force push. No synthetic merge commit, force push, rebase,
+  reset, or history rewrite occurred.
+- Fresh fetch verified `HEAD`, `main`, and `origin/main` equal with divergence `0 0`.
+  Delivery did not perform a real installation, Windows security inspection or mutation,
+  deployment, release, tag, cleanup, or external message beyond the requested Git push.
+
 ## 2026-08-13 - Add The Windows Installation Permission Adapter Boundary
 
 - Added immutable Windows SID/token, volume/file identity, path/reparse, DACL, raw-right,
