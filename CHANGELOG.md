@@ -1,5 +1,61 @@
 # Changelog
 
+## 2026-08-13 - Add The Windows Installation Permission Adapter Boundary
+
+- Added immutable Windows SID/token, volume/file identity, path/reparse, DACL, raw-right,
+  publication, durability, and runtime-probe evidence plus an injected native-gateway
+  port with no production implementation.
+- Added the sole production `WindowsInstallationPermissionAdapter`, which validates
+  exact plan identities and converts only complete fake-gateway-verified Windows facts
+  into the platform-neutral evidence contract. Raw publisher rename/replace `DELETE`
+  closure remains separate from typed `DELETE`; operator/runtime mutation stays denied.
+- Added fake-gateway and architecture tests for all gateway stages, deterministic replay,
+  identity/access/topology drift, finite fail-stop reasons, and zero filesystem/ACL/
+  process/shell/native/runtime/CLI/operator/build coupling. No real Windows inspection,
+  permission change, installation, commit, push, or merge was performed.
+
+## 2026-08-13 - Implement Pure Installation Permission Contracts
+
+- Added a validated already-authorized cancellation-trust installation plan with three
+  stable principal roles, derived protected artifact identities, exact digests, fixed
+  permission-policy revision, and deterministic policy-before-metadata-before-probe-
+  before-activation order.
+- Added an exhaustive immutable artifact/effective-access matrix plus a platform-neutral
+  `InstallationPermissionAdapter`, bounded evidence values, publication modes, and finite
+  fail-closed reasons. The port cannot authorize or represent overall installation
+  success.
+- Added fake-adapter and architecture tests for validation, matrix denial, stage-specific
+  refusal, deterministic replay, and runtime/CLI separation. No platform adapter,
+  filesystem call, installer, real permission change, installation, deployment, release,
+  commit, push, or merge was performed.
+
+## 2026-08-13 - Specify Operator Installation And Permission Separation
+
+- Specified separate installer/publisher, operator, and runtime principals. The operator
+  may request an allowlisted application and write only a private candidate inbox; the
+  privileged publisher alone may stage immutable versions, enforce permissions, publish
+  protected trust artifacts, probe as runtime, and activate last.
+- Defined platform-neutral enforcement plus Windows SID/token/DACL and POSIX numeric
+  UID/GID/mode/ACL/capability evidence, an artifact capability matrix, exact transaction
+  replay/recovery, audit evidence, and fail-closed publication ordering.
+- Explicitly rejected direct unprivileged sibling-metadata mutation, portable Java owner
+  checks as authority, partial-file success, automatic rollback/deletion, and local
+  metadata/lock/CAS as privileged anti-rollback. No installer, permission mutation, real
+  installation, deployment, cleanup, release, commit, push, or merge occurred.
+
+## 2026-08-13 - Package The Cancellation Trust Maintenance Operator
+
+- Added one separate Gradle custom distribution named
+  `enhancer-cancellation-trust-maintenance`, with a Gradle-generated Unix/Windows
+  launcher pair and the shared project-JAR/runtime classpath under `lib/`. The default
+  `EnhancerCli` application distribution remains unchanged.
+- Added copied-layout subprocess tests proving configuration `2`, safe refusal `20`,
+  durability `70`, INSTALL success, and exact ROTATE replay only against JUnit-owned
+  temporary installations. ZIP and TAR each contain only the operator launcher pair and
+  project runtime JARs.
+- No real installation was selected and no OS installation, permission change,
+  deployment, signing, publication, release, cleanup, commit, push, or merge occurred.
+
 ## 2026-08-13 - Deliver Cancellation Trust Maintenance To Main
 
 - Delivered the installed cancellation-trust binding, supported cancellation CLI,

@@ -16,11 +16,41 @@ application {
     mainClass = 'com.enhancer.cli.EnhancerCli'
 }
 
+def cancellationTrustMaintenanceMainClass =
+        'com.enhancer.maintenance.CancellationTrustMaintenanceOperator'
+def cancellationTrustMaintenanceApplicationName =
+        'enhancer-cancellation-trust-maintenance'
+def cancellationTrustMaintenanceClasspath =
+        files(tasks.named('jar'), configurations.runtimeClasspath)
+
 tasks.register('cancellationTrustMaintenance', JavaExec) {
     group = 'application'
     description = 'Runs the separately authorized cancellation trust operator entry point.'
     classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'com.enhancer.maintenance.CancellationTrustMaintenanceOperator'
+    mainClass = cancellationTrustMaintenanceMainClass
+}
+
+tasks.register('cancellationTrustMaintenanceStartScripts', CreateStartScripts) {
+    applicationName = 'enhancer-cancellation-trust-maintenance'
+    mainClass = cancellationTrustMaintenanceMainClass
+    outputDir = layout.buildDirectory
+            .dir('generated-cancellation-trust-maintenance-scripts')
+            .get()
+            .asFile
+    classpath = cancellationTrustMaintenanceClasspath
+}
+
+distributions.register('cancellationTrustMaintenance') {
+    distributionBaseName = 'enhancer-cancellation-trust-maintenance'
+    contents {
+        duplicatesStrategy = DuplicatesStrategy.FAIL
+        into('bin') {
+            from(tasks.named('cancellationTrustMaintenanceStartScripts'))
+        }
+        into('lib') {
+            from(cancellationTrustMaintenanceClasspath)
+        }
+    }
 }
 
 repositories {
@@ -50,6 +80,11 @@ def testTempDirectory = providers.gradleProperty('testTmpDir')
 
 test {
     useJUnitPlatform()
+    dependsOn tasks.named('installCancellationTrustMaintenanceDist')
+    inputs.dir(layout.buildDirectory.dir(
+            "install/${cancellationTrustMaintenanceApplicationName}"))
+            .withPropertyName('cancellationTrustMaintenanceDistribution')
+            .withPathSensitivity(PathSensitivity.RELATIVE)
     systemProperty 'java.io.tmpdir', testTempDirectory.absolutePath
     doFirst {
         testTempDirectory.mkdirs()

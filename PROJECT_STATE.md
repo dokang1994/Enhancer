@@ -20,6 +20,20 @@ it does not restate which commit published which increment.
 
 ### Contract Verified
 
+- The Windows cancellation-trust installation permission adapter boundary under
+  `com.enhancer.maintenance.installation.windows` is Contract Verified with an injected,
+  unimplemented native gateway. It validates canonical plan SIDs, bounded token groups
+  and privileges, link-free same-volume path/file identities, protected explicit DACL
+  evidence, exact raw Windows-right and normalized-operation partitions, atomic
+  publication, durability barriers, and exact runtime metadata/policy probes. One
+  production adapter implementation and zero production gateway implementations exist;
+  fake-gateway tests and architecture guards prove the package has no filesystem, ACL,
+  process, shell, native-library, runtime, CLI, operator, or build wiring. Publisher raw
+  rename/replace `DELETE` closure is distinct from and does not authorize typed
+  `DELETE`; operator/runtime mutation and delete remain denied. Real Windows evidence
+  collection, permission enforcement, publication, durability, probing, and installation
+  remain unsupported.
+
 - Delivery Gate 8 deterministic runtime-event publication-point acknowledgement under
   `com.enhancer.runtime`: `FileSystemRuntimeEventPointAcknowledger` accepts the original
   canonical pending filename and resolves exactly one pending or deterministic
@@ -286,14 +300,28 @@ it does not restate which commit published which increment.
   digest internally from the canonical snapshot, publish immutable content-addressed
   policy before canonical fixed metadata, serialize cooperative writers with a
   persistent stateless lock, reject stale CAS, and exact-replay without rewrite,
-  fallback, rollback, overwrite, scan, or cleanup. A production launcher, real
+  fallback, rollback, overwrite, scan, or cleanup. The
   operator Java main and repository-local Gradle selector are Contract Verified with
   strict arguments, bounded public output, typed direct-JVM exit `2`/`20`/`70`, and zero
-  runtime CLI coupling. Installed launcher packaging, real installer/provisioning and
-  permission mutation, real-install rotation/application anti-rollback,
+  runtime CLI coupling. Separate custom distribution packaging is also Contract
+  Verified: Gradle-generated Unix/Windows scripts, installed build layout, ZIP, and TAR
+  contain only the operator launcher pair plus runtime JARs, and copied-layout subprocess
+  tests preserve exit `2`/`20`/`70`, INSTALL, and exact ROTATE replay under JUnit-owned
+  temporary trees. Real OS/application installation, installer/provisioning and
+  permission mutation, deployment/release, real-install rotation/application anti-rollback,
   private signing material, credential issuance, proof production, API/editor/Desktop
   authentication adapters, process signalling, queue disposition, Tool/effect
   cancellation, `PAUSE`/`RESUME`, and event consumption remain absent.
+  The installation/permission boundary is Contract Verified at the pure Java contract
+  layer: separate installer/publisher, operator, and runtime principals; publisher-only
+  protected-path mutation; one derived installation plan, fixed revisioned artifact/
+  effective-access matrix and phase order, bounded evidence/failures, and an unwired
+  `InstallationPermissionAdapter` port. Fake-adapter and architecture tests cover the
+  contract without filesystem calls. Platform-specific Windows SID/DACL or POSIX UID/
+  GID/mode/ACL enforcement, immutable staging, policy/metadata publication, runtime-
+  identity probing, activation, transaction persistence, installer composition, real
+  installation, deployment, uninstall/cleanup, release, and privileged anti-rollback
+  remain absent.
 - Delivery Gate 8 lease-timeout fact and runtime-event path: AgentRuntime schema v4
   retains at most 256 ordered exact `LeaseTimeoutRecord` values. Expired
   `EXECUTING -> READY` reclamation atomically appends the current AgentRun, owner,

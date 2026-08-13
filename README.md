@@ -366,16 +366,38 @@ process cancellation, Tool/effect cancellation, or `PAUSE`/`RESUME` application.
 The operator-maintenance protocol, state machine, and distinct Java operator entry point
 are documented in
 [`docs/cancellation-trust-maintenance.md`](docs/cancellation-trust-maintenance.md). It is
-not a runtime command or installed distribution launcher. Repository-local development
-may select it with the fixed `cancellationTrustMaintenance` Gradle task and exact
-`install`/`rotate` arguments; all repository verification uses isolated temporary
-installation trees. The library computes the pin from one
+not a runtime command. Repository-local development may select it with the fixed
+`cancellationTrustMaintenance` Gradle task. A separate custom distribution can be
+assembled without changing the default `EnhancerCli` distribution:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\gradle.ps1 installCancellationTrustMaintenanceDist cancellationTrustMaintenanceDistZip cancellationTrustMaintenanceDistTar
+```
+
+The installed build layout is
+`build/install/enhancer-cancellation-trust-maintenance`; its `bin` directory contains
+only `enhancer-cancellation-trust-maintenance` and
+`enhancer-cancellation-trust-maintenance.bat`, and `lib` contains the project runtime
+JARs. The launcher forwards the exact existing `install`/`rotate` arguments and supplies
+no defaults. Assembly is not permission to target a real installation: repository tests
+copy the build layout below JUnit `@TempDir` and invoke it only against temporary fake
+application installations. The library computes the pin from one
 validated public-policy snapshot, publishes immutable content-addressed policy first,
 and switches fixed metadata last under a persistent stateless lock plus expected-current
-compare-and-swap. Its verification uses test-owned temporary installation trees only;
-this repository still does not install an operator start script, invoke it on a real
-installation, change permissions, clean old artifacts, deploy it, or prevent a privileged
-rollback of the application and trust files together.
+compare-and-swap. This repository still does not install the operator into an operating
+system or real application installation, select an operator principal, change
+permissions, clean old artifacts, deploy/sign/publish/release it, or prevent a
+privileged rollback of the application and trust files together.
+
+The real-installation and permission boundary is specified in
+[`docs/cancellation-trust-operator-installation-permissions.md`](docs/cancellation-trust-operator-installation-permissions.md).
+It requires separate installer/publisher, operator, and runtime operating-system
+principals; the privileged publisher alone may mutate protected final paths. The pure
+`com.enhancer.maintenance.installation` package makes the validated plan, fixed
+permission matrix/order, bounded evidence/failures, and an unwired platform-neutral
+adapter port executable. No installer or platform adapter exists, and no real ACL,
+mode, installation, activation, deployment, cleanup, release, or anti-rollback action
+is performed by the repository.
 
 ## Drain Ready Scheduler Work
 

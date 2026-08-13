@@ -11,6 +11,60 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User request on 2026-08-13 to commit, push, and merge the Windows installation permission boundary
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-13-user-requested-delivery-of-windows-installation-permission-boundary.md)
+
+### 2026-08-13: Separate Platform Enforcement Rights From Authorized Installation Operations
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-13-separate-platform-enforcement-rights-from-authorized-installation-operations.md)
+
+### User continuation request on 2026-08-13 after Windows rights-model conflict
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-13-user-continuation-after-windows-rights-model-conflict.md)
+
+### User continuation request on 2026-08-13 after pure installation permission contracts
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-13-user-continuation-after-pure-installation-permission-contracts.md)
+
+### User continuation request on 2026-08-13 after installation permission specification
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-13-user-continuation-after-installation-permission-specification.md)
+
+### 2026-08-13: Separate Operator Intent From Privileged Installation Publication
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-13-separate-operator-intent-from-privileged-installation-publication.md)
+
+### User continuation request on 2026-08-13 after operator distribution packaging
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-13-user-continuation-after-operator-distribution-packaging.md)
+
+### 2026-08-13: Package Cancellation Trust Maintenance As A Separate Distribution
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-13-package-cancellation-trust-maintenance-as-a-separate-distribution.md)
+
+### User continuation request on 2026-08-13 after cancellation-trust operator delivery
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-13-user-continuation-after-cancellation-trust-operator-delivery.md)
+
 ### 2026-08-12: Expose Maintenance Through A Distinct Typed Operator Launcher
 
 Status: Accepted Decision

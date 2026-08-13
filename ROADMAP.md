@@ -1041,16 +1041,33 @@ Contract Verified authenticated-interface core:
   or approval field;
 - the operator-maintenance state machine is now Contract Verified as an unexposed
   library separate from runtime, with a distinct Contract Verified Java operator main
-  selected only by one repository-local Gradle task: it keeps metadata v1, derives the pin internally,
+  selected by one repository-local Gradle task: it keeps metadata v1, derives the pin internally,
   publishes content-addressed policy before fixed metadata, distinguishes INSTALL
   refusal from ROTATE persistent stateless lock plus expected-current CAS, exact-replays
   current binding including lost-response recovery, retains old artifacts, and makes no
   automatic rollback or privileged anti-rollback claim;
-- installed operator start-script/distribution packaging, real installer/provisioning
-  and permission mutation, real-install rotation execution/application anti-rollback,
+- separate operator start-script/distribution packaging is Contract Verified through
+  one fixed custom Gradle distribution, generated Unix/Windows launcher pair, build
+  install layout, ZIP/TAR assembly, and copied-layout subprocess execution confined to
+  JUnit-owned temporary installations; the default runtime distribution remains
+  `EnhancerCli`;
+- real OS/application installation, installer/provisioning and permission mutation,
+  deployment/signing/publication/release, real-install rotation execution/application anti-rollback,
   proof production/private keys, credentials, IdP/session integration, API/editor/
   Desktop authentication, queue/process/Tool/effect behavior, and pause/resume remain
   unimplemented, so Gate 12 remains Planned.
+- the real operator installation boundary now has a Contract Verified pure Java layer:
+  one already-authorized plan, distinct publisher/operator/runtime principals, derived
+  artifact identities, fixed revisioned effective-access matrix and phase order, bounded
+  evidence/failures, and an unwired platform-neutral permission adapter port. It still
+  now also has a Contract Verified, unwired Windows adapter boundary over an injected
+  gateway, with canonical SID/token/DACL/reparse/volume/file-identity, separate raw-right
+  versus typed-operation, atomic-publication, durability, and runtime-probe validation.
+  It still requires a real/native Windows gateway or POSIX UID/GID/mode/ACL enforcement,
+  immutable version staging, policy-first/metadata-last publication, runtime-principal
+  probing, activation last, and persisted exact transaction recovery. No installer,
+  real permission change, deployment, cleanup, release, or anti-rollback anchor is
+  present.
 
 Scope:
 

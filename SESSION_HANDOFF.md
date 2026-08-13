@@ -32,3 +32,10 @@ the active task in `CURRENT_TASK.md`, and delivery history in `CHANGELOG.md` and
   this host. The Gradle `JavaExec` task selects the operator main but Gradle may translate
   a nonzero child exit to its own task-failure code; the emitted `exitCode` token retains
   the operator classification.
+- The custom operator distribution tests copy
+  `build/install/enhancer-cancellation-trust-maintenance` below each JUnit `@TempDir`,
+  fix `JAVA_HOME` to the test JVM, and remove host JVM option variables before invoking
+  the copied `.bat` launcher. No repository or real-install path is used as a target.
+- The Windows installation permission adapter tests use only an in-memory fake gateway;
+  no real SID, token, DACL, reparse point, volume/file identity, permission, publication,
+  durability, or alternate-principal probe is inspected or changed on this host.

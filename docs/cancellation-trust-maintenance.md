@@ -1,6 +1,6 @@
 # Installed Cancellation Trust Maintenance Contract
 
-Status: Contract Verified State Machine And Operator Main; Installed Operation Deferred
+Status: Contract Verified State Machine, Operator Main, And Separate Packaging; Installed Operation Deferred
 
 This document specifies the operator-owned maintenance surface and governs the unexposed
 state-machine library for the public
@@ -8,6 +8,9 @@ cancellation trust artifacts consumed by `scheduler-apply-cancel`. It is not an
 implementation guide that grants installation, permission, deployment, cleanup,
 private-key, or credential authority. The current accepted boundary is
 `2026-08-12: Separate Cancellation Trust Maintenance From Runtime Authority`.
+The three-principal installer/publisher, operator, and runtime permission contract and
+its platform-neutral pure Java plan/adapter port are specified separately in
+[`cancellation-trust-operator-installation-permissions.md`](cancellation-trust-operator-installation-permissions.md).
 
 ## Security Boundary
 
@@ -17,11 +20,20 @@ properties, working directory, repository content, and ambient identity cannot i
 or configure maintenance.
 
 A maintenance launcher deployment must run only under a separately authorized operator
-principal. The repository supplies a distinct Java main and Gradle selector, not an
-installed start script. Deployment must make the runtime principal unable to write, rename, or
-delete the application JAR, fixed metadata, trust-policy directory, maintenance lock,
-or installation ancestors. This specification does not infer or implement those
-permissions and does not treat portable Java owner/ACL inspection as approval.
+principal. The repository supplies a distinct Java main, Gradle selector, and separate
+custom distribution with one Gradle-generated launcher pair. Repository verification
+installs that distribution only below build output, copies it below JUnit `@TempDir`,
+and selects only temporary fake application installations. It does not install into an
+operating system or real application installation. A future deployment must make the
+runtime principal unable to write, rename, or delete the application JAR, fixed
+metadata, trust-policy directory, maintenance lock, or installation ancestors. This
+specification does not infer or implement those permissions and does not treat portable
+Java owner/ACL inspection as approval.
+
+Because fixed metadata is beside the application JAR, the specified future deployment
+does not grant the operator direct directory mutation. A distinct privileged installer/
+publisher validates the operator request against publisher-owned configuration and owns
+final permission application and publication; the runtime remains read-only.
 
 The surface accepts an exact installed application path, one candidate public policy
 path, an operation (`INSTALL` or `ROTATE`), and for ROTATE the expected SHA-256 of the
@@ -39,6 +51,25 @@ different paths, control characters, and overlong paths before mutation. Direct 
 success exits `0`; configuration exits `2`, safe refusal exits `20`, and durability or
 unexpected failure exits `70`. The Gradle task selects the main but does not promise
 unchanged child-code propagation through Gradle itself.
+
+## Separate Distribution
+
+The custom Gradle distribution and base name are exactly
+`enhancer-cancellation-trust-maintenance`. Its `bin/` contains only the Unix and Windows
+launchers with that name, both generated from Gradle `CreateStartScripts` for
+`CancellationTrustMaintenanceOperator`. Its `lib/` contains the project JAR and the
+same runtime dependency collection used to generate the script classpath. Duplicate
+archive paths fail assembly.
+
+The generated scripts define no default application arguments or JVM options and derive
+no operation, application/candidate path, metadata digest, trust input, permission, or
+authority. They forward explicit caller arguments to the existing typed main. Standard
+launcher JVM-option environment variables remain ordinary JVM configuration rather
+than maintenance authority; tests remove them and fix `JAVA_HOME` to the test JVM.
+Installed-layout subprocess tests prove exit `0`, `2`, `20`, and `70`, INSTALL, and
+exact ROTATE replay after copying the entire build distribution below JUnit `@TempDir`.
+ZIP and TAR assembly make no signed, published, deployed, Operational, or Released
+claim.
 
 ## Artifacts And Identities
 

@@ -4893,3 +4893,161 @@ Outcome:
 - Fresh post-delivery document-governance and reference checks follow this append-only
   entry. No real installation invocation, permission change, cleanup, deployment,
   external anti-rollback, tag, or release action occurred.
+
+## 2026-08-13 - Cancellation Trust Maintenance Operator Packaging Verification
+
+- Required repository authority was reread in order. The completed delivery checkpoint
+  was empty, local `HEAD`, `main`, and `origin/main` were equal at `3e192436c053f40d6d78dd8cfd60dc6adff35d6e`,
+  and the worktree was clean before the packaging Active Task opened.
+- One bounded read-only packaging/security review joined. It fixed the custom Gradle task
+  names, required the generated script and `lib/` layout to share the exact project-JAR
+  plus runtime dependency collection, confirmed standard Unix/Windows child-exit
+  preservation, and required copied-layout temporary-tree execution with sanitized JVM
+  option variables and unchanged default runtime distribution.
+- Focused RED compiled and ran one architecture test, failing only at the absent
+  `cancellationTrustMaintenanceStartScripts` task. The first two GREEN attempts each ran
+  13 tests with 12 passing; their sole failures were overbroad structure-test substrings
+  that rejected the accepted shared main-class constant and existing `JavaExec`. The
+  guards were narrowed to the exact accepted contract without changing production
+  behavior.
+- Focused final GREEN ran 13 tests across three installed-layout, installed-launcher
+  subprocess, direct operator, and architecture-separation suites with zero failures,
+  errors, or skips. The copied Windows launcher preserved configuration exit `2`, safe
+  existing-binding refusal `20`, lock-path durability exit `70`, INSTALL success `0`,
+  and ROTATE `EXACT_REPLAY` `0`; all application, candidate, metadata, policy, lock, and
+  copied-distribution paths were below JUnit-owned temporary roots.
+- Custom ZIP and TAR assembly succeeded in 32 seconds. Each archive contained exactly
+  six entries: one versioned root, `bin/enhancer-cancellation-trust-maintenance`, its
+  `.bat` peer, `lib/`, and `lib/enhancer-0.1.0-SNAPSHOT.jar`; neither contained the
+  runtime `enhancer` launcher.
+- Fresh full Java 17 `test --no-daemon --console=plain`, including the custom install
+  distribution prerequisite, completed in 8 minutes 28 seconds and ran 799 tests across
+  154 suites: 789 passed, 10 environment-dependent cases skipped, and zero failed or
+  errored. Fresh document-governance and final structural checks follow this entry.
+- No real installation invocation, OS/application installation, ACL/owner/permission
+  change, cleanup, deployment, signing, publication, release, privileged anti-rollback,
+  commit, push, merge, tag, paid service, or external message occurred.
+- The first combined governance/distribution command was rejected before execution
+  because Gradle applied `--tests` to the final TAR task; separating the commands passed
+  all five governance suites. A subsequent dual-install run found one real Gradle
+  validation failure: the custom script output was nested below the default
+  `build/scripts` input tree. Moving it to the disjoint
+  `build/generated-cancellation-trust-maintenance-scripts` directory removed both the
+  implicit task dependency and the possible default-distribution content overlap.
+- Fresh final combined verification ran the full Java suite plus default `installDist`,
+  custom install, ZIP, and TAR tasks in one Gradle graph. It completed in 10 minutes 30
+  seconds with 799 tests across 154 suites: 789 passed, 10 skipped, and zero failed or
+  errored. The default installed `bin` contained only `enhancer`/`enhancer.bat` selecting
+  `EnhancerCli`; the custom installed `bin` contained only the maintenance launcher pair
+  selecting `CancellationTrustMaintenanceOperator`. `git diff --check` was clean.
+
+## 2026-08-13 - Cancellation Trust Operator Installation Permission Specification Verification
+
+- The completed packaging checkpoint was reconciled with `CURRENT_TASK.md`, Git status,
+  the retained uncommitted packaging diff, and local/main/origin ref equality before this
+  design-only task opened. The previous verified implementation paths were preserved.
+- One bounded read-only installation/security review joined. Its recommendations were
+  reconciled against repository authority rather than treated as verification evidence.
+  It identified three stable OS principals, the POSIX sibling-directory write conflict,
+  parent-directory effective-rights checks, ordered permission-before-publication,
+  non-mutating runtime-principal probing, exact transaction replay, and explicit limits
+  on rollback, cleanup, durability, isolation, and privileged anti-rollback.
+- Two accepted decisions and the installation/permission contract were written and
+  indexed. Exact structural inspection found all ten required contract areas and matched
+  both new decision headings to their index entries.
+- The first governance run executed 12 tests with 11 passing and exposed one aligned RED:
+  the repository-owned Dynamic Workflow test requires every live task to declare its
+  sequential increments. Recording the two already bounded increments satisfied that
+  established contract without widening task authority.
+- Fresh focused governance verification then ran 12 tests across decision-index,
+  document-ownership, Dynamic Workflow, runtime-package-boundary, and cancellation-trust
+  maintenance-separation suites with zero failures, errors, or skips. A final rerun after
+  this append-only entry and task-state synchronization is the claim-bearing Markdown
+  verification for the completed design increment.
+- No code, build logic, installer, permission adapter, real installation, filesystem
+  permission/ownership/ACL inspection or mutation, deployment, cleanup, anti-rollback
+  implementation, commit, push, merge, tag, release, paid service, or external message
+  was performed by this design increment.
+
+## 2026-08-13 - Pure Installation Permission Contract Verification
+
+- Required repository authority was reread in order. The prior stable checkpoint was
+  empty, local `HEAD`, `main`, and `origin/main` were equal at
+  `3e192436c053f40d6d78dd8cfd60dc6adff35d6e`, and the 19-path uncommitted packaging and
+  permission-specification worktree was preserved before the new Active Task opened.
+- One bounded read-only design/security review joined after the new task authorized only
+  pure Java contracts and fake-adapter tests. It recommended the three principal roles,
+  derived protected paths, fixed matrix/order, explicit port operations, bounded
+  evidence/failures, and no default/platform implementation; its report was reconciled
+  against repository authority rather than treated as verification evidence.
+- Focused RED failed at `compileTestJava` only on the absent installation contract
+  symbols. The aligned minimum implementation added twenty production types below
+  `com.enhancer.maintenance.installation` without `Files`, channels, process launch,
+  runtime/CLI imports, or a production `InstallationPermissionAdapter` implementation.
+- Focused GREEN was strengthened after review to make every fake failure occur at its
+  actual operation, make artifact order deterministic, prove repeat verification value
+  equality, reject duplicate plan paths at construction, and remove all ordinary
+  INSTALL/ROTATE delete permission. The final focused run executed 16 tests across plan,
+  policy, fake-adapter, and architecture-separation suites with zero failures, errors, or
+  skips.
+- Fresh final Java 17 `test --no-daemon --console=plain` completed in 7 minutes 44 seconds
+  and ran 814 tests across 157 suites: 804 passed, 10 environment-dependent cases
+  skipped, and zero failed or errored. Final Markdown-sensitive governance and structural
+  checks follow this append-only entry.
+- No real/default/platform adapter, filesystem call through the new package, OS identity
+  lookup, ACL/owner/mode/permission inspection or mutation, installer/executor,
+  staging/publication/activation, runtime-principal process, launcher/CLI wiring,
+  deployment, cleanup, release, commit, push, merge, tag, paid service, destructive
+  action, or external message occurred.
+
+## 2026-08-13 - Windows Installation Permission Adapter Boundary Verification
+
+- Required repository authority, active checkpoint, uncommitted worktree, and local/
+  remote refs were reconciled before implementation. One bounded read-only Windows
+  security review joined and was treated as a recommendation, not verification evidence.
+- The review exposed a real modeling conflict: Windows rename/replace requires target
+  delete or parent directory closure while the neutral policy denies ordinary typed
+  `DELETE`. The user authorized the accepted separation of complete raw Windows rights
+  from complete authorized typed operations. Publisher raw rename/replace closure does
+  not authorize cleanup/uninstall delete; operator/runtime mutation and delete remain
+  denied.
+- Focused RED failed only on absent Windows boundary types and the absent requested
+  metadata digest plan binding. The implementation added twenty-three Windows evidence,
+  gateway, rights-policy, and adapter types, exactly one production adapter
+  implementation, and zero production gateway implementations.
+- Strengthened focused Java 17 verification ran 14 tests across three suites with zero
+  failures, errors, or skips. It covers every gateway stage, exact neutral conversion,
+  deterministic repeat evidence, canonical SID and dangerous token refusal, transaction/
+  role/artifact/volume/file identity drift, reparse and DACL inheritance, surplus raw
+  rights, atomic publication, durability, exact runtime digests, and fail-stop behavior.
+- Direct structural inspection found 23 Windows production types, one
+  `InstallationPermissionAdapter` implementation, zero
+  `WindowsInstallationPermissionGateway` implementations, and zero forbidden
+  filesystem/channel/ACL/process/shell/JNA/foreign/native/runtime/CLI dependencies.
+- Fresh full Java 17 `test --no-daemon --console=plain` completed in 7 minutes 29 seconds
+  and ran 822 tests across 158 suites: 812 passed, 10 environment-dependent cases
+  skipped, and zero failed or errored. Final Markdown-sensitive governance, diff/status/
+  ref inspection, and checkpoint reconciliation follow this append-only entry.
+- No real SID/token/group/privilege/DACL/reparse/volume/file-identity or filesystem
+  observation, permission/owner/inheritance mutation, publication, durability barrier,
+  alternate-principal probe, installation, activation, deployment, cleanup, release,
+  commit, push, merge, tag, paid service, destructive action, or external message
+  occurred.
+- Final Markdown-sensitive governance ran 8 tests across decision-index, document-
+  ownership, Dynamic Workflow, and cancellation-trust architecture suites with zero
+  failures, errors, or skips. `git diff --check` was clean; repeated structural
+  inspection still found 23 Windows types, one adapter implementation, zero gateway
+  implementations, and zero forbidden production dependencies. `HEAD`, `main`, and
+  `origin/main` remained equal at `3e192436c053f40d6d78dd8cfd60dc6adff35d6e`
+  with divergence `0 0`; all work remains intentionally uncommitted and unpushed.
+- Final code review then tightened two acceptance details before checkpoint close:
+  dangerous built-in identity/group/privilege refusal is scoped to operator/runtime,
+  while every artifact now supplies the complete ordered root-to-leaf component chain.
+  Token groups and path components are bounded; the same component must retain one file
+  identity across artifacts; and distinct planned paths cannot share one file identity.
+  Disabled non-deny-only groups remain representable instead of being falsely rejected.
+- Post-review focused Java 17 verification ran 14 tests across three suites with zero
+  failures, errors, or skips. The final full Java 17 regression completed in 7 minutes
+  14 seconds and again ran 822 tests across 158 suites: 812 passed, 10 skipped, and zero
+  failed or errored. The governance/structure/Git inspection after this final Markdown
+  append is the checkpoint-close evidence.

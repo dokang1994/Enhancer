@@ -474,9 +474,13 @@ separate authorized work.
 
 The implemented operator-maintenance state machine is separate from that runtime
 surface. `CancellationTrustMaintenanceOperator` is its distinct operator-only Java main,
-selected only by the fixed repository-local `cancellationTrustMaintenance` Gradle
-`JavaExec` task; it is not an `EnhancerCli`/scheduler/runtime command or an installed
-distribution launcher. It keeps metadata v1, computes the new pin internally from one validated
+selected by the fixed repository-local `cancellationTrustMaintenance` Gradle `JavaExec`
+task. The accepted packaging boundary adds one separately named custom distribution and
+one generated operator launcher while leaving `application.mainClass` and the default
+runtime distribution bound to `EnhancerCli`; it never becomes an
+`EnhancerCli`/scheduler/runtime command. The generated launcher forwards only explicit
+operator arguments and derives no installation, trust, permission, or authority input.
+It keeps metadata v1, computes the new pin internally from one validated
 canonical public-only policy snapshot, publishes an immutable content-addressed policy
 first, and switches the sole fixed metadata point last through a validated same-
 directory candidate and required atomic move. INSTALL refuses an existing binding;
@@ -488,11 +492,66 @@ overwrite, or cleanup. The lock and CAS prevent cooperative lost updates, not a
 privileged rollback: real application-version anti-rollback requires a separately
 protected monotonic release/package/keystore/TPM anchor. The detailed phase and recovery
 contract is in `docs/cancellation-trust-maintenance.md`. The repository implementation
-and launcher have been verified only in test-owned temporary installation trees. Typed
+and launcher behavior is verified only in test-owned temporary installation trees. Typed
 finite maintenance reasons map direct-JVM results to success `0`, configuration `2`,
-safe refusal `20`, or durability `70`; Gradle selects the main class but does not promise
-to propagate child exit codes unchanged. No installed start script, real-install
-invocation, permission change, cleanup, or deployment is implemented or performed.
+safe refusal `20`, or durability `70`. Packaging must use Gradle-generated Unix and
+Windows start scripts with the project runtime classpath under `lib/` and preserve child
+process exits; hand-written wrapper parsing or exit translation is prohibited. Assembly
+under build/test-owned paths grants no real-install invocation, permission change,
+cleanup, deployment, signing, publication, release, or privileged anti-rollback
+authority.
+
+The accepted future real-installation boundary separates three stable operating-system
+principals. The operator can execute/read the separate launcher and write only an
+operator-private public-candidate inbox; the runtime can read/execute the runtime
+distribution and read fixed metadata/policies; only the privileged installer/publisher
+may mutate protected final paths, apply permissions, publish, and activate an immutable
+version. An explicit application path remains request data and must match a publisher-
+owned allowlist. Launcher or path possession is never authority.
+
+This split is mandatory while metadata remains beside the application JAR. On POSIX,
+directory write sufficient to replace metadata also permits rename/unlink of sibling
+children, so an unprivileged operator cannot safely receive direct maintenance-directory
+mutation while the JAR remains protected. The current state machine therefore runs only
+as the future publisher or behind its authenticated narrow broker. The pure
+`com.enhancer.maintenance.installation` contract package represents one already
+authorized plan, the three stable principal roles, thirteen derived artifact kinds,
+eleven effective operations, the fixed revisioned permission matrix, and the exact
+resolve-through-final-evidence phase order. Protected trust paths are derived from the
+application JAR and policy digest; callers cannot select sibling metadata, lock, or
+policy paths or broaden matrix rules. `InstallationPermissionAdapter` is only a typed
+enforcement port for identity/topology resolution, staged permission application,
+atomic publication, durability, post-publication recheck, and runtime-principal read-
+only probing. Its bounded immutable evidence cannot authorize or represent overall
+installation success. A future platform implementation must prove Windows SID/token/
+DACL/reparse/volume facts or POSIX numeric UID/GID/group/mode/ACL/capability/device/inode
+facts, including denied parent-directory mutation for operator and runtime. Portable
+Java owner checks, usernames, ambient identity, inherited defaults, or administrator/
+root labels are insufficient.
+
+The Windows-specific contract boundary now exists under
+`com.enhancer.maintenance.installation.windows`. Its sole production adapter accepts an
+injected `WindowsInstallationPermissionGateway`; no production gateway implementation
+exists. Immutable evidence separately partitions raw Windows file/directory rights and
+normalized authorized transaction operations, so the publisher's minimal raw
+rename/replace `DELETE` closure never authorizes typed cleanup or uninstall `DELETE`.
+The adapter binds canonical SIDs and bounded token state, link-free same-volume
+path/file identities, protected explicit DACL facts, exact raw and normalized access,
+atomic publication, durability barriers, and read-only runtime digest probes to the
+already-authorized plan. It contains no Windows, filesystem, ACL, process, shell, or
+native-library call and is not wired to runtime, CLI, operator, or build entry points.
+
+Future installation uses publisher-private same-filesystem immutable version staging,
+final permissions before exposure, content-addressed policy first, fixed metadata last,
+a non-mutating trust-loader probe as the actual runtime principal, and activation last.
+Exact replay requires source, destination, principals, permission policy, bytes, binding,
+phase, and activation equality. Partial state never implies success; failure never
+broadens permissions, rolls back, or deletes. The full capability matrix, platform
+evidence, recovery, audit, uninstall, and anti-rollback limits are in
+`docs/cancellation-trust-operator-installation-permissions.md`. No native/default
+platform gateway, installer/executor, real permission enforcement, installation,
+activation, deployment, cleanup, release, or privileged anti-rollback anchor is
+implemented.
 
 The supported Control producer is intentionally narrower than authenticated control.
 `ControlSpoolPublisher`, exposed through one `scheduler-spool-control` point command,
