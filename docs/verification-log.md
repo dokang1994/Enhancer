@@ -4876,3 +4876,20 @@ Outcome:
   write helper was canceled four times. The active checkpoint recorded `STEP_FAILED`
   with zero artifact mismatch; a later continuation recovered revision 10, reread all
   authority, confirmed the unchanged worktree, and appended this entry once.
+
+## 2026-08-13 - Cancellation Trust Maintenance Main Delivery Verification
+
+- Required repository authority was reread in order and the retained checkpoint was
+  reconciled with the Active Task and Git. It matched the task contract, had zero
+  artifact mismatches, and identified the prior DNS failure as the sole remaining step.
+- Before delivery, local `HEAD` and `main` were
+  `24bcadd089aacce00fde693026a5191c0de3f60c`, `origin/main` was
+  `3367c987fc1d3aaab5ead506e5c243dfad3bbd25`, and divergence was `0 1` from
+  `origin/main...main`; the worktree was clean.
+- A non-force `git push origin main` succeeded and advanced the remote linearly as
+  `3367c98..24bcadd  main -> main`. The implementation had already been committed
+  directly on `main`, so there was no separate branch to merge and no merge commit to
+  synthesize.
+- Fresh post-delivery document-governance and reference checks follow this append-only
+  entry. No real installation invocation, permission change, cleanup, deployment,
+  external anti-rollback, tag, or release action occurred.

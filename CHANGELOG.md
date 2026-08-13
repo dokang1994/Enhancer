@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-08-13 - Deliver Cancellation Trust Maintenance To Main
+
+- Delivered the installed cancellation-trust binding, supported cancellation CLI,
+  operator-only INSTALL/ROTATE state machine, and separate typed operator launcher in
+  ordinary commit `24bcadd089aacce00fde693026a5191c0de3f60c`.
+- Advanced `origin/main` linearly from `3367c98` to `24bcadd` through a non-force push.
+  The work was already committed directly on `main`, so no separate branch merge or
+  synthetic merge commit was required.
+- Delivery did not invoke maintenance on a real installation or add installed launcher
+  packaging, permission changes, cleanup, deployment, external anti-rollback, tag, or
+  release work.
+
 ## 2026-08-12 - Add The Separate Cancellation Trust Operator Main
 
 - Added `CancellationTrustMaintenanceOperator` as a distinct Java main outside

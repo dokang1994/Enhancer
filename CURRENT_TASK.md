@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -160,13 +160,15 @@ packaging, permission controls, deployment, cleanup, or external anti-rollback.
 
 ### Increment 4 - commit-and-push-main
 
-State: In Progress
+State: Completed
 Depends On: verify-synchronize-and-close
 Scope: Commit the verified synchronized worktree on the existing `main` branch, push it
-without force to `origin/main`, verify reference equality and a clean worktree, then
+without force to `origin/main`, synchronize the owning delivery documents in one
+follow-up commit, push that commit, verify reference equality and a clean worktree, then
 stabilize and clear the delivery checkpoint.
-Exit Criteria: One scoped commit contains the intended worktree, local `HEAD`, `main`,
-and `origin/main` agree, the worktree is clean, and the stable checkpoint is cleared.
+Exit Criteria: The scoped implementation commit and delivery-synchronization commit are
+both on `origin/main`, local `HEAD`, `main`, and `origin/main` agree, the worktree is
+clean, and the stable checkpoint is cleared.
 Verification: Commit inspection, post-push reference/divergence/status checks, and
 checkpoint stable/clear/show.
 Next Action: Await separate authority for any real-install, packaging, permission,
@@ -195,10 +197,12 @@ deployment, cleanup, anti-rollback, tag, or release work.
   Checkpoint revision 10 preserved the failed step with zero artifact mismatch; the next
   continuation recovered it and completed the append-only close without implementation
   change.
+- Commit `24bcadd089aacce00fde693026a5191c0de3f60c` contains the 45 synchronized task
+  artifacts on the existing `main` branch. A non-force push advanced `origin/main`
+  linearly from `3367c987fc1d3aaab5ead506e5c243dfad3bbd25` to `24bcadd`; no separate branch
+  or synthetic merge commit existed or was required.
 
 ## Next
 
-Commit and push this verified change through the existing `main` branch under the
-user's explicit delivery authority. After delivery, await separate authority for
-real-install invocation, installed operator packaging, permission controls, deployment,
-cleanup, or external anti-rollback integration.
+Await separate authority for real-install invocation, installed operator packaging,
+permission controls, deployment, cleanup, or external anti-rollback integration.
