@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-08-18 - Add Host-Independent Continuous Verification
+
+- Added `.github/workflows/verify.yml`, which runs the complete Java 17
+  Markdown-sensitive Gradle test task on a Temurin 17 Linux host for every `main`
+  push and pull request, cancels superseded runs, and uploads test reports on
+  failure.
+- Restored the executable bit on `gradlew` in the Git index so the wrapper runs on
+  POSIX continuous-integration hosts.
+
 ## 2026-08-18 - Accept The Gate 9 Model Gateway Minimum Slice Specification
 
 - Added RFC-0013: Model Gateway defining the minimum Delivery Gate 9 vertical slice:

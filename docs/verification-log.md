@@ -5419,3 +5419,21 @@ Outcome:
 - This increment changed documents only. No model call, network connection,
   credential, paid service, code, or external effect beyond the authorized ordinary
   commit and non-force `main` push occurred.
+
+## 2026-08-18 - Continuous Verification Job Delivery Verification
+
+- `.github/workflows/verify.yml` was added to run the complete Java 17
+  Markdown-sensitive Gradle test task on a Temurin 17 Linux host for `main` pushes
+  and pull requests. Local inspection found the Git index carried `gradlew` without
+  its executable bit, which would fail every POSIX runner; the bit was restored via
+  the index alone with no content change.
+- The workflow file parsed as valid YAML, and the focused governance suites passed
+  after the README, changelog, and task edits with zero failures, errors, or skips;
+  `git diff --check` was clean.
+- Observation of the first triggered run is recorded as pending at commit time
+  because the run is triggered by the very push that delivers this workflow file;
+  the observed outcome is appended with the next increment's evidence.
+- This increment changed the workflow file, the `gradlew` index mode, and documents.
+  The only external effect beyond the authorized ordinary commit and non-force
+  `main` push is the continuous-integration service consuming the pushed workflow
+  file, which the task scope names explicitly.

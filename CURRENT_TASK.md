@@ -142,7 +142,7 @@ Next Action: Add the continuous-integration verification job.
 
 ### Increment 3 - add-continuous-integration-verification-job
 
-State: In Progress
+State: Completed
 
 Depends On: define-gate-9-model-gateway-minimum-slice
 
@@ -162,7 +162,7 @@ Next Action: Amend the commit-cadence rule through the constitutional process.
 
 ### Increment 4 - amend-commit-cadence-rule
 
-State: Pending
+State: In Progress
 
 Depends On: add-continuous-integration-verification-job
 
@@ -192,6 +192,11 @@ specification.
   registrations were authored from two reconciled read-only Opus subagent surveys
   and passed the focused governance suites with `git diff --check` clean. Evidence
   is appended once in `docs/verification-log.md`.
+- Increment 3: the continuous-verification workflow file, the restored `gradlew`
+  executable bit, and the owning-document updates passed YAML parsing and the
+  focused governance suites with `git diff --check` clean; observation of the first
+  triggered run is recorded as pending in `docs/verification-log.md` because the
+  delivering push itself triggers it.
 
 ## Next
 

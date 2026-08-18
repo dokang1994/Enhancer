@@ -679,6 +679,10 @@ powershell -ExecutionPolicy Bypass -File .\scripts\setup-dev.ps1
 .\scripts\gradle.ps1 test
 ```
 
+같은 전체 검증은 `.github/workflows/verify.yml`이 `main` push와 pull request마다
+Temurin 17 리눅스 호스트에서 실행하므로, 검증 증거는 개발 호스트 한 대에
+의존하지 않는다.
+
 ## Resume In A New ChatGPT Session
 
 새 ChatGPT 세션은 도원님 PC의 로컬 `Enhancer` 저장소를 자동으로 읽을 수 없다.
