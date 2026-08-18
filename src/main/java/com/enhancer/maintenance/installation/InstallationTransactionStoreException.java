@@ -21,6 +21,7 @@ public final class InstallationTransactionStoreException extends Exception {
         TRANSACTION_CONFLICT,
         REVISION_CONFLICT,
         INVALID_TRANSITION,
+        LOCK_CONTENDED,
         UNSUPPORTED_SCHEMA,
         CORRUPT_STATE,
         CAPACITY_EXCEEDED,

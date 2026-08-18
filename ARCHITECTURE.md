@@ -529,7 +529,7 @@ facts, including denied parent-directory mutation for operator and runtime. Port
 Java owner checks, usernames, ambient identity, inherited defaults, or administrator/
 root labels are insufficient.
 
-The same pure package now defines the schema-v2 installation transaction cursor and its
+The same package now defines the schema-v2 installation transaction cursor and its
 revisioned point-store port. `InstallationTransactionState` fixes the complete authorized
 plan, normalized environment/filesystem identity, bounded source release, permission-
 policy digest, expected-current/requested activation identities, existing required phase,
@@ -541,11 +541,14 @@ exactly one matching prefix entry, and succeeded-to-next-pending preserves the c
 prefix. Recovery classification distinguishes before final metadata, after metadata
 before activation, and after activation exact replay without invoking an adapter. The
 store contract exposes only create-exclusive, point resolve, and compare-and-exchange
-with bounded typed refusal. Its sole implementation is a test-local in-memory fake, so
-this boundary proves neither durable persistence, evidence-content integrity, process-
-restart recovery, installation success, nor operational effect recovery. No production
-store, serialization/integrity format, effect evidence reference/resolver, or runtime/
-CLI/operator/build wiring exists.
+with bounded typed refusal. `FileSystemInstallationTransactionStore` is its first
+uncomposed production implementation: it accepts only a caller-provisioned pre-existing
+absolute exact-real non-symbolic root and coordinates cooperating local processes with
+one stable transaction-scoped nonblocking OS lock across current resolution, semantic
+validation, validated forced candidate creation, required atomic publication, and post-
+read. No runtime/CLI/operator/build or permission-adapter wiring exists, so this boundary
+still proves neither installation success, evidence-content integrity, operational
+effect recovery, publisher authority, hostile-writer exclusion, nor anti-rollback.
 
 Store writes now return an explicit `CREATED`, `ADVANCED`, or `EXACT_REPLAY` receipt;
 state idempotency is therefore separate from phase-invocation ownership. The pure
@@ -565,6 +568,51 @@ semantic digests identify accepted port results but contain no evidence body or
 integrity/durability proof, so this coordinator still proves only persist-first
 sequential ordering and fail-stop behavior, not automatic pending recovery, exactly-
 once effects, or installation success.
+
+Pending reconciliation is a separate pure boundary rather than a coordinator fallback.
+`InstallationPhaseEvidencePoint` deterministically names one transaction, required
+phase, and canonical pending revision. `InstallationPhaseEvidenceResolver` accepts only
+that exact point and promises a read-only revalidated result or explicit absence; it has
+no listing, discovery, create, or mutation operation. `InstallationTransactionReconciler`
+connects that resolver to the transaction point store: it resolves one cursor, returns
+without evidence access for a succeeded state, and for a pending state either retains an
+absent result unchanged or validates the returned evidence through the existing state
+successor before one compare-and-exchange. Exact succeeded-write replay is classified
+without phase invocation, and corrupt, foreign, unavailable, mismatched, or malformed
+state fails closed. Only test-local in-memory fakes implement the evidence resolver. The
+distinct `InstallationPhaseEvidencePointStore` permits only immutable semantic-evidence
+create and exact read, distinguishes first creation from exact replay, and returns
+absence explicitly, but likewise has only a test-local fake. It deliberately does not
+implement the resolver because the current value has no independently revalidatable
+evidence body. This contract therefore proves no evidence persistence, content
+integrity, host observation, automatic effect recovery, exactly-once behavior, or
+installation success.
+
+The integrity-format boundary remains package-local and deterministic.
+`InstallationIntegrityEnvelope` defines a schema-v1 domain-separated frame containing
+record magic, envelope schema, bounded body length, SHA-256 over that complete header
+plus body, and the exact body. `InstallationTransactionFileFormat` and
+`InstallationPhaseEvidenceFileFormat` use different magic and payload-kind identities,
+length-framed strict UTF-8, stable enum names, explicit optionals and booleans, canonical
+UUIDs, and fixed field order. Transaction decode reconstructs the complete plan,
+principal/environment binding, local filesystem provider/dialect, activation identities,
+ordered evidence prefix, revision, phase, and status through existing constructors.
+Evidence decode additionally requires the caller's exact point and rejects an otherwise
+valid foreign transaction/phase/revision. Canonical decode must re-encode to identical
+bytes. `InstallationRecordFileNames` derives one bounded traversal-free leaf name from
+the transaction or complete evidence point without accepting a root. These package-
+local codecs and names call no filesystem API themselves. The transaction codec and
+transaction leaf are consumed only by `FileSystemInstallationTransactionStore`; the
+evidence codec/leaf remain unconsumed by production code. The cursor store bounds reads,
+requires non-symbolic regular points, creates no root, uses one stable per-transaction
+lock, validates and forces same-root candidates, requires atomic moves, and validates the
+published state. Exact create/CAS replay is classified under the lock without rewriting.
+File `force(true)` and atomic namespace replacement do not prove parent-directory or
+sudden-power-loss durability. Java path checks and OS file locks coordinate cooperating
+local processes rather than supplying descriptor-relative native confinement or a
+distributed/network-filesystem fence. The digest detects corruption, not authenticity:
+an actor able to rewrite protected bytes can recompute it, and an older valid cursor
+remains valid without an external monotonic anchor.
 
 The Windows-specific contract boundary now exists under
 `com.enhancer.maintenance.installation.windows`. Its sole production adapter accepts an

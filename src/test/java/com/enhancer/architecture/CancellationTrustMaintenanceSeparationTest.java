@@ -67,7 +67,7 @@ class CancellationTrustMaintenanceSeparationTest {
     }
 
     @Test
-    void installationPermissionPackageRemainsAPureUnwiredPort() throws IOException {
+    void installationPackageHasOnlyTheAcceptedUnwiredFilesystemCursor() throws IOException {
         Path installation = PROJECT.resolve(
                 "src/main/java/com/enhancer/maintenance/installation");
         assertTrue(Files.isDirectory(installation));
@@ -75,7 +75,7 @@ class CancellationTrustMaintenanceSeparationTest {
         try (var files = Files.list(installation)) {
             neutralSources = files.filter(path -> path.toString().endsWith(".java")).toList();
         }
-        assertEquals(26, neutralSources.size());
+        assertEquals(38, neutralSources.size());
         Path windows = installation.resolve("windows");
         assertTrue(Files.isDirectory(windows));
         List<Path> windowsSources;
@@ -87,8 +87,12 @@ class CancellationTrustMaintenanceSeparationTest {
         sources.addAll(windowsSources);
         for (Path source : sources) {
             String text = Files.readString(source, StandardCharsets.UTF_8);
-            assertFalse(text.contains("java.nio.file.Files"), source.toString());
-            assertFalse(text.contains("FileChannel"), source.toString());
+            boolean filesystemCursor = source.getFileName().toString().equals(
+                    "FileSystemInstallationTransactionStore.java");
+            if (!filesystemCursor) {
+                assertFalse(text.contains("java.nio.file.Files"), source.toString());
+                assertFalse(text.contains("FileChannel"), source.toString());
+            }
             assertFalse(text.contains("AclFileAttributeView"), source.toString());
             assertFalse(text.contains("PosixFileAttributeView"), source.toString());
             assertFalse(text.contains("ProcessBuilder"), source.toString());
@@ -104,14 +108,18 @@ class CancellationTrustMaintenanceSeparationTest {
                 windowsSources, "implements InstallationPermissionAdapter"));
         assertEquals(0, sourceOccurrences(
                 windowsSources, "implements WindowsInstallationPermissionGateway"));
-        assertEquals(0, sourceOccurrences(
+        assertEquals(1, sourceOccurrences(
                 neutralSources, "implements InstallationTransactionStore"));
+        assertEquals(0, sourceOccurrences(
+                neutralSources, "implements InstallationPhaseEvidencePointStore"));
         assertEquals(0, sourceOccurrences(
                 neutralSources, "implements InstallationTransactionCoordinator.PreflightVerifier"));
         assertEquals(0, sourceOccurrences(
                 neutralSources, "implements InstallationTransactionCoordinator.PhaseEffectPort"));
         assertEquals(0, sourceOccurrences(
                 neutralSources, "implements InstallationTransactionCoordinator.ActivationPort"));
+        assertEquals(0, sourceOccurrences(
+                neutralSources, "implements InstallationPhaseEvidenceResolver"));
         assertEquals(0, productionOccurrencesOutsideInstallation(
                 "implements InstallationTransactionStore"));
         assertEquals(0, productionOccurrencesOutsideInstallation(

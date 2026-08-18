@@ -11,6 +11,30 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User request on 2026-08-18 to deliver installation filesystem store boundaries to main
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-18-deliver-installation-filesystem-store-boundaries-to-main.md)
+
+### User continuation request on 2026-08-18 after installation integrity file formats
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-18-user-continuation-after-installation-integrity-file-formats.md)
+
+### User continuation request on 2026-08-18 after pure installation evidence reconciliation
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-18-user-continuation-after-pure-installation-evidence-reconciliation.md)
+
+### User continuation request on 2026-08-18 after installation transaction contract delivery
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-18-user-continuation-after-installation-transaction-contract-delivery.md)
+
 ### User request on 2026-08-18 to continue committing, pushing, and merging the completed installation transaction contracts
 
 Status: Accepted Decision

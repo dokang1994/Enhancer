@@ -5246,3 +5246,119 @@ Outcome:
   release, tag, deployment, cleanup, real installation, native gateway, host security-
   state inspection, permission/owner mutation, credential/private-key operation, or
   external message beyond the authorized Git remote updates.
+
+## 2026-08-18 - Pure Installation Evidence Reconciliation Verification
+
+- Recovery began from an empty development checkpoint and a clean synchronized `main`.
+  The accepted task was limited to a deterministic phase-evidence point, read-only
+  resolver contract, typed failures, and a separate pure pending-state reconciler using
+  only test-local fakes.
+- Focused RED reached `compileTestJava` and failed only on the four intentionally absent
+  contract types: `InstallationPhaseEvidencePoint`,
+  `InstallationPhaseEvidenceResolver`,
+  `InstallationPhaseEvidenceResolutionException`, and
+  `InstallationTransactionReconciler`. No unrelated failure was absorbed.
+- Focused GREEN ran 10 reconciler tests with zero failures, errors, or skips. Coverage
+  included canonical point validation, exact and absent evidence, foreign/unavailable
+  refusal, succeeded and terminal no-advance behavior, terminal reconciliation, lost-
+  response exact CAS replay, unexpected resolver failure conversion, and malformed
+  store-receipt refusal.
+- The installation package regression ran 49 tests across 7 suites with zero failures,
+  errors, or skips. Structural review found no production resolver/store implementation
+  and no phase, permission, activation, filesystem, native, runtime, or CLI composition.
+- The first full regression ran 849 tests and reported two task-aligned governance
+  failures: the separation guard expected 26 rather than 30 neutral installation
+  sources, and the active task omitted the live dynamic workflow required by its
+  executable document check. The source guard was updated to 30 and additionally proves
+  zero production resolver implementations; `CURRENT_TASK.md` gained the bounded
+  two-increment sequential workflow representing the already selected work.
+- Focused separation/dynamic-workflow governance then passed 5 tests with zero failures,
+  errors, or skips. Fresh full Java 17 `test --no-daemon` completed in 7 minutes and
+  aggregated 161 suites and 849 tests: 839 passed, 10 environment-dependent cases
+  skipped, zero failed, and zero errored. `git diff --check` was clean.
+- The result is a value/port/application contract, not evidence-content verification,
+  serialization, integrity-protected or durable persistence, host observation,
+  automatic effect recovery, exactly-once installation, or installation-success
+  evidence. No production store/adapter, real installation or permission mutation,
+  activation, cleanup, deletion, deployment, release, commit, push, merge, tag, paid
+  service, credential operation, or external message occurred.
+
+## 2026-08-18 - Installation Integrity File Format Verification
+
+- Recovery began from an empty checkpoint with the preceding 15-path pure reconciliation
+  increment intact and uncommitted. Two bounded read-only reviews independently selected
+  pure byte formats and exact leaf names as the smallest safe prerequisite; their reports
+  were reconciled against repository authority and were not verification evidence.
+- Focused RED reached `compileTestJava` after existing production compilation and failed
+  only on the five intentionally absent format types: the integrity envelope,
+  transaction/evidence formats, typed format exception, and filename derivation.
+- The minimum implementation added distinct transaction/evidence magic and payload-kind
+  domains, schema-v1 bounded envelopes, complete-header-plus-body SHA-256, strict UTF-8,
+  stable enum names, canonical UUID/boolean/optional/field order, current filesystem
+  provider/dialect binding, exact expected evidence-point validation, canonical
+  re-encoding, and bounded traversal-free leaf names.
+- Focused GREEN ran 8 format tests with zero failures, errors, or skips. Coverage included
+  initial/mid/terminal cursor and normal/activation evidence deterministic round trips,
+  exact filenames, cross-kind input, digest corruption, envelope/domain schema refusal,
+  truncation/trailing bytes, oversized declared length, malformed UTF-8 and Unicode,
+  foreign evidence point and path dialect, and byte-for-byte canonical re-encoding.
+- Installation-package plus architecture-separation regression ran 59 tests across 9
+  suites with zero failures, errors, or skips. Structural search and the executable guard
+  found no filesystem/process/native/runtime/CLI reference, production transaction-store
+  implementation, production evidence-resolver implementation, or outside-package
+  composition. `git diff --check` passed.
+- Fresh full Java 17 `test --no-daemon` completed in 6 minutes 56 seconds. JUnit XML
+  aggregation found 162 suites and 857 tests: 847 passed, 10 environment-dependent cases
+  skipped, zero failed, and zero errored.
+- The SHA-256 envelope is corruption detection, not publisher authentication or
+  anti-rollback. The evidence format contains only the existing semantic digest and
+  activation identity, not an independently revalidatable evidence body. No filesystem
+  I/O/root, create/replace/lock/CAS/atomic-move/durability behavior, production store or
+  resolver, permission/native adapter composition, real installation or permission
+  mutation, activation, cleanup, deletion, deployment, release, commit, push, merge,
+  tag, paid service, credential operation, or external message occurred.
+
+## 2026-08-18 - Installation Filesystem Store Boundary Verification
+
+- Recovery began from an empty checkpoint with the preceding 22-path reconciliation and
+  integrity-format work intact and uncommitted. Two bounded read-only reviews were
+  reconciled against repository authority: the existing transaction-store port was
+  sufficient for one concrete locked cursor adapter, while evidence had to remain a
+  semantic create/read port because no independently revalidatable body exists. The
+  reports were recommendations, not verification evidence.
+- Evidence-store RED initially also exposed an invalid guessed phase fixture; that step
+  was recorded failed, the fixture alone was corrected, and repeated RED then failed
+  only on the two accepted absent types. Focused GREEN passed 4 contract tests. Combined
+  evidence-contract and architecture separation passed 6 tests with zero failures,
+  errors, or skips.
+- Cursor RED reached `compileTestJava` and failed only because the accepted filesystem
+  transaction store, stable lock leaf, and `LOCK_CONTENDED` reason were absent. During
+  implementation, warning-as-error failures and a candidate/final-leaf validation defect
+  were classified as task-aligned, recorded, corrected minimally, and rerun. Focused
+  cursor GREEN passed 4 tests with zero failures, errors, or skips.
+- `FileSystemInstallationTransactionStore` now requires a caller-provisioned pre-existing
+  absolute exact-real non-symbolic root; uses bounded `NOFOLLOW_LINKS` regular-file point
+  reads; holds one transaction-scoped nonblocking OS lock across resolve, replay/revision/
+  successor checks, forced and decoded same-root candidate handling, required atomic
+  publication, and post-read; and never rewrites exact replay. Tests cover cross-instance
+  resolution and contention, create conflict, CAS/replay, stale/invalid transitions,
+  corruption, oversize, foreign binding, non-regular points/locks, and invalid roots in
+  JUnit-owned temporary trees.
+- Installation-package plus architecture-separation regression passed 67 tests across 11
+  suites with zero failures, errors, or skips. Structural search found exactly one
+  production transaction-store implementation and zero evidence point-store or resolver
+  implementations. `git diff --check` passed.
+- Fresh full Java 17 `test --no-daemon` completed in 7 minutes 15 seconds. JUnit XML
+  aggregation found 164 suites and 865 tests: 855 passed, 10 environment-dependent cases
+  skipped, zero failed, and zero errored. `git diff --check` remained clean.
+- After final task and evidence synchronization, the focused cursor/evidence/format/
+  reconciliation plus architecture/decision/workflow governance pass ran 36 tests across
+  7 suites with zero failures, errors, or skips; final `git diff --check` was clean.
+- This verifies cooperative local-process cursor persistence, not a production installer.
+  Java path checks are not descriptor-relative native confinement; file force plus
+  atomic rename is not parent-directory or sudden-power-loss durability; SHA-256 is not
+  publisher authentication or anti-rollback; and the cursor root remains a caller-
+  supplied protection assumption. No production evidence store/resolver, evidence body,
+  permission/native adapter composition, real installation or permission mutation,
+  activation, cleanup, deployment, release, commit, push, merge, tag, paid service,
+  credential operation, or external message occurred.

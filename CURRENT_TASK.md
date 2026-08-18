@@ -2,78 +2,68 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Commit the completed Windows publication-identity hardening and pure installation
-transaction state, coordination, and phase-evidence-prefix contracts; merge them into
-`main`; and push the synchronized result to `origin/main` without rewriting history.
+Deliver the completed installation reconciliation, integrity-format, immutable evidence
+point-store, and locked filesystem cursor boundaries through an ordinary branch commit,
+non-force push, fast-forward-only merge to `main`, and synchronized closure commit.
 
 ## Task ID
 
-deliver-installation-transaction-contracts-to-main
+deliver-installation-filesystem-store-boundaries-to-main
 
 ## Context
 
-The repository-local implementation tasks are Completed and their latest full Java 17
-regression, Markdown governance, structural inspection, `git diff --check`, and
-checkpoint close passed. The user requested on 2026-08-18 that the interrupted
-commit/push/merge flow be checked and then continued.
+The implementation task is Completed with a 29-path verified working bundle. Recovery
+inspection found no active checkpoint or Git operation. `HEAD`, local `main`, and
+`origin/main` all start at `36e1967e1cb7fe0a7c4023ee537334a70c64821d` with divergence
+`0 0`. The user explicitly requested commit, push, and merge to `main`.
 
-Fresh delivery inspection found no interrupted Git operation and an empty development
-checkpoint. The worktree is on `main` with 11 modified and 12 untracked intended paths,
-no staged paths, and no commit after `3abe4c5a697b1d8c2925d9c449ff1c2a0b7a2ec2`.
-Local `HEAD`, `main`, the local `origin/main`, and a fresh direct remote query all resolve
-to that commit with local divergence `0 0`. The earlier Windows permission delivery is
-therefore complete, while the four approved follow-up increments remain local and
-uncommitted.
-
-To make the requested merge explicit without creating a synthetic merge commit,
-delivery branches from the shared commit, commits the verified work, and fast-forwards
-`main` with `--ff-only`. Non-force pushes then synchronize the delivery branch and
-`origin/main`.
+This delivery task adds one accepted-decision file, producing an exact initial 30-path
+manifest. Delivery remains sequential and stops rather than rewriting history if the
+remote or local ancestry changes unexpectedly.
 
 ## Justified By
 
-- User request on 2026-08-18 to continue committing, pushing, and merging the completed installation transaction contracts
+- User request on 2026-08-18 to deliver installation filesystem store boundaries to main
 
 ## Approval
 
-The user's explicit request authorizes repository-local delivery documentation,
-checkpoint operations, fresh verification, creation of one local delivery branch,
-ordinary commits of the currently completed scoped work, a fast-forward merge into
-`main`, and non-force pushes needed to synchronize the delivery branch and
-`origin/main`.
+The user authorizes exact-path staging, ordinary commits, creation and non-force push of
+`codex/installation-filesystem-store-boundaries-20260818`, local `main` fast-forward-only
+merge, non-force `main` push, direct remote-ref verification, and the minimum closure
+documentation/commit/push needed to leave canonical delivery state current.
 
-It does not authorize force push, history rewriting, rebase, amend, squash, destructive
-reset, deletion, release, tag, deployment, real installation or permission mutation,
-native gateway work, credential/private-key handling, paid service, external messages
-beyond the requested Git remote update, or unrelated changes.
+This does not authorize force push, rebase, reset, amend, squash, synthetic merge commit,
+tag, release, deployment, destructive cleanup, real installation, permission/ACL/owner
+mutation, native gateway execution, credentials/private-key changes, paid services, or
+external messages beyond the named Git remote operations.
 
 ## Acceptance Criteria
 
-- A decision records the user's explicit commit/push/merge authority and is indexed.
-- Fresh full Java 17/Markdown-sensitive regression and `git diff --check` pass before
-  the implementation commit; the committed manifest contains only the intended 23-path
-  implementation/documentation bundle plus delivery authority records.
-- One local delivery branch contains the verified implementation commit, and `main`
-  accepts it only through `git merge --ff-only`.
-- The delivery branch and `origin/main` advance only through non-force pushes, and fresh
-  local/remote ref queries prove `HEAD`, `main`, and `origin/main` are equal with
-  divergence `0 0`.
-- Delivery history is recorded in `CHANGELOG.md` and Git, verification evidence is
-  appended once, `CURRENT_TASK.md` is Completed, and a final closure commit is pushed.
-- The checkpoint remains active through branch, commit, merge, and push operations,
-  then becomes `STABLE` and is cleared only after zero artifact mismatch and intended
-  Git state are verified.
+- Fresh recovery inspection proves no Git operation/checkpoint is active, the exact
+  intended manifest is understood, and local/remote-tracking refs start synchronized.
+- Fresh full Java 17/Markdown-sensitive regression passes after the delivery authority
+  documents are added; `git diff --check` is clean.
+- Exactly the intended 30 paths are staged with zero unstaged or untracked remainder,
+  and staged diff/stat/name review finds no unrelated or secret-bearing content.
+- One ordinary implementation commit is created on the named delivery branch with the
+  recorded starting `main` commit as its sole ancestor path; it is pushed without force.
+- Local `main` advances only through `git merge --ff-only`, then `origin/main` advances
+  through a non-force push. No merge commit or rewritten ancestry is introduced.
+- Delivery evidence is appended once, owning documents are synchronized, and any
+  closure commit contains only the required post-delivery documentation.
+- Fresh final governance verification passes, direct remote refs match local `main`,
+  divergence is `0 0`, the worktree is clean, and the stable checkpoint is cleared.
 
 ## Out Of Scope
 
-Force push, rebase, amend, squash, reset, history rewriting, synthetic merge commit,
-release, tag, deployment, real installation, permission/ACL/owner mutation, native
-gateway implementation, cleanup/uninstall, deletion, rollback, paid service, external
-message beyond the requested Git push, or unrelated work.
+Implementation expansion, evidence-body or permission-adapter work, force push, rebase,
+reset, amend, squash, synthetic merge commit, tag, release, deployment, cleanup, real
+installation or permission mutation, native gateway execution, credentials/private-key
+operation, paid service, or external message beyond authorized Git pushes.
 
 ## Allowed Tools
 
@@ -83,108 +73,74 @@ message beyond the requested Git push, or unrelated work.
 - verify
 - checkpoint
 - git-inspect
+- git-stage
 - git-branch
 - git-commit
-- git-merge-fast-forward
+- git-merge-ff-only
 - git-push-non-force
+- git-remote-inspect
 
 ## Dynamic Workflow
 
-Workflow ID: deliver-installation-transaction-contracts
+Workflow ID: deliver-installation-filesystem-store-boundaries-to-main
 
 Mode: Sequential
 
-Increment Limit: 3
+Increment Limit: 2
 
 Selection Rule: Select the first dependency-ready Pending increment in document order.
 
-Stop Conditions: Stop on failed verification, dirty-path drift outside the intended
-manifest, non-fast-forward merge, remote divergence, push rejection, checkpoint drift,
-insufficient authority, or any requirement for force/history rewriting.
+Stop Conditions: Stop on failed verification, unexpected manifest content, task/
+checkpoint drift, non-fast-forward ancestry, remote divergence, network/authentication
+failure that cannot be safely retried, or insufficient authority.
 
-### Increment 1 - prepare-delivery-commit
+### Increment 1 - verify-stage-and-commit-delivery-branch
 
 State: Completed
 
 Depends On: none
 
-Scope: Record delivery authority, start the task checkpoint, rerun the full regression
-and diff checks, create the delivery branch, and commit the currently verified work.
+Scope: Start the delivery checkpoint, run the fresh full regression, inspect and stage
+the exact 30-path manifest, create the named branch, and make one ordinary commit.
 
-Exit Criteria: Fresh verification and diff checks pass and the delivery branch has one
-ordinary commit containing the complete intended manifest.
+Exit Criteria: Full regression and diff checks pass, the exact manifest is staged and
+reviewed, and the branch commit has the synchronized starting main commit as its parent.
 
-Verification: Full Java 17/Markdown-sensitive regression, `git diff --check`, commit
-show/status inspection, and checkpoint reconciliation.
+Verification: Full Java 17/Markdown-sensitive regression, staged name/stat/diff review,
+commit parent/ref/status inspection, and checkpoint evidence.
 
-Next Action: Fast-forward `main` to the delivery commit.
+Next Action: Push the delivery branch, fast-forward `main`, push `main`, and close.
 
-### Increment 2 - merge-and-push-main
+### Increment 2 - push-merge-verify-and-close
 
-State: Completed
+State: In Progress
 
-Depends On: prepare-delivery-commit
+Depends On: verify-stage-and-commit-delivery-branch
 
-Scope: Push the delivery branch without force, check out `main`, fast-forward merge the
-delivery commit, push `main` without force, and verify local/remote refs.
+Scope: Push the named branch without force, fast-forward local `main`, push `main`,
+synchronize delivery evidence/documents, make and push the closure commit, verify local
+and direct remote refs, and clear the stable checkpoint.
 
-Exit Criteria: `HEAD`, `main`, and `origin/main` equal the delivery commit with
-divergence `0 0` and the worktree contains no undisclosed change.
+Exit Criteria: Branch and main delivery plus closure are remotely visible, local and
+remote main match with divergence `0 0`, final verification passes, the worktree is
+clean, and the checkpoint is empty.
 
-Verification: Push output, merge output, fresh remote-ref queries, ref equality,
-divergence, log, status, and checkpoint inspection.
+Verification: Push output, `--ff-only` merge output, direct remote-ref reads, final
+governance tests, Git status/log/divergence inspection, and checkpoint inspection.
 
-Next Action: Record delivery history and close the task.
-
-### Increment 3 - close-delivery-record
-
-State: Completed
-
-Depends On: merge-and-push-main
-
-Scope: Append delivery evidence, update owning task/changelog documents, run final
-governance, commit and push the closure record, verify refs, and clear the checkpoint.
-
-Exit Criteria: Delivery records are current, final governance passes, the closure commit
-is present on `origin/main`, refs are equal, and the stable checkpoint is cleared.
-
-Verification: Fresh governance tests, `git diff --check`, commit/push/ref/status checks,
-and checkpoint stable/clear/show.
-
-Next Action: Define a pure point-resolvable evidence revalidation/reconciliation
-contract before any production store or permission-adapter composition.
+Next Action: Resume the recorded evidence-body/reference and host-revalidation task.
 
 ## Verification
 
-- Initial delivery inspection found no merge/rebase/cherry-pick state, an empty
-  checkpoint, no staged paths, and 23 intended changed paths on `main`.
-- Local `HEAD`, `main`, and local `origin/main` matched at `3abe4c5` with divergence
-  `0 0`; a fresh direct remote query confirmed `refs/heads/main` at the same full hash.
-- The preceding implementation task's full Java 17 regression ran 839 tests across 160
-  suites: 829 passed, 10 environment-dependent cases skipped, and zero failed or
-  errored. Fresh delivery verification remains required before the first commit.
-- Fresh pre-commit Java 17 `test --no-daemon` completed in 8 minutes 16 seconds and ran
-  839 tests across 160 suites: 829 passed, 10 environment-dependent cases skipped, and
-  zero failed or errored. `git diff --check` passed and the manifest contained exactly
-  24 intended paths after the delivery authority record was added.
-- Commit `bb7d0ba0050462efac387e530e9ff58573fac538` contains the complete verified
-  manifest on `codex/installation-transaction-contracts-20260818`. Its sole parent is
-  the prior shared base `3abe4c5a697b1d8c2925d9c449ff1c2a0b7a2ec2`.
-- The delivery branch was pushed without force. `main` then fast-forwarded with
-  `--ff-only` from `3abe4c5` to `bb7d0ba`; no synthetic merge commit or history rewrite
-  occurred.
-- The first `main` push attempt failed before reaching GitHub because DNS could not
-  resolve `github.com`; checkpoint revision 16 retained that failure. The recorded
-  retry advanced `origin/main` from `3abe4c5` to `bb7d0ba` through a non-force push.
-- A fresh direct remote query verified both `refs/heads/main` and the delivery branch at
-  `bb7d0ba0050462efac387e530e9ff58573fac538`. Local `HEAD`, `main`, and
-  `origin/main` matched that hash with divergence `0 0` and a clean worktree before
-  delivery-record synchronization.
-- Closure governance ran 10 tests across the decision-index, document-ownership, and
-  dynamic-workflow suites with zero failures, errors, or skips; `git diff --check` was
-  clean. Fresh verification after this final summary precedes the closure commit.
+- Recovery inspection found an empty checkpoint, no active Git operation, synchronized
+  `HEAD`/`main`/`origin/main` at `36e1967e1cb7fe0a7c4023ee537334a70c64821d`, divergence
+  `0 0`, and the intended 29-path completed implementation bundle before this delivery
+  decision was added.
+- Fresh delivery Java 17 `test --no-daemon` completed in 7 minutes 12 seconds and passed
+  865 tests across 164 suites: 855 passed, 10 environment-dependent cases skipped, and
+  zero failed or errored. `git diff --check` was clean and the intended manifest contained
+  exactly 30 paths including the delivery authority decision.
 
 ## Next
 
-Define a pure point-resolvable evidence revalidation/reconciliation contract before any
-production store or permission-adapter composition.
+Complete the Dynamic Workflow in dependency order.

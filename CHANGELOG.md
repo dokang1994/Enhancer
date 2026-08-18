@@ -1,5 +1,48 @@
 # Changelog
 
+## 2026-08-18 - Add Locked Installation Cursor Storage Boundary
+
+- Added the first uncomposed `FileSystemInstallationTransactionStore` over a caller-
+  provisioned pre-existing exact-real root, with bounded no-follow point reads, stable
+  per-transaction nonblocking OS locks, forced and decoded same-root candidates,
+  required atomic create/replace, and post-publication validation.
+- Preserved create/CAS exact replay without rewriting, added typed lock contention, and
+  covered cross-instance resolution/contention, revision and transition refusal,
+  corruption, oversize, foreign binding, non-regular artifacts, and invalid roots in
+  JUnit-owned temporary trees.
+- Added a separate pure immutable semantic-evidence point-store port with create,
+  exact read, first-create/exact-replay receipts, and bounded typed failures. No
+  production evidence store or resolver was added because the record has no independently
+  revalidatable evidence body.
+- Kept permission/native adapter composition, real installation paths, directory/sudden-
+  power-loss durability, descriptor-relative confinement, authenticity, anti-rollback,
+  automatic recovery, cleanup, and external delivery absent.
+
+## 2026-08-18 - Define Installation Integrity File Formats
+
+- Added distinct deterministic schema-v1 transaction and phase-evidence envelopes with
+  bounded bodies, strict UTF-8, canonical fields, domain-separated header/body SHA-256,
+  and typed schema/corruption/size/foreign/noncanonical refusals.
+- Reconstructed the complete schema-v2 cursor through existing invariants, required an
+  exact expected point for evidence decode, and added pure bounded cursor/evidence leaf
+  names with a local provider/dialect binding.
+- Added focused corruption, cross-kind, schema, truncation, trailing, size, Unicode,
+  foreign-point/dialect, deterministic round-trip, and canonical re-encoding tests while
+  keeping filesystem I/O, store/resolver implementations, evidence bodies, durability,
+  authenticity, locking/CAS, rollback protection, and installation effects absent.
+
+## 2026-08-18 - Define Pure Installation Evidence Reconciliation
+
+- Added an immutable exact phase-evidence point and read-only resolver port with typed
+  unsupported, corrupt, foreign, and unavailable failures.
+- Added a separate pure reconciler that converts only exact revalidated pending evidence
+  into one succeeded compare-and-exchange, classifies absent and exact-replay outcomes,
+  and leaves succeeded or terminal state unchanged without phase invocation.
+- Added fake-only contract tests for exact, absent, foreign, unavailable, terminal,
+  replay, malformed-receipt, and canonical-point behavior while keeping evidence bodies,
+  persistence/integrity, production stores/adapters, host effects, and installation
+  success absent.
+
 ## 2026-08-18 - Deliver Installation Transaction Contracts To Main
 
 - Committed the verified Windows publication-identity hardening and pure installation

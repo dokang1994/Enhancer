@@ -251,6 +251,73 @@ verify evidence content and do not prove storage integrity, durability, restart-
 reconciliation, exactly-once effects, real source verification, installation success,
 or platform enforcement.
 
+### Current Pure Evidence Reconciliation Contract
+
+`InstallationPhaseEvidencePoint` deterministically binds one transaction identity,
+required phase, and that phase's canonical pending revision. The read-only
+`InstallationPhaseEvidenceResolver` accepts exactly one such point and returns either
+one revalidated `InstallationPhaseEvidence` value or explicit absence. Its finite typed
+failures distinguish unsupported, corrupt, foreign, and unavailable evidence; it has no
+scan, list, discovery, create, or mutation operation.
+
+The separate `InstallationTransactionReconciler` resolves exactly one transaction. A
+succeeded or terminal cursor returns unchanged without resolving evidence or advancing
+to another phase. For a pending cursor, absence returns unchanged; a present result must
+pass the existing exact transaction/phase/revision/activation successor validation
+before one compare-and-exchange can record success. Exact succeeded-write replay is a
+separate outcome. Resolver failure, mismatched evidence, store failure, or malformed
+receipt fails closed and never invokes a preflight, phase-effect, activation, permission,
+filesystem, or native port.
+
+Only test-local in-memory fakes implement these ports. The point is a deterministic
+lookup identity, not an evidence reference proving that content exists. No evidence
+body, serializer, integrity envelope, production store, host revalidation, automatic
+recovery loop, exactly-once effect, or installation-success evidence exists yet.
+
+### Current Integrity Format And Cursor Store Contract
+
+The transaction cursor and semantic phase-evidence value have separate deterministic
+binary formats. Each schema-v1 envelope contains a distinct
+domain magic, envelope schema, bounded body length, SHA-256 over the domain/schema/length
+header plus body, and the exact body. Each body starts with its fixed payload kind and
+current domain schema, uses fixed field order, length-framed strict UTF-8, enum names
+rather than ordinals, explicit canonical booleans/optionals, and bounded collections.
+
+`InstallationTransactionFileFormat` includes the complete plan, principals, normalized
+environment, local filesystem provider/dialect marker, release/permission/activation
+bindings, exact succeeded-evidence prefix, revision, phase, and status. Decode uses the
+existing constructors and accepts only content that re-encodes byte-for-byte identically.
+`InstallationPhaseEvidenceFileFormat` also requires the exact expected
+`InstallationPhaseEvidencePoint`; a valid envelope from another transaction, phase, or
+pending revision is foreign. `InstallationRecordFileNames` derives only one bounded
+canonical leaf name from the transaction or complete point and accepts no root.
+
+The codecs and filename derivation themselves use no filesystem API. The transaction
+format and leaf now feed one uncomposed `FileSystemInstallationTransactionStore` over a
+caller-provisioned pre-existing absolute exact-real non-symbolic directory. Exact reads
+open only the derived bounded regular non-symbolic point with `NOFOLLOW_LINKS`. Create
+and compare-and-exchange share one stable per-transaction nonblocking OS lock and hold it
+through current decode, exact replay or successor validation, same-root candidate write
+and `force(true)`, candidate decode, required atomic move, and post-publication decode.
+Exact replay performs no rewrite. The adapter creates no root and performs no scan/list.
+
+`InstallationPhaseEvidencePointStore` is a separate pure port exposing only immutable
+semantic receipt creation and exact point read. First create and unchanged replay are
+distinct, changed reuse conflicts, and absence is explicit. It has no production
+implementation and is not the evidence resolver: the current record cannot independently
+revalidate a host observation because it contains no evidence body.
+
+The envelope digest detects accidental corruption but supplies no publisher
+authentication: a principal able to rewrite bytes can recompute it. It also cannot
+prevent replacement with an older valid cursor. Evidence still contains only a semantic
+digest and optional activation identity, not a body that a production resolver could
+independently revalidate. The cursor root is a caller-supplied protection assumption;
+Java path checks and local locks do not prove descriptor-relative confinement or defend
+against a privileged hostile writer. File force plus atomic rename does not prove parent-
+directory or sudden-power-loss durability. Permission composition, production evidence
+persistence/body/revalidation, capacity policy, retention, and anti-rollback remain
+separate work.
+
 ## Audit Evidence And Deferred Destruction
 
 Each attempt retains bounded integrity-protected evidence: transaction/phase, verified

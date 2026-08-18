@@ -2,15 +2,15 @@
 
 ## Updated At
 
-2026-08-14
+2026-08-18
 
 ## Repository State
 
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 323 Java files.
-- Test source: 147 Java files.
+- Production source: 398 Java files.
+- Test source: 165 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -19,6 +19,22 @@ it does not restate which commit published which increment.
 ## Capability Maturity
 
 ### Contract Verified
+
+- The installation transaction cursor now has one uncomposed concrete local-filesystem
+  store. `FileSystemInstallationTransactionStore` accepts only a caller-provisioned,
+  pre-existing absolute exact-real non-symbolic root, resolves one bounded no-follow
+  regular-file point, and holds a stable transaction-scoped nonblocking OS lock across
+  create/CAS resolution, validation, forced same-root candidate validation, required
+  atomic publication, and post-read. Exact replay does not rewrite; stale revision,
+  invalid successor, contention, corruption/schema/capacity, unavailable root, and
+  uncertain publication remain typed. JUnit temporary-tree tests are evidence for
+  cooperating local-process semantics only. Java path checks are not descriptor-relative
+  native confinement, file force plus atomic rename is not parent-directory or sudden-
+  power-loss durability, and no permission protection, authenticity, anti-rollback,
+  production installer, CLI/operator/runtime wiring, or real installation mutation
+  exists. The separate `InstallationPhaseEvidencePointStore` is still a pure semantic
+  create/read port with no production implementation; it does not implement the evidence
+  resolver because no independently revalidatable evidence body exists.
 
 - The Windows cancellation-trust installation permission adapter boundary under
   `com.enhancer.maintenance.installation.windows` is Contract Verified with an injected,
@@ -342,10 +358,33 @@ it does not restate which commit published which increment.
   port, and terminal replay is invocation- and mutation-free. All implementations are
   test-local fakes. A succeeded store write now retains the exact returned phase-
   evidence identity and terminal replay retains all eleven ordered bindings. Evidence
-  bodies, independent revalidation, integrity-protected persistence, durable effect
-  recovery, automatic pending replay, exactly-once installation, production store/port
-  implementations, existing permission-adapter composition, and installation success
-  remain absent.
+  bodies, integrity-protected persistence, durable effect recovery, automatic pending
+  replay, exactly-once installation, production store/port implementations, existing
+  permission-adapter composition, and installation success remain absent.
+  Exact point evidence reconciliation is Contract Verified through test-local fakes.
+  `InstallationPhaseEvidencePoint` binds one transaction/phase/canonical pending
+  revision, the read-only resolver exposes only exact revalidation or absence with typed
+  failure, and the separate pure reconciler performs at most one validated pending-to-
+  succeeded CAS. Missing or foreign evidence, resolver/store failure, and malformed
+  receipts leave the pending state without false success; succeeded and terminal state
+  invoke neither resolver nor phase port and never advance automatically. This is a
+  value/port/application contract only: evidence bodies, real content verification,
+  serialization/integrity, durable transaction/evidence persistence, filesystem/native
+  observation, production recovery, permission-adapter composition, and installation
+  success remain absent.
+  The pure transaction/evidence filesystem byte formats are Contract Verified without
+  a filesystem adapter. Distinct schema-v1 domain envelopes bind magic, schema, bounded
+  length, complete-header-plus-body SHA-256, payload kind, and deterministic canonical
+  content. The cursor format reconstructs the complete schema-v2 state with strict
+  UTF-8, stable enum names, explicit optionals/booleans, current provider/dialect, and
+  exact evidence prefix; the evidence format additionally rejects a valid foreign point.
+  Pure bounded leaf names bind the transaction or complete evidence point. Tests cover
+  initial/mid/terminal round trip, activation evidence, cross-kind input, corruption,
+  unsupported schema, truncation/trailing data, oversized length, malformed Unicode/
+  UTF-8, foreign point and path dialect, and canonical re-encoding. These package-local
+  codecs contain no filesystem call or store/resolver implementation. Their SHA-256 is
+  corruption detection only, not authenticity, durable publication, locking/CAS, or
+  rollback protection; evidence bodies and real revalidation remain absent.
 - Delivery Gate 8 lease-timeout fact and runtime-event path: AgentRuntime schema v4
   retains at most 256 ordered exact `LeaseTimeoutRecord` values. Expired
   `EXECUTING -> READY` reclamation atomically appends the current AgentRun, owner,
