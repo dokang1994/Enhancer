@@ -86,7 +86,11 @@ and neither the neutral contracts nor Windows adapter contain filesystem, ACL, p
 shell, or native-library calls. Raw Windows rights are retained separately from typed
 authorized installation operations: the publisher's minimal target `DELETE` or parent
 add/delete-child closure required for rename/replace does not authorize typed `DELETE`,
-cleanup, or uninstall. Operator/runtime raw mutation and delete remain denied.
+cleanup, or uninstall. Operator/runtime raw mutation and delete remain denied. A
+successful gateway publication binds its exact resulting target file identity to the
+transaction and artifact. Exact replay may return only that identity, and the following
+durability plus published-security checks reject the pre-publication leaf or any
+different same-volume identity.
 
 The contract has no filesystem calls and no
 permissive fallback to Java `Files.getOwner`, username comparison, inherited defaults,
@@ -189,6 +193,63 @@ digest, current phase, and activation identity.
 Current Java atomic move plus file `force(true)` is process/crash recovery evidence, not
 parent-directory or sudden-power-loss durability. A platform adapter needs directory/
 volume barriers and crash testing before making a stronger claim.
+
+### Current Pure Transaction Contract
+
+`InstallationTransactionState` now represents the schema-v2 immutable recovery cursor
+without performing an installation. It binds the complete already-authorized plan,
+normalized environment/filesystem identity, bounded source release version, permission-
+policy digest, expected-current/requested activation identities, one existing required
+phase, its `PENDING`/`SUCCEEDED` status, an exact revision, and an immutable ordered
+prefix of succeeded phase-evidence identities. Each `InstallationPhaseEvidence` binds
+schema, transaction, exact phase, its pending revision, lowercase semantic SHA-256, and
+only for activation the exact observed requested identity. Construction starts at the
+first required phase with an empty prefix. Pending-to-succeeded appends exactly one
+matching value; succeeded-to-next-pending preserves the complete prefix. Changed
+identity, historical replacement, reorder, truncate, skip, regression, extra append, or
+post-final advancement is structurally invalid.
+
+The pure `InstallationTransactionStore` port exposes only create-exclusive, exact point
+resolution, and compare-and-exchange. Its contract makes exact replay mutation-free and
+separates transaction conflict, stale revision, invalid transition, absent, unsupported,
+corrupt, capacity, unavailable, and reconciliation-required refusal. A test-only in-
+memory fake verifies those semantics and the before-metadata, after-metadata-before-
+activation, and after-activation recovery classifications.
+
+This contract is not a persistence implementation or evidence of durability, process
+restart, successful installation, or safe effect recovery. It does not serialize or
+integrity-protect records, retain evidence bodies or resolvable references, invoke an
+adapter, or automatically replay a pending effect. Those capabilities remain
+prerequisites for any real installer.
+
+### Current Pure Coordinator Contract
+
+`InstallationTransactionStore` mutations now return `CREATED`, `ADVANCED`, or
+`EXACT_REPLAY`. Only the first two receipts grant the current
+`InstallationTransactionCoordinator` call ownership to invoke the newly stored pending
+phase. Store state equality by itself never grants invocation authority.
+
+The coordinator performs at most one phase per explicit `start` or `advance`. The first
+two existing phases revalidate the supplied plan/environment/source binding through a
+source/preflight port; they do not discover an ambient principal or source. `ACTIVATE`
+uses only a distinct activation port. The remaining eight phases use named methods on a
+phase-effect port. Every fake result binds the transaction, exact phase, lowercase
+semantic evidence digest, and requested activation identity where applicable before the
+pending cursor is compare-and-exchanged to succeeded. That same standalone result value
+is appended to the state prefix, and the succeeded replacement must be accepted by the
+store before an outcome is returned.
+
+Pre-existing or exact-replayed pending state returns reconciliation and invokes no port.
+Exact terminal replay invokes no port and mutates no store state. A port refusal,
+unexpected port failure, invalid result binding, or store failure stops immediately and
+never falls back, rolls back, cleans up, broadens permission, infers success, or
+automatically retries pending work.
+
+Exact terminal replay retains all eleven ordered semantic result identities. Those
+digests identify values returned by the fake ports; they do not retain or independently
+verify evidence content and do not prove storage integrity, durability, restart-safe
+reconciliation, exactly-once effects, real source verification, installation success,
+or platform enforcement.
 
 ## Audit Evidence And Deferred Destruction
 

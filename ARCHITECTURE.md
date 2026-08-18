@@ -529,6 +529,43 @@ facts, including denied parent-directory mutation for operator and runtime. Port
 Java owner checks, usernames, ambient identity, inherited defaults, or administrator/
 root labels are insufficient.
 
+The same pure package now defines the schema-v2 installation transaction cursor and its
+revisioned point-store port. `InstallationTransactionState` fixes the complete authorized
+plan, normalized environment/filesystem identity, bounded source release, permission-
+policy digest, expected-current/requested activation identities, existing required phase,
+exact revision, and an immutable ordered prefix of succeeded phase-evidence identities.
+Each bounded `InstallationPhaseEvidence` binds its own schema, transaction, exact phase,
+pending revision, semantic SHA-256, and only for activation the observed requested
+identity. Each phase alternates `PENDING` and `SUCCEEDED`; pending-to-succeeded appends
+exactly one matching prefix entry, and succeeded-to-next-pending preserves the complete
+prefix. Recovery classification distinguishes before final metadata, after metadata
+before activation, and after activation exact replay without invoking an adapter. The
+store contract exposes only create-exclusive, point resolve, and compare-and-exchange
+with bounded typed refusal. Its sole implementation is a test-local in-memory fake, so
+this boundary proves neither durable persistence, evidence-content integrity, process-
+restart recovery, installation success, nor operational effect recovery. No production
+store, serialization/integrity format, effect evidence reference/resolver, or runtime/
+CLI/operator/build wiring exists.
+
+Store writes now return an explicit `CREATED`, `ADVANCED`, or `EXACT_REPLAY` receipt;
+state idempotency is therefore separate from phase-invocation ownership. The pure
+`InstallationTransactionCoordinator` consumes that receipt and executes at most one
+phase per `start` or `advance` call. Only a fresh create or advance may invoke a port.
+The first two phases use an injected source/preflight verifier over the supplied plan
+and environment binding, `ACTIVATE` uses a distinct activation port, and the remaining
+eight phases use a phase-effect port through an exhaustive closed switch. Each result
+must bind the exact transaction, phase, bounded semantic evidence digest, and requested
+activation identity where applicable before the pending cursor can advance to
+`SUCCEEDED`. The same standalone result value is appended to the schema-v2 prefix and
+must be stored by the succeeded compare-and-exchange before an outcome is returned.
+Existing or exact-replayed pending state requires reconciliation without invocation;
+exact terminal replay retains all eleven ordered result identities while invoking and
+mutating nothing. All port implementations remain test-local fakes. The retained
+semantic digests identify accepted port results but contain no evidence body or
+integrity/durability proof, so this coordinator still proves only persist-first
+sequential ordering and fail-stop behavior, not automatic pending recovery, exactly-
+once effects, or installation success.
+
 The Windows-specific contract boundary now exists under
 `com.enhancer.maintenance.installation.windows`. Its sole production adapter accepts an
 injected `WindowsInstallationPermissionGateway`; no production gateway implementation
@@ -538,8 +575,12 @@ rename/replace `DELETE` closure never authorizes typed cleanup or uninstall `DEL
 The adapter binds canonical SIDs and bounded token state, link-free same-volume
 path/file identities, protected explicit DACL facts, exact raw and normalized access,
 atomic publication, durability barriers, and read-only runtime digest probes to the
-already-authorized plan. It contains no Windows, filesystem, ACL, process, shell, or
-native-library call and is not wired to runtime, CLI, operator, or build entry points.
+already-authorized plan. The adapter retains each successful atomic-publication target
+file identity by transaction and artifact; exact replay must return that identity, and
+the following durability and published-security checks accept only it rather than a
+same-volume substitute or the pre-publication leaf. It contains no Windows, filesystem,
+ACL, process, shell, or native-library call and is not wired to runtime, CLI, operator,
+or build entry points.
 
 Future installation uses publisher-private same-filesystem immutable version staging,
 final permissions before exposure, content-addressed policy first, fixed metadata last,

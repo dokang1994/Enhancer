@@ -34,6 +34,8 @@ public final class WindowsInstallationPermissionAdapter
     private final WindowsInstallationPermissionGateway gateway;
     private final ConcurrentMap<UUID, WindowsEnvironmentSnapshot> resolvedEnvironments =
             new ConcurrentHashMap<>();
+    private final ConcurrentMap<PublishedArtifactKey, WindowsFileIdentity>
+            publishedIdentities = new ConcurrentHashMap<>();
 
     public WindowsInstallationPermissionAdapter(WindowsInstallationPermissionGateway gateway) {
         this.gateway = Objects.requireNonNull(gateway, "gateway must not be null");
@@ -76,7 +78,8 @@ public final class WindowsInstallationPermissionAdapter
             throw refusal(InstallationPermissionFailureReason.PERMISSION_APPLICATION_FAILED,
                     "Windows permission application failed");
         }
-        return normalizeSecurity(plan, artifact, environment, resolved, snapshot,
+        return normalizeSecurity(plan, artifact, environment,
+                leafIdentity(resolved, artifact.kind()), snapshot,
                 InstallationPermissionFailureReason.EFFECTIVE_ACCESS_VERIFICATION_FAILED);
     }
 
@@ -110,13 +113,23 @@ public final class WindowsInstallationPermissionAdapter
             throw refusal(InstallationPermissionFailureReason.PUBLICATION_FAILED,
                     "Windows publication evidence did not match the exact plan");
         }
+        AtomicPublicationEvidence evidence;
         try {
-            return new AtomicPublicationEvidence(plan.transactionId(), staged, target, mode,
+            evidence = new AtomicPublicationEvidence(plan.transactionId(), staged, target, mode,
                     snapshot.volume().value(), true);
         } catch (IllegalArgumentException failure) {
             throw refusal(InstallationPermissionFailureReason.PUBLICATION_FAILED,
                     "Windows publication mode was invalid for the target");
         }
+        PublishedArtifactKey key = new PublishedArtifactKey(
+                plan.transactionId(), target.kind());
+        WindowsFileIdentity retained = publishedIdentities.putIfAbsent(
+                key, snapshot.targetIdentity());
+        if (retained != null && !retained.equals(snapshot.targetIdentity())) {
+            throw refusal(InstallationPermissionFailureReason.PUBLICATION_FAILED,
+                    "Windows publication replay changed the target identity");
+        }
+        return evidence;
     }
 
     @Override
@@ -126,6 +139,8 @@ public final class WindowsInstallationPermissionAdapter
             InstallationEnvironmentEvidence environment)
             throws InstallationPermissionException {
         validateInputs(plan, published, environment);
+        WindowsFileIdentity publishedIdentity = publishedIdentity(
+                plan, published, InstallationPermissionFailureReason.DURABILITY_FAILED);
         WindowsDurabilitySnapshot snapshot;
         try {
             snapshot = gateway.forceDurable(plan, published, environment);
@@ -136,7 +151,7 @@ public final class WindowsInstallationPermissionAdapter
         if (snapshot == null
                 || !snapshot.transactionId().equals(plan.transactionId())
                 || !snapshot.artifact().equals(published)
-                || !snapshot.identity().volume().value().equals(environment.filesystemIdentity())
+                || !snapshot.identity().equals(publishedIdentity)
                 || !snapshot.fileBarrierComplete()
                 || !snapshot.parentOrVolumeBarrierComplete()) {
             throw refusal(InstallationPermissionFailureReason.DURABILITY_FAILED,
@@ -152,7 +167,9 @@ public final class WindowsInstallationPermissionAdapter
             InstallationArtifact artifact,
             InstallationEnvironmentEvidence environment)
             throws InstallationPermissionException {
-        WindowsEnvironmentSnapshot resolved = validateInputs(plan, artifact, environment);
+        validateInputs(plan, artifact, environment);
+        WindowsFileIdentity publishedIdentity = publishedIdentity(
+                plan, artifact, InstallationPermissionFailureReason.PUBLISHED_RECHECK_FAILED);
         WindowsArtifactSecuritySnapshot snapshot;
         try {
             snapshot = gateway.inspectPublished(plan, artifact, environment);
@@ -160,7 +177,7 @@ public final class WindowsInstallationPermissionAdapter
             throw refusal(InstallationPermissionFailureReason.PUBLISHED_RECHECK_FAILED,
                     "Windows published-artifact inspection failed");
         }
-        return normalizeSecurity(plan, artifact, environment, resolved, snapshot,
+        return normalizeSecurity(plan, artifact, environment, publishedIdentity, snapshot,
                 InstallationPermissionFailureReason.PUBLISHED_RECHECK_FAILED);
     }
 
@@ -254,7 +271,7 @@ public final class WindowsInstallationPermissionAdapter
             CancellationTrustInstallationPlan plan,
             InstallationArtifact artifact,
             InstallationEnvironmentEvidence environment,
-            WindowsEnvironmentSnapshot resolved,
+            WindowsFileIdentity expectedIdentity,
             WindowsArtifactSecuritySnapshot snapshot,
             InstallationPermissionFailureReason failureReason)
             throws InstallationPermissionException {
@@ -262,7 +279,7 @@ public final class WindowsInstallationPermissionAdapter
                 || !snapshot.transactionId().equals(plan.transactionId())
                 || !snapshot.artifact().equals(artifact)
                 || snapshot.objectType() != objectType(artifact.kind())
-                || !snapshot.identity().equals(leafIdentity(resolved, artifact.kind()))) {
+                || !snapshot.identity().equals(expectedIdentity)) {
             throw refusal(failureReason,
                     "Windows artifact identity evidence did not match the exact plan");
         }
@@ -360,6 +377,20 @@ public final class WindowsInstallationPermissionAdapter
         return components.get(components.size() - 1).identity();
     }
 
+    private WindowsFileIdentity publishedIdentity(
+            CancellationTrustInstallationPlan plan,
+            InstallationArtifact artifact,
+            InstallationPermissionFailureReason failureReason)
+            throws InstallationPermissionException {
+        WindowsFileIdentity identity = publishedIdentities.get(
+                new PublishedArtifactKey(plan.transactionId(), artifact.kind()));
+        if (identity == null) {
+            throw refusal(failureReason,
+                    "Windows publication identity was not retained for the artifact");
+        }
+        return identity;
+    }
+
     private static List<java.nio.file.Path> pathComponents(java.nio.file.Path path) {
         java.util.ArrayList<java.nio.file.Path> result = new java.util.ArrayList<>();
         java.nio.file.Path current = path.getRoot();
@@ -374,5 +405,13 @@ public final class WindowsInstallationPermissionAdapter
     private static InstallationPermissionException refusal(
             InstallationPermissionFailureReason reason, String detail) {
         return new InstallationPermissionException(reason, detail);
+    }
+
+    private record PublishedArtifactKey(
+            UUID transactionId, InstallationArtifactKind artifactKind) {
+        private PublishedArtifactKey {
+            Objects.requireNonNull(transactionId, "transactionId must not be null");
+            Objects.requireNonNull(artifactKind, "artifactKind must not be null");
+        }
     }
 }

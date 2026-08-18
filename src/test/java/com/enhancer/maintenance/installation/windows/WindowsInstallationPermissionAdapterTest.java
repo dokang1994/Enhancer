@@ -82,6 +82,95 @@ class WindowsInstallationPermissionAdapterTest {
     }
 
     @Test
+    void replacementPublicationIdentityBindsDurabilityAndPublishedRecheck()
+            throws Exception {
+        CancellationTrustInstallationPlan plan = plan();
+        RecordingGateway gateway = new RecordingGateway(plan);
+        WindowsInstallationPermissionAdapter adapter =
+                new WindowsInstallationPermissionAdapter(gateway);
+        InstallationEnvironmentEvidence environment = adapter.resolveAndVerify(plan);
+        InstallationArtifact metadata = plan.artifact(InstallationArtifactKind.FIXED_METADATA);
+        WindowsFileIdentity replacement = gateway.distinctIdentity("1");
+        gateway.publicationTargetIdentity = replacement;
+        gateway.durabilityIdentity = replacement;
+        gateway.inspectedIdentity = replacement;
+
+        adapter.publishAtomically(plan,
+                plan.artifact(InstallationArtifactKind.METADATA_CANDIDATE), metadata,
+                PublicationMode.REPLACE_EXISTING, environment);
+
+        assertEquals(metadata, adapter.forceDurable(plan, metadata, environment).artifact());
+        assertEquals(metadata,
+                adapter.verifyPublished(plan, metadata, environment).artifact());
+        assertEquals(List.of("resolve", "publish:REPLACE_EXISTING",
+                "durable:FIXED_METADATA", "inspect:FIXED_METADATA"), gateway.calls);
+    }
+
+    @Test
+    void postPublicationIdentityDriftFailsAtDurabilityAndPublishedRecheck()
+            throws Exception {
+        CancellationTrustInstallationPlan plan = plan();
+        InstallationArtifact metadata = plan.artifact(InstallationArtifactKind.FIXED_METADATA);
+        WindowsFileIdentity replacement = new WindowsFileIdentity(
+                new WindowsVolumeIdentity("windows-volume-v1"), "1".repeat(32));
+        WindowsFileIdentity drift = new WindowsFileIdentity(
+                new WindowsVolumeIdentity("windows-volume-v1"), "2".repeat(32));
+
+        RecordingGateway durabilityGateway = new RecordingGateway(plan);
+        WindowsInstallationPermissionAdapter durabilityAdapter =
+                new WindowsInstallationPermissionAdapter(durabilityGateway);
+        InstallationEnvironmentEvidence durabilityEnvironment =
+                durabilityAdapter.resolveAndVerify(plan);
+        durabilityGateway.publicationTargetIdentity = replacement;
+        durabilityGateway.durabilityIdentity = drift;
+        durabilityAdapter.publishAtomically(plan,
+                plan.artifact(InstallationArtifactKind.METADATA_CANDIDATE), metadata,
+                PublicationMode.REPLACE_EXISTING, durabilityEnvironment);
+        assertReason(InstallationPermissionFailureReason.DURABILITY_FAILED,
+                () -> durabilityAdapter.forceDurable(
+                        plan, metadata, durabilityEnvironment));
+
+        RecordingGateway inspectionGateway = new RecordingGateway(plan);
+        WindowsInstallationPermissionAdapter inspectionAdapter =
+                new WindowsInstallationPermissionAdapter(inspectionGateway);
+        InstallationEnvironmentEvidence inspectionEnvironment =
+                inspectionAdapter.resolveAndVerify(plan);
+        inspectionGateway.publicationTargetIdentity = replacement;
+        inspectionGateway.inspectedIdentity = drift;
+        inspectionAdapter.publishAtomically(plan,
+                plan.artifact(InstallationArtifactKind.METADATA_CANDIDATE), metadata,
+                PublicationMode.REPLACE_EXISTING, inspectionEnvironment);
+        assertReason(InstallationPermissionFailureReason.PUBLISHED_RECHECK_FAILED,
+                () -> inspectionAdapter.verifyPublished(
+                        plan, metadata, inspectionEnvironment));
+    }
+
+    @Test
+    void publicationIdentityReplayAcceptsOnlyTheRetainedExactTarget() throws Exception {
+        CancellationTrustInstallationPlan plan = plan();
+        RecordingGateway gateway = new RecordingGateway(plan);
+        WindowsInstallationPermissionAdapter adapter =
+                new WindowsInstallationPermissionAdapter(gateway);
+        InstallationEnvironmentEvidence environment = adapter.resolveAndVerify(plan);
+        InstallationArtifact metadata = plan.artifact(InstallationArtifactKind.FIXED_METADATA);
+        WindowsFileIdentity replacement = gateway.distinctIdentity("1");
+        gateway.publicationTargetIdentity = replacement;
+
+        adapter.publishAtomically(plan,
+                plan.artifact(InstallationArtifactKind.METADATA_CANDIDATE), metadata,
+                PublicationMode.REPLACE_EXISTING, environment);
+        adapter.publishAtomically(plan,
+                plan.artifact(InstallationArtifactKind.METADATA_CANDIDATE), metadata,
+                PublicationMode.REPLACE_EXISTING, environment);
+
+        gateway.publicationTargetIdentity = gateway.distinctIdentity("2");
+        assertReason(InstallationPermissionFailureReason.PUBLICATION_FAILED,
+                () -> adapter.publishAtomically(plan,
+                        plan.artifact(InstallationArtifactKind.METADATA_CANDIDATE), metadata,
+                        PublicationMode.REPLACE_EXISTING, environment));
+    }
+
+    @Test
     void rawPublisherDeleteClosureDoesNotAuthorizeTypedDelete() throws Exception {
         CancellationTrustInstallationPlan plan = plan();
         RecordingGateway gateway = new RecordingGateway(plan);
@@ -340,6 +429,9 @@ class WindowsInstallationPermissionAdapterTest {
         private boolean publicationAtomic = true;
         private boolean parentBarrier = true;
         private String probeMetadataSha256;
+        private WindowsFileIdentity publicationTargetIdentity;
+        private WindowsFileIdentity durabilityIdentity;
+        private WindowsFileIdentity inspectedIdentity;
 
         private RecordingGateway(CancellationTrustInstallationPlan plan) {
             this.plan = plan;
@@ -377,7 +469,9 @@ class WindowsInstallationPermissionAdapterTest {
             call("publish:" + mode,
                     WindowsInstallationGatewayFailureReason.PUBLISH_ATOMICALLY);
             return new WindowsPublicationSnapshot(plan.transactionId(), staged, target, mode,
-                    identity(target.path()), new WindowsVolumeIdentity("windows-volume-v1"),
+                    publicationTargetIdentity == null
+                            ? identity(target.path()) : publicationTargetIdentity,
+                    new WindowsVolumeIdentity("windows-volume-v1"),
                     true, publicationAtomic);
         }
 
@@ -390,7 +484,9 @@ class WindowsInstallationPermissionAdapterTest {
             call("durable:" + artifact.kind(),
                     WindowsInstallationGatewayFailureReason.FORCE_DURABLE);
             return new WindowsDurabilitySnapshot(plan.transactionId(), artifact,
-                    identity(artifact.path()), true, parentBarrier);
+                    durabilityIdentity == null
+                            ? identity(artifact.path()) : durabilityIdentity,
+                    true, parentBarrier);
         }
 
         @Override
@@ -401,7 +497,13 @@ class WindowsInstallationPermissionAdapterTest {
                 throws WindowsInstallationGatewayException {
             call("inspect:" + artifact.kind(),
                     WindowsInstallationGatewayFailureReason.INSPECT_PUBLISHED);
-            return snapshotOverride == null ? snapshot(artifact) : snapshotOverride;
+            if (snapshotOverride != null) {
+                return snapshotOverride;
+            }
+            WindowsArtifactSecuritySnapshot exact = snapshot(artifact);
+            return inspectedIdentity == null ? exact : new WindowsArtifactSecuritySnapshot(
+                    exact.transactionId(), exact.artifact(), exact.objectType(),
+                    inspectedIdentity, exact.dacl(), exact.access());
         }
 
         @Override
@@ -552,6 +654,11 @@ class WindowsInstallationPermissionAdapterTest {
             String hex = Integer.toUnsignedString(path.toString().hashCode(), 16);
             return new WindowsFileIdentity(new WindowsVolumeIdentity("windows-volume-v1"),
                     "0".repeat(32 - hex.length()) + hex);
+        }
+
+        private WindowsFileIdentity distinctIdentity(String digit) {
+            return new WindowsFileIdentity(new WindowsVolumeIdentity("windows-volume-v1"),
+                    digit.repeat(32));
         }
 
         private void call(String name, WindowsInstallationGatewayFailureReason stage)

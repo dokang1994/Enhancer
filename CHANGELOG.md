@@ -1,5 +1,60 @@
 # Changelog
 
+## 2026-08-14 - Bind Pure Installation Phase Evidence Prefix
+
+- Added a schema-v1 bounded semantic phase-evidence value and upgraded the pure
+  transaction cursor to schema v2 with an exact immutable succeeded-evidence prefix.
+- Required pending success to append one transaction/phase/revision/digest binding,
+  preserved that history across next-phase transitions, and rejected activation drift,
+  missing entries, reorder, truncation, replacement, and extra history.
+- Connected every coordinator port result to the succeeded store replacement; exact
+  terminal replay retains eleven ordered identities without invoking a port or mutating
+  the store.
+- Kept evidence bodies/references, integrity and durable persistence, production stores
+  and ports, pending reconciliation, permission-adapter composition, native/filesystem/
+  security-state access, real installation effects, and external delivery absent.
+
+## 2026-08-14 - Define Pure Installation Transaction Coordination
+
+- Distinguished fresh transaction-store creation/advancement from exact replay so only
+  the caller that newly persists a pending phase receives invocation ownership.
+- Added a pure one-phase-at-a-time coordinator with distinct source/preflight and
+  activation ports, an exhaustive named phase-effect port, bounded result binding, and
+  typed reconciliation/failure behavior.
+- Added fake-only tests for all eleven ordered phases, pending-before-call observation,
+  one-phase execution, failure retention, result mismatch, store failure, reconciliation,
+  and invocation-free terminal replay.
+- Kept phase-evidence persistence, production stores/ports, permission-adapter
+  composition, native/filesystem/security-state access, real installation effects,
+  activation, automatic retry, threads, runtime/CLI/operator/build wiring, and
+  operational recovery absent.
+
+## 2026-08-14 - Define Pure Installation Transaction Recovery Contracts
+
+- Added a schema-v1 immutable transaction cursor that binds the exact installation plan
+  to normalized environment/filesystem, release, permission-policy, activation,
+  phase/status, and exact revision facts.
+- Added a platform-neutral create/resolve/compare-and-exchange store port with bounded
+  typed refusals and a test-only in-memory fake proving exact replay, changed-identity
+  conflict, stale CAS refusal, strict pending/succeeded order, and metadata/activation
+  recovery classification.
+- Kept production persistence, serialization/integrity, coordination, native gateways,
+  filesystem/security-state access, installation effects, activation, and runtime/CLI/
+  operator/build wiring absent; the fake is not durability or operational-recovery
+  evidence.
+
+## 2026-08-14 - Bind Windows Publication Identity Through Post-Publication Verification
+
+- Retained the exact target file identity returned by each successful fake-gateway
+  atomic publication, keyed by transaction and artifact, without changing the public
+  gateway or evidence APIs.
+- Required durability and published-security recheck to bind to that retained identity;
+  same-volume substitution, pre-publication identity reuse, and changed publication
+  replay now fail with their existing typed reasons.
+- Added focused replacement, drift, and replay regression coverage while preserving zero
+  production gateway implementations and zero Windows/filesystem/ACL/process/shell/native
+  calls or real installation effects.
+
 ## 2026-08-13 - Deliver The Windows Installation Permission Boundary To Main
 
 - Committed the verified operator distribution, platform-neutral installation permission

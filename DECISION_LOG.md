@@ -11,6 +11,36 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User request on 2026-08-18 to continue committing, pushing, and merging the completed installation transaction contracts
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-18-continue-delivery-of-installation-transaction-contracts-to-main.md)
+
+### User continuation request on 2026-08-14 after pure installation transaction coordination
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-14-user-continuation-after-pure-installation-transaction-coordination.md)
+
+### User continuation request on 2026-08-14 after pure installation transaction recovery contracts
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-14-user-continuation-after-pure-installation-transaction-recovery-contracts.md)
+
+### User continuation request on 2026-08-14 after Windows publication identity hardening
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-14-user-continuation-after-windows-publication-identity-hardening.md)
+
+### User continuation request on 2026-08-14 after Windows installation permission boundary delivery
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-14-user-continuation-after-windows-installation-permission-boundary-delivery.md)
+
 ### User request on 2026-08-13 to commit, push, and merge the Windows installation permission boundary
 
 Status: Accepted Decision

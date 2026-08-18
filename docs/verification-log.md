@@ -5073,3 +5073,147 @@ Outcome:
 - No force push, rebase, amend, reset, release, tag, deployment, real installation,
   Windows identity/permission observation or mutation, cleanup, paid service, or external
   message beyond the requested Git remote update occurred.
+
+## 2026-08-14 - Windows Publication Identity Binding Verification
+
+- Required repository authority was read in order. Recovery inspection returned an
+  empty checkpoint; `HEAD`, `main`, and `origin/main` were equal at
+  `3abe4c5a697b1d8c2925d9c449ff1c2a0b7a2ec2` with divergence `0 0`, and the worktree
+  was clean before the new Active Task was recorded.
+- Three bounded read-only reviews were dispatched for next-scope, Windows test-surface,
+  and security-boundary analysis. Two completed and one was stopped after its useful
+  report; all reports were treated as recommendations rather than verification evidence.
+  The primary Agent independently inspected the adapter, tests, accepted decisions, and
+  installation contract and selected the smaller existing-contract correction.
+- Focused RED ran 11 `WindowsInstallationPermissionAdapterTest` cases. Exactly three new
+  cases failed: truthful replacement identity B was rejected after publication, a
+  different same-volume durability identity C was accepted, and changed publication
+  identity replay was accepted. The failures matched the Active Task and accepted
+  post-publication identity contract; no unrelated case failed.
+- The minimum implementation added only adapter-internal retained publication identity
+  state keyed by transaction and artifact. Focused GREEN then ran 13 tests across
+  `WindowsInstallationPermissionAdapterTest` and
+  `CancellationTrustMaintenanceSeparationTest`: all passed with zero failures, errors,
+  or skips. Exact replacement continuity, same-volume drift refusal, changed replay
+  refusal, raw-right separation, and the no-native/no-wiring architecture guard passed.
+- Fresh full Java 17 `test --no-daemon` completed in 7 minutes 13 seconds and ran 825
+  tests across 158 suites: 815 passed, 10 environment-dependent cases skipped, and zero
+  failed or errored. Final Markdown-sensitive governance, structural, diff/status, and
+  checkpoint-close checks follow this append-only entry.
+- No native dependency or gateway, Windows API/filesystem/SID/token/DACL/reparse/volume/
+  file-identity observation, permission/owner/file mutation, publication or durability
+  effect, alternate-principal probe, installation, activation, deployment, cleanup,
+  release, commit, push, merge, tag, destructive action, or external message occurred.
+
+## 2026-08-14 - Pure Installation Transaction Recovery Contract Verification
+
+- Continued from the completed Windows publication identity task with an empty recovery
+  checkpoint and the exact 11 intended uncommitted paths from that increment. Two
+  bounded read-only reviews covered transaction-state/CAS shape and security/governance
+  limits; their recommendations were reconciled against repository authority and were
+  not treated as verification evidence.
+- Focused RED selected `InstallationTransactionStoreContractTest` and failed at test
+  compilation because `InstallationTransactionState`, `InstallationTransactionStore`,
+  and `InstallationTransactionStoreException` did not exist. The existing production
+  sources compiled; the 62 messages were missing-symbol and derived override errors for
+  that aligned contract only.
+- The minimum production change added those three pure platform-neutral types. The
+  schema-v1 state binds the exact plan, normalized environment/filesystem, bounded
+  release, permission-policy digest, activation identities, required phase/status, and
+  exact revision. The port exposes create, point resolve, and compare-and-exchange only;
+  its sole implementation is a test-local in-memory fake.
+- An initial focused GREEN attempt ran eight tests and had one test-only stale next-phase
+  expectation after the initial cursor was aligned to `RESOLVE_PRINCIPALS`. After that
+  assertion was corrected to the existing required order, the same six transaction
+  contract and two architecture-separation cases all passed with zero failures, errors,
+  or skips.
+- Fresh full Java 17 `test --no-daemon` completed in 7 minutes 21 seconds. JUnit XML
+  aggregation found 159 suites and 831 tests: 821 passed, 10 environment-dependent
+  cases skipped, zero failed, and zero errored.
+- Structural inspection found zero forbidden filesystem, `FileChannel`, ACL/POSIX,
+  process, shell, JNA/FFM, runtime, or CLI references in the three new production types,
+  and zero production `InstallationTransactionStore` implementations. `git diff
+  --check` passed. Final governance, status/diff, and checkpoint-close checks follow
+  this append-only entry.
+- The in-memory fake is not durability, process-restart, installation-success, or safe
+  effect-recovery evidence. No production persistence, serializer/integrity envelope,
+  coordinator, source verification, staging, platform gateway, host/security-state
+  access, permission/file/install/activation effect, cleanup, deployment, release,
+  commit, push, merge, tag, destructive action, or external message occurred.
+
+## 2026-08-14 - Pure Installation Transaction Coordinator Verification
+
+- Continued from the completed transaction-state/store task with an empty recovery
+  checkpoint and the exact 17 intended uncommitted paths from earlier increments. Two
+  bounded read-only reviews independently found that state-only store returns could not
+  distinguish fresh pending-write ownership from exact replay; their recommendations
+  were reconciled against repository authority and were not verification evidence.
+- Focused RED selected the coordinator and transaction-store contract suites. Existing
+  production sources compiled, then test compilation failed because the store receipt,
+  coordinator, and bounded phase-execution exception were missing. The 96 messages were
+  missing-symbol and derived override errors for that aligned contract only.
+- The minimum production change made store create/CAS return `CREATED`, `ADVANCED`, or
+  `EXACT_REPLAY`, added one pure one-phase coordinator with nested source/preflight,
+  phase-effect, and activation ports, and added one bounded checked failure type. No
+  production store or phase-port implementation was added.
+- Focused GREEN ran 14 tests across three suites: six coordinator cases, six transaction-
+  store cases, and two architecture-separation cases. All passed with zero failures,
+  errors, or skips. The tests covered pending-before-call observation, eleven explicit
+  ordered phase calls, exact routing, store receipt ownership, port/result/store failure,
+  reconciliation, and invocation- plus mutation-free terminal replay.
+- Fresh full Java 17 `test --no-daemon` completed in 7 minutes 9 seconds. JUnit XML
+  aggregation found 160 suites and 837 tests: 827 passed, 10 environment-dependent
+  cases skipped, zero failed, and zero errored.
+- Structural inspection found zero forbidden filesystem, file-channel, ACL/POSIX,
+  process, shell, environment/property, JNA/FFM, reflection, runtime, or CLI references
+  in the coordinator production surface and zero production store/source/effect/
+  activation implementations. `git diff --check` passed. Final governance, status/diff,
+  and checkpoint-close checks follow this append-only entry.
+- The coordinator validates but does not persist phase evidence. It is sequential call-
+  order evidence only, not durability, restart-safe reconciliation, exactly-once
+  installation, or installation-success evidence. No production persistence, existing
+  permission-adapter composition, native gateway, host/security-state access,
+  permission/file/install/probe/activation effect, automatic retry, thread, cleanup,
+  deployment, release, commit, push, merge, tag, destructive action, or external
+  message occurred.
+
+## 2026-08-14 - Pure Installation Phase-Evidence Prefix Verification
+
+- Continued from the completed pure coordinator task with an empty recovery checkpoint
+  and the exact 21 intended uncommitted paths from earlier increments. Two bounded read-
+  only reviews independently selected a schema-v2 immutable semantic-evidence prefix as
+  the smallest safe next prerequisite; their recommendations were reconciled against
+  repository authority and were not verification evidence.
+- Focused RED selected the state/store and coordinator contract suites. Existing
+  production sources compiled, then test compilation failed with 38 missing-symbol or
+  missing-method messages for the absent standalone phase-evidence value, state prefix,
+  and exact successor predicate. No unrelated production failure was absorbed.
+- The minimum production change added one schema-v1 bounded platform-neutral
+  `InstallationPhaseEvidence`, upgraded `InstallationTransactionState` to schema v2,
+  retained an exact immutable succeeded-evidence prefix, and connected each coordinator
+  result to the succeeded compare-and-exchange. Store and port implementations remain
+  nested test fakes.
+- Focused GREEN ran 16 tests across three suites: eight transaction state/store cases,
+  six coordinator cases, and two architecture-separation cases. All passed with zero
+  failures, errors, or skips. Coverage includes prefix construction/preservation,
+  foreign phase/revision/activation refusal, history rewrite and stale CAS refusal,
+  eleven retained terminal bindings, failure retention, reconciliation, and idle exact
+  terminal replay.
+- The first full invocation was stopped by its 120-second command timeout while `:test`
+  was still running and emitted no test failure; it was not counted as verification.
+  The same standard Java 17 `test --no-daemon` command was rerun with a sufficient bound
+  and completed in 7 minutes 8 seconds. JUnit XML aggregation found 160 suites and 839
+  tests: 829 passed, 10 environment-dependent cases skipped, zero failed, and zero
+  errored.
+- Structural inspection found zero forbidden filesystem, file-channel, ACL/POSIX,
+  process, shell, environment/property, JNA/FFM, reflection, runtime, or CLI references
+  in the changed neutral production surface and zero production transaction-store or
+  phase-port implementations. Final governance, `git diff --check`, status/diff, and
+  checkpoint-close checks follow this append-only entry.
+- The prefix retains only semantic identities returned by fake ports. It is not
+  evidence-content verification, integrity-protected storage, durability, restart-safe
+  reconciliation, exactly-once installation, or installation-success evidence. No
+  production persistence, permission-adapter composition, native gateway, host/
+  security-state access, permission/file/install/probe/activation effect, cleanup,
+  deployment, release, commit, push, merge, tag, destructive action, or external
+  message occurred.

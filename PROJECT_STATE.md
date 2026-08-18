@@ -2,7 +2,7 @@
 
 ## Updated At
 
-2026-08-11
+2026-08-14
 
 ## Repository State
 
@@ -25,7 +25,10 @@ it does not restate which commit published which increment.
   unimplemented native gateway. It validates canonical plan SIDs, bounded token groups
   and privileges, link-free same-volume path/file identities, protected explicit DACL
   evidence, exact raw Windows-right and normalized-operation partitions, atomic
-  publication, durability barriers, and exact runtime metadata/policy probes. One
+  publication, durability barriers, and exact runtime metadata/policy probes. A
+  successful publication retains the exact resulting target file identity; durability
+  and published-security recheck accept only that identity, and changed replay or later
+  same-volume identity drift fails at its typed boundary. One
   production adapter implementation and zero production gateway implementations exist;
   fake-gateway tests and architecture guards prove the package has no filesystem, ACL,
   process, shell, native-library, runtime, CLI, operator, or build wiring. Publisher raw
@@ -319,8 +322,29 @@ it does not restate which commit published which increment.
   `InstallationPermissionAdapter` port. Fake-adapter and architecture tests cover the
   contract without filesystem calls. Platform-specific Windows SID/DACL or POSIX UID/
   GID/mode/ACL enforcement, immutable staging, policy/metadata publication, runtime-
-  identity probing, activation, transaction persistence, installer composition, real
+  identity probing, activation, production transaction persistence, installer
+  composition, real
   installation, deployment, uninstall/cleanup, release, and privileged anti-rollback
+  remain absent.
+  The platform-neutral schema-v2 transaction cursor and revisioned point-store port are
+  also Contract Verified with a test-only in-memory fake. They bind the exact plan,
+  normalized environment/filesystem, release, permission-policy, activation, ordered
+  pending/succeeded phase, revision, and immutable ordered succeeded phase-evidence
+  prefix; reject changed identity, history rewrite, and stale CAS; and classify the
+  metadata/activation recovery regions. Each prefix entry carries only a bounded
+  semantic result identity, not evidence content or integrity/durability proof. This is
+  state/store grammar, not durable persistence, restart recovery, installation-success
+  evidence, or a production store implementation.
+  Store mutation receipts and the pure one-phase transaction coordinator are now also
+  Contract Verified. `CREATED`/`ADVANCED` alone grant one fake port invocation after a
+  pending state is stored; exact replay or existing pending returns reconciliation,
+  source/preflight and activation use distinct ports, other phases use the closed effect
+  port, and terminal replay is invocation- and mutation-free. All implementations are
+  test-local fakes. A succeeded store write now retains the exact returned phase-
+  evidence identity and terminal replay retains all eleven ordered bindings. Evidence
+  bodies, independent revalidation, integrity-protected persistence, durable effect
+  recovery, automatic pending replay, exactly-once installation, production store/port
+  implementations, existing permission-adapter composition, and installation success
   remain absent.
 - Delivery Gate 8 lease-timeout fact and runtime-event path: AgentRuntime schema v4
   retains at most 256 ordered exact `LeaseTimeoutRecord` values. Expired

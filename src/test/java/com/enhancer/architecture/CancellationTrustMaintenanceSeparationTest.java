@@ -75,7 +75,7 @@ class CancellationTrustMaintenanceSeparationTest {
         try (var files = Files.list(installation)) {
             neutralSources = files.filter(path -> path.toString().endsWith(".java")).toList();
         }
-        assertEquals(20, neutralSources.size());
+        assertEquals(26, neutralSources.size());
         Path windows = installation.resolve("windows");
         assertTrue(Files.isDirectory(windows));
         List<Path> windowsSources;
@@ -104,6 +104,16 @@ class CancellationTrustMaintenanceSeparationTest {
                 windowsSources, "implements InstallationPermissionAdapter"));
         assertEquals(0, sourceOccurrences(
                 windowsSources, "implements WindowsInstallationPermissionGateway"));
+        assertEquals(0, sourceOccurrences(
+                neutralSources, "implements InstallationTransactionStore"));
+        assertEquals(0, sourceOccurrences(
+                neutralSources, "implements InstallationTransactionCoordinator.PreflightVerifier"));
+        assertEquals(0, sourceOccurrences(
+                neutralSources, "implements InstallationTransactionCoordinator.PhaseEffectPort"));
+        assertEquals(0, sourceOccurrences(
+                neutralSources, "implements InstallationTransactionCoordinator.ActivationPort"));
+        assertEquals(0, productionOccurrencesOutsideInstallation(
+                "implements InstallationTransactionStore"));
         assertEquals(0, productionOccurrencesOutsideInstallation(
                 "com.enhancer.maintenance.installation"));
         assertEquals(0, productionOccurrencesOutsideInstallation(
