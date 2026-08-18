@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -104,7 +104,7 @@ insufficient authority, or any requirement for force/history rewriting.
 
 ### Increment 1 - prepare-delivery-commit
 
-State: In Progress
+State: Completed
 
 Depends On: none
 
@@ -121,7 +121,7 @@ Next Action: Fast-forward `main` to the delivery commit.
 
 ### Increment 2 - merge-and-push-main
 
-State: Pending
+State: Completed
 
 Depends On: prepare-delivery-commit
 
@@ -138,7 +138,7 @@ Next Action: Record delivery history and close the task.
 
 ### Increment 3 - close-delivery-record
 
-State: Pending
+State: Completed
 
 Depends On: merge-and-push-main
 
@@ -163,8 +163,28 @@ contract before any production store or permission-adapter composition.
 - The preceding implementation task's full Java 17 regression ran 839 tests across 160
   suites: 829 passed, 10 environment-dependent cases skipped, and zero failed or
   errored. Fresh delivery verification remains required before the first commit.
+- Fresh pre-commit Java 17 `test --no-daemon` completed in 8 minutes 16 seconds and ran
+  839 tests across 160 suites: 829 passed, 10 environment-dependent cases skipped, and
+  zero failed or errored. `git diff --check` passed and the manifest contained exactly
+  24 intended paths after the delivery authority record was added.
+- Commit `bb7d0ba0050462efac387e530e9ff58573fac538` contains the complete verified
+  manifest on `codex/installation-transaction-contracts-20260818`. Its sole parent is
+  the prior shared base `3abe4c5a697b1d8c2925d9c449ff1c2a0b7a2ec2`.
+- The delivery branch was pushed without force. `main` then fast-forwarded with
+  `--ff-only` from `3abe4c5` to `bb7d0ba`; no synthetic merge commit or history rewrite
+  occurred.
+- The first `main` push attempt failed before reaching GitHub because DNS could not
+  resolve `github.com`; checkpoint revision 16 retained that failure. The recorded
+  retry advanced `origin/main` from `3abe4c5` to `bb7d0ba` through a non-force push.
+- A fresh direct remote query verified both `refs/heads/main` and the delivery branch at
+  `bb7d0ba0050462efac387e530e9ff58573fac538`. Local `HEAD`, `main`, and
+  `origin/main` matched that hash with divergence `0 0` and a clean worktree before
+  delivery-record synchronization.
+- Closure governance ran 10 tests across the decision-index, document-ownership, and
+  dynamic-workflow suites with zero failures, errors, or skips; `git diff --check` was
+  clean. Fresh verification after this final summary precedes the closure commit.
 
 ## Next
 
-Record the delivery decision, run fresh verification, and create the scoped delivery
-commit on a local branch before the fast-forward merge into `main`.
+Define a pure point-resolvable evidence revalidation/reconciliation contract before any
+production store or permission-adapter composition.

@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-08-18 - Deliver Installation Transaction Contracts To Main
+
+- Committed the verified Windows publication-identity hardening and pure installation
+  transaction state, coordination, and phase-evidence-prefix contracts as
+  `bb7d0ba0050462efac387e530e9ff58573fac538` on the explicit delivery branch.
+- Pushed the delivery branch without force, fast-forward merged `main` from `3abe4c5`
+  to `bb7d0ba` with `--ff-only`, and advanced `origin/main` through a non-force push.
+- Direct remote-ref verification confirmed the delivery branch and `origin/main` at the
+  same commit with local divergence `0 0`. No force push, history rewrite, release,
+  deployment, real installation, native gateway, or permission mutation occurred.
+
 ## 2026-08-14 - Bind Pure Installation Phase Evidence Prefix
 
 - Added a schema-v1 bounded semantic phase-evidence value and upgraded the pure

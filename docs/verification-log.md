@@ -5217,3 +5217,32 @@ Outcome:
   security-state access, permission/file/install/probe/activation effect, cleanup,
   deployment, release, commit, push, merge, tag, destructive action, or external
   message occurred.
+
+## 2026-08-18 - Installation Transaction Contract Delivery Verification
+
+- Initial recovery inspection found no merge, rebase, cherry-pick, or other Git
+  operation in progress; the development checkpoint was empty; no paths were staged;
+  and the intended local bundle contained 11 modified plus 12 untracked paths on
+  `main`. Local refs and a fresh direct remote query placed `main` at
+  `3abe4c5a697b1d8c2925d9c449ff1c2a0b7a2ec2` with divergence `0 0`.
+- The delivery authority decision added the twenty-fourth intended path. Fresh Java 17
+  `test --no-daemon` completed in 8 minutes 16 seconds. JUnit XML aggregation found 160
+  suites and 839 tests: 829 passed, 10 environment-dependent cases skipped, zero
+  failed, and zero errored. `git diff --check` passed.
+- The exact 24-path staged manifest had zero unstaged and zero untracked paths. Ordinary
+  commit `bb7d0ba0050462efac387e530e9ff58573fac538` retained
+  `3abe4c5a697b1d8c2925d9c449ff1c2a0b7a2ec2` as its sole parent and was pushed to
+  `origin/codex/installation-transaction-contracts-20260818` without force.
+- `main` fast-forwarded through `git merge --ff-only` from `3abe4c5` to `bb7d0ba`.
+  The first non-force `main` push failed before contacting GitHub because DNS could not
+  resolve `github.com`; that failure was recorded as checkpoint `STEP_FAILED`. The
+  subsequent recorded retry advanced `origin/main` from `3abe4c5` to `bb7d0ba`.
+- A fresh direct remote query returned both the delivery branch and `refs/heads/main`
+  at `bb7d0ba0050462efac387e530e9ff58573fac538`; local `HEAD`, `main`, and
+  `origin/main` matched with divergence `0 0` and a clean worktree before closure
+  documentation. Final Markdown-sensitive governance, diff/status/ref review, closure
+  commit and push, and stable checkpoint clear follow this append-only record.
+- Delivery used no force push, rebase, amend, squash, reset, synthetic merge commit,
+  release, tag, deployment, cleanup, real installation, native gateway, host security-
+  state inspection, permission/owner mutation, credential/private-key operation, or
+  external message beyond the authorized Git remote updates.
