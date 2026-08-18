@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### Accept RFC-0013 defining the Delivery Gate 9 model gateway minimum slice
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-18-accept-rfc-0013-model-gateway-minimum-slice.md)
+
 ### Freeze installation-subsystem derivative work until its Delivery Gate 16 consumers exist
 
 Status: Accepted Decision

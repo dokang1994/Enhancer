@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-08-18 - Accept The Gate 9 Model Gateway Minimum Slice Specification
+
+- Added RFC-0013: Model Gateway defining the minimum Delivery Gate 9 vertical slice:
+  a provider-neutral gateway port with immutable bounded records in a new
+  `com.enhancer.model` leaf package, a deterministic fake as the only executed
+  gateway, a never-invoked provider adapter shape, and a `model-invoke` Tool reusing
+  the existing isolation, policy, evidence, and RunRecord paths.
+- Recorded the accepted decision, registered RFC-0013 in the RFC index and the
+  roadmap RFC track, and kept real provider invocation, credentials, paid services,
+  MCP, routing, caching, fallback, streaming, and evaluation excluded pending their
+  own authority.
+
 ## 2026-08-18 - Open Recommendation Track And Freeze Installation Derivatives
 
 - Recorded the accepted 2026-08-18 project-analysis recommendation track decision and

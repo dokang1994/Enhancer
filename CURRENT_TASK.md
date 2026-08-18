@@ -122,7 +122,7 @@ Next Action: Define the minimum Delivery Gate 9 model gateway slice specificatio
 
 ### Increment 2 - define-gate-9-model-gateway-minimum-slice
 
-State: In Progress
+State: Completed
 
 Depends On: record-installation-track-freeze-decision
 
@@ -142,7 +142,7 @@ Next Action: Add the continuous-integration verification job.
 
 ### Increment 3 - add-continuous-integration-verification-job
 
-State: Pending
+State: In Progress
 
 Depends On: define-gate-9-model-gateway-minimum-slice
 
@@ -188,6 +188,10 @@ specification.
   and the changelog entry passed all 13 focused governance tests across the five
   architecture suites with zero failures, errors, or skips; `git diff --check` was
   clean. Evidence is appended once in `docs/verification-log.md`.
+- Increment 2: RFC-0013, its accepted decision and index entry, and both RFC
+  registrations were authored from two reconciled read-only Opus subagent surveys
+  and passed the focused governance suites with `git diff --check` clean. Evidence
+  is appended once in `docs/verification-log.md`.
 
 ## Next
 

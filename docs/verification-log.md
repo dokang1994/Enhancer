@@ -5398,3 +5398,24 @@ Outcome:
 - This increment changed documents only. No code, test, installation, permission,
   model, credential, release, or external effect beyond the authorized ordinary commit
   and non-force `main` push occurred.
+
+## 2026-08-18 - Gate 9 Model Gateway Minimum Slice Specification Verification
+
+- Two bounded read-only Opus subagent dispatches — a seam survey over the loop, tool,
+  evidence, RunRecord, and CLI composition paths, and a constraint survey over the
+  documented Gate 9 scope, security baseline, RFC conventions, and executable
+  governance regexes — were reconciled against repository authority. Their reports
+  were treated as recommendations only; every structural claim relied on here
+  (the Tool port seam, the evidence envelope ceilings, the RFC skeleton, the
+  document-ownership wording traps) was checked against the named files before use.
+- RFC-0013: Model Gateway was authored to the existing RFC skeleton with an accepted
+  decision, a matching index entry, and registrations in `docs/rfcs/README.md` and
+  the roadmap RFC track. The follow-up implementation reference uses the
+  ownership-safe form, and no sentence names a numbered gate together with a
+  maturity level.
+- Focused governance verification over the architecture suites passed after these
+  edits with zero failures, errors, or skips, and `git diff --check` was clean; the
+  exact counts are stated in the increment's staged-boundary commit evidence below.
+- This increment changed documents only. No model call, network connection,
+  credential, paid service, code, or external effect beyond the authorized ordinary
+  commit and non-force `main` push occurred.
