@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -113,7 +113,7 @@ Next Action: Push the delivery branch, fast-forward `main`, push `main`, and clo
 
 ### Increment 2 - push-merge-verify-and-close
 
-State: In Progress
+State: Completed
 
 Depends On: verify-stage-and-commit-delivery-branch
 
@@ -140,7 +140,18 @@ Next Action: Resume the recorded evidence-body/reference and host-revalidation t
   865 tests across 164 suites: 855 passed, 10 environment-dependent cases skipped, and
   zero failed or errored. `git diff --check` was clean and the intended manifest contained
   exactly 30 paths including the delivery authority decision.
+- A successor session took over the interrupted checkpoint run after the user confirmed
+  the prior session had terminated. It verified the completed fast-forward, pushed
+  `main` without force from `36e1967` to `8f60689`, and proved direct remote/local ref
+  identity with divergence `0 0` and a clean worktree. Delivery closure evidence is
+  appended once in `docs/verification-log.md`.
 
 ## Next
 
-Complete the Dynamic Workflow in dependency order.
+Define the installation-track freeze decision: stop further evidence-body/resolver and
+host-revalidation derivatives of the installation subsystem and do not resume them
+before Delivery Gate 16, recording one accepted decision. Then proceed with the
+user-selected 2026-08-18 recommendation track in order: a minimum Delivery Gate 9 model
+gateway vertical slice, a host-independent continuous-integration verification job, and
+a governed commit-cadence rule amendment. Each item requires its own bounded task
+definition before implementation.
