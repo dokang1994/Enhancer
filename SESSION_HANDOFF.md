@@ -10,7 +10,7 @@ the active task in `CURRENT_TASK.md`, and delivery history in `CHANGELOG.md` and
 
 ## Updated At
 
-2026-08-13
+2026-08-18
 
 ## Session-Only State
 
@@ -20,22 +20,21 @@ the active task in `CURRENT_TASK.md`, and delivery history in `CHANGELOG.md` and
   `scripts/gradle.ps1` through an execution-policy bypass when verification is resumed.
 - Direct invocation of `scripts/gradle.ps1` is blocked by the current PowerShell
   execution policy. This is a host constraint, not a repository test failure.
-- The complete process-isolated regression suite can exceed five minutes on this host;
-  use a command bound of at least fifteen minutes for a claim-bearing full build.
-- On this host a focused `scripts/gradle.ps1 test` invocation without `--no-daemon`
-  produced complete test XML but did not return through the outer PowerShell wrapper.
-  Supplying `--no-daemon` returned normally after stopping its single-use daemon.
-- Windows atomic file moves and overlapping `FileLock` contention are supported by this
-  host's test filesystem; maintenance verification used only JUnit-owned temporary
-  installation trees and did not address any real installation path.
-- The direct JVM operator subprocess tests preserve exit codes `2`, `20`, and `70` on
-  this host. The Gradle `JavaExec` task selects the operator main but Gradle may translate
-  a nonzero child exit to its own task-failure code; the emitted `exitCode` token retains
-  the operator classification.
-- The custom operator distribution tests copy
-  `build/install/enhancer-cancellation-trust-maintenance` below each JUnit `@TempDir`,
-  fix `JAVA_HOME` to the test JVM, and remove host JVM option variables before invoking
-  the copied `.bat` launcher. No repository or real-install path is used as a target.
-- The Windows installation permission adapter tests use only an in-memory fake gateway;
-  no real SID, token, DACL, reparse point, volume/file identity, permission, publication,
-  durability, or alternate-principal probe is inspected or changed on this host.
+- Supplying `--no-daemon` keeps focused and full Gradle invocations returning normally
+  through the outer PowerShell wrapper on this host. A fresh full regression completed
+  in under two minutes on 2026-08-18 with all result XML regenerated; earlier
+  seven-minute timings on this host also occurred, so keep a generous command bound.
+- The checkpoint CLI can be invoked directly on this host without Gradle argument
+  quoting problems:
+  `.tools/jdk17-runtime/jdk-17.0.19+10/bin/java.exe -cp build/classes/java/main
+  com.enhancer.cli.EnhancerCli checkpoint-...` (requires a current
+  `build/classes/java/main`).
+- Passing a quoted multi-word `--args` value through the PowerShell 5.1 wrapper to
+  `gradlew.bat run` splits on the inner quotes and fails; use the direct `java -cp`
+  form above for any multi-word checkpoint step text.
+- `gh` is authenticated on this host as the repository owner; single `gh` API calls
+  can transiently time out and succeed on retry.
+- An interrupted 2026-08-18 delivery session was continued by a successor session
+  after user confirmation; its checkpoint takeover pattern (reread `checkpoint-show`,
+  perform the recorded pending step, record with the existing `runId`) worked and is
+  recorded in `docs/verification-log.md`.

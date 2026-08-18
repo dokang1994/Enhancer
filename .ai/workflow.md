@@ -33,7 +33,7 @@ Then:
 10. Append the increment's verification evidence to `docs/verification-log.md`.
 11. Update each affected document, writing every fact only to the document that owns it (Constitution Section 4). The next task belongs to `CURRENT_TASK.md`, capability maturity to `PROJECT_STATE.md`, delivery history to git and `CHANGELOG.md`. Delete duplicates rather than synchronizing them.
 12. Reduce `SESSION_HANDOFF.md` to what is true now and would otherwise be lost with the session.
-13. Commit only when explicitly required; never infer permission to push.
+13. Commit each verified GREEN increment boundary as an ordinary local commit; create any other commit only when explicitly required, and never infer permission to push.
 14. Apply the checkpoint workflow owned by `AGENTS.md` through session close.
 
 ### Adaptive Development Subagent Delegation

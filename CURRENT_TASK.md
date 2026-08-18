@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -162,7 +162,7 @@ Next Action: Amend the commit-cadence rule through the constitutional process.
 
 ### Increment 4 - amend-commit-cadence-rule
 
-State: In Progress
+State: Completed
 
 Depends On: add-continuous-integration-verification-job
 
@@ -197,8 +197,18 @@ specification.
   focused governance suites with `git diff --check` clean; observation of the first
   triggered run is recorded as pending in `docs/verification-log.md` because the
   delivering push itself triggers it.
+- Increment 3 observation: the first triggered run completed successfully on the
+  Linux host with a green complete `test` task execution on a fresh checkout, as
+  recorded in `docs/verification-log.md`.
+- Increment 4: the Section 14 amendment (Constitution 1.2.0), its accepted decision
+  and index entry, the synchronized operating documents, and the reviewed mirror
+  passed the fresh full Java 17 Markdown-sensitive regression and the focused
+  governance suites recorded in `docs/verification-log.md`.
 
 ## Next
 
-Complete the Dynamic Workflow in dependency order, then define the Delivery Gate 9
-minimum-slice implementation task recorded by the accepted specification.
+Define the Delivery Gate 9 minimum-slice implementation task under RFC-0013: the
+`com.enhancer.model` package with the provider-neutral gateway port, the deterministic
+fake as the only executed gateway, the bounded provider adapter shape, and the
+`model-invoke` Tool composed into the existing executor, delivered test-first with the
+named promoting integration test.

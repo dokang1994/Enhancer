@@ -36,7 +36,7 @@ Integrated capabilities:
 
 Operational repository governance:
 
-- Constitution 1.1 Kernel;
+- Constitution 1.2 Kernel;
 - Document Driven Development;
 - explicit lifecycle and authorization rules;
 - Git-backed project memory and session handoff;
@@ -131,7 +131,7 @@ Delivered:
 - Assisted Development Loop result contract;
 - Agent Loop completion, failure, iteration, and stagnation exits;
 - ToolResult and bounded VerificationEvidence;
-- Constitution 1.1 governance.
+- Constitution 1.2 governance.
 
 Integration evidence:
 

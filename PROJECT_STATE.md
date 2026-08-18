@@ -680,7 +680,7 @@ it does not restate which commit published which increment.
 
 ### Operational Governance
 
-- Constitution 1.1 Kernel and Document Driven Development.
+- Constitution 1.2 Kernel and Document Driven Development.
 - Explicit lifecycle, authorization, fresh-evidence, self-hosting, recovery, and amendment rules.
 - Git-backed project memory and session handoff.
 - Machine-written development-session recovery checkpoints below the ignored

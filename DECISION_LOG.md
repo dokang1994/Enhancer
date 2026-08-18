@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### Amend the Constitution so verified GREEN increment boundaries authorize ordinary commits
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-18-amend-commit-cadence-to-verified-green-increment-boundaries.md)
+
 ### Accept RFC-0013 defining the Delivery Gate 9 model gateway minimum slice
 
 Status: Accepted Decision

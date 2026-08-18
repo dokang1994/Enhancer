@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-18 - Amend Commit Cadence To Verified GREEN Increment Boundaries
+
+- Amended Constitution Sections 7 and 13 (version 1.2.0) so an ordinary local commit
+  exists for each verified GREEN increment boundary of the approved Active Task,
+  while any other commit, and all push, merge, release, and deployment authority,
+  remain explicit and non-transitive.
+- Synchronized `AGENTS.md`, `.ai/workflow.md`, and the Constitution version
+  references in `PROJECT_STATE.md`, `ROADMAP.md`, and RFC-0001; reviewed the
+  `.ai/constitution.md` mirror unchanged; recorded the accepted amendment decision.
+
 ## 2026-08-18 - Add Host-Independent Continuous Verification
 
 - Added `.github/workflows/verify.yml`, which runs the complete Java 17

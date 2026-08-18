@@ -20,7 +20,7 @@ Define the kernel rules of Enhancer.
 
 ## Role In Enhancer
 
-This RFC maps to `CONSTITUTION.md` version 1.1.0.
+This RFC maps to `CONSTITUTION.md` version 1.2.0.
 
 The Constitution is the concise Kernel Rule of the project. The long-form guidebook is distributed across Architecture, RFCs, decisions, prompts, Skills, and operating documents rather than duplicated in the Constitution. Every AI Agent must read the canonical Constitution before planning, coding, reviewing, or updating documents.
 

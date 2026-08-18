@@ -1,8 +1,8 @@
 # Enhancer Constitution
 
-**Version:** 1.1.0
+**Version:** 1.2.0
 **Status:** Ratified
-**Last Amended:** 2026-07-14
+**Last Amended:** 2026-08-18
 
 ## 1. Purpose And Authority
 
@@ -126,7 +126,7 @@ The following actions require explicit user authority when they are not already 
 
 - destructive deletion or movement of user data;
 - rewriting history, hard resets, force operations, or discarding existing changes;
-- committing, pushing, merging, releasing, publishing, or deploying;
+- pushing, merging, releasing, publishing, or deploying, and committing outside a verified GREEN increment boundary of the approved Active Task;
 - sending external messages or creating or modifying remote issues, pull requests, comments, or records;
 - enabling paid services or materially expanding external resource use;
 - changing permissions, security controls, credential handling, or secret storage.
@@ -236,7 +236,7 @@ A task is Completed only when:
 - architecture, decisions, state, roadmap, task, handoff, and changelog are current where affected;
 - CURRENT_TASK.md records completion or the next active task;
 - external actions are verified rather than assumed;
-- a commit is created only when explicitly required.
+- an ordinary local commit exists for each verified GREEN increment boundary of the approved Active Task, and any other commit is created only when explicitly required.
 
 Running out of time, context, tokens, or budget does not make a task complete.
 

@@ -5437,3 +5437,32 @@ Outcome:
   The only external effect beyond the authorized ordinary commit and non-force
   `main` push is the continuous-integration service consuming the pushed workflow
   file, which the task scope names explicitly.
+
+## 2026-08-18 - Commit Cadence Amendment And Track Closure Verification
+
+- The first triggered continuous-verification run — workflow run 32125816306 on the
+  delivery of `.github/workflows/verify.yml` — completed successfully on the Linux
+  host in 47 seconds, executing all six Gradle tasks including `:test` on a fresh
+  checkout with `BUILD SUCCESSFUL`. The default console does not print per-test
+  counts, so the run proves a green complete `test` task execution, not an
+  independently recounted 865; count publication is a candidate later improvement.
+- Constitution Sections 7 and 13 were amended to authorize an ordinary local commit
+  at each verified GREEN increment boundary of the approved Active Task, the version
+  advanced to 1.2.0, and `AGENTS.md`, `.ai/workflow.md`, RFC-0001, and the version
+  references in `PROJECT_STATE.md` and `ROADMAP.md` were synchronized. The
+  `.ai/constitution.md` mirror was reviewed and left unchanged because it carries
+  only the canonical pointer. Push, merge, release, and deployment authority are
+  unchanged.
+- The amendment was delivered through the full Section 14 process: user approval via
+  the accepted recommendation-track decision, this bounded increment, the accepted
+  amendment decision and index entry, the smallest coherent text change, mirror and
+  operating-document review, and the fresh verification below.
+- Fresh full Java 17 `test --no-daemon` after the amendment completed with
+  `BUILD SUCCESSFUL`; all 164 result XML files were regenerated within the run and
+  aggregated to 865 tests: 855 passed, 10 environment-dependent cases skipped, zero
+  failed, and zero errored. The focused architecture governance suites then passed
+  again after the final task and handoff synchronization, and `git diff --check` was
+  clean at the staged increment boundary.
+- This increment changed governed documents only. The only external effects were the
+  authorized ordinary commit, the non-force `main` push, and the continuous-
+  integration service run triggered by that push.
