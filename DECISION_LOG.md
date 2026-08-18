@@ -11,6 +11,18 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### Freeze installation-subsystem derivative work until its Delivery Gate 16 consumers exist
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-18-freeze-installation-subsystem-derivatives-until-gate-16.md)
+
+### User request on 2026-08-18 to execute the project-analysis recommendation track
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-18-execute-project-analysis-recommendation-track.md)
+
 ### User request on 2026-08-18 to deliver installation filesystem store boundaries to main
 
 Status: Accepted Decision

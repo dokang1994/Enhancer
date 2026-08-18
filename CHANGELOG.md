@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-08-18 - Open Recommendation Track And Freeze Installation Derivatives
+
+- Recorded the accepted 2026-08-18 project-analysis recommendation track decision and
+  opened its four-increment sequential Dynamic Workflow: installation freeze, Delivery
+  Gate 9 minimum-slice specification, continuous-integration verification job, and the
+  constitutional commit-cadence amendment.
+- Recorded the accepted decision freezing installation-subsystem derivative work
+  (evidence body/reference schemas, host revalidation, production resolver/store,
+  permission and native composition, packaging, retention, anti-rollback) until its
+  Delivery Gate 16 consumers exist, while keeping delivered installation code, tests,
+  and defect-fix authority unchanged.
+
 ## 2026-08-18 - Add Locked Installation Cursor Storage Boundary
 
 - Added the first uncomposed `FileSystemInstallationTransactionStore` over a caller-

@@ -2,156 +2,194 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Deliver the completed installation reconciliation, integrity-format, immutable evidence
-point-store, and locked filesystem cursor boundaries through an ordinary branch commit,
-non-force push, fast-forward-only merge to `main`, and synchronized closure commit.
+Execute the four user-selected recommendations from the 2026-08-18 project analysis in
+order: record the installation-track freeze decision, define the minimum Delivery Gate 9
+model gateway vertical slice as an accepted specification, add a host-independent
+continuous-integration verification job, and amend the commit-cadence rule through the
+constitutional amendment process.
 
 ## Task ID
 
-deliver-installation-filesystem-store-boundaries-to-main
+execute-2026-08-18-recommendation-track
 
 ## Context
 
-The implementation task is Completed with a 29-path verified working bundle. Recovery
-inspection found no active checkpoint or Git operation. `HEAD`, local `main`, and
-`origin/main` all start at `36e1967e1cb7fe0a7c4023ee537334a70c64821d` with divergence
-`0 0`. The user explicitly requested commit, push, and merge to `main`.
-
-This delivery task adds one accepted-decision file, producing an exact initial 30-path
-manifest. Delivery remains sequential and stops rather than rewriting history if the
-remote or local ancestry changes unexpectedly.
+The installation filesystem store delivery is Completed and remotely visible at
+`fb1380c5f452a04d5c69521b89565fb9ddcc08f8` with a clean worktree and an empty
+checkpoint. The 2026-08-18 analysis found installation derivatives running ahead of
+their Delivery Gate 16 consumers while prompt and LLM invocation remain absent, no
+accepted Delivery Gate 9 specification, single-host-only verification evidence, and
+verified work accumulating uncommitted under the current commit-cadence rule. The user
+selected the four recommendations, their order, the Dynamic Workflow form, and Opus
+subagents for delegated read-only analysis.
 
 ## Justified By
 
-- User request on 2026-08-18 to deliver installation filesystem store boundaries to main
+- User request on 2026-08-18 to execute the project-analysis recommendation track
 
 ## Approval
 
-The user authorizes exact-path staging, ordinary commits, creation and non-force push of
-`codex/installation-filesystem-store-boundaries-20260818`, local `main` fast-forward-only
-merge, non-force `main` push, direct remote-ref verification, and the minimum closure
-documentation/commit/push needed to leave canonical delivery state current.
+The accepted track decision authorizes document, decision, and RFC authoring, the
+continuous-integration workflow file, the constitutional commit-cadence amendment
+through its full Section 14 process, focused and full verification, development-session
+checkpoints, bounded read-only Opus subagent dispatches, and one ordinary non-amending
+commit plus one non-force push of `main` per completed verified increment.
 
-This does not authorize force push, rebase, reset, amend, squash, synthetic merge commit,
-tag, release, deployment, destructive cleanup, real installation, permission/ACL/owner
-mutation, native gateway execution, credentials/private-key changes, paid services, or
-external messages beyond the named Git remote operations.
+It does not authorize force push, rebase, reset, amend, squash, synthetic merge commit,
+tag, release, deployment, model or paid-service invocation, credential operation,
+real installation or permission mutation, destructive cleanup, or any external message
+beyond the named Git remote operations.
 
 ## Acceptance Criteria
 
-- Fresh recovery inspection proves no Git operation/checkpoint is active, the exact
-  intended manifest is understood, and local/remote-tracking refs start synchronized.
-- Fresh full Java 17/Markdown-sensitive regression passes after the delivery authority
-  documents are added; `git diff --check` is clean.
-- Exactly the intended 30 paths are staged with zero unstaged or untracked remainder,
-  and staged diff/stat/name review finds no unrelated or secret-bearing content.
-- One ordinary implementation commit is created on the named delivery branch with the
-  recorded starting `main` commit as its sole ancestor path; it is pushed without force.
-- Local `main` advances only through `git merge --ff-only`, then `origin/main` advances
-  through a non-force push. No merge commit or rewritten ancestry is introduced.
-- Delivery evidence is appended once, owning documents are synchronized, and any
-  closure commit contains only the required post-delivery documentation.
-- Fresh final governance verification passes, direct remote refs match local `main`,
-  divergence is `0 0`, the worktree is clean, and the stable checkpoint is cleared.
+- One accepted decision freezes installation-subsystem derivative work until its
+  consumers exist, and the owning documents state the freeze without duplicating it.
+- One accepted specification defines the minimum Delivery Gate 9 model gateway vertical
+  slice with its port boundary, one concrete provider adapter shape, credential and
+  budget handling, evidence persistence, verification plan, and explicit exclusions,
+  and this document records the follow-up implementation task.
+- One continuous-integration workflow file runs the complete Java 17 Markdown-sensitive
+  Gradle verification on an external host for `main` pushes and pull requests, and its
+  first triggered run is observed or its observation is explicitly recorded as pending.
+- The commit-cadence sentence of the Constitution is amended through an approved
+  decision, a version change, mirror review, and synchronized operating documents, so
+  that a verified GREEN increment boundary inside an approved Active Task authorizes an
+  ordinary local commit without a separate per-commit request while push authority
+  remains explicit.
+- Each increment ends with fresh focused governance verification, an ordinary commit,
+  and a non-force `main` push; the final increment ends with a fresh full Java 17
+  Markdown-sensitive regression.
 
 ## Out Of Scope
 
-Implementation expansion, evidence-body or permission-adapter work, force push, rebase,
-reset, amend, squash, synthetic merge commit, tag, release, deployment, cleanup, real
-installation or permission mutation, native gateway execution, credentials/private-key
-operation, paid service, or external message beyond authorized Git pushes.
+Gate 9 implementation code, model or paid-service invocation, credentials, installation
+or evidence-resolver work of any kind, force push, rebase, reset, amend, squash, tag,
+release, deployment, destructive cleanup, permission mutation, background execution,
+and external messages beyond authorized Git pushes and the continuous-integration
+service consuming the pushed workflow file.
 
 ## Allowed Tools
 
 - read-file
 - write-docs
+- write-code
 - build-output
 - verify
 - checkpoint
 - git-inspect
 - git-stage
-- git-branch
 - git-commit
-- git-merge-ff-only
 - git-push-non-force
 - git-remote-inspect
+- subagent-read-only-opus
 
 ## Dynamic Workflow
 
-Workflow ID: deliver-installation-filesystem-store-boundaries-to-main
+Workflow ID: execute-2026-08-18-recommendation-track
 
 Mode: Sequential
 
-Increment Limit: 2
+Increment Limit: 4
 
 Selection Rule: Select the first dependency-ready Pending increment in document order.
 
-Stop Conditions: Stop on failed verification, unexpected manifest content, task/
-checkpoint drift, non-fast-forward ancestry, remote divergence, network/authentication
-failure that cannot be safely retried, or insufficient authority.
+Stop Conditions: Stop on failed verification, governance-test failure that cannot be
+resolved inside the selected increment, remote divergence or non-fast-forward ancestry,
+network or authentication failure that cannot be safely retried, subagent bound
+exhaustion, task/checkpoint drift, scope expansion, or insufficient authority.
 
-### Increment 1 - verify-stage-and-commit-delivery-branch
+### Increment 1 - record-installation-track-freeze-decision
 
 State: Completed
 
 Depends On: none
 
-Scope: Start the delivery checkpoint, run the fresh full regression, inspect and stage
-the exact 30-path manifest, create the named branch, and make one ordinary commit.
+Scope: Record one accepted decision that stops installation-subsystem derivative work
+(evidence body, resolver, host revalidation, permission/native composition) until its
+consumers exist, index it, and synchronize the owning documents.
 
-Exit Criteria: Full regression and diff checks pass, the exact manifest is staged and
-reviewed, and the branch commit has the synchronized starting main commit as its parent.
+Exit Criteria: The decision file and index entry exist and match, owning documents
+state the freeze once, and focused governance tests pass.
 
-Verification: Full Java 17/Markdown-sensitive regression, staged name/stat/diff review,
-commit parent/ref/status inspection, and checkpoint evidence.
+Verification: Focused decision-index, document-ownership, and dynamic-workflow tests,
+`git diff --check`, and staged-boundary review before the increment commit and push.
 
-Next Action: Push the delivery branch, fast-forward `main`, push `main`, and close.
+Next Action: Define the minimum Delivery Gate 9 model gateway slice specification.
 
-### Increment 2 - push-merge-verify-and-close
+### Increment 2 - define-gate-9-model-gateway-minimum-slice
 
-State: Completed
+State: In Progress
 
-Depends On: verify-stage-and-commit-delivery-branch
+Depends On: record-installation-track-freeze-decision
 
-Scope: Push the named branch without force, fast-forward local `main`, push `main`,
-synchronize delivery evidence/documents, make and push the closure commit, verify local
-and direct remote refs, and clear the stable checkpoint.
+Scope: Using at most three read-only Opus subagent dispatches for seam and constraint
+analysis, author the Gate 9 minimum-slice specification as RFC-0013 plus one accepted
+decision covering the provider-neutral gateway port, one concrete provider adapter
+shape, credential and budget handling, evidence persistence, verification plan, and
+exclusions, and record the follow-up implementation task.
 
-Exit Criteria: Branch and main delivery plus closure are remotely visible, local and
-remote main match with divergence `0 0`, final verification passes, the worktree is
-clean, and the checkpoint is empty.
+Exit Criteria: RFC-0013 and its accepted decision exist and are indexed, the roadmap
+RFC track lists RFC-0013, and focused governance tests pass.
 
-Verification: Push output, `--ff-only` merge output, direct remote-ref reads, final
-governance tests, Git status/log/divergence inspection, and checkpoint inspection.
+Verification: Focused decision-index, document-ownership, and dynamic-workflow tests,
+`git diff --check`, and staged-boundary review before the increment commit and push.
 
-Next Action: Resume the recorded evidence-body/reference and host-revalidation task.
+Next Action: Add the continuous-integration verification job.
+
+### Increment 3 - add-continuous-integration-verification-job
+
+State: Pending
+
+Depends On: define-gate-9-model-gateway-minimum-slice
+
+Scope: Add one continuous-integration workflow file that runs the complete Java 17
+Markdown-sensitive Gradle verification on an external Linux host for `main` pushes and
+pull requests, and synchronize the owning documentation.
+
+Exit Criteria: The workflow file is delivered to `main`, its first triggered run is
+observed passing or its observation is explicitly recorded as pending with the reason,
+and focused governance tests pass locally.
+
+Verification: Local focused governance tests, `git diff --check`, staged-boundary
+review, the increment commit and push, and best-effort observation of the first remote
+run.
+
+Next Action: Amend the commit-cadence rule through the constitutional process.
+
+### Increment 4 - amend-commit-cadence-rule
+
+State: Pending
+
+Depends On: add-continuous-integration-verification-job
+
+Scope: Amend the constitutional commit-cadence sentence so a verified GREEN increment
+boundary inside an approved Active Task authorizes an ordinary local commit without a
+separate per-commit request, keep push authority explicit, record the accepted
+amendment decision, change the Constitution version, review the `.ai/` mirror, and
+synchronize `AGENTS.md` and `.ai/workflow.md`.
+
+Exit Criteria: The amended sentence, version change, mirror review, index entry, and
+synchronized operating documents exist, and a fresh full Java 17 Markdown-sensitive
+regression passes.
+
+Verification: Full Java 17 Markdown-sensitive regression, focused governance tests,
+`git diff --check`, staged-boundary review, and the final increment commit and push.
+
+Next Action: Define the Gate 9 implementation task recorded by the accepted
+specification.
 
 ## Verification
 
-- Recovery inspection found an empty checkpoint, no active Git operation, synchronized
-  `HEAD`/`main`/`origin/main` at `36e1967e1cb7fe0a7c4023ee537334a70c64821d`, divergence
-  `0 0`, and the intended 29-path completed implementation bundle before this delivery
-  decision was added.
-- Fresh delivery Java 17 `test --no-daemon` completed in 7 minutes 12 seconds and passed
-  865 tests across 164 suites: 855 passed, 10 environment-dependent cases skipped, and
-  zero failed or errored. `git diff --check` was clean and the intended manifest contained
-  exactly 30 paths including the delivery authority decision.
-- A successor session took over the interrupted checkpoint run after the user confirmed
-  the prior session had terminated. It verified the completed fast-forward, pushed
-  `main` without force from `36e1967` to `8f60689`, and proved direct remote/local ref
-  identity with divergence `0 0` and a clean worktree. Delivery closure evidence is
-  appended once in `docs/verification-log.md`.
+- Increment 1: the track and freeze decisions, their index entries, the reshaped task,
+  and the changelog entry passed all 13 focused governance tests across the five
+  architecture suites with zero failures, errors, or skips; `git diff --check` was
+  clean. Evidence is appended once in `docs/verification-log.md`.
 
 ## Next
 
-Define the installation-track freeze decision: stop further evidence-body/resolver and
-host-revalidation derivatives of the installation subsystem and do not resume them
-before Delivery Gate 16, recording one accepted decision. Then proceed with the
-user-selected 2026-08-18 recommendation track in order: a minimum Delivery Gate 9 model
-gateway vertical slice, a host-independent continuous-integration verification job, and
-a governed commit-cadence rule amendment. Each item requires its own bounded task
-definition before implementation.
+Complete the Dynamic Workflow in dependency order, then define the Delivery Gate 9
+minimum-slice implementation task recorded by the accepted specification.
