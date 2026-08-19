@@ -1519,6 +1519,36 @@ The conflict was possible because the compact `.ai/architecture.md` described cu
 
 **Option C — mark the queue completed at execution acknowledgement.** Rejected. It is simple and releases capacity, but it lets dependent work start before independent verification and makes a worker receipt equivalent to completion authority, which conflicts with the Constitution-backed verification model, Gate 3/4 behaviour, the runtime AgentRun states, and the Gate 8 Verified-only terminal contract.
 
+## Gate 9 Model Gateway Boundary
+
+The RFC-0013 minimum slice places all model invocation behind one provider-neutral
+port in the `com.enhancer.model` leaf package. `ModelGateway.invoke` maps one
+immutable bounded `ModelRequest` — correlation identity, bounded UTF-8 prompt, a
+repository-owned model-class label rather than a provider model name, and a budget
+stub of one timeout plus one maximum response length — to one bounded
+`ModelResponse` with a `ModelUsage` unit count, or fails with one typed
+`ModelGatewayException` carrying exactly one of `PROVIDER_UNAVAILABLE`,
+`RESPONSE_INVALID`, `BUDGET_EXCEEDED`, or `TIMED_OUT`.
+
+`DeterministicFakeModelGateway` is the only executed gateway: its response is a pure
+function of the request, so persisted evidence digests stay reproducible. One
+package-private HTTP message-API adapter shape bounds where provider wire formats
+may exist; nothing constructs it, and executing a real provider requires its own
+accepted decision naming destination, purpose, and data classification. Credentials
+exist only as the injected default-free `ModelCredentialSupplier` port and can never
+reach evidence, logs, or persisted types.
+
+`ModelInvokeTool` composes the gateway into the existing Tool executor under the
+name `model-invoke`, reusing isolation, policy allowlisting, cancellation, the
+per-tool timeout, evidence capture, and RunRecord persistence unchanged. The
+declared gateway timeout must fit strictly inside the tool's policy timeout, every
+gateway failure maps to a bounded typed `ToolResult` failure code, and model output
+is untrusted data: it grants no authority, widens no scope, and alters no document,
+task, or policy. The governed `model-invoke` CLI command completes the vertical
+slice through the existing controller, loop, digest-integrity verification, and
+durable RunRecord path. Model routing, MCP, caching, fallback, streaming,
+evaluation, and remote transmission controls remain later Gate 9 scope.
+
 ## Agent Orchestration Contract
 
 ### Development-Time Adaptive Subagent Delegation

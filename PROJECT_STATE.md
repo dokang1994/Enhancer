@@ -2,15 +2,15 @@
 
 ## Updated At
 
-2026-08-18
+2026-08-19
 
 ## Repository State
 
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 398 Java files.
-- Test source: 165 Java files.
+- Production source: 410 Java files.
+- Test source: 171 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -19,6 +19,37 @@ it does not restate which commit published which increment.
 ## Capability Maturity
 
 ### Contract Verified
+
+- The RFC-0013 Delivery Gate 9 model gateway minimum slice under `com.enhancer.model`
+  is Contract Verified with the deterministic fake as the only executed gateway.
+  `ModelGateway` maps one immutable bounded `ModelRequest` — correlation identity,
+  bounded prompt, repository-owned model-class label, and a budget stub of one
+  timeout plus one maximum response length — to one bounded `ModelResponse` with
+  `ModelUsage`, or fails with exactly one of `PROVIDER_UNAVAILABLE`,
+  `RESPONSE_INVALID`, `BUDGET_EXCEEDED`, or `TIMED_OUT`.
+  `DeterministicFakeModelGateway` responds as a pure function of its input and
+  refuses a response exceeding the declared length budget. The package-private HTTP
+  message-API adapter shape is compile- and reflection-bounded only: nothing
+  constructs or invokes it, and it is unproven against any real provider API.
+  Credentials exist only as the injected default-free `ModelCredentialSupplier`
+  port; no credential value exists, and none can reach evidence or output.
+  `ModelInvokeTool` executes under `model-invoke` through the existing executor
+  with required bounded arguments, requires the gateway timeout strictly inside its
+  per-tool policy timeout, persists response text through the existing evidence
+  envelope, and maps gateway failures to typed Tool failures (`TIMED_OUT` to
+  `TIMED_OUT`, `PROVIDER_UNAVAILABLE` to `TEMPORARY_FAILURE`, `RESPONSE_INVALID`
+  to `INVALID_RESULT`, `BUDGET_EXCEEDED` to `TOOL_REPORTED_FAILURE`). Model output
+  is untrusted data: a directive-shaped response persists verbatim as evidence and
+  changes no policy, scope, or document. The governed `model-invoke` CLI command
+  reuses the shared per-tool five-second timeout values, the existing controller,
+  loop, finalizer, and RunRecord store, and its digest-integrity verifier accepts
+  only `model-invoke` results; the promoting integration test proves one governed
+  CLI run against the fake persists a lifecycle-valid replayable RunRecord whose
+  oversized evidence reference resolves to the exact deterministic response. No
+  test opens a network connection. Real provider invocation, paid services,
+  credentials, MCP, model routing, locality policy, caching, fallback, streaming,
+  quality evaluation, cost budgets beyond the stub, prompt-injection resistance,
+  source attribution, and redaction remain absent.
 
 - The installation transaction cursor now has one uncomposed concrete local-filesystem
   store. `FileSystemInstallationTransactionStore` accepts only a caller-provisioned,

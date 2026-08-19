@@ -97,6 +97,9 @@ import com.enhancer.session.DevelopmentSessionCheckpointInspection;
 import com.enhancer.session.DevelopmentSessionCheckpointManager;
 import com.enhancer.tool.CancellationToken;
 import com.enhancer.tool.EvidenceRecorder;
+import com.enhancer.model.DeterministicFakeModelGateway;
+import com.enhancer.model.DeterministicModelInvokeVerifier;
+import com.enhancer.model.ModelInvokeTool;
 import com.enhancer.tool.EvidenceStoragePolicy;
 import com.enhancer.tool.ExecutionPolicy;
 import com.enhancer.tool.FileSystemEvidenceStore;
@@ -134,7 +137,8 @@ import java.util.Set;
 public final class EnhancerCli {
     public static final int MAX_DIAGNOSTIC_CHARACTERS = 4096;
 
-    private static final Duration TOOL_TIMEOUT = Duration.ofSeconds(5);
+    private static final Duration READ_FILE_TOOL_TIMEOUT = Duration.ofSeconds(5);
+    private static final Duration MODEL_INVOKE_TOOL_TIMEOUT = Duration.ofSeconds(5);
     private static final String ACKNOWLEDGED_SPOOL_SUFFIX = ".received";
     private static final int MAX_ITERATIONS = 5;
     private static final int STAGNATION_THRESHOLD = 3;
@@ -183,6 +187,9 @@ public final class EnhancerCli {
             CliCommand command = CliArguments.parse(arguments);
             if (command instanceof RunCliCommand run) {
                 return executeRun(run, stdout);
+            }
+            if (command instanceof ModelInvokeCliCommand modelInvoke) {
+                return executeModelInvoke(modelInvoke, stdout);
             }
             if (command instanceof ReplayCliCommand replay) {
                 return executeReplay(replay, stdout);
@@ -604,7 +611,7 @@ public final class EnhancerCli {
                 Set.of(ReadFileTool.NAME),
                 Set.of(),
                 EvidenceStoragePolicy.MAX_SUPPORTED_CONTENT_BYTES,
-                TOOL_TIMEOUT,
+                READ_FILE_TOOL_TIMEOUT,
                 CancellationToken.none());
 
         AgentRunResult workerRun;
@@ -711,6 +718,76 @@ public final class EnhancerCli {
             }
         }
         return "matched=" + matched + ",diverged=" + diverged + ",notObserved=" + notObserved;
+    }
+
+    private int executeModelInvoke(
+            ModelInvokeCliCommand command,
+            PrintStream stdout) throws IOException {
+        ApprovedTask approvedTask = governedRunInputs(
+                command.projectRoot(),
+                command.taskId(),
+                ModelInvokeTool.NAME).approvedTask();
+        FileSystemRunRecordStore runRecordStore =
+                new FileSystemRunRecordStore(command.runRecordRoot());
+        FileSystemEvidenceStore evidenceStore = new FileSystemEvidenceStore(
+                command.evidenceRoot(),
+                new EvidenceStoragePolicy(EvidenceStoragePolicy.MAX_SUPPORTED_CONTENT_BYTES));
+        String logicalRunId = evidenceStore.createRun();
+        ToolRequest request = new ToolRequest(
+                ModelInvokeTool.NAME,
+                logicalRunId,
+                Map.of(
+                        ModelInvokeTool.PROMPT_ARGUMENT, command.prompt(),
+                        ModelInvokeTool.MODEL_CLASS_ARGUMENT, command.modelClass(),
+                        ModelInvokeTool.TIMEOUT_MILLIS_ARGUMENT,
+                                Long.toString(command.timeoutMillis()),
+                        ModelInvokeTool.MAX_RESPONSE_LENGTH_ARGUMENT,
+                                Integer.toString(command.maxResponseLength())));
+        ExecutionPolicy policy = new ExecutionPolicy(
+                command.projectRoot(),
+                Set.of(ModelInvokeTool.NAME),
+                Set.of(),
+                EvidenceStoragePolicy.MAX_SUPPORTED_CONTENT_BYTES,
+                MODEL_INVOKE_TOOL_TIMEOUT,
+                CancellationToken.none());
+
+        AgentRunResult workerRun;
+        try (ToolExecutor executor = new ToolExecutor(List.of(new ModelInvokeTool(
+                new DeterministicFakeModelGateway(),
+                new EvidenceRecorder(evidenceStore))))) {
+            workerRun = new AgentRunController(
+                    executor,
+                    policy,
+                    ToolFailureClassifier.standard())
+                    .run(
+                            AgentRunState.ready(approvedTask, request),
+                            new AgentLoop(MAX_ITERATIONS, STAGNATION_THRESHOLD));
+        }
+
+        Optional<VerificationRequest> verificationRequest =
+                workerRun.stopReason() == AgentLoopStopReason.AWAITING_VERIFICATION
+                        ? Optional.of(new VerificationRequest(
+                                approvedTask,
+                                request,
+                                workerRun.state().lastResult().orElseThrow(),
+                                command.expectedSha256()))
+                        : Optional.empty();
+        FinalizedAgentRun finalized = new AgentRunFinalizer(
+                new DeterministicModelInvokeVerifier(evidenceStore),
+                runRecordStore)
+                .finalizeRun(workerRun, verificationRequest);
+        CliExitCode exitCode = exitCode(finalized.record());
+        writeBounded(stdout, String.join("\n",
+                "status=" + finalized.stopReason(),
+                "exitCode=" + exitCode.code(),
+                "workerStopReason=" + finalized.record().workerStopReason(),
+                "verificationStatus=" + finalized.verification().status(),
+                "verificationCode=" + finalized.verification().code(),
+                "iterations=" + finalized.record().iterations(),
+                "modelClass=" + safeValue(command.modelClass()),
+                "runRecordRoot=" + safeValue(command.runRecordRoot().toString()),
+                "runRecordReference=" + finalized.storedRecord().reference()) + "\n");
+        return exitCode.code();
     }
 
     private int executeReplay(ReplayCliCommand command, PrintStream stdout) throws IOException {
@@ -1638,6 +1715,13 @@ public final class EnhancerCli {
     }
 
     private GovernedRunInputs governedRunInputs(Path projectRoot, String taskId) {
+        return governedRunInputs(projectRoot, taskId, ReadFileTool.NAME);
+    }
+
+    private GovernedRunInputs governedRunInputs(
+            Path projectRoot,
+            String taskId,
+            String requiredToolName) {
         try {
             ProjectContext context = new ProjectContextReader().read(projectRoot);
             ApprovedTask approvedTask = new ApprovedTaskReader().read(context);
@@ -1645,8 +1729,9 @@ public final class EnhancerCli {
                 throw new CliUsageException(
                         "task-id does not match the active repository task");
             }
-            if (!approvedTask.allows(ReadFileTool.NAME)) {
-                throw new CliUsageException("active task does not allow read-file");
+            if (!approvedTask.allows(requiredToolName)) {
+                throw new CliUsageException(
+                        "active task does not allow " + requiredToolName);
             }
             return new GovernedRunInputs(approvedTask, context);
         } catch (CliUsageException exception) {

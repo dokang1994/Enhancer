@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -157,7 +157,7 @@ Next Action: Compose the governed `model-invoke` CLI run.
 
 ### Increment 3 - governed-model-invoke-cli-run
 
-State: In Progress
+State: Completed
 
 Depends On: model-invoke-tool-with-bounded-failure-mapping
 
@@ -191,8 +191,15 @@ when the increment's exit criteria and declared verification are satisfied.
   model tests and the 13 focused governance tests with zero failures, errors, or
   skips, and `git diff --check` was clean. Evidence is appended once in
   `docs/verification-log.md`.
+- Increment 3: the digest-integrity model verifier, the governed `model-invoke`
+  CLI command with per-tool timeout values, and the promoting integration test
+  passed, and the fresh full Java 17 Markdown-sensitive regression completed with
+  899 tests, 10 environment-dependent skips, and zero failures or errors. Evidence
+  is appended once in `docs/verification-log.md`.
 
 ## Next
 
-Complete the increments above in order; on completion, define the next bounded task
-from the roadmap against the then-current repository state.
+Define the next bounded Delivery Gate 9 slice: compose `model-invoke` into the
+durable Scheduler execution path's allowed-tool scope so a queued WorkItem can
+execute one governed model invocation through the same evidence, verification, and
+RunRecord boundaries, without adding routing, MCP, or any real provider.

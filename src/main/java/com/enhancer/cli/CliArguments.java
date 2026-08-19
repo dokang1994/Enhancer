@@ -33,6 +33,17 @@ final class CliArguments {
             "expected-sha256",
             "evidence-root",
             "run-record-root");
+    private static final Set<String> MODEL_INVOKE_OPTIONS = Set.of(
+            "project-root",
+            "task-id",
+            "prompt",
+            "model-class",
+            "expected-sha256",
+            "evidence-root",
+            "run-record-root");
+    private static final Set<String> MODEL_INVOKE_OPTIONAL_OPTIONS = Set.of(
+            "timeout-millis",
+            "max-response-length");
     private static final Set<String> REPLAY_OPTIONS = Set.of("run-record-root", "reference");
     private static final Set<String> RUN_RECORD_LIST_OPTIONS =
             Set.of("run-record-root", "limit");
@@ -219,7 +230,7 @@ final class CliArguments {
     static CliCommand parse(String[] arguments) {
         if (arguments == null || arguments.length == 0) {
             throw new CliUsageException(
-                    "command is required: run, replay, run-record-list, "
+                    "command is required: run, model-invoke, replay, run-record-list, "
                     + "runtime-event-read, runtime-event-acknowledge, scheduler-submit, "
                     + "scheduler-submit-generated, scheduler-status, "
                             + "scheduler-recovery-status, "
@@ -237,6 +248,11 @@ final class CliArguments {
         String command = arguments[0];
         return switch (command) {
             case "run" -> parseRun(parseOptions(arguments, RUN_OPTIONS));
+            case "model-invoke" -> parseModelInvoke(
+                    parseOptions(
+                            arguments,
+                            MODEL_INVOKE_OPTIONS,
+                            MODEL_INVOKE_OPTIONAL_OPTIONS));
             case "replay" -> parseReplay(parseOptions(arguments, REPLAY_OPTIONS));
             case "run-record-list" -> parseRunRecordList(
                     parseOptions(arguments, RUN_RECORD_LIST_OPTIONS));
@@ -407,6 +423,28 @@ final class CliArguments {
                 digest,
                 path(options.get("evidence-root"), "evidence-root"),
                 path(options.get("run-record-root"), "run-record-root"));
+    }
+
+    private static ModelInvokeCliCommand parseModelInvoke(Map<String, String> options) {
+        String digest = options.get("expected-sha256");
+        if (!SHA_256.matcher(digest).matches()) {
+            throw new CliUsageException(
+                    "expected-sha256 must be 64 lowercase hexadecimal characters");
+        }
+        return new ModelInvokeCliCommand(
+                path(options.get("project-root"), "project-root"),
+                nonBlank(options.get("task-id"), "task-id"),
+                nonBlank(options.get("prompt"), "prompt"),
+                nonBlank(options.get("model-class"), "model-class"),
+                digest,
+                path(options.get("evidence-root"), "evidence-root"),
+                path(options.get("run-record-root"), "run-record-root"),
+                positiveLong(
+                        options.getOrDefault("timeout-millis", "4000"),
+                        "timeout-millis"),
+                Math.toIntExact(positiveLong(
+                        options.getOrDefault("max-response-length", "65536"),
+                        "max-response-length")));
     }
 
     private static RuntimeEventReadCliCommand parseRuntimeEventRead(

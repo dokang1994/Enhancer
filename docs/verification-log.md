@@ -5520,3 +5520,38 @@ Outcome:
   errors, or skips, and `git diff --check` was clean. No test opened a network
   connection and the deterministic fake plus in-test stubs remain the only executed
   gateways.
+
+## 2026-08-19 - Governed Model Invoke CLI Run Verification
+
+- Increment 3 delivered the `DeterministicModelInvokeVerifier`, the
+  `ModelInvokeCliCommand` with parser support and bounded optional
+  `timeout-millis`/`max-response-length` values, the `executeModelInvoke`
+  composition over the existing controller, loop, finalizer, and RunRecord store,
+  and the per-tool CLI timeout values replacing the shared five-second constant.
+  The focused verifier and integration tests were authored before the production
+  code inside the increment; the RED compilation state for this increment was not
+  separately executed before implementation, and the RED discipline evidence for
+  the task rests on increments 1 and 2 plus the mismatch, budget-refusal, scope,
+  and malformed-digest failure cases below, which exercise every refusal path
+  against the finished composition.
+- The promoting integration test passed: one governed CLI run executed
+  `model-invoke` against the deterministic fake under a task allowing the tool,
+  reported `COMPLETED`/`VERIFIED` with bounded output that leaks no prompt
+  content, and persisted a RunRecord that resolves with the exact task, tool,
+  verified status, and truncated evidence whose reference resolves through the
+  evidence store to the exact deterministic response with a matching content
+  digest; the `replay` command re-read the same record as lifecycle-valid.
+  Separate cases proved a digest mismatch persists a `REJECTED` record with the
+  stable failure exit, a sixteen-character budget persists an explicit
+  `TOOL_REPORTED_FAILURE` record, a task without `model-invoke` fails closed as a
+  usage error naming the tool before any execution, and a malformed expected
+  digest fails before execution.
+- Focused verification passed with 25 `com.enhancer.model` unit tests, 4 verifier
+  tests, 5 integration cases, and the 13 architecture governance tests, all with
+  zero failures, errors, or skips.
+- The fresh full Java 17 Markdown-sensitive `test --no-daemon` regression after
+  all document synchronization completed with `BUILD SUCCESSFUL`: 170 result
+  suites aggregating 899 tests, 10 environment-dependent skips, zero failures,
+  and zero errors, under `-Xlint:all -Werror` with no network connection.
+- `git diff --check` was clean at the staged increment boundary. No push occurred;
+  delivery to the remote awaits an explicit user request.

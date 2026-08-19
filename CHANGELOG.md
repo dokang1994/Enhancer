@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-08-19 - Implement The Gate 9 Model Gateway Minimum Slice
+
+- Added the `com.enhancer.model` leaf package implementing RFC-0013 test-first: the
+  provider-neutral `ModelGateway` port with immutable bounded
+  request/response/usage records, the four-code typed failure contract, the
+  default-free injected credential-supplier boundary, the deterministic fake as the
+  only executed gateway, and the package-private never-invoked HTTP message-API
+  provider adapter shape.
+- Added the `model-invoke` Tool composed into the existing executor with required
+  bounded arguments, strict gateway-inside-policy timeout validation, evidence
+  capture through the existing envelope, bounded typed failure mapping, and the
+  untrusted-output invariant, plus the digest-integrity verifier for its results.
+- Added the governed `model-invoke` CLI command over the existing controller,
+  loop, finalizer, and RunRecord store, made the shared five-second CLI tool
+  timeout a per-tool composition value, and delivered the promoting integration
+  test proving one governed run against the deterministic fake persists a
+  lifecycle-valid replayable RunRecord whose evidence reference resolves. No
+  network, credential, or paid service is involved.
+
 ## 2026-08-18 - Amend Commit Cadence To Verified GREEN Increment Boundaries
 
 - Amended Constitution Sections 7 and 13 (version 1.2.0) so an ordinary local commit
