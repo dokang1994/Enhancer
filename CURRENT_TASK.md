@@ -6,204 +6,131 @@ Completed
 
 ## Task
 
-Compose `model-invoke` into the durable Scheduler execution path test-first: give
-`ModelInvokeTool` a governed contained `prompt-path` prompt source, derive the
-executed pipeline in `AgentLoopAgentRunExecution` from the WorkItem's allowed-tool
-scope with the declared execution input as prompt document and expected response
-digest and the required capability as the model-class label, accept
-`model-invoke`-scoped tasks at the governed submission surfaces, and promote the
-slice with one real-filesystem Scheduler cycle executing a model WorkItem to its
-verified terminal disposition.
+Specify the next bounded Delivery Gate 9 slice as an accepted RFC-governed,
+provider-neutral model execution-profile value layer over the existing gateway port.
+Define capability, model class, locality, reasoning, context, token, cost, time, and
+data-classification requirements without implementing routing, providers, or remote
+transmission.
 
 ## Task ID
 
-compose-model-invoke-into-scheduler-execution
+specify-provider-neutral-model-execution-profile
 
 ## Context
 
-The RFC-0013 minimum slice is delivered and observed passing on the external
-verification host. The Scheduler execution pipeline currently always executes
-`read-file`; the WorkItem's allowed-tool scope is carried but never selects the
-executed tool. The declared `ExecutionInput` and the required-capability field
-already carry exactly the data a model invocation needs — prompt document,
-expected digest, and model-class label — so no queue, runtime, or spool schema
-changes. Model work without a declared execution input fails closed because the
-source-document fallback digest names the document, not a response. The
-process-isolated child reuses the same execution seam, so both execution paths
-gain model work together.
+The RFC-0013 minimum model-gateway slice and its durable Scheduler execution path are
+Completed, committed, and synchronized on `main`. The completed task records the
+provider-neutral execution profile as the next bounded Gate 9 slice. The existing
+`ModelRequest` carries only a model-class label plus timeout and response-length budget
+stub, while the Roadmap requires an explicit provider-neutral profile before routing or
+provider selection. The new contract must separate the Scheduler's current temporary
+required-capability/model-class reuse, preserve the existing character response bound,
+and avoid claiming that the deterministic fake's character-count usage is provider
+token accounting.
 
 ## Justified By
 
-- User continuation request on 2026-08-19 into scheduler-executed model invocations
+- User continuation request on 2026-08-19 into the provider-neutral model execution profile specification
 - Accept RFC-0013 defining the Delivery Gate 9 model gateway minimum slice
 
 ## Approval
 
-The accepted continuation decision authorizes test-first source and test authoring
-for `com.enhancer.model`, the `AgentLoopAgentRunExecution` composition in
-`com.enhancer.runtime`, and the `com.enhancer.cli` submission gate, focused and
-full verification, development-session checkpoints, document synchronization, and
-ordinary local commits at verified GREEN increment boundaries under Constitution
+The 2026-08-19 continuation request authorizes one documentation-only specification
+increment: author and accept RFC-0014, record its accepted decision, update the Gate 9
+architecture boundary and RFC indexes, run focused and full Markdown-sensitive Java 17
+verification, use development-session checkpoints, synchronize lifecycle documents,
+and create one ordinary local commit at the verified GREEN boundary under Constitution
 1.2.0.
 
-It does not authorize push, merge, tag, release, deployment, any queue, runtime,
-submission, or spool schema change, migration, MessageEnvelope or store change,
-network connection, credential, paid-service invocation, MCP, routing, caching,
-streaming, real provider invocation, force push, rebase, reset, amend, squash, or
-destructive cleanup.
+It does not authorize Java implementation, `ModelRequest` or `ModelGateway` signature
+changes, routing, provider or endpoint selection, network or remote transmission,
+credentials, paid-service use, MCP, caching, fallback, streaming, tokenizer or pricing
+adapters, queue/runtime/submission/spool/RunRecord schema changes, migration, push,
+merge, tag, release, deployment, permission changes, or destructive cleanup.
 
 ## Acceptance Criteria
 
-- `ModelInvokeTool` accepts exactly one prompt source per request: inline `prompt`
-  or `prompt-path`; a contained regular UTF-8 prompt file under the policy project
-  root is read with the same containment and size bounds as governed read-file,
-  and requests with both, neither, or an escaping/oversized/malformed path fail
-  closed as typed failures.
-- `AgentLoopAgentRunExecution` keeps a `read-file`-containing scope on the
-  existing pipeline byte-for-byte unchanged, executes a `model-invoke` scope
-  against the deterministic fake with prompt document, expected response digest,
-  capability-derived model-class, and fixed budget values whose gateway timeout
-  fits strictly inside a per-tool timeout, and fails closed on model work without
-  a declared execution input or with a scope naming neither executable tool.
-- Model-scoped work verifies through `DeterministicModelInvokeVerifier` and
-  persists a lifecycle-valid RunRecord through the same finalizer and store as
-  read-file work.
-- The governed submission surfaces accept a task whose allowed tools name
-  `model-invoke` without `read-file` and continue to reject a task naming neither
-  executable tool.
-- The promoting integration test submits a model WorkItem through the governed CLI
-  and drives one real-filesystem Scheduler cycle to `VERIFIED_COMPLETED`, with the
-  persisted RunRecord resolvable, its evidence reference resolvable to the exact
-  deterministic response, and exact re-entry creating no second execution.
-- No queue, runtime, submission, or spool schema version changes, no test opens a
-  network connection, and a fresh full Java 17 Markdown-sensitive regression
-  passes before the task completes.
+- RFC-0014 is Accepted and defines one immutable versioned `ModelExecutionProfile`
+  value hierarchy covering required capability, model class, locality, reasoning,
+  minimum context capacity, token budget, cost budget, maximum invocation time, and
+  data classification.
+- The RFC fixes bounded labels, closed enum vocabularies, integer units, cross-field
+  invariants, deterministic equality, fail-closed validation, and the distinction
+  between capability and model class. Token limits remain distinct from the existing
+  response-character ceiling and from the current fake's character-based usage units.
+- The profile contains requirements only. Locality, classification, and cost values do
+  not grant Tool, network, remote-transmission, credential, provider, endpoint, paid-
+  service, or data-release authority and cannot widen the intersection of task,
+  execution-policy, and future outbound-policy constraints.
+- RFC-0014 names the immediate follow-up implementation consumer and its RED-first
+  contract tests while leaving router selection, adapters, actual tokenization and
+  pricing, remote policy enforcement, and maturity promotion outside this task.
+- `ARCHITECTURE.md`, `.ai/architecture.md`, `docs/rfcs/README.md`, `ROADMAP.md`, the
+  decision index, and lifecycle documents are synchronized only where they own facts;
+  `PROJECT_STATE.md` remains unchanged because specification acceptance is not
+  implementation maturity.
+- Focused governance tests, `git diff --check`, and a fresh full Java 17 Markdown-
+  sensitive Gradle regression pass before the task is Completed.
 
 ## Out Of Scope
 
-Queue/runtime/submission/spool schema evolution and migration, MessageEnvelope
-changes, model routing, provider selection, MCP, caching, fallback, streaming,
-quality evaluation, real provider invocation, credentials, paid services,
-prompt-injection resistance and redaction, multi-tool runs within one AgentRun,
-push, merge, tag, release, and deployment.
+Java implementation, gateway invocation behavior changes, Scheduler behavior changes,
+routing, provider/model/endpoint selection, network or remote transmission, credentials,
+paid services, MCP, caching, fallback, streaming, tokenizer and pricing adapters,
+redaction, prompt-injection resistance, source attribution, quality evaluation,
+queue/runtime/submission/spool/RunRecord schema changes, migration, capability-maturity
+promotion, push, merge, tag, release, and deployment.
 
 ## Allowed Tools
 
 - read-file
 - write-docs
-- write-code
 - build-output
 - verify
 - checkpoint
 - git-inspect
 - git-stage
 - git-commit
-
-## Dynamic Workflow
-
-Workflow ID: compose-model-invoke-into-scheduler-execution
-
-Mode: Sequential
-
-Increment Limit: 3
-
-Selection Rule: Select the first dependency-ready Pending increment in document order.
-
-Stop Conditions: Stop on failed verification, governance-test failure that cannot be
-resolved inside the selected increment, task/checkpoint drift, scope expansion,
-schema-change requirement, network or credential requirement, subagent bound
-exhaustion, or insufficient authority.
-
-### Increment 1 - model-invoke-prompt-path-argument
-
-State: Completed
-
-Depends On: none
-
-Scope: Extend `ModelInvokeTool` RED-first with the `prompt-path` argument as an
-exact alternative to inline `prompt`: containment against the real project root,
-regular-file and bounded-size checks through the shared bounded read, strict UTF-8
-decoding, and typed failure on both-or-neither prompt sources or an invalid path.
-
-Exit Criteria: Focused unit tests cover the governed prompt-file round trip,
-exclusivity of the two prompt sources, escaping, missing, oversized, non-regular,
-and malformed-UTF-8 paths, and unchanged inline-prompt behavior; focused
-governance tests pass.
-
-Verification: Focused `com.enhancer.model` unit tests plus the architecture
-governance suites, and `git diff --check`, before the increment commit.
-
-Next Action: Derive the executed pipeline from the WorkItem scope.
-
-### Increment 2 - scope-derived-model-execution-pipeline
-
-State: Completed
-
-Depends On: model-invoke-prompt-path-argument
-
-Scope: Extend `AgentLoopAgentRunExecution` RED-first: keep `read-file`-containing
-scopes on the unchanged existing pipeline, execute `model-invoke` scopes through
-the deterministic fake and `DeterministicModelInvokeVerifier` with the declared
-execution input as prompt document and expected response digest, the required
-capability as model-class, and fixed per-tool budget values; fail closed on model
-work without a declared input or a scope naming neither executable tool.
-
-Exit Criteria: Focused execution tests cover the verified model run, the untouched
-read-file path, absent-input and unknown-scope refusal, and a failed model
-verification carried in the persisted RunRecord; focused governance tests pass.
-
-Verification: Focused `com.enhancer.runtime` execution and `com.enhancer.model`
-tests plus the architecture governance suites, and `git diff --check`, before the
-increment commit.
-
-Next Action: Promote the slice through the governed Scheduler cycle.
-
-### Increment 3 - scheduler-model-work-promotion
-
-State: Completed
-
-Depends On: scope-derived-model-execution-pipeline
-
-Scope: Accept `model-invoke`-scoped tasks at the governed submission surfaces
-while still requiring at least one executable tool in scope, and author the
-promoting real-filesystem integration test: submit a model WorkItem through the
-governed CLI, drive one Scheduler cycle to `VERIFIED_COMPLETED`, resolve the
-RunRecord and its evidence reference, prove exact re-entry creates no second
-execution, and synchronize the owning documents.
-
-Exit Criteria: The promoting integration test passes, owning documents are
-synchronized once, and a fresh full Java 17 Markdown-sensitive regression passes.
-
-Verification: Full Java 17 Markdown-sensitive Gradle regression including the new
-focused and integration tests, `git diff --check`, and staged-boundary review
-before the final increment commit.
-
-Next Action: Record the follow-up task after the slice completes.
+- subagent-read-only
 
 ## Verification
 
-Increment evidence is appended once per increment to `docs/verification-log.md`
-when the increment's exit criteria and declared verification are satisfied.
+- The focused governance selection completed with 10 tests, zero failures, errors, or
+  skips after the required Dynamic Workflow cursor was restored.
+- The fresh full Java 17 Markdown-sensitive Gradle regression completed with `BUILD
+  SUCCESSFUL`: 171 result suites aggregating 910 tests, 10 environment-dependent
+  skips, zero failures, and zero errors.
+- `git diff --cached --check` was clean for the complete specification boundary.
+  Evidence is appended once in `docs/verification-log.md`.
 
-- Increment 1: the RED-first governed `prompt-path` prompt source passed 29
-  focused model tests and the 13 focused governance tests with zero failures,
-  errors, or skips, and `git diff --check` was clean. Evidence is appended once in
-  `docs/verification-log.md`.
-- Increment 2: the RED-first scope-derived execution pipeline passed 9 focused
-  execution tests with the read-file cases unchanged, the process-isolated suite,
-  29 model tests, the 13 governance tests, and the complete runtime package
-  regression with zero failures, errors, or skips, and `git diff --check` was
-  clean. Evidence is appended once in `docs/verification-log.md`.
-- Increment 3: the submission-gate relaxation, the scope-derived isolated-result
-  and recovery-status expectations, and the promoting real-filesystem
-  submit-plus-cycle integration test passed with the complete runtime and CLI
-  package regressions, and the fresh full Java 17 Markdown-sensitive regression
-  passed. Evidence is appended once in `docs/verification-log.md`.
+## Dynamic Workflow
+
+Workflow ID: specify-model-execution-profile
+Mode: Sequential
+Increment Limit: 2
+Selection Rule: Select the first dependency-ready Pending increment in numeric order.
+Stop Conditions: Stop on failed verification, authority conflict, task drift, exhausted bounds, or unsafe recovery.
+
+### Increment 1 - define-profile-contract
+
+State: Completed
+Depends On: none
+Scope: Accept RFC-0014 and synchronize its decision, Gate 9 architecture boundary, and RFC indexes.
+Exit Criteria: The provider-neutral value contract, validation rules, authority limits, and next implementation consumer are explicit.
+Verification: Read the resulting RFC, accepted decision, architecture connections, and index registrations against the Active Task.
+Next Action: Verify the synchronized repository documents and close the lifecycle boundary.
+
+### Increment 2 - verify-and-close-profile-specification
+
+State: Completed
+Depends On: define-profile-contract
+Scope: Run focused and full Markdown-sensitive verification, append evidence once, synchronize lifecycle documents, and create the required local commit.
+Exit Criteria: All declared checks pass on the synchronized documents, the task is Completed, and the verified increment is committed locally without push.
+Verification: Focused governance tests, git diff checks, and the README-owned full Java 17 Gradle test task.
+Next Action: Implement the accepted RFC-0014 pure value layer test-first under a new Active Task.
 
 ## Next
 
-Define the next bounded Delivery Gate 9 slice: specify the provider-neutral
-execution-profile contract (capability, model class, locality, reasoning, context,
-token, cost, time, and data-classification requirements) as an RFC-governed value
-layer over the existing gateway port, without routing, providers, or remote
-transmission.
+Implement the accepted RFC-0014 model execution-profile value layer test-first in
+`com.enhancer.model`, without routing, providers, remote transmission, or changes to
+durable Scheduler/store schemas.

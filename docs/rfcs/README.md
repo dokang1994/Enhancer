@@ -19,6 +19,7 @@ RFCs preserve long-term architecture intent and make references stable across Ch
 - `RFC-0011`: Plugin SDK
 - `RFC-0012`: Self Improvement
 - `RFC-0013`: Model Gateway
+- `RFC-0014`: Model Execution Profile
 
 ## Status Values
 

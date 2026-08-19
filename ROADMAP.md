@@ -1222,6 +1222,7 @@ Status: Accepted
 - RFC-0011: Plugin SDK
 - RFC-0012: Self Improvement
 - RFC-0013: Model Gateway
+- RFC-0014: Model Execution Profile
 
 RFC acceptance does not imply Contract Verified, Integrated, Operational, or Released capability maturity.
 

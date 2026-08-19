@@ -1566,6 +1566,17 @@ invocation recovery status apply the same scope-derived expectation, and the
 governed submission surfaces accept any task scoped to at least one executable
 tool. No queue, runtime, submission, or spool schema changed for this boundary.
 
+RFC-0014 defines the next Gate 9 value boundary: one immutable, versioned
+`ModelExecutionProfile` carries a required capability, model class, locality and
+reasoning requirements, minimum context, token, cost, and invocation-time budgets,
+and data classification. The value is untrusted requirement data and cannot select a
+provider, authorize transmission or spend, expose credentials, or widen task, Tool,
+or `ExecutionPolicy` authority. Its immediate consumer is a pure model-package value
+layer only. A later separately authorized composition must attach a complete profile
+explicitly to the request path and intersect it with task, execution, and outbound
+policy; defaults, routing, providers, and remote execution remain outside this
+boundary.
+
 ## Agent Orchestration Contract
 
 ### Development-Time Adaptive Subagent Delegation
@@ -1743,6 +1754,8 @@ Major design areas are tracked in `docs/rfcs/`.
 - `RFC-0010`: AI Operating System
 - `RFC-0011`: Plugin SDK
 - `RFC-0012`: Self Improvement
+- `RFC-0013`: Model Gateway
+- `RFC-0014`: Model Execution Profile
 
 ## First Architecture Slice
 

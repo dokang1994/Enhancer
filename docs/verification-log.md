@@ -5656,3 +5656,21 @@ Outcome:
 - The push-triggered continuous verification run 32224078685 completed
   successfully on the Linux host, so the delivered commits passed the complete
   Java 17 Markdown-sensitive verification on the external host as well.
+
+## 2026-08-19 - Model Execution Profile Specification Verification
+
+- Accepted RFC-0014 as a documentation-only Gate 9 boundary defining one immutable,
+  versioned provider-neutral `ModelExecutionProfile` requirement value for capability,
+  model class, locality, reasoning, context, token, cost, time, and data classification.
+  The contract grants no provider, network, credential, spend, task, Tool, or remote-
+  transmission authority and leaves Java implementation, routing, and gateway
+  composition to separately authorized work.
+- The focused governance selection passed 10 tests with zero failures, errors, or
+  skips after the Active Task's required two-increment Dynamic Workflow cursor was
+  restored.
+- The fresh full Java 17 Markdown-sensitive Gradle regression completed with `BUILD
+  SUCCESSFUL` in 6m 55s: 171 result suites aggregating 910 tests, 10 environment-
+  dependent skips, zero failures, and zero errors.
+- `git diff --cached --check` was clean for the complete specification boundary.
+  `PROJECT_STATE.md` remained unchanged because accepting the specification did not
+  promote implementation maturity. No push occurred.

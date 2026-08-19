@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-08-19 - Accept The Gate 9 Model Execution Profile Specification
+
+- Added and accepted RFC-0014 defining the immutable, versioned, provider-neutral
+  `ModelExecutionProfile` requirement value across capability, model class, locality,
+  reasoning, context, token, cost, time, and data classification.
+- Fixed fail-closed vocabularies, bounds, cross-field invariants, deterministic value
+  semantics, and the distinction between token budgets, RFC-0013's response-character
+  bound, and the deterministic fake's character-based usage accounting.
+- Recorded the accepted continuation decision and connected the contract to Gate 9
+  architecture and RFC indexes while keeping Java implementation, routing, providers,
+  remote transmission, credentials, paid services, and maturity promotion outside the
+  slice.
+
 ## 2026-08-19 - Compose Model Invocations Into The Scheduler Execution Path
 
 - Gave the `model-invoke` Tool a governed `prompt-path` prompt source read with

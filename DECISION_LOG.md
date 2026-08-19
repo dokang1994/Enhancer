@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-08-19 into the provider-neutral model execution profile specification
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-19-specify-provider-neutral-model-execution-profile.md)
+
 ### User continuation request on 2026-08-19 into scheduler-executed model invocations
 
 Status: Accepted Decision
