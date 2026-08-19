@@ -215,6 +215,120 @@ class ModelInvokeToolTest {
     }
 
     @Test
+    void promptPathReadsAGovernedContainedPromptFile() throws Exception {
+        java.nio.file.Files.writeString(
+                temporaryRoot.resolve("prompt.txt"),
+                "prompt from a governed file",
+                StandardCharsets.UTF_8);
+
+        ToolResult result = execute(
+                new DeterministicFakeModelGateway(),
+                promptPathArguments("prompt.txt", "model-class", "2000", "4096"),
+                allowingPolicy(Duration.ofSeconds(5)));
+
+        assertEquals(ToolResultStatus.SUCCESS, result.status());
+        assertTrue(result.evidence().outputTail().endsWith(
+                "echo=prompt from a governed file"));
+    }
+
+    @Test
+    void promptSourcesAreExactlyOneOfInlineOrPath() throws Exception {
+        java.nio.file.Files.writeString(
+                temporaryRoot.resolve("prompt.txt"),
+                "file prompt",
+                StandardCharsets.UTF_8);
+        Map<String, String> both = new java.util.LinkedHashMap<>(
+                arguments("inline prompt", "model-class", "2000", "4096"));
+        both.put(ModelInvokeTool.PROMPT_PATH_ARGUMENT, "prompt.txt");
+        Map<String, String> neither = new java.util.LinkedHashMap<>(
+                arguments("inline prompt", "model-class", "2000", "4096"));
+        neither.remove(ModelInvokeTool.PROMPT_ARGUMENT);
+
+        for (Map<String, String> malformed : List.of(both, neither)) {
+            ToolResult result = execute(
+                    new DeterministicFakeModelGateway(),
+                    malformed,
+                    allowingPolicy(Duration.ofSeconds(5)));
+
+            assertEquals(ToolResultStatus.FAILURE, result.status());
+            assertEquals(
+                    ToolFailureCode.INVALID_REQUEST,
+                    result.failureCode().orElseThrow());
+        }
+    }
+
+    @Test
+    void promptPathRefusesAbsoluteEscapingMissingAndMalformedFiles() throws Exception {
+        java.nio.file.Path outside = temporaryRoot.resolve("outside.txt");
+        java.nio.file.Files.writeString(outside, "outside", StandardCharsets.UTF_8);
+        java.nio.file.Path projectRoot = temporaryRoot.resolve("project");
+        java.nio.file.Files.createDirectories(projectRoot);
+        java.nio.file.Files.write(
+                projectRoot.resolve("malformed.txt"),
+                new byte[] {(byte) 0xC3, (byte) 0x28});
+        ExecutionPolicy policy = new ExecutionPolicy(
+                projectRoot,
+                Set.of(ModelInvokeTool.NAME),
+                Set.of(),
+                EvidenceStoragePolicy.MAX_SUPPORTED_CONTENT_BYTES,
+                Duration.ofSeconds(5),
+                CancellationToken.none());
+
+        assertEquals(
+                ToolFailureCode.INVALID_REQUEST,
+                execute(new DeterministicFakeModelGateway(),
+                        promptPathArguments(
+                                outside.toAbsolutePath().toString(),
+                                "model-class", "2000", "4096"),
+                        policy).failureCode().orElseThrow());
+        assertEquals(
+                ToolFailureCode.EXECUTION_FAILED,
+                execute(new DeterministicFakeModelGateway(),
+                        promptPathArguments(
+                                "../outside.txt", "model-class", "2000", "4096"),
+                        policy).failureCode().orElseThrow());
+        assertEquals(
+                ToolFailureCode.EXECUTION_FAILED,
+                execute(new DeterministicFakeModelGateway(),
+                        promptPathArguments(
+                                "missing.txt", "model-class", "2000", "4096"),
+                        policy).failureCode().orElseThrow());
+        assertEquals(
+                ToolFailureCode.EXECUTION_FAILED,
+                execute(new DeterministicFakeModelGateway(),
+                        promptPathArguments(
+                                "malformed.txt", "model-class", "2000", "4096"),
+                        policy).failureCode().orElseThrow());
+    }
+
+    @Test
+    void promptPathRefusesAFileBeyondThePolicyReadBound() throws Exception {
+        java.nio.file.Path projectRoot = temporaryRoot.resolve("bounded-project");
+        java.nio.file.Files.createDirectories(projectRoot);
+        java.nio.file.Files.writeString(
+                projectRoot.resolve("large.txt"),
+                "p".repeat(64),
+                StandardCharsets.UTF_8);
+        ExecutionPolicy policy = new ExecutionPolicy(
+                projectRoot,
+                Set.of(ModelInvokeTool.NAME),
+                Set.of(),
+                16,
+                Duration.ofSeconds(5),
+                CancellationToken.none());
+
+        ToolResult result = execute(
+                new DeterministicFakeModelGateway(),
+                promptPathArguments("large.txt", "model-class", "2000", "4096"),
+                policy);
+
+        assertEquals(ToolResultStatus.FAILURE, result.status());
+        assertEquals(
+                ToolFailureCode.EXECUTION_FAILED,
+                result.failureCode().orElseThrow());
+    }
+
+    @Test
     void requiresAnInjectedGatewayAndEvidenceRecorder() throws Exception {
         EvidenceRecorder recorder = new EvidenceRecorder(evidenceStore());
         assertThrows(
@@ -259,6 +373,17 @@ class ModelInvokeToolTest {
                 EvidenceStoragePolicy.MAX_SUPPORTED_CONTENT_BYTES,
                 timeout,
                 CancellationToken.none());
+    }
+
+    private static Map<String, String> promptPathArguments(
+            String promptPath,
+            String modelClass,
+            String timeoutMillis,
+            String maxResponseLength) {
+        Map<String, String> arguments = new java.util.LinkedHashMap<>(
+                arguments(null, modelClass, timeoutMillis, maxResponseLength));
+        arguments.put(ModelInvokeTool.PROMPT_PATH_ARGUMENT, promptPath);
+        return arguments;
     }
 
     private static Map<String, String> arguments(

@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-08-19 into scheduler-executed model invocations
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-19-execute-model-invoke-through-the-scheduler.md)
+
 ### User continuation request on 2026-08-19 into the RFC-0013 model gateway implementation
 
 Status: Accepted Decision

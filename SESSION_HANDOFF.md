@@ -30,8 +30,7 @@ the active task in `CURRENT_TASK.md`, and delivery history in `CHANGELOG.md` and
   as a drive-relative path.
 - Checkpoint `--artifact` values must name contained regular files; a directory is
   rejected.
-- The three Gate 9 model-slice increments are committed locally on `main` ahead of
-  `origin/main`. Push was not requested and did not occur; the accepted
-  continuation decision reserves push for an explicit user request.
 - `gh` is authenticated on this host as the repository owner; single `gh` API calls
-  can transiently time out and succeed on retry.
+  can transiently time out and succeed on retry. A continuous-verification run can
+  also fail at the infrastructure level with its job stuck `queued` and no logs;
+  an unchanged re-run recovered it on 2026-08-19.

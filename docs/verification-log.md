@@ -5555,3 +5555,36 @@ Outcome:
   and zero errors, under `-Xlint:all -Werror` with no network connection.
 - `git diff --check` was clean at the staged increment boundary. No push occurred;
   delivery to the remote awaits an explicit user request.
+
+## 2026-08-19 - Model Gateway Slice Delivery Observation
+
+- On the user's explicit request, the three verified increments were delivered to
+  `origin/main` with one non-force fast-forward push (`9432799..538b8b4`) from a
+  clean worktree after confirming the remote had not diverged.
+- The push-triggered continuous verification run 32218895401 first concluded
+  `failure` without executing anything: its single `test` job remained `queued`
+  with no steps, no logs, and no completion timestamp, which is a runner
+  infrastructure failure, not a repository test failure. The run was re-run
+  unchanged and completed `success` on the Linux host, so the delivered commits
+  passed the complete Java 17 Markdown-sensitive verification on the external
+  host as well.
+
+## 2026-08-19 - Model Invoke Prompt Path Argument Verification
+
+- Increment 1 of the Scheduler-composition task was delivered test-first: four new
+  `ModelInvokeToolTest` cases were authored first and failed compilation on the
+  missing `PROMPT_PATH_ARGUMENT` symbol as the RED signal, then `ModelInvokeTool`
+  gained the governed `prompt-path` prompt source: exactly one of inline `prompt`
+  or `prompt-path` per request, containment against the normalized and real
+  project root, regular-file and policy-bounded size checks through the shared
+  bounded read, and strict UTF-8 decoding, mirroring the governed read-file
+  containment rules.
+- Focused `com.enhancer.model` verification passed with 29 tests, zero failures,
+  errors, or skips: the governed prompt-file round trip through the deterministic
+  fake, both-and-neither prompt-source refusal as `INVALID_REQUEST`, absolute-path
+  refusal as `INVALID_REQUEST`, escaping, missing, and malformed-UTF-8 prompt
+  files as `EXECUTION_FAILED`, an over-bound prompt file refused under a
+  16-byte policy read limit, and all previously delivered contract, fake,
+  verifier, adapter-shape, and tool cases unchanged.
+- The focused architecture governance suites passed with 13 tests, zero failures,
+  errors, or skips, and `git diff --check` was clean.

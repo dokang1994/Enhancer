@@ -2,88 +2,90 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Implement the RFC-0013 Delivery Gate 9 model gateway minimum vertical slice
-test-first: the `com.enhancer.model` leaf package with the provider-neutral
-`ModelGateway` port, immutable bounded request/response/usage records, the typed
-failure contract, the injected credential-supplier boundary, the deterministic fake
-as the only executed gateway, one bounded never-invoked provider adapter shape, and
-the `model-invoke` Tool composed into the existing executor, promoted by one governed
-CLI run persisting a lifecycle-valid replayable RunRecord.
+Compose `model-invoke` into the durable Scheduler execution path test-first: give
+`ModelInvokeTool` a governed contained `prompt-path` prompt source, derive the
+executed pipeline in `AgentLoopAgentRunExecution` from the WorkItem's allowed-tool
+scope with the declared execution input as prompt document and expected response
+digest and the required capability as the model-class label, accept
+`model-invoke`-scoped tasks at the governed submission surfaces, and promote the
+slice with one real-filesystem Scheduler cycle executing a model WorkItem to its
+verified terminal disposition.
 
 ## Task ID
 
-implement-gate-9-model-gateway-minimum-slice
+compose-model-invoke-into-scheduler-execution
 
 ## Context
 
-RFC-0013 is accepted with this implementation recorded as its follow-up task. The
-existing Tool port already provides isolation, bounded failure conversion, policy
-allowlisting, evidence capture, and RunRecord persistence, so the slice attaches at
-that seam without touching the scheduler or runtime packages. The deterministic fake
-requires no credential, so the slice runs completely in local-only mode. The shared
-five-second CLI tool timeout becomes a per-tool composition value during this task,
-and the gateway timeout must fit strictly inside the `model-invoke` tool timeout.
+The RFC-0013 minimum slice is delivered and observed passing on the external
+verification host. The Scheduler execution pipeline currently always executes
+`read-file`; the WorkItem's allowed-tool scope is carried but never selects the
+executed tool. The declared `ExecutionInput` and the required-capability field
+already carry exactly the data a model invocation needs — prompt document,
+expected digest, and model-class label — so no queue, runtime, or spool schema
+changes. Model work without a declared execution input fails closed because the
+source-document fallback digest names the document, not a response. The
+process-isolated child reuses the same execution seam, so both execution paths
+gain model work together.
 
 ## Justified By
 
-- User continuation request on 2026-08-19 into the RFC-0013 model gateway implementation
+- User continuation request on 2026-08-19 into scheduler-executed model invocations
 - Accept RFC-0013 defining the Delivery Gate 9 model gateway minimum slice
 
 ## Approval
 
 The accepted continuation decision authorizes test-first source and test authoring
-for the `com.enhancer.model` package and the `com.enhancer.cli` composition, focused
-and full verification, development-session checkpoints, document synchronization,
-and ordinary local commits at verified GREEN increment boundaries under Constitution
+for `com.enhancer.model`, the `AgentLoopAgentRunExecution` composition in
+`com.enhancer.runtime`, and the `com.enhancer.cli` submission gate, focused and
+full verification, development-session checkpoints, document synchronization, and
+ordinary local commits at verified GREEN increment boundaries under Constitution
 1.2.0.
 
-It does not authorize push, merge, tag, release, deployment, network connection,
-credential, paid-service invocation, MCP, routing, caching, streaming, real provider
-invocation, force push, rebase, reset, amend, squash, destructive cleanup, or any
-change to the `loop`, `run`, `verification`, `runtime`, or `bus` packages.
+It does not authorize push, merge, tag, release, deployment, any queue, runtime,
+submission, or spool schema change, migration, MessageEnvelope or store change,
+network connection, credential, paid-service invocation, MCP, routing, caching,
+streaming, real provider invocation, force push, rebase, reset, amend, squash, or
+destructive cleanup.
 
 ## Acceptance Criteria
 
-- `ModelGateway`, `ModelRequest`, `ModelResponse`, `ModelUsage`,
-  `ModelGatewayException`, and `ModelFailureCode` exist as immutable bounded
-  contracts in `com.enhancer.model`, and provider wire formats cannot reach any
-  persisted type.
-- `DeterministicFakeModelGateway` is the only executed gateway; its response is a
-  pure function of its input, and it refuses a response exceeding the declared
-  response-length budget with a typed failure.
-- Credentials enter only through an injected supplier port with no default
-  provider, no environment scanning, and no logged, displayed, or persisted value;
-  one package-private provider adapter shape compiles, maps `ModelRequest` to one
-  remote HTTP message API and back, and is never invoked by tests, builds, or
-  continuous integration.
-- `ModelInvokeTool` executes under the name `model-invoke` only when the approved
-  task scope and the execution policy both allow it, maps every gateway failure to
-  a bounded typed `ToolResult` failure code, requires the gateway timeout strictly
-  inside its per-tool policy timeout, and persists response text through the
-  existing evidence envelope.
-- Model output is treated as untrusted data: a response crafted as a directive is
-  persisted verbatim as evidence and grants no authority, widens no scope, and
-  alters no document, task, or policy.
-- The promoting integration test is one governed CLI run executing `model-invoke`
-  against the deterministic fake that atomically persists a lifecycle-valid
-  replayable RunRecord whose evidence reference resolves, with digest-integrity
-  verification of the persisted response evidence.
-- No test opens a network connection, the build stays hermetic under
-  `-Xlint:all -Werror`, and a fresh full Java 17 Markdown-sensitive regression
+- `ModelInvokeTool` accepts exactly one prompt source per request: inline `prompt`
+  or `prompt-path`; a contained regular UTF-8 prompt file under the policy project
+  root is read with the same containment and size bounds as governed read-file,
+  and requests with both, neither, or an escaping/oversized/malformed path fail
+  closed as typed failures.
+- `AgentLoopAgentRunExecution` keeps a `read-file`-containing scope on the
+  existing pipeline byte-for-byte unchanged, executes a `model-invoke` scope
+  against the deterministic fake with prompt document, expected response digest,
+  capability-derived model-class, and fixed budget values whose gateway timeout
+  fits strictly inside a per-tool timeout, and fails closed on model work without
+  a declared execution input or with a scope naming neither executable tool.
+- Model-scoped work verifies through `DeterministicModelInvokeVerifier` and
+  persists a lifecycle-valid RunRecord through the same finalizer and store as
+  read-file work.
+- The governed submission surfaces accept a task whose allowed tools name
+  `model-invoke` without `read-file` and continue to reject a task naming neither
+  executable tool.
+- The promoting integration test submits a model WorkItem through the governed CLI
+  and drives one real-filesystem Scheduler cycle to `VERIFIED_COMPLETED`, with the
+  persisted RunRecord resolvable, its evidence reference resolvable to the exact
+  deterministic response, and exact re-entry creating no second execution.
+- No queue, runtime, submission, or spool schema version changes, no test opens a
+  network connection, and a fresh full Java 17 Markdown-sensitive regression
   passes before the task completes.
 
 ## Out Of Scope
 
-MCP Server and MCP Client, model routing and locality policy, response caching,
-fallback, streaming, per-model quality evaluation, cost budgets beyond the declared
-timeout and response-length stub, real provider invocation, paid service use,
-credential storage mechanics beyond the injected supplier boundary, prompt-injection
-resistance and redaction pipelines, any change to the `loop`, `run`, `verification`,
-`runtime`, or `bus` packages, push, merge, tag, release, and deployment.
+Queue/runtime/submission/spool schema evolution and migration, MessageEnvelope
+changes, model routing, provider selection, MCP, caching, fallback, streaming,
+quality evaluation, real provider invocation, credentials, paid services,
+prompt-injection resistance and redaction, multi-tool runs within one AgentRun,
+push, merge, tag, release, and deployment.
 
 ## Allowed Tools
 
@@ -99,7 +101,7 @@ resistance and redaction pipelines, any change to the `loop`, `run`, `verificati
 
 ## Dynamic Workflow
 
-Workflow ID: implement-gate-9-model-gateway-minimum-slice
+Workflow ID: compose-model-invoke-into-scheduler-execution
 
 Mode: Sequential
 
@@ -109,71 +111,72 @@ Selection Rule: Select the first dependency-ready Pending increment in document 
 
 Stop Conditions: Stop on failed verification, governance-test failure that cannot be
 resolved inside the selected increment, task/checkpoint drift, scope expansion,
-network or credential requirement, subagent bound exhaustion, or insufficient
-authority.
+schema-change requirement, network or credential requirement, subagent bound
+exhaustion, or insufficient authority.
 
-### Increment 1 - model-gateway-port-and-deterministic-fake
+### Increment 1 - model-invoke-prompt-path-argument
 
 State: Completed
 
 Depends On: none
 
-Scope: Author the `com.enhancer.model` contracts RED-first: `ModelRequest`,
-`ModelResponse`, `ModelUsage`, `ModelFailureCode`, `ModelGatewayException`, the
-`ModelGateway` port, the injected credential-supplier port, the
-`DeterministicFakeModelGateway`, and the bounded package-private provider adapter
-shape that is compiled but never invoked.
+Scope: Extend `ModelInvokeTool` RED-first with the `prompt-path` argument as an
+exact alternative to inline `prompt`: containment against the real project root,
+regular-file and bounded-size checks through the shared bounded read, strict UTF-8
+decoding, and typed failure on both-or-neither prompt sources or an invalid path.
 
-Exit Criteria: Focused unit tests cover record bounds, the fake gateway round trip,
-determinism, and budget refusal; the adapter shape compiles without any test, build,
-or network invocation; focused governance tests pass.
+Exit Criteria: Focused unit tests cover the governed prompt-file round trip,
+exclusivity of the two prompt sources, escaping, missing, oversized, non-regular,
+and malformed-UTF-8 paths, and unchanged inline-prompt behavior; focused
+governance tests pass.
 
 Verification: Focused `com.enhancer.model` unit tests plus the architecture
 governance suites, and `git diff --check`, before the increment commit.
 
-Next Action: Implement the `model-invoke` Tool over the gateway port.
+Next Action: Derive the executed pipeline from the WorkItem scope.
 
-### Increment 2 - model-invoke-tool-with-bounded-failure-mapping
+### Increment 2 - scope-derived-model-execution-pipeline
 
-State: Completed
+State: In Progress
 
-Depends On: model-gateway-port-and-deterministic-fake
+Depends On: model-invoke-prompt-path-argument
 
-Scope: Implement `ModelInvokeTool` RED-first against the existing `Tool` port:
-argument validation, approved-scope and policy gating through the existing executor,
-strict gateway-inside-policy timeout validation, evidence capture of response text
-through the existing envelope, bounded mapping of every `ModelFailureCode` to a
-typed `ToolResult` failure, and the untrusted-output invariant.
+Scope: Extend `AgentLoopAgentRunExecution` RED-first: keep `read-file`-containing
+scopes on the unchanged existing pipeline, execute `model-invoke` scopes through
+the deterministic fake and `DeterministicModelInvokeVerifier` with the declared
+execution input as prompt document and expected response digest, the required
+capability as model-class, and fixed per-tool budget values; fail closed on model
+work without a declared input or a scope naming neither executable tool.
 
-Exit Criteria: Focused unit tests cover success evidence, budget refusal, timeout
-mapping, failure-code mapping, policy denial, and the untrusted-output invariant
-using only the deterministic fake and stub gateways; focused governance tests pass.
+Exit Criteria: Focused execution tests cover the verified model run, the untouched
+read-file path, absent-input and unknown-scope refusal, and a failed model
+verification carried in the persisted RunRecord; focused governance tests pass.
 
-Verification: Focused `com.enhancer.model` and `com.enhancer.tool` unit tests plus
-the architecture governance suites, and `git diff --check`, before the increment
-commit.
+Verification: Focused `com.enhancer.runtime` execution and `com.enhancer.model`
+tests plus the architecture governance suites, and `git diff --check`, before the
+increment commit.
 
-Next Action: Compose the governed `model-invoke` CLI run.
+Next Action: Promote the slice through the governed Scheduler cycle.
 
-### Increment 3 - governed-model-invoke-cli-run
+### Increment 3 - scheduler-model-work-promotion
 
-State: Completed
+State: Pending
 
-Depends On: model-invoke-tool-with-bounded-failure-mapping
+Depends On: scope-derived-model-execution-pipeline
 
-Scope: Compose the slice into one governed CLI command: per-tool timeout values in
-the CLI composition, a digest-integrity verifier for `model-invoke` results, the
-`model-invoke` command over the existing controller, loop, finalizer, and RunRecord
-store, the promoting integration test proving the persisted RunRecord replays and
-its evidence reference resolves, and synchronized owning documents.
+Scope: Accept `model-invoke`-scoped tasks at the governed submission surfaces
+while still requiring at least one executable tool in scope, and author the
+promoting real-filesystem integration test: submit a model WorkItem through the
+governed CLI, drive one Scheduler cycle to `VERIFIED_COMPLETED`, resolve the
+RunRecord and its evidence reference, prove exact re-entry creates no second
+execution, and synchronize the owning documents.
 
-Exit Criteria: The promoting integration test passes, the replayed RunRecord is
-lifecycle-valid with resolvable evidence, owning documents are synchronized once,
-and a fresh full Java 17 Markdown-sensitive regression passes.
+Exit Criteria: The promoting integration test passes, owning documents are
+synchronized once, and a fresh full Java 17 Markdown-sensitive regression passes.
 
 Verification: Full Java 17 Markdown-sensitive Gradle regression including the new
-focused and integration tests, `git diff --check`, and staged-boundary review before
-the final increment commit.
+focused and integration tests, `git diff --check`, and staged-boundary review
+before the final increment commit.
 
 Next Action: Record the follow-up task after the slice completes.
 
@@ -182,24 +185,12 @@ Next Action: Record the follow-up task after the slice completes.
 Increment evidence is appended once per increment to `docs/verification-log.md`
 when the increment's exit criteria and declared verification are satisfied.
 
-- Increment 1: the RED-first `com.enhancer.model` contracts, deterministic fake,
-  and never-invoked adapter shape passed 16 focused model tests and the 13 focused
-  governance tests with zero failures, errors, or skips, and `git diff --check` was
-  clean. Evidence is appended once in `docs/verification-log.md`.
-- Increment 2: the RED-first `ModelInvokeTool` with strict timeout validation,
-  bounded failure mapping, and the untrusted-output invariant passed 25 focused
-  model tests and the 13 focused governance tests with zero failures, errors, or
-  skips, and `git diff --check` was clean. Evidence is appended once in
+- Increment 1: the RED-first governed `prompt-path` prompt source passed 29
+  focused model tests and the 13 focused governance tests with zero failures,
+  errors, or skips, and `git diff --check` was clean. Evidence is appended once in
   `docs/verification-log.md`.
-- Increment 3: the digest-integrity model verifier, the governed `model-invoke`
-  CLI command with per-tool timeout values, and the promoting integration test
-  passed, and the fresh full Java 17 Markdown-sensitive regression completed with
-  899 tests, 10 environment-dependent skips, and zero failures or errors. Evidence
-  is appended once in `docs/verification-log.md`.
 
 ## Next
 
-Define the next bounded Delivery Gate 9 slice: compose `model-invoke` into the
-durable Scheduler execution path's allowed-tool scope so a queued WorkItem can
-execute one governed model invocation through the same evidence, verification, and
-RunRecord boundaries, without adding routing, MCP, or any real provider.
+Complete the increments above in order; on completion, define the next bounded task
+from the roadmap against the then-current repository state.
