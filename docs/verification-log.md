@@ -5645,3 +5645,14 @@ Outcome:
   and zero errors, with no network connection and no schema change.
 - `git diff --check` was clean at the staged increment boundary. No push
   occurred; delivery to the remote awaits an explicit user request.
+
+## 2026-08-19 - Scheduler Model Work Delivery Observation
+
+- On the user's explicit push-and-merge request, the three verified
+  Scheduler-composition increments were delivered to `origin/main` with one
+  non-force fast-forward push (`538b8b4..eb47f02`) from a clean worktree after
+  confirming the remote had not diverged; the repository commits directly on
+  `main`, so this push is the complete merge.
+- The push-triggered continuous verification run 32224078685 completed
+  successfully on the Linux host, so the delivered commits passed the complete
+  Java 17 Markdown-sensitive verification on the external host as well.
