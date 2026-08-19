@@ -5491,3 +5491,32 @@ Outcome:
   (13 tests, zero failures, errors, or skips) and `git diff --check` was clean. No
   test opened a network connection, no credential exists, and the deterministic
   fake remains the only executed gateway.
+
+## 2026-08-19 - Model Invoke Tool Bounded Failure Mapping Verification
+
+- Increment 2 was delivered test-first: `ModelInvokeToolTest` was authored before
+  the production class and failed compilation as the RED signal, then
+  `ModelInvokeTool` was implemented against the existing `Tool` port with required
+  bounded arguments, strict gateway-inside-policy timeout validation, evidence
+  capture through the existing `EvidenceRecorder`, and an exhaustive switch mapping
+  the four gateway failure codes to typed `ToolResult` failures: `TIMED_OUT` to
+  `TIMED_OUT`, `PROVIDER_UNAVAILABLE` to `TEMPORARY_FAILURE`, `RESPONSE_INVALID`
+  to `INVALID_RESULT`, and `BUDGET_EXCEEDED` to `TOOL_REPORTED_FAILURE`, each
+  carrying the exact gateway code name in bounded failure evidence.
+- One RED case beyond the compilation signal surfaced a real contract fact: the
+  evidence store persists complete oversized output only under a created canonical
+  run identity, so the test composition now creates the evidence run and carries
+  its identity as the Tool correlation id, matching the governed CLI composition.
+- Focused `com.enhancer.model` verification passed with 25 tests, zero failures,
+  errors, or skips, covering success evidence with content digest, complete
+  oversized-response persistence with a resolvable evidence reference, strict
+  timeout refusal at equality and acceptance strictly inside, all four failure-code
+  mappings, explicit budget refusal from the deterministic fake, policy denial with
+  zero gateway invocations, the untrusted-output invariant where a directive-shaped
+  response is persisted verbatim and a following `write-file` request remains
+  policy-denied with the policy allowlist unchanged, malformed-argument refusal
+  before gateway invocation, and required injected collaborators.
+- The focused architecture governance suites passed with 13 tests, zero failures,
+  errors, or skips, and `git diff --check` was clean. No test opened a network
+  connection and the deterministic fake plus in-test stubs remain the only executed
+  gateways.

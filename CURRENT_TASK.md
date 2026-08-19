@@ -135,7 +135,7 @@ Next Action: Implement the `model-invoke` Tool over the gateway port.
 
 ### Increment 2 - model-invoke-tool-with-bounded-failure-mapping
 
-State: In Progress
+State: Completed
 
 Depends On: model-gateway-port-and-deterministic-fake
 
@@ -157,7 +157,7 @@ Next Action: Compose the governed `model-invoke` CLI run.
 
 ### Increment 3 - governed-model-invoke-cli-run
 
-State: Pending
+State: In Progress
 
 Depends On: model-invoke-tool-with-bounded-failure-mapping
 
@@ -186,6 +186,11 @@ when the increment's exit criteria and declared verification are satisfied.
   and never-invoked adapter shape passed 16 focused model tests and the 13 focused
   governance tests with zero failures, errors, or skips, and `git diff --check` was
   clean. Evidence is appended once in `docs/verification-log.md`.
+- Increment 2: the RED-first `ModelInvokeTool` with strict timeout validation,
+  bounded failure mapping, and the untrusted-output invariant passed 25 focused
+  model tests and the 13 focused governance tests with zero failures, errors, or
+  skips, and `git diff --check` was clean. Evidence is appended once in
+  `docs/verification-log.md`.
 
 ## Next
 
