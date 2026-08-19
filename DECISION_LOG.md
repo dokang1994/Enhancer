@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-08-19 into the RFC-0013 model gateway implementation
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-19-implement-rfc-0013-model-gateway-minimum-slice.md)
+
 ### Amend the Constitution so verified GREEN increment boundaries authorize ordinary commits
 
 Status: Accepted Decision

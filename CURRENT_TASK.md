@@ -2,75 +2,88 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Execute the four user-selected recommendations from the 2026-08-18 project analysis in
-order: record the installation-track freeze decision, define the minimum Delivery Gate 9
-model gateway vertical slice as an accepted specification, add a host-independent
-continuous-integration verification job, and amend the commit-cadence rule through the
-constitutional amendment process.
+Implement the RFC-0013 Delivery Gate 9 model gateway minimum vertical slice
+test-first: the `com.enhancer.model` leaf package with the provider-neutral
+`ModelGateway` port, immutable bounded request/response/usage records, the typed
+failure contract, the injected credential-supplier boundary, the deterministic fake
+as the only executed gateway, one bounded never-invoked provider adapter shape, and
+the `model-invoke` Tool composed into the existing executor, promoted by one governed
+CLI run persisting a lifecycle-valid replayable RunRecord.
 
 ## Task ID
 
-execute-2026-08-18-recommendation-track
+implement-gate-9-model-gateway-minimum-slice
 
 ## Context
 
-The installation filesystem store delivery is Completed and remotely visible at
-`fb1380c5f452a04d5c69521b89565fb9ddcc08f8` with a clean worktree and an empty
-checkpoint. The 2026-08-18 analysis found installation derivatives running ahead of
-their Delivery Gate 16 consumers while prompt and LLM invocation remain absent, no
-accepted Delivery Gate 9 specification, single-host-only verification evidence, and
-verified work accumulating uncommitted under the current commit-cadence rule. The user
-selected the four recommendations, their order, the Dynamic Workflow form, and Opus
-subagents for delegated read-only analysis.
+RFC-0013 is accepted with this implementation recorded as its follow-up task. The
+existing Tool port already provides isolation, bounded failure conversion, policy
+allowlisting, evidence capture, and RunRecord persistence, so the slice attaches at
+that seam without touching the scheduler or runtime packages. The deterministic fake
+requires no credential, so the slice runs completely in local-only mode. The shared
+five-second CLI tool timeout becomes a per-tool composition value during this task,
+and the gateway timeout must fit strictly inside the `model-invoke` tool timeout.
 
 ## Justified By
 
-- User request on 2026-08-18 to execute the project-analysis recommendation track
+- User continuation request on 2026-08-19 into the RFC-0013 model gateway implementation
+- Accept RFC-0013 defining the Delivery Gate 9 model gateway minimum slice
 
 ## Approval
 
-The accepted track decision authorizes document, decision, and RFC authoring, the
-continuous-integration workflow file, the constitutional commit-cadence amendment
-through its full Section 14 process, focused and full verification, development-session
-checkpoints, bounded read-only Opus subagent dispatches, and one ordinary non-amending
-commit plus one non-force push of `main` per completed verified increment.
+The accepted continuation decision authorizes test-first source and test authoring
+for the `com.enhancer.model` package and the `com.enhancer.cli` composition, focused
+and full verification, development-session checkpoints, document synchronization,
+and ordinary local commits at verified GREEN increment boundaries under Constitution
+1.2.0.
 
-It does not authorize force push, rebase, reset, amend, squash, synthetic merge commit,
-tag, release, deployment, model or paid-service invocation, credential operation,
-real installation or permission mutation, destructive cleanup, or any external message
-beyond the named Git remote operations.
+It does not authorize push, merge, tag, release, deployment, network connection,
+credential, paid-service invocation, MCP, routing, caching, streaming, real provider
+invocation, force push, rebase, reset, amend, squash, destructive cleanup, or any
+change to the `loop`, `run`, `verification`, `runtime`, or `bus` packages.
 
 ## Acceptance Criteria
 
-- One accepted decision freezes installation-subsystem derivative work until its
-  consumers exist, and the owning documents state the freeze without duplicating it.
-- One accepted specification defines the minimum Delivery Gate 9 model gateway vertical
-  slice with its port boundary, one concrete provider adapter shape, credential and
-  budget handling, evidence persistence, verification plan, and explicit exclusions,
-  and this document records the follow-up implementation task.
-- One continuous-integration workflow file runs the complete Java 17 Markdown-sensitive
-  Gradle verification on an external host for `main` pushes and pull requests, and its
-  first triggered run is observed or its observation is explicitly recorded as pending.
-- The commit-cadence sentence of the Constitution is amended through an approved
-  decision, a version change, mirror review, and synchronized operating documents, so
-  that a verified GREEN increment boundary inside an approved Active Task authorizes an
-  ordinary local commit without a separate per-commit request while push authority
-  remains explicit.
-- Each increment ends with fresh focused governance verification, an ordinary commit,
-  and a non-force `main` push; the final increment ends with a fresh full Java 17
-  Markdown-sensitive regression.
+- `ModelGateway`, `ModelRequest`, `ModelResponse`, `ModelUsage`,
+  `ModelGatewayException`, and `ModelFailureCode` exist as immutable bounded
+  contracts in `com.enhancer.model`, and provider wire formats cannot reach any
+  persisted type.
+- `DeterministicFakeModelGateway` is the only executed gateway; its response is a
+  pure function of its input, and it refuses a response exceeding the declared
+  response-length budget with a typed failure.
+- Credentials enter only through an injected supplier port with no default
+  provider, no environment scanning, and no logged, displayed, or persisted value;
+  one package-private provider adapter shape compiles, maps `ModelRequest` to one
+  remote HTTP message API and back, and is never invoked by tests, builds, or
+  continuous integration.
+- `ModelInvokeTool` executes under the name `model-invoke` only when the approved
+  task scope and the execution policy both allow it, maps every gateway failure to
+  a bounded typed `ToolResult` failure code, requires the gateway timeout strictly
+  inside its per-tool policy timeout, and persists response text through the
+  existing evidence envelope.
+- Model output is treated as untrusted data: a response crafted as a directive is
+  persisted verbatim as evidence and grants no authority, widens no scope, and
+  alters no document, task, or policy.
+- The promoting integration test is one governed CLI run executing `model-invoke`
+  against the deterministic fake that atomically persists a lifecycle-valid
+  replayable RunRecord whose evidence reference resolves, with digest-integrity
+  verification of the persisted response evidence.
+- No test opens a network connection, the build stays hermetic under
+  `-Xlint:all -Werror`, and a fresh full Java 17 Markdown-sensitive regression
+  passes before the task completes.
 
 ## Out Of Scope
 
-Gate 9 implementation code, model or paid-service invocation, credentials, installation
-or evidence-resolver work of any kind, force push, rebase, reset, amend, squash, tag,
-release, deployment, destructive cleanup, permission mutation, background execution,
-and external messages beyond authorized Git pushes and the continuous-integration
-service consuming the pushed workflow file.
+MCP Server and MCP Client, model routing and locality policy, response caching,
+fallback, streaming, per-model quality evaluation, cost budgets beyond the declared
+timeout and response-length stub, real provider invocation, paid service use,
+credential storage mechanics beyond the injected supplier boundary, prompt-injection
+resistance and redaction pipelines, any change to the `loop`, `run`, `verification`,
+`runtime`, or `bus` packages, push, merge, tag, release, and deployment.
 
 ## Allowed Tools
 
@@ -83,132 +96,98 @@ service consuming the pushed workflow file.
 - git-inspect
 - git-stage
 - git-commit
-- git-push-non-force
-- git-remote-inspect
-- subagent-read-only-opus
 
 ## Dynamic Workflow
 
-Workflow ID: execute-2026-08-18-recommendation-track
+Workflow ID: implement-gate-9-model-gateway-minimum-slice
 
 Mode: Sequential
 
-Increment Limit: 4
+Increment Limit: 3
 
 Selection Rule: Select the first dependency-ready Pending increment in document order.
 
 Stop Conditions: Stop on failed verification, governance-test failure that cannot be
-resolved inside the selected increment, remote divergence or non-fast-forward ancestry,
-network or authentication failure that cannot be safely retried, subagent bound
-exhaustion, task/checkpoint drift, scope expansion, or insufficient authority.
+resolved inside the selected increment, task/checkpoint drift, scope expansion,
+network or credential requirement, subagent bound exhaustion, or insufficient
+authority.
 
-### Increment 1 - record-installation-track-freeze-decision
+### Increment 1 - model-gateway-port-and-deterministic-fake
 
 State: Completed
 
 Depends On: none
 
-Scope: Record one accepted decision that stops installation-subsystem derivative work
-(evidence body, resolver, host revalidation, permission/native composition) until its
-consumers exist, index it, and synchronize the owning documents.
+Scope: Author the `com.enhancer.model` contracts RED-first: `ModelRequest`,
+`ModelResponse`, `ModelUsage`, `ModelFailureCode`, `ModelGatewayException`, the
+`ModelGateway` port, the injected credential-supplier port, the
+`DeterministicFakeModelGateway`, and the bounded package-private provider adapter
+shape that is compiled but never invoked.
 
-Exit Criteria: The decision file and index entry exist and match, owning documents
-state the freeze once, and focused governance tests pass.
+Exit Criteria: Focused unit tests cover record bounds, the fake gateway round trip,
+determinism, and budget refusal; the adapter shape compiles without any test, build,
+or network invocation; focused governance tests pass.
 
-Verification: Focused decision-index, document-ownership, and dynamic-workflow tests,
-`git diff --check`, and staged-boundary review before the increment commit and push.
+Verification: Focused `com.enhancer.model` unit tests plus the architecture
+governance suites, and `git diff --check`, before the increment commit.
 
-Next Action: Define the minimum Delivery Gate 9 model gateway slice specification.
+Next Action: Implement the `model-invoke` Tool over the gateway port.
 
-### Increment 2 - define-gate-9-model-gateway-minimum-slice
+### Increment 2 - model-invoke-tool-with-bounded-failure-mapping
 
-State: Completed
+State: In Progress
 
-Depends On: record-installation-track-freeze-decision
+Depends On: model-gateway-port-and-deterministic-fake
 
-Scope: Using at most three read-only Opus subagent dispatches for seam and constraint
-analysis, author the Gate 9 minimum-slice specification as RFC-0013 plus one accepted
-decision covering the provider-neutral gateway port, one concrete provider adapter
-shape, credential and budget handling, evidence persistence, verification plan, and
-exclusions, and record the follow-up implementation task.
+Scope: Implement `ModelInvokeTool` RED-first against the existing `Tool` port:
+argument validation, approved-scope and policy gating through the existing executor,
+strict gateway-inside-policy timeout validation, evidence capture of response text
+through the existing envelope, bounded mapping of every `ModelFailureCode` to a
+typed `ToolResult` failure, and the untrusted-output invariant.
 
-Exit Criteria: RFC-0013 and its accepted decision exist and are indexed, the roadmap
-RFC track lists RFC-0013, and focused governance tests pass.
+Exit Criteria: Focused unit tests cover success evidence, budget refusal, timeout
+mapping, failure-code mapping, policy denial, and the untrusted-output invariant
+using only the deterministic fake and stub gateways; focused governance tests pass.
 
-Verification: Focused decision-index, document-ownership, and dynamic-workflow tests,
-`git diff --check`, and staged-boundary review before the increment commit and push.
+Verification: Focused `com.enhancer.model` and `com.enhancer.tool` unit tests plus
+the architecture governance suites, and `git diff --check`, before the increment
+commit.
 
-Next Action: Add the continuous-integration verification job.
+Next Action: Compose the governed `model-invoke` CLI run.
 
-### Increment 3 - add-continuous-integration-verification-job
+### Increment 3 - governed-model-invoke-cli-run
 
-State: Completed
+State: Pending
 
-Depends On: define-gate-9-model-gateway-minimum-slice
+Depends On: model-invoke-tool-with-bounded-failure-mapping
 
-Scope: Add one continuous-integration workflow file that runs the complete Java 17
-Markdown-sensitive Gradle verification on an external Linux host for `main` pushes and
-pull requests, and synchronize the owning documentation.
+Scope: Compose the slice into one governed CLI command: per-tool timeout values in
+the CLI composition, a digest-integrity verifier for `model-invoke` results, the
+`model-invoke` command over the existing controller, loop, finalizer, and RunRecord
+store, the promoting integration test proving the persisted RunRecord replays and
+its evidence reference resolves, and synchronized owning documents.
 
-Exit Criteria: The workflow file is delivered to `main`, its first triggered run is
-observed passing or its observation is explicitly recorded as pending with the reason,
-and focused governance tests pass locally.
+Exit Criteria: The promoting integration test passes, the replayed RunRecord is
+lifecycle-valid with resolvable evidence, owning documents are synchronized once,
+and a fresh full Java 17 Markdown-sensitive regression passes.
 
-Verification: Local focused governance tests, `git diff --check`, staged-boundary
-review, the increment commit and push, and best-effort observation of the first remote
-run.
+Verification: Full Java 17 Markdown-sensitive Gradle regression including the new
+focused and integration tests, `git diff --check`, and staged-boundary review before
+the final increment commit.
 
-Next Action: Amend the commit-cadence rule through the constitutional process.
-
-### Increment 4 - amend-commit-cadence-rule
-
-State: Completed
-
-Depends On: add-continuous-integration-verification-job
-
-Scope: Amend the constitutional commit-cadence sentence so a verified GREEN increment
-boundary inside an approved Active Task authorizes an ordinary local commit without a
-separate per-commit request, keep push authority explicit, record the accepted
-amendment decision, change the Constitution version, review the `.ai/` mirror, and
-synchronize `AGENTS.md` and `.ai/workflow.md`.
-
-Exit Criteria: The amended sentence, version change, mirror review, index entry, and
-synchronized operating documents exist, and a fresh full Java 17 Markdown-sensitive
-regression passes.
-
-Verification: Full Java 17 Markdown-sensitive regression, focused governance tests,
-`git diff --check`, staged-boundary review, and the final increment commit and push.
-
-Next Action: Define the Gate 9 implementation task recorded by the accepted
-specification.
+Next Action: Record the follow-up task after the slice completes.
 
 ## Verification
 
-- Increment 1: the track and freeze decisions, their index entries, the reshaped task,
-  and the changelog entry passed all 13 focused governance tests across the five
-  architecture suites with zero failures, errors, or skips; `git diff --check` was
+Increment evidence is appended once per increment to `docs/verification-log.md`
+when the increment's exit criteria and declared verification are satisfied.
+
+- Increment 1: the RED-first `com.enhancer.model` contracts, deterministic fake,
+  and never-invoked adapter shape passed 16 focused model tests and the 13 focused
+  governance tests with zero failures, errors, or skips, and `git diff --check` was
   clean. Evidence is appended once in `docs/verification-log.md`.
-- Increment 2: RFC-0013, its accepted decision and index entry, and both RFC
-  registrations were authored from two reconciled read-only Opus subagent surveys
-  and passed the focused governance suites with `git diff --check` clean. Evidence
-  is appended once in `docs/verification-log.md`.
-- Increment 3: the continuous-verification workflow file, the restored `gradlew`
-  executable bit, and the owning-document updates passed YAML parsing and the
-  focused governance suites with `git diff --check` clean; observation of the first
-  triggered run is recorded as pending in `docs/verification-log.md` because the
-  delivering push itself triggers it.
-- Increment 3 observation: the first triggered run completed successfully on the
-  Linux host with a green complete `test` task execution on a fresh checkout, as
-  recorded in `docs/verification-log.md`.
-- Increment 4: the Section 14 amendment (Constitution 1.2.0), its accepted decision
-  and index entry, the synchronized operating documents, and the reviewed mirror
-  passed the fresh full Java 17 Markdown-sensitive regression and the focused
-  governance suites recorded in `docs/verification-log.md`.
 
 ## Next
 
-Define the Delivery Gate 9 minimum-slice implementation task under RFC-0013: the
-`com.enhancer.model` package with the provider-neutral gateway port, the deterministic
-fake as the only executed gateway, the bounded provider adapter shape, and the
-`model-invoke` Tool composed into the existing executor, delivered test-first with the
-named promoting integration test.
+Complete the increments above in order; on completion, define the next bounded task
+from the roadmap against the then-current repository state.

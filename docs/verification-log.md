@@ -5466,3 +5466,28 @@ Outcome:
 - This increment changed governed documents only. The only external effects were the
   authorized ordinary commit, the non-force `main` push, and the continuous-
   integration service run triggered by that push.
+
+## 2026-08-19 - Model Gateway Port And Deterministic Fake Verification
+
+- The user-continuation decision into the RFC-0013 implementation was recorded with
+  its index entry, and `CURRENT_TASK.md` was reshaped into the approved
+  `implement-gate-9-model-gateway-minimum-slice` task with a three-increment
+  sequential dynamic workflow. The focused architecture governance suites passed
+  after these document edits with 13 tests, zero failures, errors, or skips.
+- Increment 1 was delivered test-first: the three `com.enhancer.model` test classes
+  were authored before any production type and failed compilation as the RED
+  signal, then `ModelRequest`, `ModelResponse`, `ModelUsage`, `ModelFailureCode`,
+  `ModelGatewayException`, `ModelGateway`, `ModelCredentialSupplier`,
+  `DeterministicFakeModelGateway`, and the package-private
+  `HttpMessageApiModelProviderAdapter` shape were implemented.
+- Focused `com.enhancer.model` verification passed with 16 tests, zero failures,
+  errors, or skips: 9 bounded-contract cases, 5 deterministic-fake cases covering
+  the pure-function round trip, exact replay equality, prompt and model-class
+  sensitivity, budget refusal with `BUDGET_EXCEEDED`, and null rejection, and
+  2 reflection-only adapter-shape cases proving the adapter stays package-private,
+  final, and behind the gateway port with a default-free credential supplier, all
+  without constructing or invoking the adapter.
+- The focused architecture governance suites passed again after the code was added
+  (13 tests, zero failures, errors, or skips) and `git diff --check` was clean. No
+  test opened a network connection, no credential exists, and the deterministic
+  fake remains the only executed gateway.
