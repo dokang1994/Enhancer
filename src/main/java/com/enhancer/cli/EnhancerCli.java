@@ -1349,7 +1349,7 @@ public final class EnhancerCli {
     private int executeSchedulerSpoolWork(
             SchedulerSpoolWorkCliCommand command,
             PrintStream stdout) {
-        GovernedRunInputs inputs = governedRunInputs(
+        GovernedRunInputs inputs = governedSubmissionInputs(
                 command.projectRoot(), command.taskId());
         WorkspaceSnapshot snapshot;
         FileSpoolPublicationOutcome publication;
@@ -1575,7 +1575,7 @@ public final class EnhancerCli {
     private int executeSchedulerSubmit(
             SchedulerSubmitCliCommand command,
             PrintStream stdout) throws IOException {
-        GovernedRunInputs inputs = governedRunInputs(
+        GovernedRunInputs inputs = governedSubmissionInputs(
                 command.projectRoot(), command.taskId());
         WorkspaceSnapshot snapshot;
         DurableSubmissionResult result;
@@ -1687,7 +1687,7 @@ public final class EnhancerCli {
             GeneratedSubmitCliCommand command,
             GeneratedSubmissionIdentities identities,
             Instant occurredAt) {
-        GovernedRunInputs inputs = governedRunInputs(
+        GovernedRunInputs inputs = governedSubmissionInputs(
                 command.projectRoot(), command.taskId());
         WorkspaceSnapshot snapshot = new RepositoryMemorySnapshotCollector().collect(
                 command.projectRoot(),
@@ -1722,16 +1722,37 @@ public final class EnhancerCli {
             Path projectRoot,
             String taskId,
             String requiredToolName) {
+        GovernedRunInputs inputs = governedContextInputs(projectRoot, taskId);
+        if (!inputs.approvedTask().allows(requiredToolName)) {
+            throw new CliUsageException(
+                    "active task does not allow " + requiredToolName);
+        }
+        return inputs;
+    }
+
+    /**
+     * Submission surfaces accept any task scoped to at least one executable tool;
+     * the execution pipeline is derived from that scope at dispatch time.
+     */
+    private GovernedRunInputs governedSubmissionInputs(Path projectRoot, String taskId) {
+        GovernedRunInputs inputs = governedContextInputs(projectRoot, taskId);
+        ApprovedTask approvedTask = inputs.approvedTask();
+        if (!approvedTask.allows(ReadFileTool.NAME)
+                && !approvedTask.allows(ModelInvokeTool.NAME)) {
+            throw new CliUsageException(
+                    "active task does not allow an executable tool: "
+                            + ReadFileTool.NAME + " or " + ModelInvokeTool.NAME);
+        }
+        return inputs;
+    }
+
+    private GovernedRunInputs governedContextInputs(Path projectRoot, String taskId) {
         try {
             ProjectContext context = new ProjectContextReader().read(projectRoot);
             ApprovedTask approvedTask = new ApprovedTaskReader().read(context);
             if (!approvedTask.taskId().equals(taskId)) {
                 throw new CliUsageException(
                         "task-id does not match the active repository task");
-            }
-            if (!approvedTask.allows(requiredToolName)) {
-                throw new CliUsageException(
-                        "active task does not allow " + requiredToolName);
             }
             return new GovernedRunInputs(approvedTask, context);
         } catch (CliUsageException exception) {

@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -160,7 +160,7 @@ Next Action: Promote the slice through the governed Scheduler cycle.
 
 ### Increment 3 - scheduler-model-work-promotion
 
-State: In Progress
+State: Completed
 
 Depends On: scope-derived-model-execution-pipeline
 
@@ -194,8 +194,16 @@ when the increment's exit criteria and declared verification are satisfied.
   29 model tests, the 13 governance tests, and the complete runtime package
   regression with zero failures, errors, or skips, and `git diff --check` was
   clean. Evidence is appended once in `docs/verification-log.md`.
+- Increment 3: the submission-gate relaxation, the scope-derived isolated-result
+  and recovery-status expectations, and the promoting real-filesystem
+  submit-plus-cycle integration test passed with the complete runtime and CLI
+  package regressions, and the fresh full Java 17 Markdown-sensitive regression
+  passed. Evidence is appended once in `docs/verification-log.md`.
 
 ## Next
 
-Complete the increments above in order; on completion, define the next bounded task
-from the roadmap against the then-current repository state.
+Define the next bounded Delivery Gate 9 slice: specify the provider-neutral
+execution-profile contract (capability, model class, locality, reasoning, context,
+token, cost, time, and data-classification requirements) as an RFC-governed value
+layer over the existing gateway port, without routing, providers, or remote
+transmission.

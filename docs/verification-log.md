@@ -5612,3 +5612,36 @@ Outcome:
   `com.enhancer.runtime` package regression, all `BUILD SUCCESSFUL`.
 - `git diff --check` was clean. No queue, runtime, submission, or spool schema
   version changed, and the deterministic fake remains the only executed gateway.
+
+## 2026-08-19 - Scheduler Model Work Promotion Verification
+
+- Increment 3 was delivered test-first: the two promoting integration cases were
+  authored first and ran RED against the read-file-only submission gate, then the
+  governed submission surfaces (`scheduler-submit`, `scheduler-spool-work`, and
+  generated submission) moved to a shared submission gate accepting any task
+  scoped to at least one executable tool and rejecting a task naming neither
+  `read-file` nor `model-invoke`.
+- The first GREEN attempt surfaced a real boundary the focused increment-2 tests
+  could not reach: the isolated-result validation and the read-only invocation
+  recovery status both hard-coded the read-file Tool request expectation, so a
+  model WorkItem executed in the real child process was refused at result
+  delivery. Both now derive the expected Tool name and path argument from the
+  WorkItem's allowed-tool scope, mirroring the execution pipeline rule.
+- The promoting integration test then passed: one governed CLI submission of a
+  `model-invoke`-scoped WorkItem (`ADMITTED` with the exact single-tool scope in
+  the persisted manifest), one real child-process Scheduler cycle to
+  `VERIFIED_COMPLETED`, the persisted RunRecord resolving with the `model-invoke`
+  request, `VERIFIED` status, and truncated evidence whose reference resolves to
+  the exact deterministic response, a second cycle reporting `IDLE` with no
+  second RunRecord, and an exact submission replay reporting `REPLAYED`. The
+  no-executable-tool task fails closed as a usage error without creating the
+  queue.
+- Focused verification passed with zero failures, errors, or skips across the
+  promotion suite, the complete `com.enhancer.runtime` package, the complete
+  `com.enhancer.cli` package, and the 13 architecture governance tests.
+- The fresh full Java 17 Markdown-sensitive `test --no-daemon` regression after
+  all document synchronization completed with `BUILD SUCCESSFUL`: 171 result
+  suites aggregating 910 tests, 10 environment-dependent skips, zero failures,
+  and zero errors, with no network connection and no schema change.
+- `git diff --check` was clean at the staged increment boundary. No push
+  occurred; delivery to the remote awaits an explicit user request.

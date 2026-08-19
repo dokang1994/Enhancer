@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-08-19 - Compose Model Invocations Into The Scheduler Execution Path
+
+- Gave the `model-invoke` Tool a governed `prompt-path` prompt source read with
+  the same containment, bounded-size, and strict UTF-8 rules as governed
+  read-file work, with exactly one prompt source per request.
+- Derived the Scheduler execution pipeline from each WorkItem's allowed-tool
+  scope: `read-file` scopes keep the original pipeline unchanged, `model-invoke`
+  scopes execute the deterministic fake with the declared execution input as
+  governed prompt document and expected response digest and the required
+  capability as the model-class label, and unknown scopes or model work without a
+  declared input fail closed; the isolated-result validation and invocation
+  recovery status apply the same scope-derived expectation.
+- Accepted `model-invoke`-scoped tasks at the governed submission surfaces
+  (requiring at least one executable tool) and delivered the promoting
+  real-filesystem integration test: governed CLI submission plus one real
+  child-process Scheduler cycle to `VERIFIED_COMPLETED` with a resolvable
+  RunRecord and evidence reference and no second execution on re-entry, with no
+  schema change and no network, credential, or paid-service use.
+
 ## 2026-08-19 - Implement The Gate 9 Model Gateway Minimum Slice
 
 - Added the `com.enhancer.model` leaf package implementing RFC-0013 test-first: the

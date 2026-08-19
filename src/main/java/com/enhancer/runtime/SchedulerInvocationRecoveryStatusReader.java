@@ -9,6 +9,7 @@ import com.enhancer.bus.TransportMessage;
 import com.enhancer.kernel.VerificationStatus;
 import com.enhancer.run.RunRecord;
 import com.enhancer.run.RunRecordStore;
+import com.enhancer.model.ModelInvokeTool;
 import com.enhancer.tool.ReadFileTool;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -190,10 +191,17 @@ public final class SchedulerInvocationRecoveryStatusReader {
         } catch (IllegalArgumentException mismatch) {
             throw new IOException(mismatch.getMessage(), mismatch);
         }
-        if (!record.toolRequest().toolName().equals(ReadFileTool.NAME)) {
+        boolean readFileScoped = work.allowedTools().contains(ReadFileTool.NAME);
+        String expectedToolName = readFileScoped
+                ? ReadFileTool.NAME
+                : ModelInvokeTool.NAME;
+        String pathArgument = readFileScoped
+                ? ReadFileTool.PATH_ARGUMENT
+                : ModelInvokeTool.PROMPT_PATH_ARGUMENT;
+        if (!record.toolRequest().toolName().equals(expectedToolName)) {
             throw new IOException("the RunRecord Tool request does not match isolated execution");
         }
-        String target = record.toolRequest().arguments().get(ReadFileTool.PATH_ARGUMENT);
+        String target = record.toolRequest().arguments().get(pathArgument);
         String expectedTarget = work.executionInput()
                 .map(input -> input.targetPath())
                 .orElse(work.taskRevision().sourceDocument());

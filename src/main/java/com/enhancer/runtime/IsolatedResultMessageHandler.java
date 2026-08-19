@@ -5,6 +5,7 @@ import com.enhancer.bus.MessageHandler;
 import com.enhancer.bus.MessagePayload;
 import com.enhancer.bus.ResultPayload;
 import com.enhancer.kernel.VerificationStatus;
+import com.enhancer.model.ModelInvokeTool;
 import com.enhancer.run.RunRecord;
 import com.enhancer.run.RunRecordStore;
 import com.enhancer.tool.ReadFileTool;
@@ -86,13 +87,20 @@ final class IsolatedResultMessageHandler implements MessageHandler {
         }
 
         ExecutionInput expected = executionInput(workItem);
-        if (!record.toolRequest().toolName().equals(ReadFileTool.NAME)) {
+        boolean readFileScoped = workItem.allowedTools().contains(ReadFileTool.NAME);
+        String expectedToolName = readFileScoped
+                ? ReadFileTool.NAME
+                : ModelInvokeTool.NAME;
+        String pathArgument = readFileScoped
+                ? ReadFileTool.PATH_ARGUMENT
+                : ModelInvokeTool.PROMPT_PATH_ARGUMENT;
+        if (!record.toolRequest().toolName().equals(expectedToolName)) {
             throw new IOException(
                     "the RunRecord Tool request does not match isolated execution");
         }
         String target = record.toolRequest()
                 .arguments()
-                .get(ReadFileTool.PATH_ARGUMENT);
+                .get(pathArgument);
         if (!expected.targetPath().equals(target)) {
             throw new IOException(
                     "the RunRecord execution target does not match the dispatched work");

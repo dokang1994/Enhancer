@@ -34,3 +34,5 @@ the active task in `CURRENT_TASK.md`, and delivery history in `CHANGELOG.md` and
   can transiently time out and succeed on retry. A continuous-verification run can
   also fail at the infrastructure level with its job stuck `queued` and no logs;
   an unchanged re-run recovered it on 2026-08-19.
+- The three Scheduler-composition increments are committed locally on `main` ahead
+  of `origin/main`; push awaits an explicit user request.

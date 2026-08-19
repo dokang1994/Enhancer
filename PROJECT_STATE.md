@@ -10,7 +10,7 @@
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
 - Production source: 410 Java files.
-- Test source: 171 Java files.
+- Test source: 172 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -45,7 +45,23 @@ it does not restate which commit published which increment.
   loop, finalizer, and RunRecord store, and its digest-integrity verifier accepts
   only `model-invoke` results; the promoting integration test proves one governed
   CLI run against the fake persists a lifecycle-valid replayable RunRecord whose
-  oversized evidence reference resolves to the exact deterministic response. No
+  oversized evidence reference resolves to the exact deterministic response. The
+  tool additionally accepts exactly one prompt source per request: inline `prompt`
+  or a governed `prompt-path` file read with the same containment, bounded-size,
+  and strict UTF-8 rules as governed read-file work. The Scheduler execution
+  boundary now derives each WorkItem's pipeline from its allowed-tool scope: a
+  `read-file`-containing scope runs the original pipeline unchanged, a
+  `model-invoke` scope executes the deterministic fake with the declared execution
+  input as governed prompt document and expected response digest and the required
+  capability as the model-class label under fixed budget values, and a scope
+  naming neither executable tool, or model work without a declared input, fails
+  closed before execution. The isolated-result validation and invocation recovery
+  status apply the same scope-derived expectation, the governed submission
+  surfaces accept any task scoped to at least one executable tool, and a
+  real-filesystem integration proves governed CLI submission plus one real
+  child-process Scheduler cycle to `VERIFIED_COMPLETED` with a resolvable
+  RunRecord and evidence reference and re-entry creating no second execution,
+  with no queue, runtime, submission, or spool schema change. No
   test opens a network connection. Real provider invocation, paid services,
   credentials, MCP, model routing, locality policy, caching, fallback, streaming,
   quality evaluation, cost budgets beyond the stub, prompt-injection resistance,

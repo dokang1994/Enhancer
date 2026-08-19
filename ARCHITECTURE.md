@@ -1540,14 +1540,31 @@ reach evidence, logs, or persisted types.
 
 `ModelInvokeTool` composes the gateway into the existing Tool executor under the
 name `model-invoke`, reusing isolation, policy allowlisting, cancellation, the
-per-tool timeout, evidence capture, and RunRecord persistence unchanged. The
-declared gateway timeout must fit strictly inside the tool's policy timeout, every
-gateway failure maps to a bounded typed `ToolResult` failure code, and model output
-is untrusted data: it grants no authority, widens no scope, and alters no document,
-task, or policy. The governed `model-invoke` CLI command completes the vertical
-slice through the existing controller, loop, digest-integrity verification, and
-durable RunRecord path. Model routing, MCP, caching, fallback, streaming,
-evaluation, and remote transmission controls remain later Gate 9 scope.
+per-tool timeout, evidence capture, and RunRecord persistence unchanged. Each
+request declares exactly one prompt source: the inline `prompt` argument or a
+governed `prompt-path` file read with the same containment, bounded-size, and
+strict UTF-8 rules as governed read-file work. The declared gateway timeout must
+fit strictly inside the tool's policy timeout, every gateway failure maps to a
+bounded typed `ToolResult` failure code, and model output is untrusted data: it
+grants no authority, widens no scope, and alters no document, task, or policy. The
+governed `model-invoke` CLI command completes the vertical slice through the
+existing controller, loop, digest-integrity verification, and durable RunRecord
+path. Model routing, MCP, caching, fallback, streaming, evaluation, and remote
+transmission controls remain later Gate 9 scope.
+
+The Scheduler execution boundary derives each WorkItem's pipeline from its
+allowed-tool scope: a scope containing `read-file` runs the original governed
+read-file pipeline unchanged, any other scope containing `model-invoke` executes
+the deterministic fake through `ModelInvokeTool` — the declared execution input's
+target path is the governed prompt document, its expected SHA-256 is the expected
+response digest verified by `DeterministicModelInvokeVerifier`, and the WorkItem's
+required capability is the model-class label — and a scope naming neither
+executable tool fails closed before any execution. Model-scoped work requires a
+declared execution input, because the source-document fallback digest names the
+document rather than a response. The isolated-result validation and the read-only
+invocation recovery status apply the same scope-derived expectation, and the
+governed submission surfaces accept any task scoped to at least one executable
+tool. No queue, runtime, submission, or spool schema changed for this boundary.
 
 ## Agent Orchestration Contract
 
