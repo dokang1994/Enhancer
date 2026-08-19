@@ -5588,3 +5588,27 @@ Outcome:
   verifier, adapter-shape, and tool cases unchanged.
 - The focused architecture governance suites passed with 13 tests, zero failures,
   errors, or skips, and `git diff --check` was clean.
+
+## 2026-08-19 - Scope-Derived Model Execution Pipeline Verification
+
+- Increment 2 was delivered test-first: five new `AgentLoopAgentRunExecutionTest`
+  cases were authored first and ran RED (verified model run, rejected response
+  digest, and non-label capability failed against the read-file-only pipeline;
+  the two fail-closed cases already held through the existing approved-scope
+  contract), then `AgentLoopAgentRunExecution` gained scope-derived pipeline
+  selection: a `read-file`-containing scope keeps the original pipeline
+  unchanged, a `model-invoke` scope executes the deterministic fake through
+  `ModelInvokeTool` with the declared execution input's target path as the
+  governed prompt document, its expected SHA-256 as the expected response digest
+  verified by `DeterministicModelInvokeVerifier`, the WorkItem's required
+  capability as the model-class label, and fixed budget values with the
+  four-second gateway timeout strictly inside the five-second per-tool timeout.
+  Model work without a declared input and a scope naming neither executable tool
+  fail closed before any execution.
+- Focused verification passed with zero failures, errors, or skips: 9
+  `AgentLoopAgentRunExecutionTest` cases (four pre-existing read-file cases
+  unchanged), the process-isolated execution suite, all 29 `com.enhancer.model`
+  tests, the 13 architecture governance tests, and then the complete
+  `com.enhancer.runtime` package regression, all `BUILD SUCCESSFUL`.
+- `git diff --check` was clean. No queue, runtime, submission, or spool schema
+  version changed, and the deterministic fake remains the only executed gateway.

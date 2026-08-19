@@ -137,7 +137,7 @@ Next Action: Derive the executed pipeline from the WorkItem scope.
 
 ### Increment 2 - scope-derived-model-execution-pipeline
 
-State: In Progress
+State: Completed
 
 Depends On: model-invoke-prompt-path-argument
 
@@ -160,7 +160,7 @@ Next Action: Promote the slice through the governed Scheduler cycle.
 
 ### Increment 3 - scheduler-model-work-promotion
 
-State: Pending
+State: In Progress
 
 Depends On: scope-derived-model-execution-pipeline
 
@@ -189,6 +189,11 @@ when the increment's exit criteria and declared verification are satisfied.
   focused model tests and the 13 focused governance tests with zero failures,
   errors, or skips, and `git diff --check` was clean. Evidence is appended once in
   `docs/verification-log.md`.
+- Increment 2: the RED-first scope-derived execution pipeline passed 9 focused
+  execution tests with the read-file cases unchanged, the process-isolated suite,
+  29 model tests, the 13 governance tests, and the complete runtime package
+  regression with zero failures, errors, or skips, and `git diff --check` was
+  clean. Evidence is appended once in `docs/verification-log.md`.
 
 ## Next
 

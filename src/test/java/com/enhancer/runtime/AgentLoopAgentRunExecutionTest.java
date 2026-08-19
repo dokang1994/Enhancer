@@ -130,6 +130,116 @@ class AgentLoopAgentRunExecutionTest {
                 resolved.record().expectedContentSha256());
     }
 
+    @Test
+    void executesAModelScopedWorkItemToAVerifiedRunRecord() throws Exception {
+        String prompt = "Summarize the approved change.\n";
+        Files.createDirectories(projectRoot.resolve("docs"));
+        Files.write(
+                projectRoot.resolve("docs/prompt.md"),
+                prompt.getBytes(StandardCharsets.UTF_8));
+        String expectedResponse = deterministicResponse(prompt, "reasoning-standard");
+
+        String reference = execution().execute(modelDispatch(
+                "reasoning-standard",
+                Optional.of(new WorkPayload.ExecutionInput(
+                        "docs/prompt.md", sha256(expectedResponse)))));
+
+        ResolvedRunRecord resolved = runRecordStore.resolve(reference);
+        assertEquals(VerificationStatus.VERIFIED,
+                resolved.record().verification().status());
+        assertEquals(AgentLoopStopReason.COMPLETED,
+                resolved.record().finalStopReason());
+        assertEquals("model-invoke",
+                resolved.record().toolRequest().toolName());
+        assertEquals(SOURCE_DOCUMENT,
+                resolved.record().approvedTask().sourceDocument());
+        assertEquals(Optional.of(sha256(expectedResponse)),
+                resolved.record().expectedContentSha256());
+    }
+
+    @Test
+    void modelScopedWorkWithARejectedResponseDigestPersistsARejectedRecord()
+            throws Exception {
+        Files.createDirectories(projectRoot.resolve("docs"));
+        Files.write(
+                projectRoot.resolve("docs/prompt.md"),
+                "A prompt.\n".getBytes(StandardCharsets.UTF_8));
+
+        String reference = execution().execute(modelDispatch(
+                "reasoning-standard",
+                Optional.of(new WorkPayload.ExecutionInput(
+                        "docs/prompt.md", "d".repeat(64)))));
+
+        ResolvedRunRecord resolved = runRecordStore.resolve(reference);
+        assertEquals(VerificationStatus.REJECTED,
+                resolved.record().verification().status());
+        assertNotEquals(AgentLoopStopReason.COMPLETED,
+                resolved.record().finalStopReason());
+    }
+
+    @Test
+    void modelScopedWorkWithoutADeclaredExecutionInputFailsClosed() {
+        AgentRunDispatch dispatch = modelDispatch(
+                "reasoning-standard", Optional.empty());
+
+        org.junit.jupiter.api.Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> execution().execute(dispatch));
+    }
+
+    @Test
+    void aScopeNamingNeitherExecutableToolFailsClosed() {
+        AgentRunDispatch dispatch = scopedDispatch(
+                Set.of("write-file"),
+                "reasoning-standard",
+                Optional.of(new WorkPayload.ExecutionInput(
+                        "docs/prompt.md", "e".repeat(64))));
+
+        org.junit.jupiter.api.Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> execution().execute(dispatch));
+    }
+
+    @Test
+    void aNonLabelCapabilityIsRecordedAsAnInvalidRequestFailure() throws Exception {
+        Files.createDirectories(projectRoot.resolve("docs"));
+        Files.write(
+                projectRoot.resolve("docs/prompt.md"),
+                "A prompt.\n".getBytes(StandardCharsets.UTF_8));
+
+        String reference = execution().execute(modelDispatch(
+                "Read File Worker",
+                Optional.of(new WorkPayload.ExecutionInput(
+                        "docs/prompt.md", "f".repeat(64)))));
+
+        ResolvedRunRecord resolved = runRecordStore.resolve(reference);
+        assertEquals(com.enhancer.tool.ToolFailureCode.INVALID_REQUEST,
+                resolved.record().toolResult().failureCode().orElseThrow());
+        assertNotEquals(AgentLoopStopReason.COMPLETED,
+                resolved.record().finalStopReason());
+    }
+
+    private AgentRunDispatch modelDispatch(
+            String requiredCapability,
+            Optional<WorkPayload.ExecutionInput> executionInput) {
+        return scopedDispatch(
+                Set.of("model-invoke"), requiredCapability, executionInput);
+    }
+
+    private String deterministicResponse(String prompt, String modelClass)
+            throws Exception {
+        return "deterministic-fake-v1\n"
+                + "model-class=" + modelClass + "\n"
+                + "prompt-sha256=" + sha256(prompt) + "\n"
+                + "prompt-length=" + prompt.length() + "\n"
+                + "echo=" + prompt;
+    }
+
+    private String sha256(String content) throws Exception {
+        return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                .digest(content.getBytes(StandardCharsets.UTF_8)));
+    }
+
     private AgentLoopAgentRunExecution execution() {
         return new AgentLoopAgentRunExecution(
                 projectRoot, evidenceStore, runRecordStore, CLOCK);
@@ -148,6 +258,32 @@ class AgentLoopAgentRunExecutionTest {
             String sourceDocument,
             String sourceSha256,
             Optional<WorkPayload.ExecutionInput> executionInput) {
+        return dispatch(
+                sourceDocument,
+                sourceSha256,
+                Set.of("read-file"),
+                "read-file-worker",
+                executionInput);
+    }
+
+    private AgentRunDispatch scopedDispatch(
+            Set<String> allowedTools,
+            String requiredCapability,
+            Optional<WorkPayload.ExecutionInput> executionInput) {
+        return dispatch(
+                SOURCE_DOCUMENT,
+                approvedDigest,
+                allowedTools,
+                requiredCapability,
+                executionInput);
+    }
+
+    private AgentRunDispatch dispatch(
+            String sourceDocument,
+            String sourceSha256,
+            Set<String> allowedTools,
+            String requiredCapability,
+            Optional<WorkPayload.ExecutionInput> executionInput) {
         ApprovedTaskRevision revision = new ApprovedTaskRevision(
                 TASK_ID, sourceDocument, sourceSha256);
         MessageEnvelope envelope = new MessageEnvelope(
@@ -158,7 +294,7 @@ class AgentLoopAgentRunExecutionTest {
                 "agentloop-port-test",
                 Instant.parse("2026-07-20T10:00:00Z"),
                 new WorkPayload(
-                        revision, "c".repeat(64), Set.of("read-file"), executionInput));
+                        revision, "c".repeat(64), allowedTools, executionInput));
         AgentRunLease lease = new AgentRunLease(
                 OWNER_ID,
                 1L,
@@ -166,7 +302,7 @@ class AgentLoopAgentRunExecutionTest {
                 CLOCK.instant().plus(Duration.ofMinutes(5)));
         return new AgentRunDispatch(
                 QUEUE_ID,
-                new WorkItem(WORK_ID, "read-file-worker", envelope),
+                new WorkItem(WORK_ID, requiredCapability, envelope),
                 GOAL_ID,
                 AGENT_RUN_ID,
                 lease);
