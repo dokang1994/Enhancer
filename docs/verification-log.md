@@ -5752,3 +5752,20 @@ Outcome:
 - `PROJECT_STATE.md` remained unchanged because an Accepted composition specification
   does not establish an implemented or integrated capability. `SESSION_HANDOFF.md`
   remained unchanged because no new session-only fact arose.
+
+## 2026-08-20 - Profiled Model Request Pure Value GREEN Verification
+
+- RED was established first: the focused `ProfiledModelRequestTest` selection failed
+  `compileTestJava` on 21 references to the single missing `ProfiledModelRequest`
+  symbol, with no unrelated contract, build, or configuration failure.
+- The minimum GREEN implementation added one public immutable two-component record
+  retaining the exact `ModelRequest` and `ModelExecutionProfile` references. It rejects
+  null values, unequal model classes, and a profile invocation time greater than the
+  request timeout, while adding no relation between capability and model class or
+  between response-character and token limits.
+- The focused composition selection passed 6 tests. The combined complete model-
+  package and architecture-governance selection passed 61 tests across 12 suites with
+  zero failures, errors, or skips. `git diff --check` was clean.
+- Existing request, profile, gateway, Tool, CLI, Scheduler, adapter, command-schema,
+  persistence, and runtime production files remained unchanged; no network or policy
+  behavior was added.
