@@ -5740,3 +5740,15 @@ Outcome:
   `DecisionLogIndexTest`, `DocumentOwnershipTest`, and
   `DynamicWorkflowDocumentTest`, with zero failures, errors, or skips. `git diff
   --check` was clean.
+
+## 2026-08-20 - Profiled Model Request Specification Full Regression Verification
+
+- After RFC-0015, architecture, roadmap, RFC index, accepted-decision, changelog,
+  verification, and task owners were synchronized, the fresh README-owned Java 17
+  Markdown-sensitive Gradle `test` task completed with `BUILD SUCCESSFUL` in 1m 44s.
+- The 172 result suites aggregated 919 tests, 10 environment-dependent skips, zero
+  failures, and zero errors. No Java source, gateway path, provider adapter, runtime
+  behavior, durable schema, network permission, or capability maturity changed.
+- `PROJECT_STATE.md` remained unchanged because an Accepted composition specification
+  does not establish an implemented or integrated capability. `SESSION_HANDOFF.md`
+  remained unchanged because no new session-only fact arose.
