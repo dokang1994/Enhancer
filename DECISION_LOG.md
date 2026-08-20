@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-08-20 into the model invocation admission specification
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-20-specify-model-invocation-admission.md)
+
 ### User continuation request on 2026-08-20 into the RFC-0015 profiled model request implementation
 
 Status: Accepted Decision

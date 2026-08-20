@@ -1590,6 +1590,19 @@ later separately authorized runtime consumer must intersect task authority,
 `ExecutionPolicy`, the complete profile, and outbound/provider policy before any
 gateway or adapter integration.
 
+RFC-0016 defines the next pure Gate 9 boundary before any gateway execution. A
+stateless `ModelInvocationAdmission` evaluates one complete `ProfiledModelRequest`,
+the exact active `ApprovedTask`, the exact active `ExecutionPolicy`, and a separately
+sourced authoritative required capability. It requires both task and policy to allow
+`model-invoke`, exact capability/profile agreement, and the full profile-time-at-most-
+gateway-time-strictly-within-policy relationship. Evaluation is deterministic with one
+closed first-match rejection reason. With no outbound/provider policy, `LOCAL_ONLY`
+may pass as local eligibility while `POLICY_CONSTRAINED` fails closed; an admitted
+decision is not gateway permission, provider suitability, remote authority, or a
+persistable token. The current CLI and Scheduler lack all required explicit sources,
+so runtime wiring, candidate suitability, routing, providers, and transmission remain
+separate contracts.
+
 ## Agent Orchestration Contract
 
 ### Development-Time Adaptive Subagent Delegation
@@ -1770,6 +1783,7 @@ Major design areas are tracked in `docs/rfcs/`.
 - `RFC-0013`: Model Gateway
 - `RFC-0014`: Model Execution Profile
 - `RFC-0015`: Profiled Model Request
+- `RFC-0016`: Model Invocation Admission
 
 ## First Architecture Slice
 

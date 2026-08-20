@@ -5782,3 +5782,21 @@ Outcome:
   paid-service, pricing, or tokenizer behavior changed.
 - Architecture, Roadmap, accepted RFC status, and session-only handoff facts did not
   change. Production and test source counts advanced to 417 and 174 respectively.
+
+## 2026-08-20 - Model Invocation Admission Specification Governance Verification
+
+- Accepted RFC-0016 as a stateless pure pre-gateway evaluation over one complete
+  `ProfiledModelRequest`, exact `ApprovedTask`, exact `ExecutionPolicy`, and separately
+  sourced authoritative capability, without changing existing Java or runtime paths.
+- The contract fixes deterministic first-match rejection for task Tool denial,
+  execution-policy Tool denial, capability mismatch, non-strict gateway/policy timeout,
+  and missing outbound policy. `POLICY_CONSTRAINED` fails closed; `LOCAL_ONLY` may pass
+  only as ephemeral local eligibility and is not gateway, provider, remote, spend, or
+  execution authority.
+- Two independent read-only reviews converged on the same minimum shape and authority
+  boundary. Their recommendations informed the RFC but were not treated as verification
+  evidence.
+- The README-owned focused Java 17 selection passed 21 tests across six suites:
+  decision-index, document-ownership, dynamic-workflow, approved-task parsing, task-
+  justification projection, and Roadmap planning. There were zero failures, errors, or
+  skips, and `git diff --check` was clean.

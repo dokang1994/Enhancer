@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-08-20 - Accept The Model Invocation Admission Specification
+
+- Added and accepted RFC-0016 defining a stateless provider-neutral pre-gateway
+  admission evaluation over the complete profiled request and exact task, execution-
+  policy, and authoritative-capability inputs.
+- Fixed the five-code deterministic rejection precedence, strict timeout nesting, and
+  current local-only outbound ceiling while defining admitted results as ephemeral
+  eligibility rather than gateway, provider, remote, spend, or execution authority.
+- Left Java implementation, caller sourcing and migration, candidate suitability,
+  runtime wiring, routing, providers, network transmission, credentials, and paid use
+  outside the specification.
+
 ## 2026-08-20 - Implement The Profiled Model Request Pure Value
 
 - Implemented RFC-0015 test-first as one public immutable `ProfiledModelRequest`
