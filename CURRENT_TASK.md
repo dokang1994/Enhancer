@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -107,6 +107,10 @@ declared verification is complete.
   focused governance and authority-document selection passed 21 tests with zero
   failures, errors, or skips, and `git diff --check` was clean. Evidence is appended
   once in `docs/verification-log.md`.
+- Increment 2: the fresh full README-owned Java 17 Markdown-sensitive regression passed
+  925 tests across 173 result suites with zero failures and errors and 10 environment-
+  dependent skips. Lifecycle owners were synchronized without claiming implementation
+  maturity, and evidence is appended once in `docs/verification-log.md`.
 
 ## Dynamic Workflow
 
@@ -127,7 +131,7 @@ Next Action: Run the full regression and close the documentation lifecycle.
 
 ### Increment 2 - verify-and-close-invocation-admission-specification
 
-State: In Progress
+State: Completed
 Depends On: define-invocation-admission-contract
 Scope: Run the fresh full Java 17 Markdown-sensitive regression, append evidence once, synchronize lifecycle owners only where facts changed, and close the task.
 Exit Criteria: Full regression passes, owners and append-only evidence are current, the final diff is clean, and the verified increment is committed locally without push.
@@ -136,5 +140,6 @@ Next Action: Implement the accepted pure invocation-admission contract test-firs
 
 ## Next
 
-Complete Increment 2: run the full README-owned Java 17 regression, synchronize only
-changed lifecycle owners, and close the task without push.
+Implement the accepted RFC-0016 pure model invocation-admission evaluator, sealed
+decision, and closed rejection reasons test-first under `com.enhancer.model`, without
+changing existing production source or runtime wiring.
