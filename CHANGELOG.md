@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-20 - Implement The Profiled Model Request Pure Value
+
+- Implemented RFC-0015 test-first as one public immutable `ProfiledModelRequest`
+  retaining the complete existing `ModelRequest` and `ModelExecutionProfile` values.
+- Enforced exact model-class equality and profile invocation time no greater than the
+  request timeout, while deliberately leaving capability/model-class and response-
+  character/token relationships independent.
+- Added exact shape, null, alignment, boundary, independence, equality, and authority-
+  port guards without changing any existing production file or runtime path.
+
 ## 2026-08-20 - Accept The Profiled Model Request Specification
 
 - Added and accepted RFC-0015 defining `ProfiledModelRequest` as an additive immutable

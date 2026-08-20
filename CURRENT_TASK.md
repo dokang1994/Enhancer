@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -96,6 +96,11 @@ declared RED/GREEN and regression checks are complete.
   added. The combined model-package and architecture selection passed 61 tests with
   zero failures, errors, or skips, and `git diff --check` was clean. Evidence is
   appended once in `docs/verification-log.md`.
+- Increment 2: the fresh full README-owned Java 17 Markdown-sensitive regression passed
+  925 tests across 173 result suites with zero failures and errors and 10 environment-
+  dependent skips. Contract Verified maturity and lifecycle owners were synchronized
+  without claiming runtime integration, and evidence is appended once in
+  `docs/verification-log.md`.
 
 ## Dynamic Workflow
 
@@ -116,7 +121,7 @@ Next Action: Run the full regression and synchronize owning lifecycle documents.
 
 ### Increment 2 - verify-and-close-profiled-request
 
-State: In Progress
+State: Completed
 Depends On: implement-pure-profiled-request
 Scope: Run the fresh full Java 17 Markdown-sensitive regression, update maturity and lifecycle owners only where evidence changes them, append evidence once, and close the task.
 Exit Criteria: Full regression passes, owning documents and append-only evidence are current, the final diff is clean, and the verified increment is committed locally without push.
@@ -125,5 +130,7 @@ Next Action: Specify the smallest separately authorized invocation-admission con
 
 ## Next
 
-Complete Increment 2: run the full README-owned Java 17 regression, synchronize only
-changed lifecycle owners, and close the task without push.
+Specify the smallest separately authorized invocation-admission contract that can
+source complete profiles and enforce task, execution, profile, and outbound-policy
+intersection before gateway execution, without routing, providers, or remote
+transmission.

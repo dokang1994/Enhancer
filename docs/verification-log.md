@@ -5769,3 +5769,16 @@ Outcome:
 - Existing request, profile, gateway, Tool, CLI, Scheduler, adapter, command-schema,
   persistence, and runtime production files remained unchanged; no network or policy
   behavior was added.
+
+## 2026-08-20 - Profiled Model Request Pure Value Full Regression Verification
+
+- After the verified GREEN implementation commit, the fresh README-owned Java 17
+  Markdown-sensitive Gradle `test` task completed with `BUILD SUCCESSFUL` in 1m 36s.
+  Its 173 result suites aggregated 925 tests, 10 environment-dependent skips, zero
+  failures, and zero errors under the build-enforced `-Xlint:all -Werror` contract.
+- Repository state now records only the Contract Verified pure RFC-0015 composition.
+  No production caller constructs it, and no request, gateway, Tool, CLI, Scheduler,
+  provider-adapter, persistence, routing, policy, network, credential, transmission,
+  paid-service, pricing, or tokenizer behavior changed.
+- Architecture, Roadmap, accepted RFC status, and session-only handoff facts did not
+  change. Production and test source counts advanced to 417 and 174 respectively.

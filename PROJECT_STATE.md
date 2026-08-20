@@ -9,8 +9,8 @@
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 416 Java files.
-- Test source: 173 Java files.
+- Production source: 417 Java files.
+- Test source: 174 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -19,6 +19,19 @@ it does not restate which commit published which increment.
 ## Capability Maturity
 
 ### Contract Verified
+
+- The RFC-0015 `ProfiledModelRequest` pure composition under `com.enhancer.model` is
+  Contract Verified as one public immutable record retaining exactly one complete
+  RFC-0013 `ModelRequest` and one complete RFC-0014 `ModelExecutionProfile`. It rejects
+  missing values, unequal provider-neutral model-class labels, and profile invocation
+  time greater than the request gateway timeout; equality at the timeout boundary is
+  valid. Required capability remains independent from model class, and the RFC-0013
+  response-character ceiling remains independent from RFC-0014 token budgets. The
+  record implements no gateway, provider, Tool, policy, routing, or execution port and
+  performs no task, execution, outbound, locality, destination, credential, or spend
+  decision. Existing request, gateway, fake, Tool, CLI, Scheduler, adapter, command and
+  durable schemas, and runtime behavior remain unchanged. No caller constructs this
+  value in production, so invocation admission and gateway integration are absent.
 
 - The RFC-0014 provider-neutral model execution-profile pure value layer under
   `com.enhancer.model` is Contract Verified. `ModelExecutionProfile` is one immutable
@@ -31,10 +44,11 @@ it does not restate which commit published which increment.
   `model-execution-profile-v1` schema, and positive millisecond-precise time of at most
   five minutes. The reflected record shape carries requirements only and has no prompt,
   response, task, Tool, provider, endpoint, destination, credential, price, tokenizer,
-  route, or result component. The layer is intentionally uncomposed: `ModelRequest`,
-  `ModelGateway`, Tool, CLI, Scheduler, provider-adapter, and durable-schema behavior
-  remain unchanged, and no routing, provider selection, network transmission,
-  credentials, spend authority, pricing, or tokenization exists.
+  route, or result component. The separate RFC-0015 pure wrapper is its only
+  composition; `ModelRequest`, `ModelGateway`, Tool, CLI, Scheduler, provider-adapter,
+  and durable-schema behavior remain unchanged, and no runtime admission, routing,
+  provider selection, network transmission, credentials, spend authority, pricing, or
+  tokenization exists.
 
 - The RFC-0013 Delivery Gate 9 model gateway minimum slice under `com.enhancer.model`
   is Contract Verified with the deterministic fake as the only executed gateway.
