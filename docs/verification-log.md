@@ -5689,3 +5689,23 @@ Outcome:
   its `test` job `96281411290` completed in 47 seconds. The run reported non-failing
   deprecation annotations for the Node.js 20-based `actions/checkout@v4` and
   `actions/setup-java@v4` action versions; no repository test failed.
+
+## 2026-08-20 - Model Execution Profile Pure Value Layer Verification
+
+- RED was established first: the focused `ModelExecutionProfileTest` selection failed
+  `compileTestJava` on the six missing RFC-0014 types (`ModelExecutionProfile`,
+  `ModelTokenBudget`, `ModelCostBudget`, and the three closed requirement enums). The
+  failure was the intended missing-symbol contract rather than an unrelated build or
+  configuration failure.
+- The minimum GREEN implementation added only those six public immutable model-package
+  values. It validates the fixed schema, distinct bounded labels, exact closed
+  vocabularies, positive bounded and overflow-safe token relationships, context fit,
+  currency-explicit integer cost ceiling, and positive millisecond-precise invocation
+  duration of at most five minutes. The exact reflected record shape carries no prompt,
+  response, task, Tool, provider, endpoint, destination, credential, price, tokenizer,
+  route, or result field.
+- Focused verification passed with zero failures, errors, or skips: 9 new profile
+  contract tests, followed by the complete model package plus architecture governance
+  selection aggregating 55 tests. Existing RFC-0013 production types were unchanged,
+  no provider or network path was added, and `git diff --cached --check` was clean at
+  the staged increment boundary.

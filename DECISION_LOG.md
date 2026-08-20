@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-08-20 into the RFC-0014 model execution profile value layer implementation
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-20-implement-model-execution-profile-value-layer.md)
+
 ### User request on 2026-08-19 to push and merge the model execution profile specification to main
 
 Status: Accepted Decision

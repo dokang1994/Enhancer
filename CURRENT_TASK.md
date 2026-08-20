@@ -2,91 +2,92 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Specify the next bounded Delivery Gate 9 slice as an accepted RFC-governed,
-provider-neutral model execution-profile value layer over the existing gateway port.
-Define capability, model class, locality, reasoning, context, token, cost, time, and
-data-classification requirements without implementing routing, providers, or remote
-transmission.
+Implement the accepted RFC-0014 model execution-profile pure value layer test-first
+under `com.enhancer.model`, without composing it into the existing gateway, Scheduler,
+CLI, Tool, or persistence paths.
 
 ## Task ID
 
-specify-provider-neutral-model-execution-profile
+implement-model-execution-profile-value-layer
 
 ## Context
 
-The RFC-0013 minimum model-gateway slice and its durable Scheduler execution path are
-Completed, committed, and synchronized on `main`. The completed task records the
-provider-neutral execution profile as the next bounded Gate 9 slice. The existing
-`ModelRequest` carries only a model-class label plus timeout and response-length budget
-stub, while the Roadmap requires an explicit provider-neutral profile before routing or
-provider selection. The new contract must separate the Scheduler's current temporary
-required-capability/model-class reuse, preserve the existing character response bound,
-and avoid claiming that the deterministic fake's character-count usage is provider
-token accounting.
+RFC-0014 is Accepted and delivered on `main`. It defines one provider-neutral,
+immutable, versioned `ModelExecutionProfile` requirement value with distinct capability
+and model-class labels; closed locality, reasoning, and data-classification
+vocabularies; bounded context, token, cost, and invocation-time values; deterministic
+value semantics; and fail-closed construction. The existing RFC-0013 gateway and
+Scheduler composition remain Contract Verified with their current request, timeout,
+response-character, and character-based fake-usage contracts unchanged.
 
 ## Justified By
 
+- User continuation request on 2026-08-20 into the RFC-0014 model execution profile value layer implementation
 - User continuation request on 2026-08-19 into the provider-neutral model execution profile specification
-- Accept RFC-0013 defining the Delivery Gate 9 model gateway minimum slice
 
 ## Approval
 
-The 2026-08-19 continuation request authorizes one documentation-only specification
-increment: author and accept RFC-0014, record its accepted decision, update the Gate 9
-architecture boundary and RFC indexes, run focused and full Markdown-sensitive Java 17
-verification, use development-session checkpoints, synchronize lifecycle documents,
-and create one ordinary local commit at the verified GREEN boundary under Constitution
-1.2.0.
+The user's 2026-08-20 continuation request authorizes the immediate implementation
+consumer named by RFC-0014: RED-first tests and the minimum pure immutable Java value
+types under `com.enhancer.model`, focused and full Java 17 verification,
+development-session checkpoints, owning-document synchronization, and ordinary local
+commits at each verified GREEN increment boundary under Constitution 1.2.0.
 
-It does not authorize Java implementation, `ModelRequest` or `ModelGateway` signature
-changes, routing, provider or endpoint selection, network or remote transmission,
-credentials, paid-service use, MCP, caching, fallback, streaming, tokenizer or pricing
-adapters, queue/runtime/submission/spool/RunRecord schema changes, migration, tag,
-release, deployment, permission changes, or destructive cleanup. The user's subsequent
-2026-08-19 delivery request authorizes non-force push and direct linear integration of
-this completed specification into `origin/main`, plus one bounded delivery-evidence
-follow-up commit and push after fresh remote verification.
+It does not authorize changes to `ModelRequest`, `ModelGateway`, Scheduler, CLI, Tool,
+provider adapters, command or durable schemas; routing or provider selection; network
+or remote transmission; credentials or paid-service use; pricing feeds, currency
+conversion, tokenizers, usage normalization, caching, fallback, streaming, MCP,
+redaction, prompt-injection handling, source attribution, quality evaluation,
+migration, push, merge, tag, release, deployment, permission changes, or destructive
+cleanup.
 
 ## Acceptance Criteria
 
-- RFC-0014 is Accepted and defines one immutable versioned `ModelExecutionProfile`
-  value hierarchy covering required capability, model class, locality, reasoning,
-  minimum context capacity, token budget, cost budget, maximum invocation time, and
-  data classification.
-- The RFC fixes bounded labels, closed enum vocabularies, integer units, cross-field
-  invariants, deterministic equality, fail-closed validation, and the distinction
-  between capability and model class. Token limits remain distinct from the existing
-  response-character ceiling and from the current fake's character-based usage units.
-- The profile contains requirements only. Locality, classification, and cost values do
-  not grant Tool, network, remote-transmission, credential, provider, endpoint, paid-
-  service, or data-release authority and cannot widen the intersection of task,
-  execution-policy, and future outbound-policy constraints.
-- RFC-0014 names the immediate follow-up implementation consumer and its RED-first
-  contract tests while leaving router selection, adapters, actual tokenization and
-  pricing, remote policy enforcement, and maturity promotion outside this task.
-- `ARCHITECTURE.md`, `.ai/architecture.md`, `docs/rfcs/README.md`, `ROADMAP.md`, the
-  decision index, and lifecycle documents are synchronized only where they own facts;
-  `PROJECT_STATE.md` remains unchanged because specification acceptance is not
-  implementation maturity.
-- Focused governance tests, `git diff --check`, and a fresh full Java 17 Markdown-
-  sensitive Gradle regression pass before the task is Completed.
+- `ModelExecutionProfile` is an immutable value with exactly the RFC-0014 components:
+  fixed `model-execution-profile-v1` schema version, required capability, model class,
+  locality requirement, reasoning requirement, minimum context tokens, token budget,
+  cost budget, maximum invocation time, and data classification.
+- Capability and model-class labels use their RFC bounds and lower-case hyphenated
+  grammar; all components are required and invalid, null, blank, unknown, or implicit-
+  default values fail closed at construction.
+- Locality is exactly `LOCAL_ONLY` or `POLICY_CONSTRAINED`; reasoning is exactly
+  `MINIMAL`, `STANDARD`, or `EXTENDED`; data classification is exactly `PUBLIC`,
+  `INTERNAL`, `CONFIDENTIAL`, or `RESTRICTED`.
+- `ModelTokenBudget` enforces positive values no greater than 1,000,000,000 and
+  overflow-safe `maxInputTokens + maxOutputTokens <= maxTotalTokens <=
+  minimumContextTokens` validation through the profile.
+- `ModelCostBudget` enforces an upper-case three-letter currency code and integer
+  microunits from zero through 1,000,000,000,000,000 inclusive; zero remains a
+  free-only requirement rather than spend authority.
+- Maximum invocation time is positive, millisecond-representable, and no greater than
+  five minutes. Complete value retention, equality, and hashing are deterministic.
+- A reflection-based contract test prevents prompt, response, task, Tool, provider,
+  endpoint, destination, credential, price-table, tokenizer, route, and result fields
+  from entering the profile value.
+- Existing RFC-0013 model, Tool, Scheduler, CLI, timeout, and architecture tests remain
+  unchanged and pass; no network connection, production adapter invocation, or schema
+  change is introduced.
+- Focused tests establish the intended missing-symbol RED before implementation; fresh
+  focused and full Java 17 Markdown-sensitive verification and `git diff --check` pass
+  before completion.
 
 ## Out Of Scope
 
-Java implementation, gateway invocation behavior changes, Scheduler behavior changes,
-routing, provider/model/endpoint selection, network or remote transmission, credentials,
-paid services, MCP, caching, fallback, streaming, tokenizer and pricing adapters,
+Gateway or Scheduler composition, signature changes, routing, provider/model/endpoint
+selection, remote execution or transmission, credentials, paid services, pricing or
+tokenizer adapters, usage normalization, MCP, caching, fallback, retry, streaming,
 redaction, prompt-injection resistance, source attribution, quality evaluation,
-queue/runtime/submission/spool/RunRecord schema changes, migration, capability-maturity
-promotion, push, merge, tag, release, and deployment.
+command/durable schemas, migration, capability maturity beyond the pure value layer,
+push, merge, tag, release, and deployment.
 
 ## Allowed Tools
 
 - read-file
+- write-code
 - write-docs
 - build-output
 - verify
@@ -94,62 +95,48 @@ promotion, push, merge, tag, release, and deployment.
 - git-inspect
 - git-stage
 - git-commit
-- git-fetch
-- git-push
 - subagent-read-only
 
 ## Verification
 
-- The focused governance selection completed with 10 tests, zero failures, errors, or
-  skips after the required Dynamic Workflow cursor was restored.
-- The fresh full Java 17 Markdown-sensitive Gradle regression completed with `BUILD
-  SUCCESSFUL`: 171 result suites aggregating 910 tests, 10 environment-dependent
-  skips, zero failures, and zero errors.
-- `git diff --cached --check` was clean for the complete specification boundary.
+Evidence will be appended once per increment to `docs/verification-log.md` after the
+declared RED/GREEN and regression checks are complete.
+
+- Increment 1: the focused test first failed compilation on the six missing RFC-0014
+  value types, then passed 9 profile contract tests after the minimum implementation.
+  The combined model-package and architecture governance selection passed 55 tests
+  with zero failures, errors, or skips, and `git diff --cached --check` was clean.
   Evidence is appended once in `docs/verification-log.md`.
-- The completed specification and its delivery-authority record were pushed without
-  force from aligned local `main` to `origin/main`; the local, fetched, and advertised
-  remote refs matched `7e85873`, and GitHub Actions verification run `32320441108`
-  completed successfully. Delivery evidence is appended once in
-  `docs/verification-log.md`.
 
 ## Dynamic Workflow
 
-Workflow ID: specify-model-execution-profile
+Workflow ID: implement-model-execution-profile-value-layer
 Mode: Sequential
-Increment Limit: 3
+Increment Limit: 2
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
-Stop Conditions: Stop on failed verification, authority conflict, task drift, exhausted bounds, or unsafe recovery.
+Stop Conditions: Stop on failed or conflicting RED classification, failed verification, task or checkpoint drift, scope expansion, new external authority, exhausted bounds, or unsafe recovery.
 
-### Increment 1 - define-profile-contract
+### Increment 1 - implement-pure-profile-values
 
 State: Completed
 Depends On: none
-Scope: Accept RFC-0014 and synchronize its decision, Gate 9 architecture boundary, and RFC indexes.
-Exit Criteria: The provider-neutral value contract, validation rules, authority limits, and next implementation consumer are explicit.
-Verification: Read the resulting RFC, accepted decision, architecture connections, and index registrations against the Active Task.
-Next Action: Verify the synchronized repository documents and close the lifecycle boundary.
+Scope: Add the RFC-0014 RED contract tests, classify the missing-symbol failure, and implement only the immutable model-package profile values required to turn them GREEN.
+Exit Criteria: Focused profile tests and existing model-package regressions pass with exact RFC validation and authority-non-expansion shape, and the verified increment is committed locally.
+Verification: RED compilation evidence, focused profile/model tests, architecture governance tests, and `git diff --check`.
+Next Action: Run the full regression and synchronize owning lifecycle documents.
 
-### Increment 2 - verify-and-close-profile-specification
+### Increment 2 - verify-and-close-profile-values
 
-State: Completed
-Depends On: define-profile-contract
-Scope: Run focused and full Markdown-sensitive verification, append evidence once, synchronize lifecycle documents, and create the required local commit.
-Exit Criteria: All declared checks pass on the synchronized documents, the task is Completed, and the verified increment is committed locally without push.
-Verification: Focused governance tests, git diff checks, and the README-owned full Java 17 Gradle test task.
-Next Action: Implement the accepted RFC-0014 pure value layer test-first under a new Active Task.
-
-### Increment 3 - deliver-profile-specification-to-main
-
-State: Completed
-Depends On: verify-and-close-profile-specification
-Scope: Verify local and remote main alignment, push the completed specification without force, observe external verification, record the delivery evidence, and push one bounded follow-up commit.
-Exit Criteria: The intended commits are present on `origin/main`, local and remote main identities match, external verification is successful, the worktree is clean, and no synthetic merge or history rewrite occurred.
-Verification: Fresh fetch and ref/merge-base comparison, non-force push output, remote ref identity, GitHub Actions conclusion, and final clean-tree inspection.
-Next Action: Implement the accepted RFC-0014 pure value layer test-first under a new Active Task.
+State: In Progress
+Depends On: implement-pure-profile-values
+Scope: Run the fresh full Java 17 Markdown-sensitive regression, update maturity and lifecycle owners only where evidence changes them, and close the task.
+Exit Criteria: Full regression passes, owning documents and append-only verification evidence are current, the final diff is clean, and the verified increment is committed locally without push.
+Verification: README-owned full Gradle test task, final focused governance checks, staged diff review, and clean Git-state inspection.
+Next Action: Specify the smallest separately authorized composition contract that can attach a complete profile to `ModelRequest` while preserving RFC-0013 compatibility and policy intersection.
 
 ## Next
 
-Implement the accepted RFC-0014 model execution-profile value layer test-first in
-`com.enhancer.model`, without routing, providers, remote transmission, or changes to
-durable Scheduler/store schemas.
+Specify the smallest separately authorized Gate 9 composition contract that can attach
+a complete `ModelExecutionProfile` to `ModelRequest` while preserving RFC-0013
+compatibility and task, execution, and future outbound-policy intersection, without
+routing, providers, or remote transmission.
