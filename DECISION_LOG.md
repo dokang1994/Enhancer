@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User request on 2026-08-19 to push and merge the model execution profile specification to main
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-19-push-and-merge-model-execution-profile-specification-to-main.md)
+
 ### User continuation request on 2026-08-19 into the provider-neutral model execution profile specification
 
 Status: Accepted Decision

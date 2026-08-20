@@ -2,7 +2,7 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
@@ -45,8 +45,11 @@ and create one ordinary local commit at the verified GREEN boundary under Consti
 It does not authorize Java implementation, `ModelRequest` or `ModelGateway` signature
 changes, routing, provider or endpoint selection, network or remote transmission,
 credentials, paid-service use, MCP, caching, fallback, streaming, tokenizer or pricing
-adapters, queue/runtime/submission/spool/RunRecord schema changes, migration, push,
-merge, tag, release, deployment, permission changes, or destructive cleanup.
+adapters, queue/runtime/submission/spool/RunRecord schema changes, migration, tag,
+release, deployment, permission changes, or destructive cleanup. The user's subsequent
+2026-08-19 delivery request authorizes non-force push and direct linear integration of
+this completed specification into `origin/main`, plus one bounded delivery-evidence
+follow-up commit and push after fresh remote verification.
 
 ## Acceptance Criteria
 
@@ -91,6 +94,8 @@ promotion, push, merge, tag, release, and deployment.
 - git-inspect
 - git-stage
 - git-commit
+- git-fetch
+- git-push
 - subagent-read-only
 
 ## Verification
@@ -107,7 +112,7 @@ promotion, push, merge, tag, release, and deployment.
 
 Workflow ID: specify-model-execution-profile
 Mode: Sequential
-Increment Limit: 2
+Increment Limit: 3
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
 Stop Conditions: Stop on failed verification, authority conflict, task drift, exhausted bounds, or unsafe recovery.
 
@@ -127,6 +132,15 @@ Depends On: define-profile-contract
 Scope: Run focused and full Markdown-sensitive verification, append evidence once, synchronize lifecycle documents, and create the required local commit.
 Exit Criteria: All declared checks pass on the synchronized documents, the task is Completed, and the verified increment is committed locally without push.
 Verification: Focused governance tests, git diff checks, and the README-owned full Java 17 Gradle test task.
+Next Action: Implement the accepted RFC-0014 pure value layer test-first under a new Active Task.
+
+### Increment 3 - deliver-profile-specification-to-main
+
+State: In Progress
+Depends On: verify-and-close-profile-specification
+Scope: Verify local and remote main alignment, push the completed specification without force, observe external verification, record the delivery evidence, and push one bounded follow-up commit.
+Exit Criteria: The intended commits are present on `origin/main`, local and remote main identities match, external verification is successful, the worktree is clean, and no synthetic merge or history rewrite occurred.
+Verification: Fresh fetch and ref/merge-base comparison, non-force push output, remote ref identity, GitHub Actions conclusion, and final clean-tree inspection.
 Next Action: Implement the accepted RFC-0014 pure value layer test-first under a new Active Task.
 
 ## Next
