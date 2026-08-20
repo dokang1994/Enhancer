@@ -1577,6 +1577,19 @@ explicitly to the request path and intersect it with task, execution, and outbou
 policy; defaults, routing, providers, and remote execution remain outside this
 boundary.
 
+RFC-0015 defines the minimum compatibility-preserving composition as one immutable
+`ProfiledModelRequest` retaining one complete RFC-0013 `ModelRequest` and one complete
+RFC-0014 `ModelExecutionProfile`. It is additive: the five-component request, gateway,
+fake, Tool, CLI, Scheduler, adapters, and schemas stay unchanged. Construction requires
+exactly aligned model-class labels and a profile invocation-time ceiling no greater
+than the request gateway timeout. Response-character and token ceilings remain
+deliberately incomparable, and required capability remains distinct from model class.
+The composition proves alignment only; it performs no policy evaluation and grants no
+route, provider, network, credential, transmission, spend, Tool, or task authority. A
+later separately authorized runtime consumer must intersect task authority,
+`ExecutionPolicy`, the complete profile, and outbound/provider policy before any
+gateway or adapter integration.
+
 ## Agent Orchestration Contract
 
 ### Development-Time Adaptive Subagent Delegation
@@ -1756,6 +1769,7 @@ Major design areas are tracked in `docs/rfcs/`.
 - `RFC-0012`: Self Improvement
 - `RFC-0013`: Model Gateway
 - `RFC-0014`: Model Execution Profile
+- `RFC-0015`: Profiled Model Request
 
 ## First Architecture Slice
 

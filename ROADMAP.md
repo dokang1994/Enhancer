@@ -1223,6 +1223,7 @@ Status: Accepted
 - RFC-0012: Self Improvement
 - RFC-0013: Model Gateway
 - RFC-0014: Model Execution Profile
+- RFC-0015: Profiled Model Request
 
 RFC acceptance does not imply Contract Verified, Integrated, Operational, or Released capability maturity.
 

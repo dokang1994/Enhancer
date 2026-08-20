@@ -5721,3 +5721,22 @@ Outcome:
   persistence, routing, network, credential, paid-service, pricing, or tokenizer
   behavior. Architecture, Roadmap, accepted RFC status, and session-only handoff facts
   did not change.
+
+## 2026-08-20 - Profiled Model Request Specification Governance Verification
+
+- Accepted RFC-0015 as the smallest additive composition: one immutable
+  `ProfiledModelRequest` retaining one complete RFC-0013 `ModelRequest` and one
+  complete RFC-0014 `ModelExecutionProfile`, with exact model-class equality and
+  profile invocation time no greater than request timeout as its only cross-value
+  invariants.
+- The contract leaves the existing request, gateway, fake, Tool, CLI, Scheduler,
+  adapters, schemas, and runtime behavior unchanged; creates no default profile; keeps
+  response-character and token ceilings incomparable; and grants no task, Tool,
+  provider, routing, network, credential, transmission, or spend authority.
+- Two independent read-only reviews converged on the same compatibility and authority
+  boundary. Their recommendations informed the contract but were not treated as
+  verification evidence.
+- The README-owned focused Java 17 selection passed 10 tests across
+  `DecisionLogIndexTest`, `DocumentOwnershipTest`, and
+  `DynamicWorkflowDocumentTest`, with zero failures, errors, or skips. `git diff
+  --check` was clean.

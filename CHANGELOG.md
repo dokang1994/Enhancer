@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-08-20 - Accept The Profiled Model Request Specification
+
+- Added and accepted RFC-0015 defining `ProfiledModelRequest` as an additive immutable
+  pair of one complete existing `ModelRequest` and one complete
+  `ModelExecutionProfile`, preserving RFC-0013 source and behavior compatibility.
+- Required exact model-class equality and profile invocation time no greater than the
+  request timeout, while keeping required capability distinct from model class and
+  response-character limits distinct from token budgets.
+- Kept Java implementation, gateway and caller changes, policy evaluation, routing,
+  providers, network transmission, credentials, and spend authority outside the
+  specification.
+
 ## 2026-08-20 - Implement The Model Execution Profile Pure Value Layer
 
 - Implemented RFC-0014 test-first as six immutable public values under
