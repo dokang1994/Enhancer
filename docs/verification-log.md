@@ -5674,3 +5674,18 @@ Outcome:
 - `git diff --cached --check` was clean for the complete specification boundary.
   `PROJECT_STATE.md` remained unchanged because accepting the specification did not
   promote implementation maturity. No push occurred.
+
+## 2026-08-20 - Model Execution Profile Specification Delivery Observation
+
+- On the user's explicit push-and-merge request, the completed RFC-0014 specification
+  commit `c8628df` and its delivery-authority commit `7e85873` were delivered to
+  `origin/main` with one non-force fast-forward push (`a1a8259..7e85873`) from a clean,
+  non-diverged worktree. Because the commits already resided directly on local `main`,
+  the linear push is the requested merge; no temporary branch or synthetic merge
+  commit was created.
+- A fresh fetch and remote advertisement query showed local `HEAD`, `origin/main`, and
+  `refs/heads/main` all at `7e85873bb39872bf4f631ca9e1f8dbe853aae01b`.
+- Push-triggered GitHub Actions verification run `32320441108` completed successfully;
+  its `test` job `96281411290` completed in 47 seconds. The run reported non-failing
+  deprecation annotations for the Node.js 20-based `actions/checkout@v4` and
+  `actions/setup-java@v4` action versions; no repository test failed.
