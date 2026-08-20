@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User request on 2026-08-20 to commit, push, and merge the Gate 9 profile and admission increments to main
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-20-deliver-gate-9-profile-admission-to-main.md)
+
 ### User continuation request on 2026-08-20 into the model invocation admission specification
 
 Status: Accepted Decision

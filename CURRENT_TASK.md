@@ -2,87 +2,66 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Specify the smallest separately authorized Delivery Gate 9 invocation-admission
-contract that can receive an explicitly complete `ProfiledModelRequest`, bind it to
-real task capability and Tool authority, and enforce the task, `ExecutionPolicy`,
-profile, and outbound-policy intersection before gateway execution.
+Deliver the completed and verified Gate 9 RFC-0014 through RFC-0016 profile,
+composition, and invocation-admission increments from local `main` to `origin/main`
+with a non-force fast-forward push, observe external verification, and record truthful
+delivery evidence.
 
 ## Task ID
 
-specify-model-invocation-admission
+deliver-gate-9-profile-admission-to-main
 
 ## Context
 
-RFC-0013 owns the current executable gateway path, RFC-0014 owns complete model
-requirements, and RFC-0015 owns their pure aligned composition. The composition is
-Contract Verified but unused in production. `ApprovedTask` and `ExecutionPolicy`
-separately expose Tool scope, Scheduler `WorkItem` exposes a distinct required
-capability, and the direct CLI path has no complete-profile or capability source.
+Local `main` contains eight completed verified commits from `d0d6a76` through
+`e2d867d`. A fresh 2026-08-20 fetch observed `origin/main` at `5e19be4`, local `HEAD`
+at `e2d867d`, and the merge base at `5e19be4`; the worktree was clean. The commits are
+already directly on `main`, so a non-force fast-forward push is the requested merge.
 
 ## Justified By
 
+- User request on 2026-08-20 to commit, push, and merge the Gate 9 profile and admission increments to main
 - User continuation request on 2026-08-20 into the model invocation admission specification
-- User continuation request on 2026-08-20 into the RFC-0015 profiled model request implementation
 
 ## Approval
 
-The user's 2026-08-20 continuation request authorizes a documentation-only RFC-0016
-contract task: reconcile the existing authority and execution types, define the minimum
-provider-neutral admission inputs, decision and typed rejections, document explicit
-profile/capability sourcing and fail-closed policy intersection, run fresh Java 17
-Markdown-sensitive verification, use development-session checkpoints, synchronize
-owning documents, and create ordinary local commits at verified GREEN increment
-boundaries under Constitution 1.2.0.
-
-It does not authorize Java or runtime implementation; changes to existing request,
-profile, gateway, Scheduler, CLI, Tool, fake or provider adapters, command or durable
-schemas; routing, provider, model, endpoint or destination selection; network or remote
-transmission; credentials, paid services, pricing, tokenization, usage normalization,
-caching, fallback, retry, streaming, MCP, migration, push, merge, tag, release,
-deployment, permission changes, or destructive cleanup.
+The user's explicit 2026-08-20 request authorizes a bounded delivery-authority commit,
+fresh local verification, non-force push of aligned local `main` to `origin/main`,
+remote-ref and GitHub Actions observation, one truthful delivery-evidence follow-up
+commit, and one final non-force push. It authorizes no force operation, history rewrite,
+temporary branch, synthetic merge commit, tag, release, deployment, branch deletion,
+permission or credential change, destructive cleanup, or additional implementation.
 
 ## Acceptance Criteria
 
-- One Accepted RFC-0016 defines a provider-neutral admission boundary strictly before
-  `ModelGateway.invoke`, with a named immediate pure-contract implementation consumer
-  and separately authorized runtime integration consumer.
-- A caller must supply one already complete valid `ProfiledModelRequest`; admission
-  creates no profile, default, inference, registry lookup, fallback, or nullable escape.
-- The contract names how approved task Tool scope, active `ExecutionPolicy`, and an
-  authoritative required-capability projection enter admission without encoding the
-  Scheduler's current capability/model-class conflation.
-- Admission requires both task and execution policy to allow `model-invoke`, requires
-  the authoritative capability to equal the profile's required capability, preserves
-  `profile maximumInvocationTime <= gateway timeout < execution-policy timeout`, and
-  never compares response characters with tokens.
-- The current absence of outbound/provider authority fails closed: `LOCAL_ONLY` can be
-  evaluated as local-only requirement data, while `POLICY_CONSTRAINED` cannot authorize
-  remote execution or transmission and must not be admitted without a later accepted
-  outbound policy.
-- Admission produces one bounded deterministic decision with closed typed rejection
-  reasons; an admitted decision retains the exact profiled request but carries no
-  route, provider, model name, endpoint, destination, credential, price, tokenizer,
-  response, usage, or external-effect authority.
-- Current RFC-0013 through RFC-0015 types and all existing gateway, fake, Tool, CLI,
-  Scheduler, adapter, command-schema, durable-schema, and runtime behavior remain
-  unchanged by this documentation task.
-- The RFC compares rejected alternatives, defines RED-first pure-contract follow-up
-  tests, and leaves caller migration, runtime integration, routing, providers, outbound
-  transmission, credentials, and paid use separately authorized.
-- Fresh focused governance and full README-owned Java 17 Markdown-sensitive tests and
-  `git diff --check` pass before completion.
+- Fresh fetch and ref inspection prove `origin/main` is an ancestor of local `main`
+  immediately before each push; any divergence stops delivery.
+- The delivery authority and cursor are committed locally only after focused governance
+  and fresh full README-owned Java 17 Markdown-sensitive verification pass.
+- Pushes use the explicit `main:main` refspec without force and preserve linear history;
+  no temporary branch or synthetic merge commit is created.
+- The first push delivers every intended completed commit plus the delivery-authority
+  commit, and the advertised remote `refs/heads/main` matches the pushed local HEAD.
+- The push-triggered GitHub Actions verification is observed to a successful terminal
+  conclusion before delivery evidence is recorded.
+- One append-only delivery observation records the exact pushed range, ref identities,
+  fast-forward/merge meaning, and external verification result; the task cursor is then
+  completed in one bounded follow-up commit.
+- The follow-up commit is pushed without force after a fresh ancestry check; final
+  local HEAD, `origin/main`, and advertised remote main match, the worktree is clean,
+  and the final push-triggered verification is successful.
+- No product implementation, RFC contract, maturity, architecture, Roadmap, runtime,
+  schema, permission, tag, release, or deployment change occurs.
 
 ## Out Of Scope
 
-Java or runtime implementation; modifications to existing source or schemas; caller
-migration; task, Tool, Scheduler, CLI, or gateway wiring; routing or provider selection;
-network or remote transmission; endpoint or destination policy; credentials; paid use;
-pricing, tokenization, usage normalization, persistence, migration, capability maturity,
-push, merge, tag, release, and deployment.
+Force push, rebase, reset, amend, squash, cherry-pick, temporary branch, synthetic merge
+commit, tag, release, deployment, branch deletion, permission or credential changes,
+destructive cleanup, additional implementation, RFC changes, and maturity promotion.
 
 ## Allowed Tools
 
@@ -94,52 +73,42 @@ push, merge, tag, release, and deployment.
 - git-inspect
 - git-stage
 - git-commit
-- subagent-read-only
+- git-fetch
+- git-push
+- gh-inspect
 
 ## Verification
 
-Evidence will be appended once per increment to `docs/verification-log.md` after each
-declared verification is complete.
-
-- Increment 1: RFC-0016 was accepted after independent shape and authority reviews
-  converged on the same stateless evaluator, exact authority sources, five-code first-
-  match rejection contract, local-only ceiling, and ephemeral admitted meaning. The
-  focused governance and authority-document selection passed 21 tests with zero
-  failures, errors, or skips, and `git diff --check` was clean. Evidence is appended
-  once in `docs/verification-log.md`.
-- Increment 2: the fresh full README-owned Java 17 Markdown-sensitive regression passed
-  925 tests across 173 result suites with zero failures and errors and 10 environment-
-  dependent skips. Lifecycle owners were synchronized without claiming implementation
-  maturity, and evidence is appended once in `docs/verification-log.md`.
+Evidence will be appended once per delivery increment to `docs/verification-log.md`
+after the declared local or external checks complete.
 
 ## Dynamic Workflow
 
-Workflow ID: specify-model-invocation-admission
+Workflow ID: deliver-gate-9-profile-admission-to-main
 Mode: Sequential
 Increment Limit: 2
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
-Stop Conditions: Stop on authority conflict, failed verification, task or checkpoint drift, scope expansion, new external authority, exhausted bounds, or unsafe recovery.
+Stop Conditions: Stop on failed local or external verification, remote divergence, non-fast-forward refusal, unexpected path or ref, checkpoint drift, task drift, new external authority, exhausted bounds, or unsafe recovery.
 
-### Increment 1 - define-invocation-admission-contract
+### Increment 1 - verify-and-push-completed-gate-9-work
 
-State: Completed
+State: In Progress
 Depends On: none
-Scope: Reconcile task, capability, execution, profile, and absent outbound authority; compare minimum admission shapes; and add RFC-0016 plus required architecture and roadmap references.
-Exit Criteria: The RFC precisely defines explicit sources, deterministic admission/rejection, policy intersection, authority non-expansion, compatibility, exclusions, and RED-first pure-contract follow-up; focused governance passes and the increment is committed locally.
-Verification: Focused decision/RFC/architecture governance tests and `git diff --check`.
-Next Action: Run the full regression and close the documentation lifecycle.
+Scope: Commit the delivery authority/cursor, rerun local governance and full verification, recheck ancestry, push aligned local main without force, verify the remote ref, and observe the triggered external verification.
+Exit Criteria: Local checks pass, the delivery-authority commit and all eight completed increments are present on remote main through a fast-forward push, the advertised ref matches, and the triggered GitHub Actions run succeeds.
+Verification: Focused governance tests, README-owned full Gradle test task, diff checks, fetch/merge-base/ref inspection, non-force push output, advertised remote ref, and GitHub Actions conclusion.
+Next Action: Append delivery evidence once, close the cursor, commit, and push the bounded follow-up.
 
-### Increment 2 - verify-and-close-invocation-admission-specification
+### Increment 2 - record-and-push-delivery-evidence
 
-State: Completed
-Depends On: define-invocation-admission-contract
-Scope: Run the fresh full Java 17 Markdown-sensitive regression, append evidence once, synchronize lifecycle owners only where facts changed, and close the task.
-Exit Criteria: Full regression passes, owners and append-only evidence are current, the final diff is clean, and the verified increment is committed locally without push.
-Verification: README-owned full Gradle test task, staged diff review, and clean Git-state inspection.
-Next Action: Implement the accepted pure invocation-admission contract test-first under separate user continuation authority.
+State: Pending
+Depends On: verify-and-push-completed-gate-9-work
+Scope: Append the exact delivery observation, complete the task cursor, verify the Markdown-sensitive repository, commit the bounded evidence update, recheck ancestry, push without force, and verify final refs and external verification.
+Exit Criteria: Delivery evidence and the completed cursor are on remote main, final local/fetched/advertised refs match, final external verification succeeds, and the worktree and checkpoint are clean and stable.
+Verification: Focused governance tests, git diff checks, commit inspection, fresh fetch/merge-base/ref checks, non-force push output, GitHub Actions conclusion, and final clean-tree inspection.
+Next Action: Implement the accepted RFC-0016 pure invocation-admission contract test-first under separate user continuation authority.
 
 ## Next
 
-Implement the accepted RFC-0016 pure model invocation-admission evaluator, sealed
-decision, and closed rejection reasons test-first under `com.enhancer.model`, without
-changing existing production source or runtime wiring.
+Complete Increment 1 and do not record delivery evidence until the first push and its
+external verification have succeeded.
