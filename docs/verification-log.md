@@ -5813,3 +5813,20 @@ Outcome:
 - `PROJECT_STATE.md` remained unchanged because an Accepted admission specification
   does not establish an implemented or integrated capability. `SESSION_HANDOFF.md`
   remained unchanged because no new session-only fact arose.
+
+## 2026-08-20 - Gate 9 Profile And Admission Main Delivery Observation
+
+- On the user's explicit commit, push, and merge request, the eight completed profile,
+  composition, and admission commits from `d0d6a76` through `e2d867d`, plus delivery-
+  authority commit `10ae5fd`, were delivered to `origin/main` with one non-force
+  fast-forward push (`5e19be4..10ae5fd`) using the explicit `main:main` refspec from a
+  clean, non-diverged worktree. Because the commits already resided directly on local
+  `main`, this linear push is the requested merge; no temporary branch or synthetic
+  merge commit was created.
+- The pre-push fetch showed remote `5e19be4` as the exact merge base. The post-push
+  fetch and remote advertisement showed local `HEAD`, `origin/main`, and
+  `refs/heads/main` all at `10ae5fd871e30d94c5e1817161925cfdb6354618`.
+- Push-triggered GitHub Actions verification run `32348487910` completed successfully;
+  its `test` job `96362262519` completed in 1m 49s. It reported non-failing migration
+  annotations for the Node.js-based `actions/checkout@v4` and deprecated
+  `actions/setup-java@v4`; no repository test failed.

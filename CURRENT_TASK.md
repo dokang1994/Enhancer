@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -82,6 +82,16 @@ destructive cleanup, additional implementation, RFC changes, and maturity promot
 Evidence will be appended once per delivery increment to `docs/verification-log.md`
 after the declared local or external checks complete.
 
+- Increment 1: focused governance passed 10 tests, the fresh full Java 17 regression
+  passed 925 tests across 173 suites with zero failures and errors and 10 skips, and
+  `10ae5fd` was committed after clean diff checks. A fresh ancestry check then proved
+  remote `5e19be4` was the local merge base; non-force `main:main` push fast-forwarded
+  `5e19be4..10ae5fd`, fetched and advertised refs matched, and GitHub Actions run
+  `32348487910` job `96362262519` succeeded.
+- Increment 2: the exact first-push delivery observation was appended once, the cursor
+  and owners were synchronized without product or maturity changes, and the bounded
+  follow-up was locally verified for final non-force delivery and ref/CI observation.
+
 ## Dynamic Workflow
 
 Workflow ID: deliver-gate-9-profile-admission-to-main
@@ -92,7 +102,7 @@ Stop Conditions: Stop on failed local or external verification, remote divergenc
 
 ### Increment 1 - verify-and-push-completed-gate-9-work
 
-State: In Progress
+State: Completed
 Depends On: none
 Scope: Commit the delivery authority/cursor, rerun local governance and full verification, recheck ancestry, push aligned local main without force, verify the remote ref, and observe the triggered external verification.
 Exit Criteria: Local checks pass, the delivery-authority commit and all eight completed increments are present on remote main through a fast-forward push, the advertised ref matches, and the triggered GitHub Actions run succeeds.
@@ -101,7 +111,7 @@ Next Action: Append delivery evidence once, close the cursor, commit, and push t
 
 ### Increment 2 - record-and-push-delivery-evidence
 
-State: Pending
+State: Completed
 Depends On: verify-and-push-completed-gate-9-work
 Scope: Append the exact delivery observation, complete the task cursor, verify the Markdown-sensitive repository, commit the bounded evidence update, recheck ancestry, push without force, and verify final refs and external verification.
 Exit Criteria: Delivery evidence and the completed cursor are on remote main, final local/fetched/advertised refs match, final external verification succeeds, and the worktree and checkpoint are clean and stable.
@@ -110,5 +120,6 @@ Next Action: Implement the accepted RFC-0016 pure invocation-admission contract 
 
 ## Next
 
-Complete Increment 1 and do not record delivery evidence until the first push and its
-external verification have succeeded.
+Implement the accepted RFC-0016 pure model invocation-admission evaluator, sealed
+decision, and closed rejection reasons test-first under `com.enhancer.model`, without
+changing existing production source or runtime wiring.
