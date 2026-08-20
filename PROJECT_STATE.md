@@ -2,15 +2,15 @@
 
 ## Updated At
 
-2026-08-19
+2026-08-20
 
 ## Repository State
 
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 410 Java files.
-- Test source: 172 Java files.
+- Production source: 416 Java files.
+- Test source: 173 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -19,6 +19,22 @@ it does not restate which commit published which increment.
 ## Capability Maturity
 
 ### Contract Verified
+
+- The RFC-0014 provider-neutral model execution-profile pure value layer under
+  `com.enhancer.model` is Contract Verified. `ModelExecutionProfile` is one immutable
+  versioned record retaining distinct required-capability and model-class labels,
+  exact locality/reasoning/data-classification vocabularies, minimum context tokens,
+  token and cost budgets, and maximum invocation time. Its nested immutable budget
+  values enforce positive bounded overflow-safe token relationships and an explicit
+  three-letter currency with integer microunits; the profile enforces total-context
+  fit, stable lower-case hyphenated labels, the fixed
+  `model-execution-profile-v1` schema, and positive millisecond-precise time of at most
+  five minutes. The reflected record shape carries requirements only and has no prompt,
+  response, task, Tool, provider, endpoint, destination, credential, price, tokenizer,
+  route, or result component. The layer is intentionally uncomposed: `ModelRequest`,
+  `ModelGateway`, Tool, CLI, Scheduler, provider-adapter, and durable-schema behavior
+  remain unchanged, and no routing, provider selection, network transmission,
+  credentials, spend authority, pricing, or tokenization exists.
 
 - The RFC-0013 Delivery Gate 9 model gateway minimum slice under `com.enhancer.model`
   is Contract Verified with the deterministic fake as the only executed gateway.

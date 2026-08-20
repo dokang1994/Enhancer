@@ -5709,3 +5709,15 @@ Outcome:
   selection aggregating 55 tests. Existing RFC-0013 production types were unchanged,
   no provider or network path was added, and `git diff --cached --check` was clean at
   the staged increment boundary.
+
+## 2026-08-20 - Model Execution Profile Value Layer Full Regression Verification
+
+- The fresh README-owned Java 17 Markdown-sensitive Gradle `test` task completed with
+  `BUILD SUCCESSFUL` in 1m 25s after Increment 1 was committed. Its 172 result suites
+  aggregated 919 tests, 10 environment-dependent skips, zero failures, and zero errors
+  under the build-enforced `-Xlint:all -Werror` compiler contract.
+- Repository state now records only the Contract Verified pure value layer. The layer
+  remains uncomposed and adds no gateway, Tool, CLI, Scheduler, provider-adapter,
+  persistence, routing, network, credential, paid-service, pricing, or tokenizer
+  behavior. Architecture, Roadmap, accepted RFC status, and session-only handoff facts
+  did not change.

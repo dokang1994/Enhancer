@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-08-20 - Implement The Model Execution Profile Pure Value Layer
+
+- Implemented RFC-0014 test-first as six immutable public values under
+  `com.enhancer.model`: the exact versioned `ModelExecutionProfile`, token and cost
+  budgets, and closed locality, reasoning, and data-classification vocabularies.
+- Enforced stable capability/model-class labels, positive bounded overflow-safe token
+  relationships, context fit, explicit integer currency microunits, and positive
+  millisecond-precise invocation time, with deterministic record equality and an exact
+  reflection guard against authority, provider, request, and result fields.
+- Kept RFC-0013 gateway, Tool, CLI, Scheduler, provider-adapter, and durable-schema
+  behavior unchanged; no routing, network, credential, paid-service, pricing, or
+  tokenizer behavior was added.
+
 ## 2026-08-19 - Accept The Gate 9 Model Execution Profile Specification
 
 - Added and accepted RFC-0014 defining the immutable, versioned, provider-neutral

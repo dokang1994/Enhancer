@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -107,6 +107,11 @@ declared RED/GREEN and regression checks are complete.
   The combined model-package and architecture governance selection passed 55 tests
   with zero failures, errors, or skips, and `git diff --cached --check` was clean.
   Evidence is appended once in `docs/verification-log.md`.
+- Increment 2: the fresh full Java 17 Markdown-sensitive regression passed 919 tests
+  across 172 result suites with zero failures and errors and 10 environment-dependent
+  skips. Capability maturity and lifecycle owners were synchronized without changing
+  architecture, roadmap, RFC status, or session-only handoff facts. Evidence is
+  appended once in `docs/verification-log.md`.
 
 ## Dynamic Workflow
 
@@ -127,7 +132,7 @@ Next Action: Run the full regression and synchronize owning lifecycle documents.
 
 ### Increment 2 - verify-and-close-profile-values
 
-State: In Progress
+State: Completed
 Depends On: implement-pure-profile-values
 Scope: Run the fresh full Java 17 Markdown-sensitive regression, update maturity and lifecycle owners only where evidence changes them, and close the task.
 Exit Criteria: Full regression passes, owning documents and append-only verification evidence are current, the final diff is clean, and the verified increment is committed locally without push.
