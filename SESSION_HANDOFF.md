@@ -10,7 +10,7 @@ the active task in `CURRENT_TASK.md`, and delivery history in `CHANGELOG.md` and
 
 ## Updated At
 
-2026-08-19
+2026-08-21
 
 ## Session-Only State
 
@@ -19,8 +19,6 @@ the active task in `CURRENT_TASK.md`, and delivery history in `CHANGELOG.md` and
   `.tools/jdk17-runtime/jdk-17.0.19+10`; setting `JAVA_HOME` to it explicitly and
   invoking `gradlew.bat --no-daemon` through the outer shell works on this host,
   as does `scripts/gradle.ps1` through an execution-policy bypass.
-- Direct invocation of `scripts/gradle.ps1` is blocked by the current PowerShell
-  execution policy. This is a host constraint, not a repository test failure.
 - The checkpoint CLI can be invoked directly on this host without Gradle argument
   quoting problems:
   `.tools/jdk17-runtime/jdk-17.0.19+10/bin/java.exe -cp build/classes/java/main

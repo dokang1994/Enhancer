@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-08-21 - Implement Typed Model Work And Its Golden Wire
+
+- Added the fifth immutable `ModelWorkPayload` with mandatory target, expected-response
+  digest, bounded Tool scope requiring `model-invoke`, and exact complete untrusted
+  `ModelExecutionProfile`, while keeping capability and model class independent.
+- Added a ModelWork-only transport-spool/message-envelope v2 family with explicit
+  payload versioning, canonical Tool ordering, exact RFC-0014 profile field order, and
+  fail-closed cross-family, corruption, duplicate, version, enum, and nested-value
+  validation.
+- Pinned literal Work, Result, Control, Handoff, cancellation-request, and cancellation-
+  claims golden bytes; kept every legacy v1 byte unchanged and connected no Scheduler,
+  durable store, process worker, CLI, Tool, RunRecord, gateway, provider, or network
+  consumer to ModelWork.
+
 ## 2026-08-21 - Accept The Scheduler Model Profile Transport Specification
 
 - Added and accepted RFC-0018 defining a fifth typed model-work payload that retains a

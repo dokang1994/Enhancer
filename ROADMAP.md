@@ -420,7 +420,7 @@ Status: Contract Verified
 
 Current increment:
 
-- Contract Verified: versioned reference-only `MessageEnvelope` with canonical message/causation identities, bounded correlation/run/producer identities, and the sealed four-kind payload hierarchy carrying task revisions, snapshot identities, authorization scopes, run-record references, verification status, and control signals as data;
+- Contract Verified: versioned bounded-data `MessageEnvelope` with canonical message/causation identities, bounded correlation/run/producer identities, and a sealed five-kind payload hierarchy; the fifth model-work value retains a mandatory bounded target, expected-response digest, immutable Tool scope requiring `model-invoke`, and one exact complete untrusted model execution profile without granting capability, Tool, provider, network, or spend authority;
 - Contract Verified: deterministic in-process `InProcessMessageBus` with topic fan-out and single-consumer queue delivery, typed `DeliveryOutcome`/`DeliveryStatus` results, per-subscription idempotency, and an ordered journal that supports deterministic replay without duplicate side effects;
 - Contract Verified: delivery-failure isolation and dead-letter capture — a throwing handler yields a `FAILED` outcome and an ordered immutable `DeadLetter` record while fan-out continues, and a failed delivery is idempotent with respect to publish and replay;
 - Contract Verified: bounded synchronous retry and explicit dead-letter re-delivery — an immutable `RetryPolicy` (1-10 attempts) retries a failing handler immediately before dead-lettering it with its failed attempt count, and `redeliver` resolves a recorded dead letter on success or replaces it in place with the accumulated attempt count on renewed exhaustion, never touching the journal or the consumed idempotency key;
@@ -650,7 +650,7 @@ Current increment:
 - Contract Verified: one exact-WorkItem schema-v4 `RuntimeGoal` with an immutable history of at most 16 distinct `RuntimeAgentRun` attempts, attempt-bound retry decisions, at most 256 exact lease-timeout records, and at most one authorization-bound cancellation application, deterministic forward-only per-attempt transitions, matching typed result envelopes, Verified-only Goal completion, durable `RETRY_PENDING` for failed attempts, terminal authenticated cancellation, Goal-wide fences, monotonic persist-before-exposure revisions, bounded integrity-checked filesystem state, and exact-prefix restart recovery;
 - Contract Verified: a bounded fenced single-owner `AgentRunLease` acquired only from `READY`, with injected time, persisted monotonic fence tokens, matching unexpired owner/fence checks for renewal and execution completion, and durable expiry reclamation back to `READY` across restart;
 - Integrated sub-path: one durable queue active/ready WorkItem is connected to the exact durable Goal, named AgentRun planning/readiness prefix, and current fenced lease through idempotent persisted-prefix recovery across both filesystem stores;
-- Contract Verified: a first concrete `MessageTransport` (connection 3c) writing one encoded route and envelope to a local file spool a peer reads, with the frame owned by a separate deterministic codec carrying all four payload kinds and failing closed on corruption, and no ordering promised across separately spooled messages;
+- Contract Verified: a first concrete `MessageTransport` (connection 3c) writing one encoded route and envelope to a local file spool a peer reads, with the frame owned by a separate deterministic codec; four legacy payloads retain exact v1 bytes, only ModelWork selects canonical codec/envelope v2, corruption and cross-family input fail closed, and no ordering is promised across separately spooled messages;
 - Contract Verified: an isolated worker process lifecycle (connection 3b) running one child bounded by a capped timeout, forcible destruction, discarded output, and a sanitized environment, scoped by accepted decision to re-running the current JVM only, with a child entry point that reads one spooled message so the boundary is proven by a real message crossing it;
 - corrected boundary: fence-checked execution completion persists only `AWAITING_VERIFICATION`; it does not complete the queue, satisfy dependencies, or imply Verified/Completed;
 - Contract Verified: process-isolated execution (connection 3d) connecting the adapter and process lifecycle into a second production `AgentRunExecution`, with exact pre-existing work identity and route checks, distinct zero/one/several result handling, the child running the same Gate 1-4 pipeline through an internal shared seam, and the returned claim checked for route, correlation, payload, task, reference resolution, RunRecord source/target/digest binding, and status agreement before a reference is returned;
@@ -737,8 +737,9 @@ Current increment:
   no event publisher. The optional all-or-none `scheduler-receive-control` publication
   group is the first supported concrete composition for this owner: explicit event and
   publication roots plus capacity preserve request-event-point-acknowledgement order
-  and exact retained-prefix replay. The existing four-kind MessageEnvelope remains
-  unchanged, and omitted configuration preserves request-only behavior;
+  and exact retained-prefix replay. The existing Control envelope and its v1
+  cancellation canonical bytes remain unchanged, and omitted configuration preserves
+  request-only behavior; ModelWork is not accepted by this runtime-event path;
 - Integrated second transition-owner connection: event-aware
   `DurableAgentRunFinalizer` records `VERIFICATION_RECORDED` only after its
   RunRecord-backed Result transition is durable. The retained Result supplies occurrence

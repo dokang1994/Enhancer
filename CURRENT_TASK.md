@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -99,6 +99,13 @@ the declared checks complete.
   and cancellation tests passed 33 tests across 3 suites; expanded bus, model,
   architecture, and cancellation regression passed 152 tests across 20 suites with
   zero failures, errors, or skips. `git diff --check` was clean.
+- Increment 3: the fresh unfiltered README-owned Java 17 test task passed 949 tests
+  across 175 suites: 939 passed, 10 existing environment-dependent cases skipped,
+  zero failed, and zero errored. After architecture, maturity, Roadmap, changelog, and
+  session-owner synchronization, final focused bus, model, architecture, and
+  cancellation regression passed 152 tests across 20 suites with zero failures,
+  errors, or skips; the stale current-document four-kind scan and `git diff --check`
+  were clean.
 
 ## Dynamic Workflow
 
@@ -140,7 +147,7 @@ Next Action: Run full verification and synchronize lifecycle owners.
 
 ### Increment 3 - verify-and-close-model-work-wire
 
-State: In Progress
+State: Completed
 Depends On: add-model-work-wire-v2
 Scope: Run the full README-owned Java 17 regression, synchronize only owning documents,
 rerun final governance, and close the task without runtime or durable-schema claims.
@@ -154,4 +161,7 @@ separate authority.
 
 ## Next
 
-Complete Increment 3 and close the task after fresh full and final focused evidence.
+Define the coordinated submission-manifest v3, Scheduler-queue v4, AgentRuntime v5,
+model RunRecord v2, process-isolation, recovery, and stopped-owner migration increment
+under separate user authority; do not connect ModelWork to current execution paths by
+default.
