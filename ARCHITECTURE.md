@@ -1618,6 +1618,26 @@ queue, runtime, recovery, and migration contract; RFC-0017 changes no Java or du
 schema and grants no candidate, gateway, provider, route, network, credential,
 transmission, or spend authority.
 
+RFC-0018 defines the future Scheduler-specific durable source as a fifth typed
+`ModelWorkPayload` carrying mandatory target path, expected-response digest, and one
+exact complete `ModelExecutionProfile`. The existing `WorkPayload` stays the unchanged
+read-file representation, while payload kind selects new model work even when task
+scope also permits read-file. The profile remains untrusted and contains no capability
+authority; the exact active `WorkItem.requiredCapability` stays a separate governed
+projection and must remain capable of disagreeing until RFC-0016 evaluates it.
+
+The future transport uses a payload-sensitive model-work representation rather than a
+global version replacement: existing Work, Result, Control, and Handoff envelopes and
+spool frames retain their exact v1 bytes, including the Gate 12 cancellation-signing
+input, while only model work uses envelope/spool v2. Submission manifest v3, Scheduler
+queue v4, and AgentRuntime v5 embed that exact envelope/profile so retry and process
+recovery require no manifest-only, registry, or ambient lookup. Stopped-owner migration
+preserves legacy read-file work losslessly and refuses executable legacy model work
+without a profile before any write. Profile-aware execution remains blocked pending a
+model RunRecord v2, the exact active governed task, the same execution-policy instance,
+fresh RFC-0015/RFC-0016 evaluation, and later candidate/provider authority. RFC-0018
+changes no current Java, schema, artifact, command, or runtime behavior.
+
 ## Agent Orchestration Contract
 
 ### Development-Time Adaptive Subagent Delegation

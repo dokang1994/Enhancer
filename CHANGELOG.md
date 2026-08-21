@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-08-21 - Accept The Scheduler Model Profile Transport Specification
+
+- Added and accepted RFC-0018 defining a fifth typed model-work payload that retains a
+  mandatory target, expected-response digest, and one exact complete untrusted model
+  execution profile while keeping WorkItem capability independent.
+- Defined payload-sensitive envelope/spool v2, submission manifest v3, Scheduler queue
+  v4, AgentRuntime v5, model RunRecord v2 prerequisite, exact replay/retry/recovery,
+  process-isolation, and stopped-owner migration/cutover obligations.
+- Preserved all current payload and cancellation-signing v1 bytes, required lossless
+  legacy read-file migration, and rejected defaults or silent migration for unprofiled
+  model work; no Java, schema, artifact, command, or runtime behavior changed.
+
 ## 2026-08-21 - Accept The Model Invocation Input Sourcing Specification
 
 - Added and accepted RFC-0017 defining caller-specific source obligations over the

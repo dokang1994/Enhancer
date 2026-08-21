@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-08-21 into the Scheduler complete-profile transport specification
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-21-specify-scheduler-model-profile-transport.md)
+
 ### User continuation request on 2026-08-21 into the complete model invocation input specification
 
 Status: Accepted Decision

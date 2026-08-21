@@ -23,6 +23,7 @@ RFCs preserve long-term architecture intent and make references stable across Ch
 - `RFC-0015`: Profiled Model Request
 - `RFC-0016`: Model Invocation Admission
 - `RFC-0017`: Model Invocation Input Sourcing
+- `RFC-0018`: Scheduler Model Profile Transport
 
 ## Status Values
 

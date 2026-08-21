@@ -1226,6 +1226,7 @@ Status: Accepted
 - RFC-0015: Profiled Model Request
 - RFC-0016: Model Invocation Admission
 - RFC-0017: Model Invocation Input Sourcing
+- RFC-0018: Scheduler Model Profile Transport
 
 RFC acceptance does not imply Contract Verified, Integrated, Operational, or Released capability maturity.
 

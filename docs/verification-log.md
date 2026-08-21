@@ -5912,3 +5912,30 @@ Outcome:
   message/submission/queue/runtime/spool/RunRecord schemas, routing, provider, network,
   credential, transmission, spend, release, and deployment state remained unchanged.
   `SESSION_HANDOFF.md` remained unchanged because no new session-only fact arose.
+
+## 2026-08-21 - Scheduler Model Profile Transport Specification Governance Verification
+
+- Added and accepted RFC-0018 as the future Scheduler-specific durable source for one
+  exact complete RFC-0014 profile through a fifth typed `ModelWorkPayload`. The
+  existing `WorkPayload` remains the read-file representation, and the exact active
+  `WorkItem.requiredCapability` remains an independent governed projection.
+- Two bounded read-only reviews independently traced schema/recovery and authority/
+  compatibility surfaces. Both recommended the same typed payload rather than an
+  optional profile or WorkItem-side reference; their recommendations were reconciled
+  against repository authority and were not treated as verification evidence.
+- The contract defines model-work-only envelope/spool v2 while preserving all four
+  current payload and detached-cancellation v1 bytes, plus submission manifest v3,
+  Scheduler queue v4, AgentRuntime v5, model RunRecord v2 prerequisite, exact replay,
+  retry, process isolation, result validation, and stopped-owner migration/cutover.
+- Legacy read-file work remains lossless. Missing-profile executable legacy model work
+  fails preflight before any write and cannot be defaulted, inferred, or rewritten
+  under an existing identity. Transport alone does not enable RFC-0016 admission or a
+  model gateway.
+- The README-owned focused Java 17 selection passed 21 tests across 6 suites covering
+  accepted-decision indexing, document ownership, dynamic workflow, approved-task
+  parsing, task-justification projection, and repository planning. There were zero
+  failures, errors, or skips, and `git diff --check` was clean.
+- Every changed path was Markdown. No Java source, current command, schema, artifact,
+  runtime behavior, capability maturity, provider, route, network, credential, spend,
+  release, deployment, push, or merge state changed. `PROJECT_STATE.md` and
+  `SESSION_HANDOFF.md` remained unchanged because no owning fact changed.
