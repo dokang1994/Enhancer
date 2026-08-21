@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-08-21 into the RFC-0016 model invocation admission implementation
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-21-implement-model-invocation-admission.md)
+
 ### User request on 2026-08-20 to commit, push, and merge the Gate 9 profile and admission increments to main
 
 Status: Accepted Decision

@@ -5830,3 +5830,26 @@ Outcome:
   its `test` job `96362262519` completed in 1m 49s. It reported non-failing migration
   annotations for the Node.js-based `actions/checkout@v4` and deprecated
   `actions/setup-java@v4`; no repository test failed.
+
+## 2026-08-21 - Model Invocation Admission Pure Contract GREEN Verification
+
+- RED was established first: the focused `ModelInvocationAdmissionTest` selection
+  failed `compileTestJava` only on references to the absent
+  `ModelInvocationAdmission`, `ModelInvocationAdmissionDecision`, and
+  `ModelInvocationRejectionReason` types, with no unrelated contract, build, or
+  configuration failure.
+- The minimum GREEN implementation added exactly three new production types: one
+  field-free final evaluator, one sealed decision with the exact nested `Admitted` and
+  `Rejected` records, and one five-value rejection enum. No existing production source
+  or runtime wiring changed.
+- The focused selection passed 11 tests. The combined model-package and architecture-
+  governance selection passed 72 tests across 13 suites with zero failures, errors, or
+  skips under Java 17 and the build-enforced warning-as-error contract.
+- Tests cover exact instance retention and shapes, null inputs, task and policy denial,
+  capability mismatch, strict timeout boundaries, locality, deterministic first-match
+  precedence, character/token independence, and the absence of unrelated cost or
+  classification behavior. The evaluator stores no field and implements no execution
+  port.
+- `Admitted` remains ephemeral local eligibility only. No gateway invocation, provider
+  suitability, runtime integration, routing, network or remote transmission,
+  credential, persistence, Tool, task, or spend authority was added.
