@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User request on 2026-08-21 to commit, push, and merge the completed RFC-0016 through RFC-0018 work to main
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-21-deliver-rfc-0016-through-rfc-0018-to-main.md)
+
 ### User continuation request on 2026-08-21 into the Scheduler complete-profile transport specification
 
 Status: Accepted Decision

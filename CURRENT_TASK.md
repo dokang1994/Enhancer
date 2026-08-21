@@ -2,78 +2,66 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Define and accept RFC-0018 as the minimum typed and versioned Scheduler complete-profile
-source and transport contract across message, submission, queue, runtime, recovery,
-migration, and no-default cutover boundaries without implementation.
+Deliver the six completed and verified RFC-0016 through RFC-0018 commits from local
+`main` to `origin/main` with a non-force fast-forward push, observe external
+verification, and record truthful delivery evidence.
 
 ## Task ID
 
-specify-scheduler-model-profile-transport
+deliver-rfc-0016-through-rfc-0018-to-main
 
 ## Context
 
-RFC-0017 requires one complete `ModelExecutionProfile` and an independent governed
-capability projection per invocation. The current Scheduler can later project the exact
-active `WorkItem.requiredCapability`, but `WorkPayload.ExecutionInput` retains only a
-target path and expected digest. Message-envelope v1, transport-spool v1, submission
-manifest v2, Scheduler queue v3, and AgentRuntime v4 persist that incomplete WorkItem
-shape, so a durable complete-profile source requires an explicit coordinated version
-and migration contract rather than ambient or manifest-only lookup.
+The clean local `main` currently ends at `df0e23b` and contains six commits after the
+tracked `origin/main` at `65151f7`: RFC-0016 implementation/verification, RFC-0017
+specification/verification, and RFC-0018 specification/verification. These commits are
+already directly on `main`, so a non-force fast-forward push is the requested merge.
+A fresh fetch and ancestry check remain mandatory before external delivery.
 
 ## Justified By
 
+- User request on 2026-08-21 to commit, push, and merge the completed RFC-0016 through RFC-0018 work to main
 - User continuation request on 2026-08-21 into the Scheduler complete-profile transport specification
-- User continuation request on 2026-08-21 into the complete model invocation input specification
 
 ## Approval
 
-The 2026-08-21 continuation authorizes one documentation-only RFC-0018 specification,
-bounded read-only schema/recovery/authority reviews, owning architecture/RFC-planning/
-index/decision/task/changelog/verification synchronization, fresh Java 17 Markdown-
-sensitive verification, development-session checkpoints, and ordinary local commits at
-verified GREEN increment boundaries. It authorizes no Java or binary-schema change,
-artifact migration, command or caller change, Scheduler/admission/gateway runtime
-wiring, provider/network behavior, push, merge, release, deployment, external effect,
-or destructive cleanup.
+The user's explicit 2026-08-21 request authorizes a bounded delivery-authority commit,
+fresh local verification, non-force push of aligned local `main` to `origin/main`,
+remote-ref and GitHub Actions observation, one truthful delivery-evidence follow-up
+commit, and one final non-force push. It authorizes no force operation, history rewrite,
+temporary branch, synthetic merge commit, tag, release, deployment, branch deletion,
+permission or credential change, destructive cleanup, or additional implementation.
 
 ## Acceptance Criteria
 
-- RFC-0018 defines the minimum typed model-work input that retains the existing target
-  and expected-response digest plus one exact complete RFC-0014 profile without
-  flattening, partial optionals, defaults, inference, registry, or ambient lookup.
-- The profile remains untrusted requirements data and the exact active
-  `WorkItem.requiredCapability` remains a separate unchanged governed projection;
-  neither may source or self-certify the other or the profile model class.
-- Every affected message-envelope, spool codec, submission manifest, Scheduler queue,
-  AgentRuntime, WorkItem recovery, retry, and process-isolation representation is named
-  with a coordinated version/cutover rule; no manifest-only or cross-store lookup is
-  allowed.
-- Legacy read-file work remains lossless and compatible. Existing model work without a
-  complete profile is never silently upgraded or defaulted; migration/cutover behavior
-  is deterministic, bounded, recoverable, and fail closed before admission or gateway.
-- Exact replay, duplicate submission, queue/runtime recovery, isolated worker transfer,
-  result verification, and RunRecord provenance requirements are explicit, while an
-  RFC-0016 `Admitted` decision remains fresh and non-persisted.
-- The contract changes no current Java, command, schema, artifact, or runtime behavior
-  and adds no provider, route, endpoint, destination, credential, tokenizer, price,
-  network, transmission, spend, or gateway-execution authority.
-- Architecture, RFC index/planning, accepted-decision index, changelog, task cursor, and
-  append-only verification evidence are synchronized, with focused governance and the
-  full README-owned Java 17 regression passing freshly.
+- Fresh fetch and ref inspection prove `origin/main` is an ancestor of local `main`
+  immediately before each push; any divergence stops delivery.
+- The delivery authority and cursor are committed locally only after focused governance
+  and fresh full README-owned Java 17 Markdown-sensitive verification pass.
+- Pushes use the explicit `main:main` refspec without force and preserve linear history;
+  no temporary branch or synthetic merge commit is created.
+- The first push delivers all six completed commits plus the delivery-authority commit,
+  and the advertised remote `refs/heads/main` matches the pushed local HEAD.
+- The push-triggered GitHub Actions verification is observed to a successful terminal
+  conclusion before delivery evidence is recorded.
+- One append-only delivery observation records the exact pushed range, ref identities,
+  fast-forward/merge meaning, and external verification result; the task cursor is then
+  completed in one bounded follow-up commit.
+- The follow-up commit is pushed without force after a fresh ancestry check; final local
+  HEAD, `origin/main`, and advertised remote main match, the worktree is clean, and the
+  final push-triggered verification is successful.
+- No product implementation, RFC contract, maturity, architecture, Roadmap, runtime,
+  schema, permission, tag, release, or deployment change occurs.
 
 ## Out Of Scope
 
-Java implementation; binary schema changes or migrations; artifact rewrite; CLI,
-submission, spool, queue, runtime, Tool, gateway, adapter, or process-worker changes;
-caller cutover; profile parsing or registry; admission/runtime integration; model
-suitability; routing, providers, endpoints, destinations, network or remote
-transmission; credentials, paid services, pricing, tokenizers, usage normalization,
-MCP, release, deployment, push, merge, history rewrite, permission changes, and
-destructive cleanup.
+Force push, rebase, reset, amend, squash, cherry-pick, temporary branch, synthetic merge
+commit, tag, release, deployment, branch deletion, permission or credential changes,
+destructive cleanup, additional implementation, RFC changes, and maturity promotion.
 
 ## Allowed Tools
 
@@ -85,58 +73,58 @@ destructive cleanup.
 - git-inspect
 - git-stage
 - git-commit
-- subagent-readonly
+- git-fetch
+- git-push
+- gh-inspect
 
 ## Verification
 
-- Increment 1: two bounded read-only reviews converged on a fifth typed model-work
-  payload, exact independent WorkItem capability projection, payload-sensitive wire
-  versioning, and stopped-owner fail-closed migration. Focused governance passed 21
-  tests across 6 suites with zero failures, errors, or skips; `git diff --check` was
-  clean and every changed path was Markdown.
-- Increment 2: the fresh unfiltered README-owned Java 17 `test --no-daemon` task passed
-  936 tests across 174 suites with 10 existing environment-dependent skips and zero
-  failures or errors. Final governance and `git diff --check` passed after lifecycle
-  synchronization. No implementation, schema, runtime, or maturity state changed.
+Evidence is appended once per completed delivery increment to
+`docs/verification-log.md` after the declared checks complete.
 
 ## Dynamic Workflow
 
-Workflow ID: specify-scheduler-model-profile-transport
+Workflow ID: deliver-rfc-0016-through-rfc-0018-to-main
 Mode: Sequential
 Increment Limit: 2
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
-Stop Conditions: Stop on schema-owner omission, recovery ambiguity, authority conflict,
-incompatible legacy behavior, failed governance/regression verification, task drift,
-checkpoint drift, new external authority, exhausted bounds, or unsafe recovery.
+Stop Conditions: Stop on failed local or external verification, remote divergence,
+non-fast-forward refusal, unexpected path or ref, checkpoint drift, task drift, new
+external authority, exhausted bounds, or unsafe recovery.
 
-### Increment 1 - define-and-accept-rfc-0018
+### Increment 1 - verify-and-push-completed-model-work
 
-State: Completed
+State: In Progress
 Depends On: none
-Scope: Reconcile independent read-only schema/recovery/authority reviews, define and
-accept the minimum RFC-0018 contract, and synchronize architecture, RFC planning/index,
-decision, changelog, task, and append-only focused verification evidence.
-Exit Criteria: The RFC resolves every acceptance criterion without implementation or
-artifact change, focused governance passes, the diff is documentation-only and clean,
-evidence is appended once, and the verified increment is committed locally.
-Verification: RFC/decision/architecture/document-ownership/dynamic-workflow governance
-tests and `git diff --check`.
-Next Action: Commit the verified RFC-0018 specification, then select Increment 2.
+Scope: Commit the delivery authority/cursor, rerun local governance and full
+verification, recheck ancestry, push aligned local main without force, verify the
+remote ref, and observe the triggered GitHub Actions verification.
+Exit Criteria: Local checks pass, the delivery-authority commit and all six completed
+increments are present on remote main through a fast-forward push, the advertised ref
+matches, and the triggered GitHub Actions run succeeds.
+Verification: Focused governance tests, README-owned full Gradle test task, diff checks,
+fetch/merge-base/ref inspection, non-force push output, advertised remote ref, and
+GitHub Actions conclusion.
+Next Action: Append delivery evidence once, close the cursor, commit, and push the
+bounded follow-up.
 
-### Increment 2 - verify-and-close-rfc-0018
+### Increment 2 - record-and-push-delivery-evidence
 
-State: Completed
-Depends On: define-and-accept-rfc-0018
-Scope: Run the full README-owned Java 17 regression, synchronize only changed lifecycle
-owners, rerun final Markdown governance, and close the task.
-Exit Criteria: Full and final governance verification pass, no implementation or
-maturity claim appears, the closure is committed locally, and the worktree/checkpoint
-reach the intended clean stable state.
-Verification: Full `test`, focused governance, JUnit XML aggregation,
-`git diff --check`, and final Git/checkpoint inspection.
-Next Action: Commit the verified closure and clear the stable checkpoint.
+State: Pending
+Depends On: verify-and-push-completed-model-work
+Scope: Append the exact delivery observation, complete the task cursor, verify the
+Markdown-sensitive repository, commit the bounded evidence update, recheck ancestry,
+push without force, and verify final refs and external verification.
+Exit Criteria: Delivery evidence and the completed cursor are on remote main, final
+local/fetched/advertised refs match, final external verification succeeds, and the
+worktree and checkpoint are clean and stable.
+Verification: Focused governance tests, git diff checks, commit inspection, fresh
+fetch/merge-base/ref checks, non-force push output, GitHub Actions conclusion, and final
+clean-tree inspection.
+Next Action: Define and implement the typed ModelWorkPayload plus model-work-only
+envelope/spool v2 golden-wire boundary under separate user continuation authority.
 
 ## Next
 
-Define and implement the typed `ModelWorkPayload` plus model-work-only envelope/spool v2
-golden-wire boundary without enabling Scheduler model execution.
+Complete Increment 1 and do not record delivery evidence until the first push and its
+external verification have succeeded.
