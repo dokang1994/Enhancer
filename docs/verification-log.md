@@ -5871,3 +5871,27 @@ Outcome:
 - Architecture and Roadmap did not change because the accepted RFC already owns the
   boundary and no milestone advanced. `SESSION_HANDOFF.md` remained unchanged because
   no new session-only fact arose.
+
+## 2026-08-21 - Model Invocation Input Sourcing Specification Governance Verification
+
+- Added and accepted RFC-0017 as a caller-specific source-obligation contract over the
+  existing complete `ModelRequest`, complete `ModelExecutionProfile`, exact active
+  `ApprovedTask` and `ExecutionPolicy`, and separately governed unchanged authoritative
+  required-capability projection. No new Java aggregate, port, parser, registry, schema,
+  or runtime path was added.
+- Two bounded read-only reviews independently traced the authority and durable source
+  surfaces and converged on the same minimum shape. Their recommendations were
+  reconciled against repository authority and were not treated as verification
+  evidence.
+- The contract keeps profile requirements untrusted and indivisible, preserves
+  capability/model-class separation, leaves direct CLI and current Scheduler callers
+  unchanged and unsupported, and requires any future durable Scheduler profile source
+  to define message, submission, queue, runtime, recovery, and migration behavior in a
+  separate accepted contract.
+- The README-owned focused Java 17 selection passed 21 tests across 6 suites covering
+  accepted-decision indexing, document ownership, dynamic workflow, approved-task
+  parsing, task-justification projection, and repository planning. There were zero
+  failures, errors, or skips, and `git diff --check` was clean.
+- Every changed path was Markdown. No Java source, capability maturity, current caller,
+  Tool, gateway, CLI, Scheduler, adapter, durable schema, routing, provider, network,
+  credential, transmission, spend, release, or deployment state changed.

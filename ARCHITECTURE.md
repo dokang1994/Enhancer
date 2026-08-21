@@ -1603,6 +1603,21 @@ persistable token. The current CLI and Scheduler lack all required explicit sour
 so runtime wiring, candidate suitability, routing, providers, and transmission remain
 separate contracts.
 
+RFC-0017 defines the minimum caller-side source obligations upstream of that pure
+boundary without adding a new aggregate or port. One future caller must resolve an
+exact complete `ModelRequest`, one indivisible already-valid `ModelExecutionProfile`,
+the exact active `ApprovedTask` and `ExecutionPolicy`, and an unchanged authoritative
+required-capability projection from a separately named governed source. Profile data
+cannot self-certify capability authority, and missing or partial input cannot fall back
+to constants, Tool arguments, a registry, ambient lookup, or a legacy path. The current
+direct CLI has neither required source; the current Scheduler can later project the
+active `WorkItem.requiredCapability` but has no complete profile source and must not
+reuse capability as model class. Both remain unchanged and unsupported. Persisting a
+profile through Scheduler work would require a separate versioned message, submission,
+queue, runtime, recovery, and migration contract; RFC-0017 changes no Java or durable
+schema and grants no candidate, gateway, provider, route, network, credential,
+transmission, or spend authority.
+
 ## Agent Orchestration Contract
 
 ### Development-Time Adaptive Subagent Delegation
@@ -1784,6 +1799,7 @@ Major design areas are tracked in `docs/rfcs/`.
 - `RFC-0014`: Model Execution Profile
 - `RFC-0015`: Profiled Model Request
 - `RFC-0016`: Model Invocation Admission
+- `RFC-0017`: Model Invocation Input Sourcing
 
 ## First Architecture Slice
 

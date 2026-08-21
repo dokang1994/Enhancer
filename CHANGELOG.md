@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-08-21 - Accept The Model Invocation Input Sourcing Specification
+
+- Added and accepted RFC-0017 defining caller-specific source obligations over the
+  existing complete request, profile, active task/policy, and independently governed
+  authoritative-capability projection without adding a context record or source port.
+- Kept complete profile requirements as untrusted data, preserved explicit capability/
+  model-class separation, and required missing, partial, defaulted, fallback, registry,
+  ambient, or direct-CLI authority inputs to fail before admission or gateway work.
+- Left Java, CLI, Scheduler, Tool, gateway, message, submission, queue, runtime, spool,
+  evidence, and RunRecord contracts unchanged; any durable Scheduler profile source and
+  migration remains separately authorized work.
+
 ## 2026-08-21 - Implement The Pure Model Invocation Admission Contract
 
 - Implemented RFC-0016 test-first as one stateless field-free evaluator, one sealed
