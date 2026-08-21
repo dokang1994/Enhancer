@@ -5853,3 +5853,21 @@ Outcome:
 - `Admitted` remains ephemeral local eligibility only. No gateway invocation, provider
   suitability, runtime integration, routing, network or remote transmission,
   credential, persistence, Tool, task, or spend authority was added.
+
+## 2026-08-21 - Model Invocation Admission Full Regression Verification
+
+- After the verified implementation boundary was committed as `9d9a49c`, the fresh
+  unfiltered README-owned Java 17 Markdown-sensitive `test --no-daemon` task completed
+  with `BUILD SUCCESSFUL` in 1m 25s under the build-enforced `-Xlint:all -Werror`
+  contract.
+- JUnit XML aggregation found 174 suites and 936 tests: 926 passed, 10 existing
+  environment-dependent cases skipped, zero failed, and zero errored. Production and
+  test source counts are now 420 and 175 respectively.
+- `PROJECT_STATE.md` promotes only the pure RFC-0016 contract to Contract Verified. No
+  production caller, complete-profile source, model-suitability proof, existing-source
+  or runtime wiring change, gateway execution, route, provider, network transmission,
+  credential, persistence, Tool, task, spend authority, release, or deployment was
+  established.
+- Architecture and Roadmap did not change because the accepted RFC already owns the
+  boundary and no milestone advanced. `SESSION_HANDOFF.md` remained unchanged because
+  no new session-only fact arose.

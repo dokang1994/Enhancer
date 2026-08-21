@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-08-21 - Implement The Pure Model Invocation Admission Contract
+
+- Implemented RFC-0016 test-first as one stateless field-free evaluator, one sealed
+  decision with exact nested admitted/rejected records, and five closed rejection
+  reasons under `com.enhancer.model`.
+- Enforced deterministic task, execution-policy, authoritative-capability, strict
+  timeout, and locality precedence while retaining the exact admitted profiled request.
+- Kept existing production source and runtime wiring unchanged; no caller integration,
+  model suitability, gateway execution, routing, provider, network, credential,
+  persistence, or spend authority was added.
+
 ## 2026-08-20 - Accept The Model Invocation Admission Specification
 
 - Added and accepted RFC-0016 defining a stateless provider-neutral pre-gateway

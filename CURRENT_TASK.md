@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -82,6 +82,10 @@ rewrite, permission changes, and destructive cleanup.
   selection passed 72 tests across 13 suites with zero failures, errors, or skips.
   The implementation added exactly three new production files and one focused test;
   existing production source remained unchanged.
+- Increment 2: the fresh unfiltered README-owned Java 17 `test --no-daemon` task passed
+  936 tests across 174 suites with 10 environment-dependent skips, zero failures, and
+  zero errors. Production and test source counts are 420 and 175; final lifecycle
+  owners describe Contract Verified maturity only.
 
 ## Dynamic Workflow
 
@@ -108,7 +112,7 @@ Next Action: Select Increment 2 after the verified implementation commit.
 
 ### Increment 2 - verify-and-close-invocation-admission
 
-State: In Progress
+State: Completed
 Depends On: implement-pure-invocation-admission
 Scope: Run the full README-owned Java 17 regression, synchronize only changed lifecycle
 owners, rerun Markdown-sensitive governance, and close the task.
@@ -117,8 +121,11 @@ are truthful, the completed cursor is committed locally, and the worktree/checkp
 reach the intended clean stable state.
 Verification: Full `test`, focused architecture/decision/workflow governance,
 JUnit XML aggregation, `git diff --check`, and final Git/checkpoint inspection.
-Next Action: Complete and locally commit the implementation increment.
+Next Action: Record final evidence, commit the closure increment, and clear the stable
+checkpoint.
 
 ## Next
 
-Run Increment 2 full regression and synchronize the final lifecycle owners.
+Specify the smallest explicit caller input contract that can supply every RFC-0014
+profile field and the independent authoritative required capability without defaults,
+Scheduler conflation, routing, or remote transmission.

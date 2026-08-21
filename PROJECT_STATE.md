@@ -2,15 +2,15 @@
 
 ## Updated At
 
-2026-08-20
+2026-08-21
 
 ## Repository State
 
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 417 Java files.
-- Test source: 174 Java files.
+- Production source: 420 Java files.
+- Test source: 175 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -19,6 +19,22 @@ it does not restate which commit published which increment.
 ## Capability Maturity
 
 ### Contract Verified
+
+- The RFC-0016 pure model invocation-admission boundary under `com.enhancer.model` is
+  Contract Verified. One stateless field-free evaluator intersects the exact active
+  `ApprovedTask`, exact active `ExecutionPolicy`, separately authoritative required
+  capability, request timeout, and profile locality in deterministic first-match order.
+  Its sealed decision retains either the exact admitted `ProfiledModelRequest` instance
+  or exactly one of five closed rejection reasons. Task and policy Tool denial,
+  capability mismatch, request timeout not strictly inside the execution-policy
+  timeout, and `POLICY_CONSTRAINED` locality all fail closed; `LOCAL_ONLY` may reach
+  only ephemeral local eligibility. Reasoning, context, token, cost, and classification
+  requirements remain retained and unevaluated, and response-character and token
+  magnitudes remain independent. Existing production source and runtime wiring are
+  unchanged. No production caller supplies the complete profile plus independent
+  authority sources, and admission grants no gateway invocation, model suitability,
+  route, provider, network, remote transmission, credential, persistence, Tool, task,
+  or spend authority.
 
 - The RFC-0015 `ProfiledModelRequest` pure composition under `com.enhancer.model` is
   Contract Verified as one public immutable record retaining exactly one complete
