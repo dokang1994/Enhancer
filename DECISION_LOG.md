@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-08-21 into the typed model-work golden-wire implementation
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-21-implement-typed-model-work-golden-wire.md)
+
 ### User request on 2026-08-21 to commit, push, and merge the completed RFC-0016 through RFC-0018 work to main
 
 Status: Accepted Decision

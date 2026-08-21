@@ -46,8 +46,26 @@ class MessageEnvelopeTest {
     }
 
     @Test
-    void coversExactlyFourSealedPayloadKinds() {
+    void coversExactlyFiveSealedPayloadKinds() {
         MessagePayload work = new WorkPayload(TASK_REVISION, SNAPSHOT_ID, Set.of("read-file"));
+        MessagePayload modelWork = new ModelWorkPayload(
+                TASK_REVISION,
+                SNAPSHOT_ID,
+                Set.of("model-invoke"),
+                new ModelWorkPayload.ModelInvocationExecutionInput(
+                        "docs/prompt.md",
+                        "e".repeat(64),
+                        new com.enhancer.model.ModelExecutionProfile(
+                                com.enhancer.model.ModelExecutionProfile.SCHEMA_VERSION,
+                                "repository-analysis",
+                                "reasoning-standard",
+                                com.enhancer.model.ModelLocalityRequirement.LOCAL_ONLY,
+                                com.enhancer.model.ModelReasoningRequirement.STANDARD,
+                                2,
+                                new com.enhancer.model.ModelTokenBudget(1, 1, 2),
+                                new com.enhancer.model.ModelCostBudget("USD", 0),
+                                java.time.Duration.ofMillis(1),
+                                com.enhancer.model.ModelDataClassification.PUBLIC)));
         MessagePayload result = new ResultPayload(
                 "gate-7-envelope-test",
                 "run-record/00000000-0000-0000-0000-000000000001",
@@ -60,16 +78,19 @@ class MessageEnvelopeTest {
                 SNAPSHOT_ID,
                 "run-record/00000000-0000-0000-0000-000000000002");
 
-        for (MessagePayload payload : new MessagePayload[] {work, result, control, handoff}) {
+        for (MessagePayload payload : new MessagePayload[] {
+                work, modelWork, result, control, handoff
+        }) {
             assertTrue(payload instanceof WorkPayload
+                    || payload instanceof ModelWorkPayload
                     || payload instanceof ResultPayload
                     || payload instanceof ControlPayload
                     || payload instanceof HandoffPayload);
         }
         assertEquals(
-                4,
+                5,
                 MessagePayload.class.getPermittedSubclasses().length,
-                "the payload hierarchy must stay sealed to exactly four kinds");
+                "the payload hierarchy must stay sealed to exactly five kinds");
     }
 
     @Test

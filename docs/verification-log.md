@@ -5984,3 +5984,18 @@ Outcome:
 - This delivery changed no product implementation, RFC contract, architecture,
   capability maturity, Roadmap milestone, schema, runtime, permission, tag, release,
   or deployment state.
+
+## 2026-08-21 - Typed Model Work Payload Increment Verification
+
+- An aligned RED selection for `ModelWorkPayloadTest` failed at `compileTestJava`
+  because the fifth payload type and its nested execution input did not yet exist.
+- The minimum implementation added one immutable `ModelWorkPayload`, exact retention
+  of one complete `ModelExecutionProfile`, bounded target and digest values, immutable
+  bounded Tool scope, and exact `model-invoke` scope membership without connecting a
+  Scheduler, runtime, durable store, Tool, gateway, provider, or network consumer.
+- The focused payload and envelope selection passed after implementation. The fresh
+  combined bus and architecture selection then passed 78 tests across 11 suites with
+  zero failures, errors, or skips under the README-owned Java 17 runner.
+- `git diff --check` was clean. This increment changes only the in-memory sealed value
+  algebra; model-work wire v2, legacy/cancellation golden bytes, and spool verification
+  remain the selected next increment.
