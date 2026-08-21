@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -85,7 +85,12 @@ destructive cleanup, additional implementation, RFC changes, and maturity promot
   remote `65151f7` was the local merge base; non-force `main:main` push fast-forwarded
   `65151f7..fe9810c`, fetched and advertised refs matched, and GitHub Actions run
   `32459449834` job `96703254396` succeeded with two dependency-deprecation warnings.
-- Increment 2 evidence is pending.
+- Increment 2: the exact first-push observation was committed as `ba8cf37` after 21
+  focused governance tests and clean diff checks. A fresh ancestry check then proved
+  remote `fe9810c` was the local merge base; non-force `main:main` push fast-forwarded
+  `fe9810c..ba8cf37`, fetched and advertised refs matched, and GitHub Actions run
+  `32459770696` job `96704190605` succeeded with the same two non-failing dependency-
+  deprecation warnings.
 
 ## Dynamic Workflow
 
@@ -115,7 +120,7 @@ bounded follow-up.
 
 ### Increment 2 - record-and-push-delivery-evidence
 
-State: In Progress
+State: Completed
 Depends On: verify-and-push-completed-model-work
 Scope: Append the exact delivery observation, complete the task cursor, verify the
 Markdown-sensitive repository, commit the bounded evidence update, recheck ancestry,
@@ -131,5 +136,5 @@ envelope/spool v2 golden-wire boundary under separate user continuation authorit
 
 ## Next
 
-Complete Increment 2 by committing and pushing the exact delivery observation, then
-verify final refs and external verification.
+Define and implement the typed `ModelWorkPayload` plus model-work-only envelope/spool v2
+golden-wire boundary without enabling Scheduler model execution.
