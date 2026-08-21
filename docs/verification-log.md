@@ -5895,3 +5895,20 @@ Outcome:
 - Every changed path was Markdown. No Java source, capability maturity, current caller,
   Tool, gateway, CLI, Scheduler, adapter, durable schema, routing, provider, network,
   credential, transmission, spend, release, or deployment state changed.
+
+## 2026-08-21 - Model Invocation Input Sourcing Specification Full Regression Verification
+
+- After the accepted RFC-0017 specification boundary was committed as `d7d4c43`, the
+  fresh unfiltered README-owned Java 17 Markdown-sensitive `test --no-daemon` task
+  completed with `BUILD SUCCESSFUL` in 1m 32s.
+- JUnit XML aggregation found 174 suites and 936 tests: 926 passed, 10 existing
+  environment-dependent cases skipped, zero failed, and zero errored under the
+  build-enforced `-Xlint:all -Werror` contract.
+- `PROJECT_STATE.md` remained unchanged because an Accepted source specification does
+  not establish a new implemented, integrated, operational, or released capability.
+  Architecture and RFC planning/index owners now name the accepted boundary; no
+  milestone status advanced.
+- Java source, current direct CLI and Scheduler behavior, Tool and gateway contracts,
+  message/submission/queue/runtime/spool/RunRecord schemas, routing, provider, network,
+  credential, transmission, spend, release, and deployment state remained unchanged.
+  `SESSION_HANDOFF.md` remained unchanged because no new session-only fact arose.

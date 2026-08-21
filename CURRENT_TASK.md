@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -88,6 +88,9 @@ deployment, push, merge, history rewrite, permission changes, and destructive cl
   evidence. Focused decision, ownership, workflow, approved-task, justification, and
   planner governance passed 21 tests across 6 suites with zero failures, errors, or
   skips; `git diff --check` was clean and every changed path was Markdown.
+- Increment 2: the fresh unfiltered README-owned Java 17 `test --no-daemon` task passed
+  936 tests across 174 suites with 10 existing environment-dependent skips, zero
+  failures, and zero errors. No Java source or capability maturity changed.
 
 ## Dynamic Workflow
 
@@ -115,7 +118,7 @@ Next Action: Run the full regression after committing the accepted specification
 
 ### Increment 2 - verify-and-close-rfc-0017
 
-State: In Progress
+State: Completed
 Depends On: define-and-accept-rfc-0017
 Scope: Run the full README-owned Java 17 regression, synchronize only changed lifecycle
 owners, rerun final Markdown governance, and close the task.
@@ -124,8 +127,10 @@ maturity claim appears, the closure is committed locally, and the worktree/check
 reach the intended clean stable state.
 Verification: Full `test`, focused governance, JUnit XML aggregation,
 `git diff --check`, and final Git/checkpoint inspection.
-Next Action: Complete and locally commit the RFC-0017 specification increment.
+Next Action: Commit the verified closure and clear the stable checkpoint.
 
 ## Next
 
-Commit the verified Increment 1 boundary, then run Increment 2 full regression.
+Define and accept the versioned Scheduler complete-profile source and transport
+contract covering typed model work input, message/submission/queue/runtime retention,
+recovery, migration, and no-default cutover without implementation.
