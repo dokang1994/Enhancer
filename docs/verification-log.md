@@ -5958,3 +5958,29 @@ Outcome:
   message/submission/queue/runtime/spool/RunRecord schemas, routing, provider, network,
   credential, transmission, spend, release, and deployment state remained unchanged.
   `SESSION_HANDOFF.md` remained unchanged because no new session-only fact arose.
+
+## 2026-08-21 - RFC-0016 Through RFC-0018 First Main Delivery Verification
+
+- The explicit delivery task was locally verified before its first push. Focused
+  governance passed 21 tests across 6 suites, and the fresh unfiltered README-owned
+  Java 17 `test --no-daemon` task passed 936 tests across 174 suites: 926 passed, 10
+  existing environment-dependent cases skipped, zero failed, and zero errored.
+- Delivery-authority commit `fe9810cba3a7c58f08f8080acb08abfa760d8ecb`
+  followed six previously completed commits on local `main`. A fresh fetch observed
+  `origin/main` at `65151f79236853b1efec27aeda3b75c82181c28d`; that exact ref was
+  both merge base and ancestor of the local head, and the worktree was clean.
+- Explicit non-force `git push origin main:main` fast-forwarded remote main through the
+  exact range `65151f7..fe9810c`. Because all commits already lay directly on local
+  `main`, this fast-forward is the requested merge; no temporary branch or synthetic
+  merge commit was created.
+- A post-push fetch and advertised-ref query both returned
+  `fe9810cba3a7c58f08f8080acb08abfa760d8ecb`, matching local `HEAD` and fetched
+  `origin/main`.
+- Push-triggered GitHub Actions workflow `verify` run `32459449834`, job
+  `96703254396`, completed successfully in 52 seconds. The runner emitted two
+  non-failing dependency warnings: Node.js 20 actions are being forced to Node.js 24,
+  and `actions/setup-java@v4` is deprecated in favor of v5. No test report was uploaded
+  because the verification did not fail.
+- This delivery changed no product implementation, RFC contract, architecture,
+  capability maturity, Roadmap milestone, schema, runtime, permission, tag, release,
+  or deployment state.
