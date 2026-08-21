@@ -5939,3 +5939,22 @@ Outcome:
   runtime behavior, capability maturity, provider, route, network, credential, spend,
   release, deployment, push, or merge state changed. `PROJECT_STATE.md` and
   `SESSION_HANDOFF.md` remained unchanged because no owning fact changed.
+
+## 2026-08-21 - Scheduler Model Profile Transport Full Regression Verification
+
+- After the accepted RFC-0018 specification boundary was committed as `abbaff2`, the
+  fresh unfiltered README-owned Java 17 Markdown-sensitive `test --no-daemon` task
+  completed with `BUILD SUCCESSFUL` in 1m 28s.
+- JUnit XML aggregation found 174 suites and 936 tests: 926 passed, 10 existing
+  environment-dependent cases skipped, zero failed, and zero errored under the
+  build-enforced `-Xlint:all -Werror` contract.
+- Final focused governance after lifecycle synchronization passed 21 tests across 6
+  suites with zero failures, errors, or skips, and `git diff --check` was clean.
+- `PROJECT_STATE.md` remained unchanged because an Accepted transport specification
+  does not establish a new implemented, integrated, operational, or released
+  capability. No milestone status advanced, so the existing Roadmap RFC index was the
+  only Roadmap change.
+- Java source, current CLI and Scheduler behavior, Tool and gateway contracts,
+  message/submission/queue/runtime/spool/RunRecord schemas, routing, provider, network,
+  credential, transmission, spend, release, and deployment state remained unchanged.
+  `SESSION_HANDOFF.md` remained unchanged because no new session-only fact arose.

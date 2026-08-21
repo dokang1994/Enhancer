@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -94,7 +94,10 @@ destructive cleanup.
   versioning, and stopped-owner fail-closed migration. Focused governance passed 21
   tests across 6 suites with zero failures, errors, or skips; `git diff --check` was
   clean and every changed path was Markdown.
-- Increment 2 evidence is pending.
+- Increment 2: the fresh unfiltered README-owned Java 17 `test --no-daemon` task passed
+  936 tests across 174 suites with 10 existing environment-dependent skips and zero
+  failures or errors. Final governance and `git diff --check` passed after lifecycle
+  synchronization. No implementation, schema, runtime, or maturity state changed.
 
 ## Dynamic Workflow
 
@@ -122,7 +125,7 @@ Next Action: Commit the verified RFC-0018 specification, then select Increment 2
 
 ### Increment 2 - verify-and-close-rfc-0018
 
-State: In Progress
+State: Completed
 Depends On: define-and-accept-rfc-0018
 Scope: Run the full README-owned Java 17 regression, synchronize only changed lifecycle
 owners, rerun final Markdown governance, and close the task.
@@ -131,8 +134,9 @@ maturity claim appears, the closure is committed locally, and the worktree/check
 reach the intended clean stable state.
 Verification: Full `test`, focused governance, JUnit XML aggregation,
 `git diff --check`, and final Git/checkpoint inspection.
-Next Action: Run the fresh full regression and close the RFC-0018 task.
+Next Action: Commit the verified closure and clear the stable checkpoint.
 
 ## Next
 
-Run the full regression and close RFC-0018 in Increment 2 after the Increment 1 commit.
+Define and implement the typed `ModelWorkPayload` plus model-work-only envelope/spool v2
+golden-wire boundary without enabling Scheduler model execution.
