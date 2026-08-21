@@ -6,10 +6,17 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.enhancer.kernel.VerificationStatus;
+import com.enhancer.model.ModelCostBudget;
+import com.enhancer.model.ModelDataClassification;
+import com.enhancer.model.ModelExecutionProfile;
+import com.enhancer.model.ModelLocalityRequirement;
+import com.enhancer.model.ModelReasoningRequirement;
+import com.enhancer.model.ModelTokenBudget;
 import com.enhancer.workspace.ApprovedTaskRevision;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -51,6 +58,8 @@ class FileSpoolMessageTransportTest {
 
         List<TransportMessage> messages = List.of(
                 new TransportMessage(DeliveryDestination.queue("work"), envelope(workPayload())),
+                new TransportMessage(
+                        DeliveryDestination.queue("model-work"), envelope(modelWorkPayload())),
                 new TransportMessage(DeliveryDestination.topic("results"), envelope(
                         new ResultPayload("gate-8", "run-record/" + UUID.randomUUID(),
                                 VerificationStatus.VERIFIED))),
@@ -176,6 +185,24 @@ class FileSpoolMessageTransportTest {
                 "resending the same envelope must never overwrite an earlier hop");
     }
 
+    @Test
+    void spoolsIdenticalModelWorkBytesForTheSameMessage() throws IOException {
+        Path spool = temporaryRoot.resolve("deterministic-model-spool");
+        FileSpoolMessageTransport transport =
+                new FileSpoolMessageTransport(spool, BackpressurePolicy.standard());
+        TransportMessage message = new TransportMessage(
+                DeliveryDestination.queue("model-work"), envelope(modelWorkPayload()));
+
+        transport.send(message);
+        transport.send(message);
+
+        List<Path> spooled = spooledFiles(spool);
+        assertEquals(2, spooled.size());
+        org.junit.jupiter.api.Assertions.assertArrayEquals(
+                Files.readAllBytes(spooled.get(0)), Files.readAllBytes(spooled.get(1)));
+        assertEquals(message, FileSpoolMessageTransport.read(spooled.get(0)));
+    }
+
     private static MessageEnvelope envelope(MessagePayload payload) {
         return new MessageEnvelope(
                 UUID.randomUUID().toString(),
@@ -193,6 +220,26 @@ class FileSpoolMessageTransportTest {
                 SNAPSHOT_ID,
                 Set.of("read-file"),
                 Optional.of(new WorkPayload.ExecutionInput("README.md", SOURCE_SHA)));
+    }
+
+    private static ModelWorkPayload modelWorkPayload() {
+        ModelExecutionProfile profile = new ModelExecutionProfile(
+                ModelExecutionProfile.SCHEMA_VERSION,
+                "repository-analysis",
+                "reasoning-standard",
+                ModelLocalityRequirement.LOCAL_ONLY,
+                ModelReasoningRequirement.STANDARD,
+                8192,
+                new ModelTokenBudget(2048, 1024, 4096),
+                new ModelCostBudget("USD", 10_000),
+                Duration.ofSeconds(30),
+                ModelDataClassification.CONFIDENTIAL);
+        return new ModelWorkPayload(
+                revision(),
+                SNAPSHOT_ID,
+                Set.of("model-invoke", "read-file"),
+                new ModelWorkPayload.ModelInvocationExecutionInput(
+                        "docs/prompt.md", "d".repeat(64), profile));
     }
 
     private static ApprovedTaskRevision revision() {

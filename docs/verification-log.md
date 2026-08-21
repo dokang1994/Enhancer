@@ -5999,3 +5999,25 @@ Outcome:
 - `git diff --check` was clean. This increment changes only the in-memory sealed value
   algebra; model-work wire v2, legacy/cancellation golden bytes, and spool verification
   remain the selected next increment.
+
+## 2026-08-21 - Model Work Golden-Wire Increment Verification
+
+- The aligned codec RED failed because the existing v1-only codec rejected the new
+  `ModelWorkPayload` as unsupported. Literal v1 Work, Result, Control, and Handoff
+  frame fixtures plus detached-cancellation request and claims fixtures were captured
+  from the unchanged implementation first and passed independently.
+- The minimum codec change selects one inseparable codec/envelope family by payload:
+  existing four payload kinds retain transport-spool v1 plus message-envelope v1, and
+  only ModelWork uses transport-spool v2 plus message-envelope v2 and the explicit
+  `model-work-payload-v1` representation.
+- The v2 representation writes every RFC-0014 profile component in constructor order,
+  reconstructs the existing validated records, canonicalizes Tool order, rejects
+  duplicates, unknown versions and enums, invalid duration precision, noncanonical
+  order, trailing/corrupt input, and every tested cross-family combination.
+- Focused codec, file-spool, and cancellation verification passed 33 tests across 3
+  suites. Expanded bus, model, architecture, and cancellation regression passed 152
+  tests across 20 suites with zero failures, errors, or skips. `git diff --check` was
+  clean.
+- No submission, queue, AgentRuntime, WorkItem, Scheduler, process worker, CLI, Tool,
+  RunRecord, admission, gateway, adapter/provider, route, network, credential, spend,
+  migration, artifact, push, merge, release, or deployment behavior was connected.

@@ -5,6 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.enhancer.kernel.VerificationStatus;
+import com.enhancer.model.ModelCostBudget;
+import com.enhancer.model.ModelDataClassification;
+import com.enhancer.model.ModelExecutionProfile;
+import com.enhancer.model.ModelLocalityRequirement;
+import com.enhancer.model.ModelReasoningRequirement;
+import com.enhancer.model.ModelTokenBudget;
 import com.enhancer.workspace.ApprovedTaskRevision;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -12,7 +18,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -38,8 +46,121 @@ class MessageEnvelopeCodecTest {
 
     private static final int FRAME_MAGIC = 0x53504C31;
     private static final String CODEC_VERSION = "transport-spool-v1";
+    private static final String MODEL_WORK_CODEC_VERSION = "transport-spool-v2";
+    private static final String MODEL_WORK_ENVELOPE_VERSION = "message-envelope-v2";
+    private static final String MODEL_WORK_PAYLOAD_VERSION = "model-work-payload-v1";
+
+    private static final String LEGACY_WORK_FRAME =
+            "U1BMMQAAAg51xiHJZRQS8/NVT0aBhJMI6Zlt95qq/jVvWq3ihJbIHAAAABJ0cmFuc3BvcnQtc3Bvb2wtdjEAAAAFUVVFVUUAAAAMd29ya2VyLXRhc2tzAAAAE21lc3NhZ2UtZW52ZWxvcGUtdjEAAAAkMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMGExAAAAE2NvcnJlbGF0aW9uLXNwb29sLTEBAAAAJDAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDBjMQAAABNsb2dpY2FsLXJ1bi1zcG9vbC0xAAAAFGFnZW50LWxvb3Atw7DFuMWh4oKsAAAAAGpd1YAHW80VAAAABFdPUksAAAAbZ2F0ZS04LWZpbGUtc3Bvb2wtdHJhbnNwb3J0AAAAD0NVUlJFTlRfVEFTSy5tZAAAAEBhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhAAAAQGJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmIAAAABAAAACXJlYWQtZmlsZQEAAAAJUkVBRE1FLm1kAAAAQGNjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2M=";
+    private static final String LEGACY_RESULT_FRAME =
+            "U1BMMQAAASvo8lPQev2xjHDs8ZGCWBl1JMZb8/5AMBDeKpBArxID1wAAABJ0cmFuc3Bv"
+                    + "cnQtc3Bvb2wtdjEAAAAFVE9QSUMAAAAOcnVudGltZS1ldmVudHMAAAATbWVzc2FnZS1lbnZl"
+                    + "bG9wZS12MQAAACQwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwYTEAAAAT"
+                    + "Y29ycmVsYXRpb24tc3Bvb2wtMQAAAAATbG9naWNhbC1ydW4tc3Bvb2wtMQAAABRhZ2VudC1s"
+                    + "b29wLcOwxbjFoeKCrAAAAABqXdWAB1vNFQAAAAZSRVNVTFQAAAAbZ2F0ZS04LWZpbGUtc3Bv"
+                    + "b2wtdHJhbnNwb3J0AAAAL3J1bi1yZWNvcmQvMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAw"
+                    + "MDAwMDAwMGQxAAAACFZFUklGSUVE";
+    private static final String LEGACY_CONTROL_FRAME =
+            "U1BMMQAAAQ7ieZ+N/llLY4YVeC6Byku6W3FXB12b9PR5qIyTHR7k/wAAABJ0cmFuc3Bv"
+                    + "cnQtc3Bvb2wtdjEAAAAFVE9QSUMAAAAIY29udHJvbHMAAAATbWVzc2FnZS1lbnZlbG9wZS12"
+                    + "MQAAACQwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwYTEAAAATY29ycmVs"
+                    + "YXRpb24tc3Bvb2wtMQEAAAAkMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMGMx"
+                    + "AAAAE2xvZ2ljYWwtcnVuLXNwb29sLTEAAAAUYWdlbnQtbG9vcC3DsMW4xaHigqwAAAAAal3Vg"
+                    + "AdbzRUAAAAHQ09OVFJPTAAAAAZDQU5DRUwAAAAQb3BlcmF0b3IgcmVxdWVzdA==";
+    private static final String LEGACY_HANDOFF_FRAME =
+            "U1BMMQAAAbWHPvosV/R2UmvLOAPDyDVER43SKRPFi/UiSHoI5d0YQAAAABJ0cmFuc3BvcnQtc3Bvb2wtdjEAAAAFUVVFVUUAAAAIcmV2aWV3ZXIAAAATbWVzc2FnZS1lbnZlbG9wZS12MQAAACQwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwYTEAAAATY29ycmVsYXRpb24tc3Bvb2wtMQAAAAATbG9naWNhbC1ydW4tc3Bvb2wtMQAAABRhZ2VudC1sb29wLcOwxbjFoeKCrAAAAABqXdWAB1vNFQAAAAdIQU5ET0ZGAAAAG2dhdGUtOC1maWxlLXNwb29sLXRyYW5zcG9ydAAAAA9DVVJSRU5UX1RBU0subWQAAABAYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYQAAAEBlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlAAAAL3J1bi1yZWNvcmQvMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMGUx";
 
     private final MessageEnvelopeCodec codec = new MessageEnvelopeCodec();
+
+    @Test
+    void preservesEveryLegacyPayloadFrameByteForByte() {
+        assertEquals(LEGACY_WORK_FRAME,
+                Base64.getEncoder().encodeToString(codec.encode(legacyWorkMessage())));
+        assertEquals(LEGACY_RESULT_FRAME,
+                Base64.getEncoder().encodeToString(codec.encode(resultMessage())));
+        assertEquals(LEGACY_CONTROL_FRAME,
+                Base64.getEncoder().encodeToString(codec.encode(legacyControlMessage())));
+        assertEquals(LEGACY_HANDOFF_FRAME,
+                Base64.getEncoder().encodeToString(codec.encode(legacyHandoffMessage())));
+    }
+
+    @Test
+    void roundTripsOneExactCompleteModelWorkProfileWithCanonicalBytes() throws Exception {
+        TransportMessage message = modelWorkMessage(Set.of("read-file", "model-invoke"));
+        byte[] expected = frame(modelWorkBody(
+                MODEL_WORK_CODEC_VERSION,
+                MODEL_WORK_ENVELOPE_VERSION,
+                "MODEL_WORK",
+                MODEL_WORK_PAYLOAD_VERSION,
+                new String[] {"model-invoke", "read-file"},
+                ModelExecutionProfile.SCHEMA_VERSION,
+                ModelLocalityRequirement.LOCAL_ONLY.name(),
+                0));
+
+        assertArrayEquals(expected, codec.encode(message));
+        assertEquals(message, codec.decode(expected));
+        assertEquals(OCCURRED_AT, codec.decode(expected).envelope().occurredAt());
+
+        LinkedHashSet<String> reversed = new LinkedHashSet<>();
+        reversed.add("read-file");
+        reversed.add("model-invoke");
+        assertArrayEquals(codec.encode(message), codec.encode(modelWorkMessage(reversed)));
+    }
+
+    @Test
+    void rejectsEveryCrossFamilyOrNonCanonicalModelWorkBody() throws Exception {
+        assertThrows(CorruptedSpooledMessageException.class, () -> codec.decode(frame(
+                modelWorkBody(CODEC_VERSION, MessageEnvelope.ENVELOPE_VERSION,
+                        "MODEL_WORK", MODEL_WORK_PAYLOAD_VERSION,
+                        new String[] {"model-invoke"}, ModelExecutionProfile.SCHEMA_VERSION,
+                        ModelLocalityRequirement.LOCAL_ONLY.name(), 0))));
+        assertThrows(CorruptedSpooledMessageException.class, () -> codec.decode(frame(
+                resultBody(MODEL_WORK_CODEC_VERSION, MODEL_WORK_ENVELOPE_VERSION,
+                        "TOPIC", "RESULT", "VERIFIED"))));
+        assertThrows(CorruptedSpooledMessageException.class, () -> codec.decode(frame(
+                modelWorkBody(MODEL_WORK_CODEC_VERSION, MessageEnvelope.ENVELOPE_VERSION,
+                        "MODEL_WORK", MODEL_WORK_PAYLOAD_VERSION,
+                        new String[] {"model-invoke"}, ModelExecutionProfile.SCHEMA_VERSION,
+                        ModelLocalityRequirement.LOCAL_ONLY.name(), 0))));
+        assertThrows(CorruptedSpooledMessageException.class, () -> codec.decode(frame(
+                modelWorkBody(CODEC_VERSION, MODEL_WORK_ENVELOPE_VERSION,
+                        "MODEL_WORK", MODEL_WORK_PAYLOAD_VERSION,
+                        new String[] {"model-invoke"}, ModelExecutionProfile.SCHEMA_VERSION,
+                        ModelLocalityRequirement.LOCAL_ONLY.name(), 0))));
+        assertThrows(CorruptedSpooledMessageException.class, () -> codec.decode(frame(
+                modelWorkBody(MODEL_WORK_CODEC_VERSION, MODEL_WORK_ENVELOPE_VERSION,
+                        "MODEL_WORK", MODEL_WORK_PAYLOAD_VERSION,
+                        new String[] {"read-file", "model-invoke"},
+                        ModelExecutionProfile.SCHEMA_VERSION,
+                        ModelLocalityRequirement.LOCAL_ONLY.name(), 0))));
+        assertThrows(CorruptedSpooledMessageException.class, () -> codec.decode(frame(
+                modelWorkBody(MODEL_WORK_CODEC_VERSION, MODEL_WORK_ENVELOPE_VERSION,
+                        "MODEL_WORK", MODEL_WORK_PAYLOAD_VERSION,
+                        new String[] {"model-invoke", "model-invoke"},
+                        ModelExecutionProfile.SCHEMA_VERSION,
+                        ModelLocalityRequirement.LOCAL_ONLY.name(), 0))));
+    }
+
+    @Test
+    void rejectsUnknownOrInvalidModelWorkVersionsAndProfileValues() throws Exception {
+        assertRejectsModelBody("MODEL_WORK", "model-work-payload-v2",
+                ModelExecutionProfile.SCHEMA_VERSION,
+                ModelLocalityRequirement.LOCAL_ONLY.name(), 0);
+        assertRejectsModelBody("MODEL_TELEMETRY", MODEL_WORK_PAYLOAD_VERSION,
+                ModelExecutionProfile.SCHEMA_VERSION,
+                ModelLocalityRequirement.LOCAL_ONLY.name(), 0);
+        assertRejectsModelBody("MODEL_WORK", MODEL_WORK_PAYLOAD_VERSION,
+                "model-execution-profile-v2",
+                ModelLocalityRequirement.LOCAL_ONLY.name(), 0);
+        assertRejectsModelBody("MODEL_WORK", MODEL_WORK_PAYLOAD_VERSION,
+                ModelExecutionProfile.SCHEMA_VERSION, "REMOTE_ALLOWED", 0);
+        assertRejectsModelBody("MODEL_WORK", MODEL_WORK_PAYLOAD_VERSION,
+                ModelExecutionProfile.SCHEMA_VERSION,
+                ModelLocalityRequirement.LOCAL_ONLY.name(), 1_000_000_000);
+        assertRejectsModelBody("MODEL_WORK", MODEL_WORK_PAYLOAD_VERSION,
+                ModelExecutionProfile.SCHEMA_VERSION,
+                ModelLocalityRequirement.LOCAL_ONLY.name(), 1_500_000);
+    }
 
     @Test
     void roundTripsAWorkMessageWithExecutionInputAndCausation() throws Exception {
@@ -151,6 +272,11 @@ class MessageEnvelopeCodecTest {
 
         assertThrows(CorruptedSpooledMessageException.class,
                 () -> codec.decode(frame(
+                        resultBody("transport-spool-v3", "TOPIC", "RESULT", "VERIFIED"))),
+                "an unknown codec version must be refused");
+
+        assertThrows(CorruptedSpooledMessageException.class,
+                () -> codec.decode(frame(
                         resultBody(CODEC_VERSION, "MULTICAST", "RESULT", "VERIFIED"))),
                 "an unknown destination kind must be refused");
 
@@ -199,6 +325,133 @@ class MessageEnvelopeCodecTest {
         });
 
         assertThrows(CorruptedSpooledMessageException.class, () -> codec.decode(frame(body)));
+    }
+
+    private void assertRejectsModelBody(
+            String kind,
+            String payloadVersion,
+            String profileVersion,
+            String locality,
+            int durationNanos) throws Exception {
+        byte[] body = modelWorkBody(
+                MODEL_WORK_CODEC_VERSION,
+                MODEL_WORK_ENVELOPE_VERSION,
+                kind,
+                payloadVersion,
+                new String[] {"model-invoke"},
+                profileVersion,
+                locality,
+                durationNanos);
+        assertThrows(CorruptedSpooledMessageException.class, () -> codec.decode(frame(body)));
+    }
+
+    private static byte[] modelWorkBody(
+            String codecVersion,
+            String envelopeVersion,
+            String payloadKind,
+            String payloadVersion,
+            String[] tools,
+            String profileVersion,
+            String locality,
+            int durationNanos) throws IOException {
+        return body(output -> {
+            writeString(output, codecVersion);
+            writeString(output, "QUEUE");
+            writeString(output, "model-work");
+            writeString(output, envelopeVersion);
+            writeString(output, MESSAGE_ID);
+            writeString(output, "correlation-spool-1");
+            output.writeBoolean(false);
+            writeString(output, "logical-run-spool-1");
+            writeString(output, "agent-loop");
+            output.writeLong(OCCURRED_AT.getEpochSecond());
+            output.writeInt(OCCURRED_AT.getNano());
+            writeString(output, payloadKind);
+            writeString(output, payloadVersion);
+            writeString(output, TASK_REVISION.taskId());
+            writeString(output, TASK_REVISION.sourceDocument());
+            writeString(output, TASK_REVISION.sourceSha256());
+            writeString(output, SNAPSHOT_ID);
+            output.writeInt(tools.length);
+            for (String tool : tools) {
+                writeString(output, tool);
+            }
+            writeString(output, "docs/prompt.md");
+            writeString(output, "d".repeat(64));
+            writeString(output, profileVersion);
+            writeString(output, "repository-analysis");
+            writeString(output, "reasoning-standard");
+            writeString(output, locality);
+            writeString(output, ModelReasoningRequirement.STANDARD.name());
+            output.writeLong(8192);
+            output.writeLong(2048);
+            output.writeLong(1024);
+            output.writeLong(4096);
+            writeString(output, "USD");
+            output.writeLong(10_000);
+            output.writeLong(30);
+            output.writeInt(durationNanos);
+            writeString(output, ModelDataClassification.CONFIDENTIAL.name());
+        });
+    }
+
+    private static TransportMessage modelWorkMessage(Set<String> tools) {
+        return new TransportMessage(
+                DeliveryDestination.queue("model-work"),
+                new MessageEnvelope(
+                        MESSAGE_ID,
+                        "correlation-spool-1",
+                        Optional.empty(),
+                        "logical-run-spool-1",
+                        "agent-loop",
+                        OCCURRED_AT,
+                        new ModelWorkPayload(
+                                TASK_REVISION,
+                                SNAPSHOT_ID,
+                                tools,
+                                new ModelWorkPayload.ModelInvocationExecutionInput(
+                                        "docs/prompt.md", "d".repeat(64), modelProfile()))));
+    }
+
+    private static ModelExecutionProfile modelProfile() {
+        return new ModelExecutionProfile(
+                ModelExecutionProfile.SCHEMA_VERSION,
+                "repository-analysis",
+                "reasoning-standard",
+                ModelLocalityRequirement.LOCAL_ONLY,
+                ModelReasoningRequirement.STANDARD,
+                8192,
+                new ModelTokenBudget(2048, 1024, 4096),
+                new ModelCostBudget("USD", 10_000),
+                Duration.ofSeconds(30),
+                ModelDataClassification.CONFIDENTIAL);
+    }
+
+    private static TransportMessage legacyWorkMessage() {
+        return new TransportMessage(
+                DeliveryDestination.queue("worker-tasks"),
+                envelope(Optional.of(CAUSATION_ID), new WorkPayload(
+                        TASK_REVISION,
+                        SNAPSHOT_ID,
+                        Set.of("read-file"),
+                        Optional.of(new WorkPayload.ExecutionInput(
+                                "README.md", "c".repeat(64))))));
+    }
+
+    private static TransportMessage legacyControlMessage() {
+        return new TransportMessage(
+                DeliveryDestination.topic("controls"),
+                envelope(Optional.of(CAUSATION_ID),
+                        new ControlPayload(ControlSignal.CANCEL, "operator request")));
+    }
+
+    private static TransportMessage legacyHandoffMessage() {
+        return new TransportMessage(
+                DeliveryDestination.queue("reviewer"),
+                envelope(Optional.empty(), new HandoffPayload(
+                        TASK_REVISION,
+                        "e".repeat(64),
+                        "run-record/00000000-0000-0000-0000-0000000000e1")));
     }
 
     private static TransportMessage resultMessage() {

@@ -94,6 +94,11 @@ the declared checks complete.
   minimum value implementation, the focused payload/envelope selection passed, and
   the combined bus plus architecture selection passed 78 tests across 11 suites with
   zero failures, errors, or skips. `git diff --check` was clean.
+- Increment 2: the aligned codec RED failed because the v1-only codec rejected
+  `ModelWorkPayload`. After the minimum family implementation, focused codec, spool,
+  and cancellation tests passed 33 tests across 3 suites; expanded bus, model,
+  architecture, and cancellation regression passed 152 tests across 20 suites with
+  zero failures, errors, or skips. `git diff --check` was clean.
 
 ## Dynamic Workflow
 
@@ -121,7 +126,7 @@ Next Action: Add the model-work-only v2 codec family after reading Increment 1 e
 
 ### Increment 2 - add-model-work-wire-v2
 
-State: In Progress
+State: Completed
 Depends On: add-typed-model-work-payload
 Scope: Establish codec RED tests, implement canonical model-work v2 encoding/decoding,
 pin existing v1 and cancellation golden bytes, and reject all cross-family/corrupt
@@ -135,7 +140,7 @@ Next Action: Run full verification and synchronize lifecycle owners.
 
 ### Increment 3 - verify-and-close-model-work-wire
 
-State: Pending
+State: In Progress
 Depends On: add-model-work-wire-v2
 Scope: Run the full README-owned Java 17 regression, synchronize only owning documents,
 rerun final governance, and close the task without runtime or durable-schema claims.
@@ -149,5 +154,4 @@ separate authority.
 
 ## Next
 
-Complete Increment 2, then select Increment 3 only after reading its fresh dependency
-evidence.
+Complete Increment 3 and close the task after fresh full and final focused evidence.

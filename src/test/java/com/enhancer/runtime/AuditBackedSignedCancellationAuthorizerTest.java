@@ -26,6 +26,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Optional;
@@ -58,6 +59,39 @@ class AuditBackedSignedCancellationAuthorizerTest {
 
     @TempDir
     Path temporaryRoot;
+
+    @Test
+    void preservesCancellationRequestAndClaimsGoldenBytes() {
+        MessageEnvelope retainedRequest = request(
+                "operator requested cancellation", ISSUED_AT);
+        String requestSha256 = DetachedSignedCancellationGrant.requestSha256(retainedRequest);
+        DetachedSignedCancellationGrant.Claims claims =
+                new DetachedSignedCancellationGrant.Claims(
+                        AUDIENCE,
+                        GOAL_ID,
+                        CONTROL_MESSAGE_ID,
+                        requestSha256,
+                        AUTHORIZATION_ID,
+                        ISSUER_ID,
+                        KEY_ID,
+                        SUBJECT_ID,
+                        POLICY_REVISION,
+                        ISSUED_AT,
+                        EXPIRES_AT);
+
+        assertEquals(
+                "3428fd2cb5f24da240454f71b0ce07ecd129e9dc0e0e6eaecb673f37cfba60d4",
+                requestSha256);
+        assertEquals(
+                "AAAAJGVuaGFuY2VyOmRldGFjaGVkLWNhbmNlbGxhdGlvbi1ncmFudAAAAAhncmFudC12MQAA"
+                        + "ABZlbmhhbmNlci1sb2NhbC1jb250cm9sAAAAJDAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAw"
+                        + "MDAwMDAwYTEwMQAAACQwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMGExMDMAAABA"
+                        + "MzQyOGZkMmNiNWYyNGRhMjQwNDU0ZjcxYjBjZTA3ZWNkMTI5ZTlkYzBlMGU2ZWFlY2I2NzNm"
+                        + "MzdjZmJhNjBkNAAAAAZDQU5DRUwAAAAkMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAw"
+                        + "MDBhMTA0AAAACm9wZXJhdGlvbnMAAAAMcHJpbWFyeS0yMDI2AAAAC29wZXJhdG9yLTE3AAAA"
+                        + "EGNhbmNlbC1wb2xpY3ktdjEAAAAMAAAAAGp68qAAAAAAAAAADAAAAABqevT4AAAAAA==",
+                Base64.getEncoder().encodeToString(claims.signingBytes()));
+    }
 
     @Test
     void canonicalGrantRoundTripsAndEveryRetainedRequestFactChangesItsDigest()

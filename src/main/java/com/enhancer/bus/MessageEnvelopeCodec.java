@@ -1,6 +1,12 @@
 package com.enhancer.bus;
 
 import com.enhancer.kernel.VerificationStatus;
+import com.enhancer.model.ModelCostBudget;
+import com.enhancer.model.ModelDataClassification;
+import com.enhancer.model.ModelExecutionProfile;
+import com.enhancer.model.ModelLocalityRequirement;
+import com.enhancer.model.ModelReasoningRequirement;
+import com.enhancer.model.ModelTokenBudget;
 import com.enhancer.workspace.ApprovedTaskRevision;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -16,14 +22,18 @@ import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 /**
  * Deterministic, integrity-checked codec between one {@link TransportMessage} — its destination
- * plus the full four-kind {@link MessageEnvelope} — and a self-describing byte frame.
+ * plus one typed {@link MessageEnvelope} — and a self-describing byte frame.
  *
  * <p>The frame is {@code [magic][bodyLength][sha-256 of body][body]}. Decoding validates the
  * magic, length, digest, strict UTF-8, exact body consumption, and every envelope invariant,
@@ -35,10 +45,14 @@ import java.util.Set;
  * would silently rewrite provenance the receiver is meant to trust.
  *
  * <p>This is separate from any transport so the wire format can be verified without a
- * filesystem, and so a second adapter can reuse it unchanged.
+ * filesystem, and so a second adapter can reuse it unchanged. Legacy payloads retain their
+ * v1 family; only {@link ModelWorkPayload} uses the v2 family.
  */
 final class MessageEnvelopeCodec {
     static final String CODEC_VERSION = "transport-spool-v1";
+    static final String MODEL_WORK_CODEC_VERSION = "transport-spool-v2";
+    static final String MODEL_WORK_ENVELOPE_VERSION = "message-envelope-v2";
+    static final String MODEL_WORK_PAYLOAD_VERSION = "model-work-payload-v1";
     static final int MAX_MESSAGE_BYTES = 1024 * 1024;
 
     private static final int FRAME_MAGIC = 0x53504C31;
@@ -48,6 +62,7 @@ final class MessageEnvelopeCodec {
     private static final String KIND_RESULT = "RESULT";
     private static final String KIND_CONTROL = "CONTROL";
     private static final String KIND_HANDOFF = "HANDOFF";
+    private static final String KIND_MODEL_WORK = "MODEL_WORK";
 
     byte[] encode(TransportMessage message) {
         byte[] body = encodeBody(message);
@@ -105,12 +120,13 @@ final class MessageEnvelopeCodec {
     private byte[] encodeBody(TransportMessage message) {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         try (DataOutputStream output = new DataOutputStream(buffer)) {
-            writeString(output, CODEC_VERSION);
+            MessageEnvelope envelope = message.envelope();
+            WireFamily family = WireFamily.forPayload(envelope.payload());
+            writeString(output, family.codecVersion());
             writeString(output, message.destination().kind().name());
             writeString(output, message.destination().name());
 
-            MessageEnvelope envelope = message.envelope();
-            writeString(output, MessageEnvelope.ENVELOPE_VERSION);
+            writeString(output, family.envelopeVersion());
             writeString(output, envelope.messageId());
             writeString(output, envelope.correlationId());
             writeOptionalString(output, envelope.causationId());
@@ -118,7 +134,7 @@ final class MessageEnvelopeCodec {
             writeString(output, envelope.producer());
             output.writeLong(envelope.occurredAt().getEpochSecond());
             output.writeInt(envelope.occurredAt().getNano());
-            writePayload(output, envelope.payload());
+            writePayload(output, envelope.payload(), family);
         } catch (IOException impossible) {
             throw new UncheckedIOException(
                     "encoding a transport message must not fail", impossible);
@@ -126,8 +142,16 @@ final class MessageEnvelopeCodec {
         return buffer.toByteArray();
     }
 
-    private void writePayload(DataOutputStream output, MessagePayload payload) throws IOException {
-        if (payload instanceof WorkPayload work) {
+    private void writePayload(
+            DataOutputStream output,
+            MessagePayload payload,
+            WireFamily family) throws IOException {
+        if (family == WireFamily.MODEL_WORK_V2) {
+            if (!(payload instanceof ModelWorkPayload modelWork)) {
+                throw new IOException("model-work wire family requires model work");
+            }
+            writeModelWorkPayload(output, modelWork);
+        } else if (payload instanceof WorkPayload work) {
             writeString(output, KIND_WORK);
             writeRevision(output, work.taskRevision());
             writeString(output, work.snapshotId());
@@ -152,30 +176,50 @@ final class MessageEnvelopeCodec {
         }
     }
 
+    private void writeModelWorkPayload(
+            DataOutputStream output,
+            ModelWorkPayload payload) throws IOException {
+        writeString(output, KIND_MODEL_WORK);
+        writeString(output, MODEL_WORK_PAYLOAD_VERSION);
+        writeRevision(output, payload.taskRevision());
+        writeString(output, payload.snapshotId());
+        writeCanonicalStringSet(output, payload.allowedTools());
+        ModelWorkPayload.ModelInvocationExecutionInput input = payload.executionInput();
+        writeString(output, input.targetPath());
+        writeString(output, input.expectedResponseSha256());
+        writeProfile(output, input.executionProfile());
+    }
+
     private TransportMessage decodeBody(byte[] body) throws CorruptedSpooledMessageException {
         DataInputStream input = new DataInputStream(new ByteArrayInputStream(body));
         try {
-            requireEquals(readString(input), CODEC_VERSION, "codec version");
+            WireFamily family = WireFamily.fromCodecVersion(readString(input));
             DeliveryDestination destination = new DeliveryDestination(
                     readEnum(input, DeliveryDestinationKind.class, "destination kind"),
                     readString(input));
 
-            requireEquals(readString(input), MessageEnvelope.ENVELOPE_VERSION, "envelope version");
+            requireEquals(readString(input), family.envelopeVersion(), "envelope version");
             String messageId = readString(input);
             String correlationId = readString(input);
             Optional<String> causationId = readOptionalString(input);
             String logicalRunId = readString(input);
             String producer = readString(input);
             Instant occurredAt = Instant.ofEpochSecond(input.readLong(), input.readInt());
-            MessagePayload payload = readPayload(input);
+            MessagePayload payload = readPayload(input, family);
 
             if (input.read() != -1) {
                 throw new CorruptedSpooledMessageException(
                         "spooled message body has trailing bytes");
             }
-            return new TransportMessage(destination, new MessageEnvelope(
+            TransportMessage message = new TransportMessage(destination, new MessageEnvelope(
                     messageId, correlationId, causationId, logicalRunId, producer,
                     occurredAt, payload));
+            if (family == WireFamily.MODEL_WORK_V2
+                    && !MessageDigest.isEqual(body, encodeBody(message))) {
+                throw new CorruptedSpooledMessageException(
+                        "spooled model-work message body is not canonical");
+            }
+            return message;
         } catch (EOFException truncated) {
             throw new CorruptedSpooledMessageException(
                     "spooled message body is truncated", truncated);
@@ -190,8 +234,16 @@ final class MessageEnvelopeCodec {
         }
     }
 
-    private MessagePayload readPayload(DataInputStream input) throws IOException {
+    private MessagePayload readPayload(DataInputStream input, WireFamily family)
+            throws IOException {
         String kind = readString(input);
+        if (family == WireFamily.MODEL_WORK_V2) {
+            if (!KIND_MODEL_WORK.equals(kind)) {
+                throw new CorruptedSpooledMessageException(
+                        "spooled message payload kind is unsupported");
+            }
+            return readModelWorkPayload(input);
+        }
         return switch (kind) {
             case KIND_WORK -> new WorkPayload(
                     readRevision(input),
@@ -210,6 +262,23 @@ final class MessageEnvelopeCodec {
             default -> throw new CorruptedSpooledMessageException(
                     "spooled message payload kind is unsupported");
         };
+    }
+
+    private ModelWorkPayload readModelWorkPayload(DataInputStream input) throws IOException {
+        requireEquals(
+                readString(input), MODEL_WORK_PAYLOAD_VERSION, "model-work payload version");
+        ApprovedTaskRevision revision = readRevision(input);
+        String snapshotId = readString(input);
+        Set<String> allowedTools = readCanonicalStringSet(input);
+        String targetPath = readString(input);
+        String expectedResponseSha256 = readString(input);
+        ModelExecutionProfile profile = readProfile(input);
+        return new ModelWorkPayload(
+                revision,
+                snapshotId,
+                allowedTools,
+                new ModelWorkPayload.ModelInvocationExecutionInput(
+                        targetPath, expectedResponseSha256, profile));
     }
 
     private void writeRevision(DataOutputStream output, ApprovedTaskRevision revision)
@@ -260,6 +329,86 @@ final class MessageEnvelopeCodec {
             values.add(readString(input));
         }
         return values;
+    }
+
+    private void writeCanonicalStringSet(DataOutputStream output, Set<String> values)
+            throws IOException {
+        List<String> canonical = new ArrayList<>(values);
+        Collections.sort(canonical);
+        output.writeInt(canonical.size());
+        for (String value : canonical) {
+            writeString(output, value);
+        }
+    }
+
+    private Set<String> readCanonicalStringSet(DataInputStream input) throws IOException {
+        int size = input.readInt();
+        if (size <= 0 || size > ModelWorkPayload.MAX_ALLOWED_TOOLS) {
+            throw new CorruptedSpooledMessageException(
+                    "spooled model-work collection size is invalid");
+        }
+        Set<String> values = new LinkedHashSet<>();
+        for (int index = 0; index < size; index++) {
+            if (!values.add(readString(input))) {
+                throw new CorruptedSpooledMessageException(
+                        "spooled model-work collection contains a duplicate");
+            }
+        }
+        return values;
+    }
+
+    private void writeProfile(DataOutputStream output, ModelExecutionProfile profile)
+            throws IOException {
+        writeString(output, profile.schemaVersion());
+        writeString(output, profile.requiredCapability());
+        writeString(output, profile.modelClass());
+        writeString(output, profile.localityRequirement().name());
+        writeString(output, profile.reasoningRequirement().name());
+        output.writeLong(profile.minimumContextTokens());
+        output.writeLong(profile.tokenBudget().maxInputTokens());
+        output.writeLong(profile.tokenBudget().maxOutputTokens());
+        output.writeLong(profile.tokenBudget().maxTotalTokens());
+        writeString(output, profile.costBudget().currencyCode());
+        output.writeLong(profile.costBudget().maxMicrounits());
+        output.writeLong(profile.maximumInvocationTime().getSeconds());
+        output.writeInt(profile.maximumInvocationTime().getNano());
+        writeString(output, profile.dataClassification().name());
+    }
+
+    private ModelExecutionProfile readProfile(DataInputStream input) throws IOException {
+        String schemaVersion = readString(input);
+        String requiredCapability = readString(input);
+        String modelClass = readString(input);
+        ModelLocalityRequirement locality = readEnum(
+                input, ModelLocalityRequirement.class, "model locality requirement");
+        ModelReasoningRequirement reasoning = readEnum(
+                input, ModelReasoningRequirement.class, "model reasoning requirement");
+        long minimumContextTokens = input.readLong();
+        ModelTokenBudget tokenBudget = new ModelTokenBudget(
+                input.readLong(), input.readLong(), input.readLong());
+        ModelCostBudget costBudget = new ModelCostBudget(
+                readString(input), input.readLong());
+        long durationSeconds = input.readLong();
+        int durationNanos = input.readInt();
+        if (durationNanos < 0 || durationNanos > 999_999_999) {
+            throw new CorruptedSpooledMessageException(
+                    "spooled model-work duration nanoseconds are invalid");
+        }
+        Duration maximumInvocationTime = Duration.ofSeconds(
+                durationSeconds, durationNanos);
+        ModelDataClassification classification = readEnum(
+                input, ModelDataClassification.class, "model data classification");
+        return new ModelExecutionProfile(
+                schemaVersion,
+                requiredCapability,
+                modelClass,
+                locality,
+                reasoning,
+                minimumContextTokens,
+                tokenBudget,
+                costBudget,
+                maximumInvocationTime,
+                classification);
     }
 
     private void writeOptionalString(DataOutputStream output, Optional<String> value)
@@ -319,6 +468,43 @@ final class MessageEnvelopeCodec {
         if (!expected.equals(actual)) {
             throw new CorruptedSpooledMessageException(
                     "spooled message " + label + " is unsupported");
+        }
+    }
+
+    private enum WireFamily {
+        LEGACY_V1(CODEC_VERSION, MessageEnvelope.ENVELOPE_VERSION),
+        MODEL_WORK_V2(MODEL_WORK_CODEC_VERSION, MODEL_WORK_ENVELOPE_VERSION);
+
+        private final String codecVersion;
+        private final String envelopeVersion;
+
+        WireFamily(String codecVersion, String envelopeVersion) {
+            this.codecVersion = codecVersion;
+            this.envelopeVersion = envelopeVersion;
+        }
+
+        String codecVersion() {
+            return codecVersion;
+        }
+
+        String envelopeVersion() {
+            return envelopeVersion;
+        }
+
+        static WireFamily forPayload(MessagePayload payload) {
+            return payload instanceof ModelWorkPayload ? MODEL_WORK_V2 : LEGACY_V1;
+        }
+
+        static WireFamily fromCodecVersion(String version)
+                throws CorruptedSpooledMessageException {
+            if (CODEC_VERSION.equals(version)) {
+                return LEGACY_V1;
+            }
+            if (MODEL_WORK_CODEC_VERSION.equals(version)) {
+                return MODEL_WORK_V2;
+            }
+            throw new CorruptedSpooledMessageException(
+                    "spooled message codec version is unsupported");
         }
     }
 
