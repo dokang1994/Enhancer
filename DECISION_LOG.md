@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User authorization on 2026-08-24 to correct cross-platform ModelWork golden fixtures and complete delivery
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-24-correct-cross-platform-model-work-golden-fixtures-and-complete-delivery.md)
+
 ### User request on 2026-08-21 to commit, push, and merge the typed ModelWork golden-wire work
 
 Status: Accepted Decision
