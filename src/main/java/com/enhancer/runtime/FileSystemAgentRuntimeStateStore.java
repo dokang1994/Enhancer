@@ -2,6 +2,7 @@ package com.enhancer.runtime;
 
 import com.enhancer.bus.ControlPayload;
 import com.enhancer.bus.ControlSignal;
+import com.enhancer.bus.DurableMessageEnvelopeCodec;
 import com.enhancer.bus.MessageEnvelope;
 import com.enhancer.bus.ResultPayload;
 import com.enhancer.bus.WorkPayload;
@@ -40,7 +41,7 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * One-current-state filesystem adapter for a Goal and its schema-v4 runtime history. Atomic
+ * One-current-state filesystem adapter for a Goal and its schema-v5 runtime history. Atomic
  * publication prevents partial visibility; parent-directory power-loss durability is not
  * claimed.
  */
@@ -58,6 +59,8 @@ public final class FileSystemAgentRuntimeStateStore
     private static final String WORK_PAYLOAD_KIND = "work";
     private static final String RESULT_PAYLOAD_KIND = "result";
     private static final String CONTROL_PAYLOAD_KIND = "control";
+    private static final DurableMessageEnvelopeCodec MESSAGE_CODEC =
+            new DurableMessageEnvelopeCodec();
 
     private final Path storageRoot;
 
@@ -763,98 +766,20 @@ public final class FileSystemAgentRuntimeStateStore
     private void writeMessageEnvelope(
             DataOutputStream output,
             MessageEnvelope envelope) throws IOException {
-        writeString(output, MessageEnvelope.ENVELOPE_VERSION);
-        writeString(output, envelope.messageId());
-        writeString(output, envelope.correlationId());
-        writeOptionalString(output, envelope.causationId());
-        writeString(output, envelope.logicalRunId());
-        writeString(output, envelope.producer());
-        writeInstant(output, envelope.occurredAt());
-        if (envelope.payload() instanceof WorkPayload payload) {
-            writeString(output, WORK_PAYLOAD_KIND);
-            writeApprovedTaskRevision(output, payload.taskRevision());
-            writeString(output, payload.snapshotId());
-            writeStringSet(output, payload.allowedTools());
-            writeExecutionInput(output, payload.executionInput());
-            return;
-        }
-        if (envelope.payload() instanceof ResultPayload payload) {
-            writeString(output, RESULT_PAYLOAD_KIND);
-            writeString(output, payload.taskId());
-            writeString(output, payload.runRecordReference());
-            writeString(output, payload.verificationStatus().name());
-            return;
-        }
-        if (envelope.payload() instanceof ControlPayload payload) {
-            writeString(output, CONTROL_PAYLOAD_KIND);
-            writeString(output, payload.signal().name());
-            writeString(output, payload.reason());
-            return;
-        }
-        throw new IOException(
-                "Agent runtime message payload kind is unsupported");
+        byte[] encoded = MESSAGE_CODEC.encode(envelope);
+        output.writeInt(encoded.length);
+        output.write(encoded);
     }
 
     private MessageEnvelope readMessageEnvelope(DataInputStream input)
             throws IOException {
-        if (!MessageEnvelope.ENVELOPE_VERSION.equals(readString(input))) {
-            throw new IOException(
-                    "Agent runtime message envelope version is unsupported");
+        int length = input.readInt();
+        if (length < 0 || length > DurableMessageEnvelopeCodec.MAX_ENCODED_BYTES) {
+            throw new IOException("durable message envelope length is invalid");
         }
-        String messageId = readString(input);
-        String correlationId = readString(input);
-        Optional<String> causationId = readOptionalString(input);
-        String logicalRunId = readString(input);
-        String producer = readString(input);
-        Instant occurredAt = readInstant(input);
-        String payloadKind = readString(input);
-        if (WORK_PAYLOAD_KIND.equals(payloadKind)) {
-            return new MessageEnvelope(
-                    messageId,
-                    correlationId,
-                    causationId,
-                    logicalRunId,
-                    producer,
-                    occurredAt,
-                    new WorkPayload(
-                            readApprovedTaskRevision(input),
-                            readString(input),
-                            readStringSet(input),
-                            readExecutionInput(input)));
-        }
-        if (RESULT_PAYLOAD_KIND.equals(payloadKind)) {
-            return new MessageEnvelope(
-                    messageId,
-                    correlationId,
-                    causationId,
-                    logicalRunId,
-                    producer,
-                    occurredAt,
-                    new ResultPayload(
-                            readString(input),
-                            readString(input),
-                            readEnum(
-                                    input,
-                                    VerificationStatus.class,
-                                    "verification status")));
-        }
-        if (CONTROL_PAYLOAD_KIND.equals(payloadKind)) {
-            return new MessageEnvelope(
-                    messageId,
-                    correlationId,
-                    causationId,
-                    logicalRunId,
-                    producer,
-                    occurredAt,
-                    new ControlPayload(
-                            readEnum(
-                                    input,
-                                    ControlSignal.class,
-                                    "control signal"),
-                            readString(input)));
-        }
-        throw new IOException(
-                "Agent runtime message payload kind is invalid");
+        byte[] encoded = new byte[length];
+        input.readFully(encoded);
+        return MESSAGE_CODEC.decode(encoded);
     }
 
     private void writeMessageEnvelopes(

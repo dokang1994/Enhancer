@@ -1,6 +1,7 @@
 package com.enhancer.runtime;
 
 import com.enhancer.bus.MessageEnvelope;
+import com.enhancer.bus.DurableMessageEnvelopeCodec;
 import com.enhancer.bus.WorkPayload;
 import com.enhancer.io.BoundedFileOperations;
 import com.enhancer.io.FileSizeLimitExceededException;
@@ -53,6 +54,8 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
     private static final String FILE_SUFFIX = ".scheduler-queue";
     private static final String LOCK_FILE_SUFFIX = ".scheduler-queue.lock";
     private static final String PAYLOAD_KIND = "scheduler-queue-state";
+    private static final DurableMessageEnvelopeCodec MESSAGE_CODEC =
+            new DurableMessageEnvelopeCodec();
 
     private final Path storageRoot;
     private final SchedulerQueueMigrationHook migrationHook;
@@ -271,7 +274,8 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
             decode(queueId, original.payload());
             return SchedulerQueueMigrationResult.ALREADY_CURRENT;
         }
-        if (schemaVersion != SchedulerQueueState.PREVIOUS_SCHEMA_VERSION) {
+        if (schemaVersion
+                != SchedulerQueueState.LEGACY_MIGRATION_SOURCE_SCHEMA_VERSION) {
             throw corrupted(queueId, "state schema version is unsupported");
         }
         SchedulerQueueState migrated =
@@ -491,7 +495,7 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
         try (DataInputStream input =
                 new DataInputStream(new ByteArrayInputStream(payload))) {
             if (input.readInt()
-                    != SchedulerQueueState.PREVIOUS_SCHEMA_VERSION) {
+                    != SchedulerQueueState.LEGACY_MIGRATION_SOURCE_SCHEMA_VERSION) {
                 throw corrupted(
                         expectedQueueId,
                         "state schema version is unsupported");
@@ -644,7 +648,7 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
                 new WorkItem(
                         readString(input),
                         readString(input),
-                        readMessageEnvelope(input)),
+                        readLegacyMessageEnvelope(input)),
                 readStringSet(input));
     }
 
@@ -777,6 +781,25 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
     private void writeMessageEnvelope(
             DataOutputStream output,
             MessageEnvelope envelope) throws IOException {
+        byte[] encoded = MESSAGE_CODEC.encode(envelope);
+        output.writeInt(encoded.length);
+        output.write(encoded);
+    }
+
+    private MessageEnvelope readMessageEnvelope(DataInputStream input)
+            throws IOException {
+        int length = input.readInt();
+        if (length < 0 || length > DurableMessageEnvelopeCodec.MAX_ENCODED_BYTES) {
+            throw new IOException("durable message envelope length is invalid");
+        }
+        byte[] encoded = new byte[length];
+        input.readFully(encoded);
+        return MESSAGE_CODEC.decode(encoded);
+    }
+
+    private void writeLegacyMessageEnvelope(
+            DataOutputStream output,
+            MessageEnvelope envelope) throws IOException {
         writeString(output, MessageEnvelope.ENVELOPE_VERSION);
         writeString(output, envelope.messageId());
         writeString(output, envelope.correlationId());
@@ -795,7 +818,7 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
         writeExecutionInput(output, payload.executionInput());
     }
 
-    private MessageEnvelope readMessageEnvelope(DataInputStream input)
+    private MessageEnvelope readLegacyMessageEnvelope(DataInputStream input)
             throws IOException {
         if (!MessageEnvelope.ENVELOPE_VERSION.equals(readString(input))) {
             throw new IOException(

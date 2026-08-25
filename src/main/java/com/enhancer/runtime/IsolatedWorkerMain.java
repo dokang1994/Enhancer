@@ -93,6 +93,10 @@ public final class IsolatedWorkerMain {
                 return EXIT_WORK_ABSENT;
             }
             work = FileSpoolMessageTransport.read(spooled.orElseThrow());
+            if (work.envelope().payload()
+                    instanceof com.enhancer.bus.ModelWorkPayload) {
+                return EXIT_EXECUTION_FAILED;
+            }
         } catch (CorruptedSpooledMessageException corrupt) {
             return EXIT_WORK_CORRUPT;
         } catch (IOException unreadable) {

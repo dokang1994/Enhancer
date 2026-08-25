@@ -64,6 +64,61 @@ class FileSystemSubmissionManifestStoreTest {
     }
 
     @Test
+    void currentSchemaRetainsExactTypedModelWorkAndIndependentCapability()
+            throws Exception {
+        FileSystemSubmissionManifestStore store =
+                new FileSystemSubmissionManifestStore(temporaryRoot);
+        DurableSubmissionManifest manifest = new DurableSubmissionManifest(
+                QUEUE_ID,
+                4,
+                ModelWorkFixtures.INDEPENDENT_CAPABILITY,
+                ModelWorkFixtures.envelope(),
+                SchedulerPriority.EXPEDITED);
+
+        assertTrue(store.storeIdempotently(manifest));
+        DurableSubmissionManifest restored = store.resolve(ModelWorkFixtures.MESSAGE_ID);
+
+        assertEquals(3, FileSystemSubmissionManifestStore.CURRENT_SCHEMA_VERSION);
+        assertEquals(manifest, restored);
+        assertEquals(ModelWorkFixtures.envelope(), restored.workMessage());
+        assertEquals(
+                ModelWorkFixtures.INDEPENDENT_CAPABILITY,
+                restored.requiredCapability());
+        assertEquals(
+                ModelWorkFixtures.profile(),
+                ((com.enhancer.bus.ModelWorkPayload) restored.workMessage().payload())
+                        .executionInput()
+                        .executionProfile());
+    }
+
+    @Test
+    void changedModelProfileUnderOneSubmissionIdentityFailsWithoutRewrite()
+            throws Exception {
+        FileSystemSubmissionManifestStore store =
+                new FileSystemSubmissionManifestStore(temporaryRoot);
+        DurableSubmissionManifest original = new DurableSubmissionManifest(
+                QUEUE_ID,
+                4,
+                ModelWorkFixtures.INDEPENDENT_CAPABILITY,
+                ModelWorkFixtures.envelope());
+        assertTrue(store.storeIdempotently(original));
+        Path artifact = store.artifactPath(ModelWorkFixtures.MESSAGE_ID);
+        byte[] before = Files.readAllBytes(artifact);
+        DurableSubmissionManifest changedProfile = new DurableSubmissionManifest(
+                QUEUE_ID,
+                4,
+                ModelWorkFixtures.INDEPENDENT_CAPABILITY,
+                ModelWorkFixtures.envelope(
+                        ModelWorkFixtures.profile("changed-profile-capability")));
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> store.storeIdempotently(changedProfile));
+        assertArrayEquals(before, Files.readAllBytes(artifact));
+        assertEquals(original, store.resolve(ModelWorkFixtures.MESSAGE_ID));
+    }
+
+    @Test
     void corruptedArtifactFailsExplicitly() throws Exception {
         FileSystemSubmissionManifestStore store =
                 new FileSystemSubmissionManifestStore(temporaryRoot);

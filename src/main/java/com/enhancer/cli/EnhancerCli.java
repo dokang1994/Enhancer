@@ -878,7 +878,7 @@ public final class EnhancerCli {
             case ALREADY_CURRENT -> Integer.toString(
                     SchedulerQueueState.CURRENT_SCHEMA_VERSION);
             case MIGRATED -> Integer.toString(
-                    SchedulerQueueState.PREVIOUS_SCHEMA_VERSION);
+                    SchedulerQueueState.LEGACY_MIGRATION_SOURCE_SCHEMA_VERSION);
         };
         writeBounded(stdout, String.join("\n",
                 "status=" + result,
@@ -903,7 +903,7 @@ public final class EnhancerCli {
                             .CURRENT_SCHEMA_VERSION);
             case MIGRATED -> Integer.toString(
                     FileSystemSubmissionManifestStore
-                            .PREVIOUS_SCHEMA_VERSION);
+                            .LEGACY_MIGRATION_SOURCE_SCHEMA_VERSION);
         };
         writeBounded(stdout, String.join("\n",
                 "status=" + result,

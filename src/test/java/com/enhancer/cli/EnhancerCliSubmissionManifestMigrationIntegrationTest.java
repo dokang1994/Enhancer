@@ -55,7 +55,9 @@ class EnhancerCliSubmissionManifestMigrationIntegrationTest {
         assertTrue(migrated.stdout().contains(
                 "submissionId=" + SUBMISSION_ID));
         assertTrue(migrated.stdout().contains("sourceSchemaVersion=1"));
-        assertTrue(migrated.stdout().contains("targetSchemaVersion=2"));
+        assertTrue(migrated.stdout().contains(
+                "targetSchemaVersion="
+                        + FileSystemSubmissionManifestStore.CURRENT_SCHEMA_VERSION));
         assertEquals(
                 SchedulerPriority.NORMAL,
                 new FileSystemSubmissionManifestStore(root)

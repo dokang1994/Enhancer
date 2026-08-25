@@ -86,6 +86,42 @@ class FileSystemAgentRuntimeStateStoreIntegrationTest {
     }
 
     @Test
+    void currentSchemaRetainsExactTypedModelWorkAcrossRuntimeRecovery()
+            throws Exception {
+        FileSystemAgentRuntimeStateStore store =
+                new FileSystemAgentRuntimeStateStore(storageRoot);
+        AgentRuntimeState state = AgentRuntimeState.initial(
+                GOAL_ID,
+                ModelWorkFixtures.workItem());
+
+        store.create(state);
+        AgentRuntimeState restored = new FileSystemAgentRuntimeStateStore(storageRoot)
+                .resolve(GOAL_ID);
+
+        assertEquals(5, AgentRuntimeState.CURRENT_SCHEMA_VERSION);
+        assertEquals(state.schemaVersion(), restored.schemaVersion());
+        assertEquals(state.revision(), restored.revision());
+        assertEquals(state.lastIssuedFenceToken(), restored.lastIssuedFenceToken());
+        assertEquals(state.goal(), restored.goal());
+        assertEquals(state.agentRuns(), restored.agentRuns());
+        assertEquals(state.retryDecisions(), restored.retryDecisions());
+        assertEquals(state.controlRequests(), restored.controlRequests());
+        assertEquals(state.leaseTimeouts(), restored.leaseTimeouts());
+        assertEquals(state.cancellationApplication(), restored.cancellationApplication());
+        assertEquals(ModelWorkFixtures.workItem(), restored.goal().workItem());
+        assertEquals(
+                ModelWorkFixtures.profile(),
+                restored.goal()
+                        .workItem()
+                        .modelExecutionInput()
+                        .orElseThrow()
+                        .executionProfile());
+        assertEquals(
+                ModelWorkFixtures.INDEPENDENT_CAPABILITY,
+                restored.goal().workItem().requiredCapability());
+    }
+
+    @Test
     void restoresRetryPendingAttemptAndDecisionHistoryAcrossStoreInstances()
             throws Exception {
         FileSystemAgentRuntimeStateStore store =

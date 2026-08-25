@@ -44,6 +44,26 @@ import org.junit.jupiter.api.io.TempDir;
 class ProcessIsolatedAgentRunExecutionTest {
     private static final Duration GENEROUS = Duration.ofMinutes(2);
 
+    @Test
+    void refusesTypedModelWorkBeforeCreatingACycleOrLaunchingAChild()
+            throws Exception {
+        Fixture fixture = Fixture.create(temporaryRoot);
+        AgentRunDispatch legacyDispatch = fixture.dispatch();
+        AgentRunDispatch modelDispatch = new AgentRunDispatch(
+                legacyDispatch.queueId(),
+                ModelWorkFixtures.workItem(),
+                legacyDispatch.goalId(),
+                legacyDispatch.agentRunId(),
+                legacyDispatch.lease());
+
+        IllegalArgumentException failure = assertThrows(
+                IllegalArgumentException.class,
+                () -> fixture.executionWith(failIfLaunched()).execute(modelDispatch));
+
+        assertTrue(failure.getMessage().contains("Model RunRecord v2"));
+        assertTrue(Files.notExists(fixture.cycleRoot()));
+    }
+
     @TempDir
     Path temporaryRoot;
 

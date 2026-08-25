@@ -60,7 +60,9 @@ class FileSystemSchedulerQueueMigrationIntegrationTest {
                 SchedulerQueueMigrationResult.MIGRATED,
                 store.migrateSchemaV2ToCurrent(QUEUE_ID));
         SchedulerQueueState migrated = store.resolve(QUEUE_ID);
-        assertEquals(3, migrated.schemaVersion());
+        assertEquals(
+                SchedulerQueueState.CURRENT_SCHEMA_VERSION,
+                migrated.schemaVersion());
         assertEquals(7, migrated.revision());
         assertEquals(8, migrated.maxWorkItems());
         assertEquals(Optional.of(LOGICAL_RUN), migrated.logicalRunId());
@@ -131,7 +133,11 @@ class FileSystemSchedulerQueueMigrationIntegrationTest {
 
         Path futureRoot = temporaryRoot.resolve("future");
         byte[] future = schemaEnvelope(
-                4, List.of(), List.of(), Optional.empty(), 1002L);
+                SchedulerQueueState.CURRENT_SCHEMA_VERSION + 1,
+                List.of(),
+                List.of(),
+                Optional.empty(),
+                1002L);
         writeArtifact(futureRoot, future);
 
         CorruptedSchedulerQueueStateException failure = assertThrows(

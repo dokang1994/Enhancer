@@ -110,6 +110,7 @@ public final class AgentLoopAgentRunExecution implements AgentRunExecution {
         Objects.requireNonNull(workItem, "workItem must not be null");
         Objects.requireNonNull(goalId, "goalId must not be null");
         Objects.requireNonNull(agentRunId, "agentRunId must not be null");
+        requireLegacyExecutableWork(workItem);
         ApprovedTask approvedTask = new ApprovedTask(
                 workItem.taskRevision().taskId(),
                 "Execute the approved work dispatched to Goal " + goalId,
@@ -150,6 +151,14 @@ public final class AgentLoopAgentRunExecution implements AgentRunExecution {
                         runRecordId.orElseThrow())
                 : finalizer.finalizeRun(workerRun, verificationRequest);
         return finalized.storedRecord().reference();
+    }
+
+    static void requireLegacyExecutableWork(WorkItem workItem) {
+        Objects.requireNonNull(workItem, "workItem must not be null");
+        if (workItem.isModelWork()) {
+            throw new IllegalArgumentException(
+                    "typed ModelWork requires the separately authorized Model RunRecord v2 path");
+        }
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.enhancer.runtime;
 
 import com.enhancer.bus.MessageEnvelope;
+import com.enhancer.bus.ModelWorkPayload;
 import com.enhancer.bus.WorkPayload;
 import com.enhancer.workspace.ApprovedTaskRevision;
 import java.util.Objects;
@@ -22,9 +23,10 @@ public record WorkItem(
         workItemId = canonicalUuid(workItemId);
         requiredCapability = boundedCapability(requiredCapability);
         Objects.requireNonNull(workMessage, "workMessage must not be null");
-        if (!(workMessage.payload() instanceof WorkPayload)) {
+        if (!(workMessage.payload() instanceof WorkPayload)
+                && !(workMessage.payload() instanceof ModelWorkPayload)) {
             throw new IllegalArgumentException(
-                    "workMessage must carry a WorkPayload");
+                    "workMessage must carry a WorkPayload or ModelWorkPayload");
         }
         if (workItemId.equals(workMessage.messageId())) {
             throw new IllegalArgumentException(
@@ -37,23 +39,45 @@ public record WorkItem(
     }
 
     public ApprovedTaskRevision taskRevision() {
-        return workPayload().taskRevision();
+        if (workMessage.payload() instanceof WorkPayload payload) {
+            return payload.taskRevision();
+        }
+        return modelWorkPayload().taskRevision();
     }
 
     public String snapshotId() {
-        return workPayload().snapshotId();
+        if (workMessage.payload() instanceof WorkPayload payload) {
+            return payload.snapshotId();
+        }
+        return modelWorkPayload().snapshotId();
     }
 
     public Set<String> allowedTools() {
-        return workPayload().allowedTools();
+        if (workMessage.payload() instanceof WorkPayload payload) {
+            return payload.allowedTools();
+        }
+        return modelWorkPayload().allowedTools();
     }
 
     public java.util.Optional<WorkPayload.ExecutionInput> executionInput() {
-        return workPayload().executionInput();
+        return workMessage.payload() instanceof WorkPayload payload
+                ? payload.executionInput()
+                : java.util.Optional.empty();
     }
 
-    private WorkPayload workPayload() {
-        return (WorkPayload) workMessage.payload();
+    public java.util.Optional<ModelWorkPayload.ModelInvocationExecutionInput>
+            modelExecutionInput() {
+        return workMessage.payload() instanceof ModelWorkPayload payload
+                ? java.util.Optional.of(payload.executionInput())
+                : java.util.Optional.empty();
+    }
+
+    public boolean isModelWork() {
+        return workMessage.payload() instanceof ModelWorkPayload;
+    }
+
+    private ModelWorkPayload modelWorkPayload() {
+        return (ModelWorkPayload) workMessage.payload();
     }
 
     private static String canonicalUuid(String value) {

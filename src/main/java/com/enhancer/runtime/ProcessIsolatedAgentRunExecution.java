@@ -190,6 +190,7 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
     public String execute(AgentRunDispatch dispatch) throws IOException {
         Objects.requireNonNull(dispatch, "dispatch must not be null");
         WorkItem workItem = dispatch.workItem();
+        AgentLoopAgentRunExecution.requireLegacyExecutableWork(workItem);
         Path cycleRoot = cycleRoot(dispatch);
 
         Optional<ResolvedProcessTimeoutFact> recoveredTimeout = timeoutStore.find(

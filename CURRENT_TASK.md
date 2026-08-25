@@ -2,71 +2,81 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Correct the platform-dependent legacy MessageEnvelope golden fixtures exposed by the
-first typed ModelWork delivery CI run, then complete the bounded non-force delivery and
-record truthful external verification evidence.
+Implement RFC-0018's coordinated durable ModelWork migration as a bounded sequential
+workflow while keeping typed ModelWork non-executable until separately authorized
+RunRecord v2 and admission integration exist.
 
 ## Task ID
 
-correct-cross-platform-model-work-golden-fixtures
+implement-coordinated-durable-model-work-migration
 
 ## Context
 
-The first delivery push placed `78633d1` on remote `main`. GitHub Actions run
-`32472094472` used Temurin 17 on Linux and failed exactly one of 949 tests:
-`MessageEnvelopeCodecTest.preservesEveryLegacyPayloadFrameByteForByte()`. Its uploaded
-report shows that production emitted canonical UTF-8 for `agent-loop-🚀`, while the
-Windows-authored expected legacy frames contained bytes for mojibake text. Local `main`,
-tracked `origin/main`, and the clean worktree all remain at `78633d1` before correction.
+The pure `ModelWorkPayload`, complete profile-bearing execution input, and ModelWork-
+only message-envelope/process-spool v2 are implemented and verified. Submission
+manifest v2, Scheduler queue v3, and AgentRuntime v4 still accept only legacy
+`WorkPayload`, and current execution paths assume legacy RunRecord v1. RFC-0018 requires
+these retained surfaces to migrate as one stopped-owner closure rather than through
+independent partial upgrades.
 
 ## Justified By
 
-- User authorization on 2026-08-24 to correct cross-platform ModelWork golden fixtures and complete delivery
-- User request on 2026-08-21 to commit, push, and merge the typed ModelWork golden-wire work
+- User continuation request on 2026-08-25 into the coordinated durable ModelWork migration implementation
+- User continuation request on 2026-08-21 into the Scheduler complete-profile transport specification
 
 ## Approval
 
-The user's explicit 2026-08-24 continuation authorizes a bounded test-fixture
-correction, lifecycle-document synchronization, fresh local verification, ordinary
-local commits at verified GREEN increment boundaries, non-force fast-forward pushes of
-aligned local `main` to `origin/main`, remote-ref inspection, and observation of the
-resulting GitHub Actions runs. It authorizes no production-code or schema change,
-workflow rerun, force operation, history rewrite, temporary branch, synthetic merge,
-tag, release, deployment, permission or credential change, destructive cleanup, or
-unrelated implementation.
+The user's explicit 2026-08-25 continuation authorizes bounded RED-first local
+implementation of RFC-0018's coordinated durable migration, owning tests and documents,
+checkpoint operations, fresh focused and full verification, and ordinary local commits
+at verified GREEN increment boundaries. It authorizes schema and production Java
+changes only within the declared workflow and build/JUnit-owned temporary migration
+fixtures. It does not authorize mutation of real user artifacts or any external
+delivery effect.
 
 ## Acceptance Criteria
 
-- The Linux CI report and an explicit UTF-8 focused reproduction expose the expected
-  legacy golden mismatch before correction.
-- The minimum test-only correction replaces every affected legacy frame expectation
-  with canonical UTF-8 bytes while production codec code, legacy v1 structure,
-  ModelWork-only v2 structure, and cancellation signing bytes remain unchanged.
-- Focused codec/golden/governance tests and the README-owned full Java 17 Gradle test
-  task pass freshly; `git diff --check` and commit inspection show only authorized
-  paths and behavior.
-- Immediately before each push, a fresh fetch and ref inspection prove `origin/main`
-  is an ancestor of local `main`; any divergence stops delivery.
-- Pushes use explicit `main:main` without force and preserve linear history.
-- The correction commit reaches remote `main`, fetched and advertised refs match, and
-  its push-triggered GitHub Actions verification succeeds.
-- One append-only observation records the failed baseline, corrected commit/range,
-  ref identities, fast-forward meaning, and successful external verification.
-- The bounded lifecycle/evidence follow-up commit reaches remote `main` without force;
-  final local, fetched, and advertised refs match, its external verification succeeds,
-  and the worktree and checkpoint are clean and stable.
+- Submission manifest v3, Scheduler queue v4, and AgentRuntime v5 retain and recover
+  both legacy `WorkPayload` and exact `ModelWorkPayload`, including every profile
+  component, while capability remains an independent projection.
+- Priority, dependencies, lease, status, retry and history data round-trip exactly;
+  identity/content conflicts are refused before mutation, and ordinary old-schema
+  readers remain fail closed.
+- Existing legacy envelope/spool goldens and detached-cancellation signing bytes remain
+  exact; legacy read-file spool v1 is not reframed.
+- An explicit point-resolved stopped-owner plan preflights the complete named closure
+  before writing. Legacy work containing `read-file`, including mixed scope and absent
+  input, migrates losslessly; unprofiled legacy model work returns
+  `UNMIGRATABLE_LEGACY_MODEL_WORK` / `PROFILE_REQUIRED` with zero named-root or candidate
+  writes.
+- Candidates are written only after successful preflight, reread and validated, then
+  published result point, typed work spool v2, AgentRuntime v5, queue v4, manifests v3,
+  and named ingress points. Source drift, corrupt/future/unsupported schemas, partial
+  closures, and mixed-version operation fail closed.
+- Crash re-entry resumes at the first old point, preserves current prefixes without
+  rewrite or rollback, and treats exact current targets as non-writing
+  `ALREADY_CURRENT`.
+- Current typed ModelWork is refused before Scheduler model execution, child launch,
+  admission, or gateway activity; external ModelWork receive remains unsupported and
+  no Model RunRecord v2 claim is made.
+- Focused migration, codec/golden, execution-guard, CLI, and governance tests plus the
+  README-owned full Java 17 Gradle test pass freshly; owning documents and append-only
+  verification evidence are synchronized.
 
 ## Out Of Scope
 
-Production Java changes, message or durable schema changes, codec behavior changes,
-RFC changes, capability maturity promotion, architecture or Roadmap contract changes,
-workflow rerun, force push, rebase, reset, amend, squash, cherry-pick, temporary branch,
-synthetic merge commit, tag, release, deployment, branch deletion, permission or
-credential changes, destructive cleanup, and unrelated implementation.
+Model RunRecord v2, exact-task or policy sourcing, RFC-0015/RFC-0016 caller/admission
+integration, candidate suitability, gateway/provider/adapter/route/endpoint/network or
+remote transmission, credentials or spend, new ModelWork submission/receive/runtime
+execution, real artifact cutover outside build/JUnit temporary roots, unrelated schema
+migrations, repository scans for migration scope, retention cleanup, cross-store
+atomicity or directory power-loss claims, capability maturity or whole-Gate promotion,
+destructive actions, permission or secret changes, fetch, push, merge, release,
+deployment, tags, branches, or history rewrite.
 
 ## Allowed Tools
 
@@ -79,9 +89,6 @@ credential changes, destructive cleanup, and unrelated implementation.
 - git-inspect
 - git-stage
 - git-commit
-- git-fetch
-- git-push
-- gh-inspect
 
 ## Verification
 
@@ -90,47 +97,94 @@ the declared checks complete.
 
 ## Dynamic Workflow
 
-Workflow ID: correct-cross-platform-model-work-golden-fixtures
+Workflow ID: implement-coordinated-durable-model-work-migration
 Mode: Sequential
-Increment Limit: 2
+Increment Limit: 5
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
-Stop Conditions: Stop on failed or unrelated local/external verification, remote
-divergence, non-fast-forward refusal, unexpected path or ref, checkpoint drift, task
-drift, new external authority, exhausted bounds, or unsafe recovery.
+Stop Conditions: Stop on failed or unrelated verification, incomplete stopped-owner
+proof, ambiguous closure identity, source drift, checkpoint drift, task drift, new
+external authority, exhausted bounds, or unsafe recovery.
 
-### Increment 1 - correct-verify-and-push-golden-fixtures
+### Increment 1 - current-schema-dual-payload-retention
 
 State: Completed
 Depends On: none
-Scope: Reproduce the UTF-8-sensitive legacy golden mismatch, correct only the affected
-test fixtures, run focused and full verification, commit the GREEN correction, recheck
-ancestry, push aligned local main without force, verify remote refs, and observe the
-triggered GitHub Actions verification.
-Exit Criteria: The scoped correction is committed and present on remote main through a
-fast-forward push, all local checks pass, refs match, and the triggered GitHub Actions
-run succeeds.
-Verification: Failed CI artifact and explicit UTF-8 RED, focused codec/golden and
-governance tests, README-owned full Gradle test task, diff/commit checks, fetch/
-merge-base/ref inspection, non-force push output, advertised remote ref, and GitHub
-Actions conclusion.
-Next Action: Append correction and delivery evidence once, complete the task cursor,
-commit the bounded lifecycle update, and push it after fresh verification.
+Scope: Establish RED tests, then make WorkItem and current manifest v3, queue v4, and
+AgentRuntime v5 representations retain legacy WorkPayload or exact ModelWorkPayload
+without connecting execution. Add explicit typed-ModelWork execution guards and keep
+all shared envelope/profile encoding canonical.
+Exit Criteria: Both payload families and all owning state round-trip exactly, profile
+and capability remain separate, tamper/conflict checks precede mutation, current
+execution paths refuse typed ModelWork, and legacy golden bytes remain exact.
+Verification: Focused WorkItem, manifest, queue, AgentRuntime, execution-guard,
+MessageEnvelope codec/spool, cancellation-golden, and governance tests followed by the
+README-owned full Gradle test task.
+Next Action: Select legacy-inspection-and-zero-write-preflight after recording evidence
+and committing the verified GREEN increment.
 
-### Increment 2 - record-and-push-corrected-delivery-evidence
+### Increment 2 - legacy-inspection-and-zero-write-preflight
 
-State: Completed
-Depends On: correct-verify-and-push-golden-fixtures
-Scope: Append exact correction/delivery evidence, synchronize the task and handoff,
-verify the Markdown-sensitive repository, commit the bounded documentation update,
-recheck ancestry, push without force, and verify final refs and external verification.
-Exit Criteria: Evidence and the completed cursor are on remote main, final local/
-fetched/advertised refs match, final external verification succeeds, and the worktree
-and checkpoint are clean and stable.
-Verification: Focused governance tests, README-owned full Gradle test task,
-`git diff --check`, commit inspection, fresh fetch/merge-base/ref checks, non-force push
-output, GitHub Actions conclusion, and final clean-tree inspection.
-Next Action: Await separate authority for the coordinated durable ModelWork migration.
+State: In Progress
+Depends On: current-schema-dual-payload-retention
+Scope: Add migration-only ordered decoding and an explicit closure plan that inspects
+all named points under a pre-existing stopped-owner fence, classifies legacy work, and
+prepares validated candidates only after a complete zero-write preflight.
+Exit Criteria: Manifest v1 through v3, queue v2 through v4, and runtime v4 through v5
+are inspectable in the required order; read-file work is lossless; legacy model,
+corrupt, future, partial, or cross-store mismatched closures refuse before any named-
+root or candidate write.
+Verification: Focused store migration and coordinated preflight tests, filesystem
+entry/byte/timestamp invariance checks, candidate-absence checks, and governance tests.
+Next Action: Select prepare-and-consumer-first-cutover after recording evidence and
+committing the verified GREEN increment.
+
+### Increment 3 - prepare-and-consumer-first-cutover
+
+State: Pending
+Depends On: legacy-inspection-and-zero-write-preflight
+Scope: Prepare and reread all candidates after preflight, revalidate immutable binding
+points, and publish a complete real-filesystem temporary closure in consumer-first
+order without altering checkpoint or effect-ledger bytes.
+Exit Criteria: A named closure becomes exactly current in result, typed work spool,
+runtime, queue, manifest, and ingress order while all payload, profile, capability,
+priority, dependency, lease, retry, status, and history data remains equal.
+Verification: Coordinated real-filesystem cutover integration tests plus spool and
+Scheduler recovery-status regressions and governance tests.
+Next Action: Select crash-reentry-source-drift-hardening after recording evidence and
+committing the verified GREEN increment.
+
+### Increment 4 - crash-reentry-source-drift-hardening
+
+State: Pending
+Depends On: prepare-and-consumer-first-cutover
+Scope: Prove every publication boundary, source-drift refusal, candidate cleanup,
+mixed-closure fail-closed behavior, and idempotent re-entry without rollback or
+rewriting an already-current prefix.
+Exit Criteria: All bounded crash points resume at the first old point; current targets
+are non-writing ALREADY_CURRENT; source drift preserves the changed source and all
+later targets; operation remains blocked while the closure is mixed.
+Verification: Parameterized coordinator crash/re-entry tests, existing per-store drift
+regressions, filesystem byte/timestamp assertions, and governance tests.
+Next Action: Select bounded-operator-and-recovery-closure after recording evidence and
+committing the verified GREEN increment.
+
+### Increment 5 - bounded-operator-and-recovery-closure
+
+State: Pending
+Depends On: crash-reentry-source-drift-hardening
+Scope: Expose only the explicit bounded stopped-owner migration operation, close
+recovery and CLI regressions, run full verification, and synchronize owning lifecycle
+documents without enabling typed ModelWork submission or execution.
+Exit Criteria: A temporary read-file closure migrates and restarts with exact retained
+state; unprofiled legacy model and external typed ModelWork receive refuse zero-write;
+typed ModelWork cannot launch a child or reach admission/gateway; documents and Git
+state truthfully represent the completed local work.
+Verification: Focused CLI, receiver, isolated-execution, recovery-status, migration,
+codec/golden, governance, and README-owned full Gradle test tasks plus diff and commit
+inspection.
+Next Action: Await separate authority for Model RunRecord v2 and Scheduler model-work
+admission integration; request explicit delivery authority if a push is desired.
 
 ## Next
 
-Await separate authority for the coordinated durable ModelWork migration.
+Execute Increment 2 `legacy-inspection-and-zero-write-preflight` RED-first.

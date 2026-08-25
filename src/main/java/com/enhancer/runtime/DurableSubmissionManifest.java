@@ -1,6 +1,7 @@
 package com.enhancer.runtime;
 
 import com.enhancer.bus.MessageEnvelope;
+import com.enhancer.bus.ModelWorkPayload;
 import com.enhancer.bus.WorkPayload;
 import java.util.Objects;
 
@@ -30,9 +31,10 @@ public record DurableSubmissionManifest(
 
     public DurableSubmissionManifest {
         Objects.requireNonNull(workMessage, "workMessage must not be null");
-        if (!(workMessage.payload() instanceof WorkPayload)) {
+        if (!(workMessage.payload() instanceof WorkPayload)
+                && !(workMessage.payload() instanceof ModelWorkPayload)) {
             throw new IllegalArgumentException(
-                    "submission workMessage must carry WorkPayload");
+                    "submission workMessage must carry WorkPayload or ModelWorkPayload");
         }
         SchedulerQueueState.initial(queueId, maxWorkItems);
         queueId = SchedulerQueueState.requireCanonicalQueueId(queueId);

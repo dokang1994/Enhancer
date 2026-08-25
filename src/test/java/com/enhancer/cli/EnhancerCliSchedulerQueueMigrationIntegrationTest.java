@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.enhancer.runtime.FileSystemSchedulerQueueStore;
+import com.enhancer.runtime.SchedulerQueueState;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.PrintStream;
@@ -45,8 +46,9 @@ class EnhancerCliSchedulerQueueMigrationIntegrationTest {
         assertTrue(migrated.stdout().contains("status=MIGRATED"));
         assertTrue(migrated.stdout().contains("queueId=" + QUEUE_ID));
         assertTrue(migrated.stdout().contains("sourceSchemaVersion=2"));
-        assertTrue(migrated.stdout().contains("targetSchemaVersion=3"));
-        assertEquals(3,
+        assertTrue(migrated.stdout().contains(
+                "targetSchemaVersion=" + SchedulerQueueState.CURRENT_SCHEMA_VERSION));
+        assertEquals(SchedulerQueueState.CURRENT_SCHEMA_VERSION,
                 new FileSystemSchedulerQueueStore(root)
                         .resolve(QUEUE_ID)
                         .schemaVersion());

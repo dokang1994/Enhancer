@@ -15,8 +15,9 @@ import java.util.UUID;
  * Immutable schema-versioned state needed to reconstruct one run-scoped Scheduler queue.
  */
 public final class SchedulerQueueState {
-    public static final int PREVIOUS_SCHEMA_VERSION = 2;
-    public static final int CURRENT_SCHEMA_VERSION = 3;
+    public static final int LEGACY_MIGRATION_SOURCE_SCHEMA_VERSION = 2;
+    public static final int PREVIOUS_SCHEMA_VERSION = 3;
+    public static final int CURRENT_SCHEMA_VERSION = 4;
     public static final int DEFAULT_MAXIMUM_EXPEDITED_BURST = 4;
 
     private final int schemaVersion;

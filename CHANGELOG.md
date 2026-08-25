@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-08-25 - Retain Typed Model Work Across Current Durable Schemas
+
+- Advanced submission manifests to v3, Scheduler queues to v4, and AgentRuntime state
+  to v5 with one shared canonical durable-envelope codec that retains either legacy
+  Work or exact typed ModelWork and its complete profile.
+- Kept `WorkItem.requiredCapability` independent from the profile capability, preserved
+  queue/runtime history and legacy wire goldens, and updated existing legacy migration
+  reporting to name the actual source and current target schemas.
+- Refused typed ModelWork before the current RunRecord-v1 executor, isolated cycle
+  creation, or child launch. Submission, receive, admission, gateway, provider, and
+  coordinated stopped-owner migration remain unconnected follow-up work.
+
 ## 2026-08-25 - Correct Cross-Platform Legacy Wire Goldens
 
 - Replaced the platform-dependent legacy MessageEnvelope golden expectations with the

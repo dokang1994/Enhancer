@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-08-25 into the coordinated durable ModelWork migration implementation
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-25-implement-coordinated-durable-model-work-migration.md)
+
 ### User authorization on 2026-08-24 to correct cross-platform ModelWork golden fixtures and complete delivery
 
 Status: Accepted Decision

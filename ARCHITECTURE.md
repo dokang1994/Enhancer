@@ -328,7 +328,7 @@ identities, `CANCEL`, and authorization time. Envelope producer/reason, transpor
 acceptance, and durable admission remain diagnostic or recovery facts and cannot create
 approval.
 
-AgentRuntime schema v4 retains at most one immutable
+AgentRuntime schema v5 retains at most one immutable
 `CancellationApplicationRecord`. First application atomically persists the approved
 record with Goal `ACTIVE|RETRY_PENDING -> CANCELLED`; a current non-terminal AgentRun
 also becomes `CANCELLED` and releases its lease, while an already failed latest attempt
@@ -771,7 +771,7 @@ Admission rejects non-work payloads, malformed or reused identities, and blank o
 
 `SingleWorkerSchedulerQueue` admits at most 4096 work items per run-scoped instance, rejects duplicate work identities, preserves admission order, and forms the complete admission-ordered set of dependency-ready pending candidates for selection. It has exactly one active slot: another claim returns empty until the matching active identity is explicitly completed, and only completion releases dependent work. The queue retains each `WorkItem` and its Gate 7 envelope by identity and creates no task approval, Tool authority, verification result, or execution outcome.
 
-The base queue implementation is deliberately in-memory and single-threaded: claim is not a lease, completion is not a durable AgentRun terminal state, and there is no failure/retry/cancellation, priority admission input, budget, timeout, fence, orphan recovery, worker execution, or production wiring. The separate durable wrapper below supplies schema-v3 queue state and restart recovery without changing those limits.
+The base queue implementation is deliberately in-memory and single-threaded: claim is not a lease, completion is not a durable AgentRun terminal state, and there is no failure/retry/cancellation, priority admission input, budget, timeout, fence, orphan recovery, worker execution, or production wiring. The separate durable wrapper below supplies schema-v4 queue state and restart recovery without changing those limits.
 
 `SchedulerPrioritySelector` is a pure selector over a complete, bounded,
 admission-ordered list of ready candidates with exactly `NORMAL` and `EXPEDITED`
@@ -788,7 +788,7 @@ unchanged.
 
 ### Gate 8 Durable Queue State And Restart Recovery
 
-Each durable queue has a caller-supplied canonical identity and records one immutable schema-v3 snapshot containing its revision, capacity, logical run binding, configured maximum expedited burst, consecutive expedited-claim progress, optional one-shot recovery-preferred WorkItem identity, total admission order, every exact priority-bearing admitted `QueuedWork` in that order, ordered pending work, optional active work, and verified/failed terminal identities. Exact history survives terminal disposition and retains the scheduler-facing WorkItem data and unchanged Gate 7 envelope, including task revision, Workspace snapshot identity, allowed-Tool scope, message provenance, execution input, capability, dependencies, and Scheduler priority. The history and status partition must name the same admissions with exact live-work content, a recovery preference must name exact pending work and cannot coexist with active work, and one queue accepts work from only one logical run.
+Each durable queue has a caller-supplied canonical identity and records one immutable schema-v4 snapshot containing its revision, capacity, logical run binding, configured maximum expedited burst, consecutive expedited-claim progress, optional one-shot recovery-preferred WorkItem identity, total admission order, every exact priority-bearing admitted `QueuedWork` in that order, ordered pending work, optional active work, and verified/failed terminal identities. Exact history survives terminal disposition and retains the scheduler-facing WorkItem data and unchanged Gate 7 envelope, including task revision, Workspace snapshot identity, allowed-Tool scope, message provenance, execution input, capability, dependencies, and Scheduler priority. The retained envelope may carry legacy `WorkPayload` or exact `ModelWorkPayload`; the latter keeps every profile component while `WorkItem.requiredCapability` remains independent. The history and status partition must name the same admissions with exact live-work content, a recovery preference must name exact pending work and cannot coexist with active work, and one queue accepts work from only one logical run.
 
 Every successful enqueue, claim, and disposition is staged on a copy and atomically persisted before the transition becomes visible in memory. An ordinary claim publishes the selected active WorkItem and selector-derived fairness progress in the same state update; persistence failure exposes neither. Strict `enqueue` continues to reject every duplicate identity. The separate durable admission operation persists a new exact value before success, treats an equal prior admission as a no-revision success even after terminal recovery, and rejects changed capability, envelope, authorization, provenance, execution input, priority, or dependencies under the same identity. `DurableWorkItemAdmissionHandler` alone uses that idempotent boundary, so same-bus duplicate suppression remains distinct from fresh-bus queue replay. The filesystem adapter keeps one bounded integrity-checked binary snapshot per queue, uses strict UTF-8, refuses unsupported schema versions or structural corruption, does not overwrite an existing queue during creation, and requires updates to advance exactly one revision while retaining the prior exact admission history as a prefix. Each update also acquires one stable queue-scoped operating-system file lock without waiting and retains it across current-state resolution, validation, and atomic publication; contention is a typed failure and the empty lock artifact records no queue or authority state. Persistence or lock failure leaves the previous durable and in-memory revision authoritative.
 
@@ -796,12 +796,13 @@ Durability sits behind the `SchedulerQueueStore` port — `create`, `update`, an
 
 Because this queue boundary has no lease or worker ownership, restart recovery moves a previously active item back into pending order, records its identity as the one-shot recovery preference, and persists that transition before returning the queue. The next claim selects that exact ready pending item before ordinary priority selection, clears the preference, and leaves fairness progress unchanged because it replays the interrupted durable claim. The item may therefore be offered again under at-least-once execution semantics. Exact admission replay prevents a second queue item but does not deduplicate external effects. The filesystem update lock prevents cooperating local processes from overwriting one another; it is not a distributed lock, runtime ownership lease, cross-store transaction, or network-filesystem guarantee. Schema-v1 queue artifacts remain unsupported; schema v2 requires the explicit maintenance migration below, while history compaction/cleanup, leases/fencing, worker execution, effect records, failure/retry/cancellation policy, broader multi-process coordination, and snapshot history remain deferred.
 
-The explicit stopped-Scheduler `scheduler-migrate-queue` boundary converts one
-caller-identified schema-v2 queue to v3. It retains queue identity, revision, capacity,
+The existing explicit stopped-Scheduler `scheduler-migrate-queue` compatibility
+boundary converts one caller-identified schema-v2 queue directly to current v4. It
+retains queue identity, revision, capacity,
 logical run, exact admission and pending order, active work, terminal partition, every
 WorkItem and envelope, and assigns `NORMAL`, maximum burst `4`, progress `0`, and no
 migration-time recovery preference. `FileSystemSchedulerQueueStore` validates and
-rereads a same-directory v3 candidate under the queue-scoped writer lock, refuses
+rereads a same-directory v4 candidate under the queue-scoped writer lock, refuses
 source-byte drift, and atomically replaces only the unchanged validated source. Typed
 `ABSENT` and `ALREADY_CURRENT` outcomes do not create or rewrite the queue artifact;
 corrupt, future, drifted, or pre-publication-failed input preserves the authoritative
@@ -823,11 +824,11 @@ state as observation without predicting a next claim or claiming that a worker i
 `DurableSubmissionManifest` is the immutable pre-queue intent for one dependency-free
 work submission. Its identity is the canonical message UUID, and its exact value binds
 the target queue UUID, fixed queue capacity, bounded required capability, and unchanged
-`MessageEnvelope` carrying `WorkPayload`. The manifest grants no execution authority and
+`MessageEnvelope` carrying `WorkPayload` or exact `ModelWorkPayload`. The manifest grants no execution authority and
 does not duplicate a mutable admission status.
 
 `SubmissionManifestStore` persists that intent before any queue creation.
-`FileSystemSubmissionManifestStore` publishes one bounded schema-v2 binary artifact by
+`FileSystemSubmissionManifestStore` publishes one bounded schema-v3 binary artifact by
 atomic move with an integrity envelope, strict UTF-8 decoding, canonical artifact naming,
 and explicit missing, corrupt, oversized, trailing, and identity-mismatch failures. Exact
 replay returns without rewriting; changed content under the same submission identity
@@ -837,7 +838,7 @@ Requested priority is Scheduler submission intent, not work or execution authori
 The immutable manifest contains exactly one `NORMAL` or `EXPEDITED` value, while its
 compatibility construction remains `NORMAL`.
 Manifest equality, generated caller-intent comparison, and exact queue admission must
-all include that value. Ordinary resolution becomes v2-only; existing schema-v1
+all include that value. Ordinary resolution is v3-only; existing schema-v1
 manifests require a separate submission-identity-scoped stopped-submission migration
 that retains every field, assigns `NORMAL`, validates and rereads a same-directory
 candidate, refuses source drift, and atomically replaces only an unchanged valid source.
@@ -867,7 +868,7 @@ RunRecord store, or `scheduler-cycle`. Bounded output reports `ADMITTED` only wh
 queue revision advances and `REPLAYED` for an exact already-admitted submission, and
 reports the effective `priority` on both.
 
-Manifest schema v2 and its explicit migration are the verified prerequisite that both
+Manifest schema v3 and its existing compatibility migration are the verified prerequisite that both
 submission commands now satisfy: `scheduler-submit` and `scheduler-submit-generated` each
 accept the optional `--priority NORMAL|EXPEDITED` input, default to `NORMAL` on omission,
 reject any other value, and fail before manifest or queue mutation on an invalid or
@@ -887,11 +888,11 @@ automatic execution.
 
 ### Gate 8 Durable Goal And AgentRun Lifecycle
 
-The runtime state is one immutable schema-v4 `AgentRuntimeState` containing exactly one `RuntimeGoal`, the Goal's exact existing `WorkItem`, an ordered immutable list of at most 16 `RuntimeAgentRun` attempts, an ordered retry-decision history, at most 256 exact lease-timeout records, and at most one authorization-bound cancellation application. Goal, AgentRun, WorkItem, and message identities are distinct canonical UUIDs, including across attempts. `agentRun()` is only the latest-attempt projection; earlier attempts remain exact. The retained WorkItem remains the sole source of approved task revision, Workspace snapshot, logical run, required capability, and allowed-Tool provenance; lifecycle state cannot add or widen authority.
+The runtime state is one immutable schema-v5 `AgentRuntimeState` containing exactly one `RuntimeGoal`, the Goal's exact existing `WorkItem`, an ordered immutable list of at most 16 `RuntimeAgentRun` attempts, an ordered retry-decision history, at most 256 exact lease-timeout records, and at most one authorization-bound cancellation application. Goal, AgentRun, WorkItem, and message identities are distinct canonical UUIDs, including across attempts. `agentRun()` is only the latest-attempt projection; earlier attempts remain exact. The retained WorkItem remains the sole source of approved task revision, Workspace snapshot, logical run, required capability, and allowed-Tool provenance; lifecycle state cannot add or widen authority. It may retain legacy Work or typed ModelWork, but the latter is rejected before every current RunRecord-v1 execution or child-launch path.
 
 The Goal advances through `ACCEPTED -> ACTIVE -> COMPLETED`, `ACTIVE -> RETRY_PENDING -> ACTIVE|FAILED`, or an authorization-bound `ACTIVE|RETRY_PENDING -> CANCELLED`. Each AgentRun advances through `PLANNING -> READY -> EXECUTING -> AWAITING_VERIFICATION -> COMPLETED|FAILED`; authenticated Goal cancellation may instead move the current non-terminal attempt to `CANCELLED`, while cancellation from retry-pending preserves its already failed attempt. Skipped, reversed, repeated, mismatched, and post-terminal transitions fail. Result transition requires one exact `ResultPayload` envelope whose logical run, correlation, task, and causation match the retained work message. Only `VERIFIED` completes the Goal. A non-Verified result terminates the current attempt as `FAILED` and parks the Goal at durable non-terminal `RETRY_PENDING`; an admitted persisted decision permits one distinct replacement attempt, while a refused persisted decision permits terminal Goal abandonment.
 
-`DurableAgentRuntime` stages every transition and persists the next revision before adopting or exposing it. `FileSystemAgentRuntimeStateStore` keeps one bounded strict-UTF-8 integrity-checked binary artifact per Goal, atomically creates or replaces it, requires revision increments of exactly one, preserves exact WorkItem, AgentRun, retry-decision, control, cancellation, lease-timeout, result, and fence prefixes, and fails closed on missing, corrupt, oversized, trailing, structurally invalid, rewritten, truncated, reordered, invalidly appended, or unsupported state. Runtime schemas v1 through v3 are explicitly unsupported; migration is separate work.
+`DurableAgentRuntime` stages every transition and persists the next revision before adopting or exposing it. `FileSystemAgentRuntimeStateStore` keeps one bounded strict-UTF-8 integrity-checked binary artifact per Goal, atomically creates or replaces it, requires revision increments of exactly one, preserves exact WorkItem, AgentRun, retry-decision, control, cancellation, lease-timeout, result, and fence prefixes, and fails closed on missing, corrupt, oversized, trailing, structurally invalid, rewritten, truncated, reordered, invalidly appended, or unsupported state. Ordinary runtime resolution accepts only schema v5; the explicit v4-to-v5 migration remains the next active increment.
 
 `READY` is the only lease-acquisition state. Acquisition issues one bounded non-blank owner identity, a persisted monotonically increasing positive fence token, an injected-clock issue time, and an exclusive expiry from 1 millisecond through 24 hours, then moves the AgentRun to `EXECUTING`. Renewal preserves owner and fence, must extend expiry, and execution completion requires the same unexpired owner and fence. At or after expiry, explicit reclaim or runtime recovery atomically appends the exact lease-timeout record and persists `EXECUTING -> READY`, clears the lease, retains the last-issued fence, and ensures the next acquisition receives a greater fence. Acquisition, renewal, completion, and reclaim all preserve persist-before-exposure; a storage failure leaves the previous state authoritative.
 
@@ -909,9 +910,9 @@ The filesystem integration recovers both real stores: queue recovery requeues th
 
 Fence-checked execution completion and Scheduler queue completion are different facts. `DurableAgentRuntime.completeExecution` persists `EXECUTING -> AWAITING_VERIFICATION` and releases the lease; it proves that the current fenced owner finished its execution phase, not that independent verification passed. The runtime transition therefore MUST NOT directly invoke queue completion or be described as verified completion, logical completion, or dependency satisfaction.
 
-The Scheduler queue now records a terminal `WorkItemDisposition` (`VERIFIED_COMPLETED` or `FAILED`), and only `VERIFIED_COMPLETED.satisfiesDependencies()` is true. The queue's single completion operation is split: `completeActiveVerified` adds the WorkItem to `completedWorkItemIds`, the dependency-satisfaction source used to release dependent work, while `failActive` adds it to a separate `failedWorkItemIds` set that never satisfies dependents, so a failed dependency leaves dependents blocked with an inspectable cause held in the runtime/RunRecord. The schema-v3 state partition is `pending + active + verified + failed = admissionOrder`, with verified and failed disjoint; the separate exact admission history has the same ordered identities and the queue stores disposition only, not a failure reason.
+The Scheduler queue now records a terminal `WorkItemDisposition` (`VERIFIED_COMPLETED` or `FAILED`), and only `VERIFIED_COMPLETED.satisfiesDependencies()` is true. The queue's single completion operation is split: `completeActiveVerified` adds the WorkItem to `completedWorkItemIds`, the dependency-satisfaction source used to release dependent work, while `failActive` adds it to a separate `failedWorkItemIds` set that never satisfies dependents, so a failed dependency leaves dependents blocked with an inspectable cause held in the runtime/RunRecord. The schema-v4 state partition is `pending + active + verified + failed = admissionOrder`, with verified and failed disjoint; the separate exact admission history has the same ordered identities and the queue stores disposition only, not a failure reason.
 
-The queue item remains active while the latest AgentRun is `AWAITING_VERIFICATION`, while the Goal is `RETRY_PENDING`, and after a runtime-only authenticated cancellation until a separate queue-disposition connection exists. Queue disposition and exact admission history share the schema-v3 on-disk snapshot with exact restart recovery: a persisted terminal disposition is never re-run, only interrupted active work is requeued with its one-shot recovery preference, and incompatible schema-v1/v2 snapshots fail ordinary resolution. Runtime lifecycle state is separately schema v4.
+The queue item remains active while the latest AgentRun is `AWAITING_VERIFICATION`, while the Goal is `RETRY_PENDING`, and after a runtime-only authenticated cancellation until a separate queue-disposition connection exists. Queue disposition and exact admission history share the schema-v4 on-disk snapshot with exact restart recovery: a persisted terminal disposition is never re-run, only interrupted active work is requeued with its one-shot recovery preference, and incompatible schema-v1/v2/v3 snapshots fail ordinary resolution. Runtime lifecycle state is separately schema v5.
 
 `DurableAgentRunFinalizer` connects those separate facts through two recoverable operations. `recordAgentRunResult` resolves the RunRecord reference, binds it to the Goal on `approvedTask.taskId()` and `sourceDocument()` (no source SHA exists), and persists either Goal `COMPLETED` or non-terminal `RETRY_PENDING`; it never persists the RunRecord and fails closed on missing, corrupt, mismatched, premature, or changed-reference input. `finalizeTerminalDisposition` derives queue mutation only from terminal Goal state: `COMPLETED -> completeActiveVerified`, terminal `FAILED -> failActive`, and `ACTIVE`/`RETRY_PENDING` -> no disposition. A terminal `FAILED` Goal requires a persisted refused retry decision. Because queue recovery requeues interrupted active work, terminal finalization re-claims the matching item before disposition when necessary. The legacy `finalizeAgentRun` composes the forward terminal case, while `recoverFinalization` applies only authorized post-terminal disposition. Queue and runtime remain separate durable boundaries with no cross-store transaction.
 
@@ -1057,9 +1058,9 @@ or mutates nothing and makes no child-liveness claim.
 
 `AgentLoopAgentRunExecution` is the first production implementation of that port: it drives the Integrated Gate 1-4 pipeline (governed `read-file` `ToolExecutor`, `EvidenceRecorder`-persisted evidence, the bounded `AgentRunController`/`AgentLoop`, `DeterministicReadFileVerifier`, and the application `AgentRunFinalizer`) against the approved task's own source document — the `read-file` target is `taskRevision().sourceDocument()` and the expected content SHA-256 is `taskRevision().sourceSha256()` — and returns the persisted `run-record/<uuid>` reference. The `ApprovedTask` is constructed directly from the WorkItem's fields (no `ApprovedTaskReader`, no `In Progress` coupling), so the runtime finalizer's taskId-plus-sourceDocument binding holds by construction; the port must persist through the same `RunRecordStore` the worker's finalizer resolves from. A digest mismatch or Tool failure is carried in a persisted non-`VERIFIED` RunRecord, never thrown, and is real drift detection; the runtime result boundary records it as a failed attempt at `RETRY_PENDING` without a terminal queue disposition. The derivation of `(targetPath, expectedContentSha256)` from the WorkItem sits behind one private seam.
 
-`WorkPayload` now carries an optional caller-supplied `ExecutionInput(targetPath, expectedContentSha256)`: the port's seam prefers the declared input and falls back to the approved task's own source document when it is absent, so a WorkItem can execute an arbitrary governed target through the same contained read-file, evidence, verification, and RunRecord pipeline while the `ApprovedTask` binding stays the source document (exactly as the CLI separates `CURRENT_TASK.md` from `target-path`). The input is explicit caller authority data supplied through a `WorkMessagePublisher` overload — snapshot observations are evidence, not approval authority, so they never derive it. Both filesystem serializers persist the optional input after `allowedTools` with a presence flag; queue schema v3 and runtime schema v4 both embed it, with incompatible snapshots failing closed. Multiple inputs, payload-carried plans or Tool-call scripts, and write Tools remain out of scope.
+`WorkPayload` now carries an optional caller-supplied `ExecutionInput(targetPath, expectedContentSha256)`: the port's seam prefers the declared input and falls back to the approved task's own source document when it is absent, so a WorkItem can execute an arbitrary governed target through the same contained read-file, evidence, verification, and RunRecord pipeline while the `ApprovedTask` binding stays the source document (exactly as the CLI separates `CURRENT_TASK.md` from `target-path`). The input is explicit caller authority data supplied through a `WorkMessagePublisher` overload — snapshot observations are evidence, not approval authority, so they never derive it. Both filesystem serializers retain it inside the shared durable envelope representation; queue schema v4 and runtime schema v5 embed it, with incompatible snapshots failing closed. Multiple inputs, payload-carried plans or Tool-call scripts, and write Tools remain out of scope.
 
-`RuntimeControlAdmissionHandler` is the bounded Gate 7-to-Gate 8 request connection for control envelopes. It recovers one named Goal and records an exact `ControlPayload` envelope only while that Goal and its AgentRun are active, after matching logical run, correlation, and work-message causation and rejecting runtime-identity collisions. `AgentRuntimeState` retains at most 256 requests in admission order; exact message replay is a no-revision duplicate, identity reuse with different content fails closed, and every later lifecycle state retains the exact ledger prefix. `FileSystemAgentRuntimeStateStore` encodes the full envelopes in schema v4, requires the ledger to stay prefix-monotonic on update, and publishes the new revision atomically before the handler returns. Checked storage failure becomes handler failure so the existing bus retry/dead-letter contract remains visible. Incompatible schema-v1-v3 runtime payloads fail explicitly.
+`RuntimeControlAdmissionHandler` is the bounded Gate 7-to-Gate 8 request connection for control envelopes. It recovers one named Goal and records an exact `ControlPayload` envelope only while that Goal and its AgentRun are active, after matching logical run, correlation, and work-message causation and rejecting runtime-identity collisions. `AgentRuntimeState` retains at most 256 requests in admission order; exact message replay is a no-revision duplicate, identity reuse with different content fails closed, and every later lifecycle state retains the exact ledger prefix. `FileSystemAgentRuntimeStateStore` encodes the full envelopes in schema v5, requires the ledger to stay prefix-monotonic on update, and publishes the new revision atomically before the handler returns. Checked storage failure becomes handler failure so the existing bus retry/dead-letter contract remains visible. Incompatible schema-v1-v4 runtime payloads fail explicitly.
 
 This boundary records an untrusted request, not an accepted transition. The envelope producer and control reason are diagnostic provenance and cannot pause, resume, cancel, release a lease, mutate the queue, interrupt a worker, expand Tool scope, or change bus cancellation. Gate 12 must authenticate and authorize a later application path before any of those state changes can exist.
 
@@ -1392,7 +1393,7 @@ later retry facts and queue disposition -> termination afterward. Cancellation
 application receives no recorder through this boundary.
 
 Lease-expiry recovery is owned by `DurableAgentRuntime` and the same AgentRuntime state
-that owns leases and reclamation. Current schema v4 retains the bounded ordered ledger
+that owns leases and reclamation. Current schema v5 retains the bounded ordered ledger
 of exact `LeaseTimeoutRecord` values. Reclaim appends the current AgentRun, owner,
 fence, issue, expiry, and observation facts while transitioning `EXECUTING -> READY` in
 one durable revision; unexpired or non-executing recovery adds none. The filesystem
@@ -1513,7 +1514,7 @@ The conflict was possible because the compact `.ai/architecture.md` described cu
 
 ### Queue Capacity During Verification: Accepted And Rejected Options
 
-**Option A — keep the queue item active through verification.** Accepted, and in force. It is the smallest change consistent with the schema-v3 queue and single-worker design, preserves Verified-only completion without a new intermediate queue state, keeps crash recovery and cross-store ordering provable, and prevents another WorkItem from starting while the current result is unresolved. Its cost is real: verification latency occupies the single Scheduler slot, and a slow or unavailable verifier blocks unrelated ready work in that queue.
+**Option A — keep the queue item active through verification.** Accepted, and in force. It is the smallest change consistent with the schema-v4 queue and single-worker design, preserves Verified-only completion without a new intermediate queue state, keeps crash recovery and cross-store ordering provable, and prevents another WorkItem from starting while the current result is unresolved. Its cost is real: verification latency occupies the single Scheduler slot, and a slow or unavailable verifier blocks unrelated ready work in that queue.
 
 **Option B — add a non-terminal awaiting-verification queue state.** Deferred, not rejected. It releases the execution slot while verification proceeds and permits another independent WorkItem to execute without falsely satisfying dependencies. It requires a durable queue-state and schema change with recovery rules for the waiting set, separate execution and verification capacity limits and backpressure, ordering and fairness between the two stages, cancellation/timeout/restart/orphan behaviour for both, and an explicit rule that waiting work stays outside the dependency-satisfaction set. Reconsider only once the terminal-disposition and result paths are Contract Verified and verification throughput is a demonstrated bottleneck.
 
@@ -1618,7 +1619,7 @@ queue, runtime, recovery, and migration contract; RFC-0017 changes no Java or du
 schema and grants no candidate, gateway, provider, route, network, credential,
 transmission, or spend authority.
 
-RFC-0018 defines the future Scheduler-specific durable source as a fifth typed
+RFC-0018 defines the Scheduler-specific durable source as a fifth typed
 `ModelWorkPayload` carrying mandatory target path, expected-response digest, and one
 exact complete `ModelExecutionProfile`. The existing `WorkPayload` stays the unchanged
 read-file representation, while payload kind selects new model work even when task
@@ -1626,17 +1627,19 @@ scope also permits read-file. The profile remains untrusted and contains no capa
 authority; the exact active `WorkItem.requiredCapability` stays a separate governed
 projection and must remain capable of disagreeing until RFC-0016 evaluates it.
 
-The future transport uses a payload-sensitive model-work representation rather than a
+The transport uses a payload-sensitive model-work representation rather than a
 global version replacement: existing Work, Result, Control, and Handoff envelopes and
 spool frames retain their exact v1 bytes, including the Gate 12 cancellation-signing
 input, while only model work uses envelope/spool v2. Submission manifest v3, Scheduler
 queue v4, and AgentRuntime v5 embed that exact envelope/profile so retry and process
-recovery require no manifest-only, registry, or ambient lookup. Stopped-owner migration
+recovery require no manifest-only, registry, or ambient lookup. This durable retention
+family is current, while stopped-owner migration
 preserves legacy read-file work losslessly and refuses executable legacy model work
 without a profile before any write. Profile-aware execution remains blocked pending a
 model RunRecord v2, the exact active governed task, the same execution-policy instance,
-fresh RFC-0015/RFC-0016 evaluation, and later candidate/provider authority. RFC-0018
-changes no current Java, schema, artifact, command, or runtime behavior.
+fresh RFC-0015/RFC-0016 evaluation, and later candidate/provider authority. The
+coordinated legacy inspection, zero-write preflight, candidate publication, and crash
+re-entry remain the active follow-up.
 
 ## Agent Orchestration Contract
 

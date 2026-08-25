@@ -1,6 +1,7 @@
 package com.enhancer.runtime;
 
 import com.enhancer.bus.MessageEnvelope;
+import com.enhancer.bus.DurableMessageEnvelopeCodec;
 import com.enhancer.bus.WorkPayload;
 import com.enhancer.io.BoundedFileOperations;
 import com.enhancer.io.FileSizeLimitExceededException;
@@ -40,8 +41,12 @@ import java.util.UUID;
 public final class FileSystemSubmissionManifestStore
         implements SubmissionManifestStore {
     private static final int ENVELOPE_MAGIC = 0x45534d31;
-    public static final int PREVIOUS_SCHEMA_VERSION = 1;
-    public static final int CURRENT_SCHEMA_VERSION = 2;
+    public static final int LEGACY_MIGRATION_SOURCE_SCHEMA_VERSION = 1;
+    public static final int PREVIOUS_SCHEMA_VERSION = 2;
+    public static final int CURRENT_SCHEMA_VERSION = 3;
+
+    private static final DurableMessageEnvelopeCodec MESSAGE_CODEC =
+            new DurableMessageEnvelopeCodec();
     private static final int DIGEST_BYTES = 32;
     private static final int HEADER_BYTES =
             Integer.BYTES + Long.BYTES + Integer.BYTES + DIGEST_BYTES;
@@ -114,7 +119,7 @@ public final class FileSystemSubmissionManifestStore
             decode(canonicalId, original.payload());
             return SubmissionManifestMigrationResult.ALREADY_CURRENT;
         }
-        if (version != PREVIOUS_SCHEMA_VERSION) {
+        if (version != LEGACY_MIGRATION_SOURCE_SCHEMA_VERSION) {
             throw corrupted(canonicalId, "payload schema version is unsupported");
         }
 
@@ -307,7 +312,7 @@ public final class FileSystemSubmissionManifestStore
             byte[] payload) throws IOException {
         try (DataInputStream input =
                 new DataInputStream(new ByteArrayInputStream(payload))) {
-            if (input.readInt() != PREVIOUS_SCHEMA_VERSION) {
+            if (input.readInt() != LEGACY_MIGRATION_SOURCE_SCHEMA_VERSION) {
                 throw corrupted(
                         expectedSubmissionId,
                         "payload schema version is unsupported");
@@ -319,7 +324,7 @@ public final class FileSystemSubmissionManifestStore
                     readString(input),
                     input.readInt(),
                     readString(input),
-                    readMessageEnvelope(input),
+                    readLegacyMessageEnvelope(input),
                     SchedulerPriority.NORMAL);
             if (!expectedSubmissionId.equals(manifest.submissionId())) {
                 throw corrupted(
@@ -366,6 +371,25 @@ public final class FileSystemSubmissionManifestStore
     private void writeMessageEnvelope(
             DataOutputStream output,
             MessageEnvelope envelope) throws IOException {
+        byte[] encoded = MESSAGE_CODEC.encode(envelope);
+        output.writeInt(encoded.length);
+        output.write(encoded);
+    }
+
+    private MessageEnvelope readMessageEnvelope(DataInputStream input)
+            throws IOException {
+        int length = input.readInt();
+        if (length < 0 || length > DurableMessageEnvelopeCodec.MAX_ENCODED_BYTES) {
+            throw new IOException("durable message envelope length is invalid");
+        }
+        byte[] encoded = new byte[length];
+        input.readFully(encoded);
+        return MESSAGE_CODEC.decode(encoded);
+    }
+
+    private void writeLegacyMessageEnvelope(
+            DataOutputStream output,
+            MessageEnvelope envelope) throws IOException {
         writeString(output, MessageEnvelope.ENVELOPE_VERSION);
         writeString(output, envelope.messageId());
         writeString(output, envelope.correlationId());
@@ -384,7 +408,7 @@ public final class FileSystemSubmissionManifestStore
         writeExecutionInput(output, work.executionInput());
     }
 
-    private MessageEnvelope readMessageEnvelope(DataInputStream input)
+    private MessageEnvelope readLegacyMessageEnvelope(DataInputStream input)
             throws IOException {
         if (!MessageEnvelope.ENVELOPE_VERSION.equals(readString(input))) {
             throw new IOException("message envelope version is unsupported");

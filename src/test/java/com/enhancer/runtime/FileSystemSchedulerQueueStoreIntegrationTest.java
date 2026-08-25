@@ -57,6 +57,33 @@ class FileSystemSchedulerQueueStoreIntegrationTest {
     }
 
     @Test
+    void currentSchemaRetainsExactTypedModelWorkAcrossQueueRecovery()
+            throws Exception {
+        FileSystemSchedulerQueueStore store =
+                new FileSystemSchedulerQueueStore(storageRoot);
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.create(QUEUE_ID, 8, store);
+        WorkItem modelWork = ModelWorkFixtures.workItem();
+
+        queue.enqueue(new QueuedWork(modelWork, List.of()));
+        WorkItem restored = DurableSingleWorkerSchedulerQueue.recover(
+                        QUEUE_ID,
+                        new FileSystemSchedulerQueueStore(storageRoot))
+                .claimNext()
+                .orElseThrow();
+
+        assertEquals(4, SchedulerQueueState.CURRENT_SCHEMA_VERSION);
+        assertEquals(modelWork, restored);
+        assertEquals(ModelWorkFixtures.envelope(), restored.workMessage());
+        assertEquals(
+                ModelWorkFixtures.profile(),
+                restored.modelExecutionInput().orElseThrow().executionProfile());
+        assertEquals(
+                ModelWorkFixtures.INDEPENDENT_CAPABILITY,
+                restored.requiredCapability());
+    }
+
+    @Test
     void refusesUpdateWhileAnotherJvmOwnsTheQueueWriterLock()
             throws Exception {
         FileSystemSchedulerQueueStore store =

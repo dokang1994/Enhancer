@@ -6077,3 +6077,26 @@ Outcome:
   maturity, Roadmap milestones, permissions, release, and deployment state did not
   change. `PROJECT_STATE.md`, `ROADMAP.md`, `ARCHITECTURE.md`, and
   `SESSION_HANDOFF.md` therefore remained unchanged.
+
+## 2026-08-25 - Durable ModelWork Current-Schema Retention Verification
+
+- The aligned RED selection failed at test compilation because `WorkItem` had no typed
+  ModelWork execution-input projection. The minimum implementation made WorkItem and
+  submission intent exhaustive over legacy Work and typed ModelWork, advanced submission
+  manifest to v3, Scheduler queue to v4, and AgentRuntime to v5, and reused one canonical
+  durable-envelope codec across all three stores and the existing process-spool family.
+- Focused round-trip verification passed 56 tests across WorkItem, manifest, queue,
+  AgentRuntime, message codec, and file spool suites. Separate execution-guard tests
+  proved typed ModelWork refuses before the legacy RunRecord-v1 executor, isolated cycle
+  creation, and child launch. A changed complete profile under one submission identity
+  was refused without rewriting the persisted artifact.
+- Existing legacy queue/manifest compatibility migration and CLI suites passed after
+  source/target schema reporting was bound to the actual legacy source and current
+  target constants. The fresh unfiltered README-owned Java 17 Gradle test then completed
+  with `BUILD SUCCESSFUL` in 1 minute 24 seconds; JUnit reported 955 tests with zero
+  failures and 10 existing environment-dependent skips.
+- Legacy Work/Result/Control/Handoff and cancellation wire encodings remain governed by
+  the unchanged codec families. Typed ModelWork is retained data only: no submission
+  producer, external receiver, RunRecord v2, admission, gateway, provider, network, or
+  execution authority was connected. Coordinated legacy inspection and zero-write
+  preflight remain the next active increment.

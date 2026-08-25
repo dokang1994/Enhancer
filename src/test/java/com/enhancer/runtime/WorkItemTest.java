@@ -3,10 +3,12 @@ package com.enhancer.runtime;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.enhancer.bus.ControlPayload;
 import com.enhancer.bus.ControlSignal;
 import com.enhancer.bus.MessageEnvelope;
+import com.enhancer.bus.ModelWorkPayload;
 import com.enhancer.bus.WorkPayload;
 import com.enhancer.workspace.ApprovedTaskRevision;
 import java.time.Instant;
@@ -60,6 +62,42 @@ class WorkItemTest {
         assertEquals(Optional.of(input),
                 new WorkItem(WORK_ITEM_ID, "read-file-worker", declared)
                         .executionInput());
+    }
+
+    @Test
+    void retainsTypedModelWorkWithoutFlatteningItsProfileOrCapability() {
+        MessageEnvelope envelope = ModelWorkFixtures.envelope();
+
+        WorkItem item = new WorkItem(
+                ModelWorkFixtures.WORK_ITEM_ID,
+                ModelWorkFixtures.INDEPENDENT_CAPABILITY,
+                envelope);
+
+        assertSame(envelope, item.workMessage());
+        assertEquals(ModelWorkFixtures.INDEPENDENT_CAPABILITY, item.requiredCapability());
+        assertEquals(ModelWorkFixtures.payload().taskRevision(), item.taskRevision());
+        assertEquals(ModelWorkFixtures.payload().snapshotId(), item.snapshotId());
+        assertEquals(ModelWorkFixtures.payload().allowedTools(), item.allowedTools());
+        assertEquals(Optional.empty(), item.executionInput());
+        assertEquals(
+                Optional.of(ModelWorkFixtures.payload().executionInput()),
+                item.modelExecutionInput());
+        assertSame(
+                ((ModelWorkPayload) envelope.payload())
+                        .executionInput()
+                        .executionProfile(),
+                item.modelExecutionInput().orElseThrow().executionProfile());
+    }
+
+    @Test
+    void typedModelWorkIsRetainedButRefusedByTheLegacyExecutor() {
+        WorkItem modelWork = ModelWorkFixtures.workItem();
+
+        IllegalArgumentException failure = assertThrows(
+                IllegalArgumentException.class,
+                () -> AgentLoopAgentRunExecution.requireLegacyExecutableWork(modelWork));
+
+        assertTrue(failure.getMessage().contains("Model RunRecord v2"));
     }
 
     @Test

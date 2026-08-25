@@ -13,9 +13,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-/** Immutable schema-v4 Goal, AgentRun, control, cancellation, and lease-timeout state. */
+/** Immutable schema-v5 Goal, AgentRun, control, cancellation, and lease-timeout state. */
 public final class AgentRuntimeState {
-    public static final int CURRENT_SCHEMA_VERSION = 4;
+    public static final int PREVIOUS_SCHEMA_VERSION = 4;
+    public static final int CURRENT_SCHEMA_VERSION = 5;
     public static final int MAX_ATTEMPTS_PER_GOAL = AgentRunRetryPolicy.MAX_ATTEMPTS;
     public static final int MAX_CONTROL_REQUESTS = 256;
     public static final int MAX_LEASE_TIMEOUTS = 256;
