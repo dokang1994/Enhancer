@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -100,7 +100,7 @@ drift, new external authority, exhausted bounds, or unsafe recovery.
 
 ### Increment 1 - correct-verify-and-push-golden-fixtures
 
-State: In Progress
+State: Completed
 Depends On: none
 Scope: Reproduce the UTF-8-sensitive legacy golden mismatch, correct only the affected
 test fixtures, run focused and full verification, commit the GREEN correction, recheck
@@ -118,7 +118,7 @@ commit the bounded lifecycle update, and push it after fresh verification.
 
 ### Increment 2 - record-and-push-corrected-delivery-evidence
 
-State: Pending
+State: Completed
 Depends On: correct-verify-and-push-golden-fixtures
 Scope: Append exact correction/delivery evidence, synchronize the task and handoff,
 verify the Markdown-sensitive repository, commit the bounded documentation update,
@@ -133,5 +133,4 @@ Next Action: Await separate authority for the coordinated durable ModelWork migr
 
 ## Next
 
-Complete Increment 1, then select Increment 2 only after reading its fresh dependency
-evidence.
+Await separate authority for the coordinated durable ModelWork migration.

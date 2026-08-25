@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-08-25 - Correct Cross-Platform Legacy Wire Goldens
+
+- Replaced the platform-dependent legacy MessageEnvelope golden expectations with the
+  canonical UTF-8 frames emitted by the unchanged codec and made the non-ASCII fixture
+  source independent of the host Java source encoding.
+- Preserved production codec behavior, every legacy v1 structure, the ModelWork-only
+  v2 structure, and cancellation signing bytes; no production Java or schema changed.
+- Delivered the test-only correction to `main` through a non-force fast-forward after
+  local default-charset, explicit UTF-8, and full regression verification; the
+  push-triggered GitHub Actions verification also passed.
+
 ## 2026-08-21 - Implement Typed Model Work And Its Golden Wire
 
 - Added the fifth immutable `ModelWorkPayload` with mandatory target, expected-response

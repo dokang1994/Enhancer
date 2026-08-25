@@ -6043,3 +6043,37 @@ Outcome:
   CLI, Tool, RunRecord, admission, gateway, provider, route, network, credential,
   spend, artifact, migration, push, merge, release, and deployment behavior remains
   unchanged and unsupported for ModelWork.
+
+## 2026-08-25 - Cross-Platform Model Work Golden-Fixture Correction And Delivery Verification
+
+- The first typed ModelWork delivery at `78633d1511a4ea54d7d7ca939b4710b109c2b1b2`
+  triggered GitHub Actions run `32472094472` on Temurin 17/Linux. Its uploaded report
+  contained 949 tests with one failure and three skips: only
+  `MessageEnvelopeCodecTest.preservesEveryLegacyPayloadFrameByteForByte()` failed.
+  The retained report artifact had SHA-256
+  `76fa8a8db7951a62a9836a1617afe2ce0e2598e01b38e1976de03daf5a2baac8`.
+- An explicit UTF-8 focused RED reproduced the same mismatch. Production emitted the
+  canonical UTF-8 bytes for the rocket-bearing fixture value, while the Windows-authored
+  expected frames contained bytes derived from mojibake text. The minimum test-only
+  correction replaced all four affected legacy frame constants and expressed both
+  rocket-bearing fixture literals with Java Unicode escapes so source decoding cannot
+  change the expected value.
+- The focused codec, cancellation-authorizer golden, and three governance suites passed
+  under both the default Windows charset and explicit UTF-8. The fresh unfiltered
+  README-owned Java 17 `test --rerun-tasks` task then completed with `BUILD SUCCESSFUL`
+  in 7 minutes 46 seconds; JUnit XML aggregation found 949 tests, zero failures, zero
+  errors, and 10 existing environment-dependent skips. `git diff --check` was clean.
+- Commit `b90922483489de56d7c727af628176eeb9829f6d` contained only the authorized task,
+  decision/index, and test-fixture paths. A fresh fetch found remote `main` at
+  `78633d1511a4ea54d7d7ca939b4710b109c2b1b2`, proved it was an ancestor of the local
+  commit, and explicit non-force `git push origin main:main` fast-forwarded the exact
+  range `78633d1..b909224`.
+- After the push, local `HEAD`, fetched `origin/main`, and advertised `refs/heads/main`
+  all resolved to `b90922483489de56d7c727af628176eeb9829f6d`. Push-triggered GitHub
+  Actions workflow `verify` run `32796550719`, job `97648944045`, completed
+  successfully, including its `Run complete verification` step.
+- Production Java, codec behavior, legacy v1 and ModelWork-only v2 structures,
+  cancellation signing bytes, durable/runtime integration, architecture, capability
+  maturity, Roadmap milestones, permissions, release, and deployment state did not
+  change. `PROJECT_STATE.md`, `ROADMAP.md`, `ARCHITECTURE.md`, and
+  `SESSION_HANDOFF.md` therefore remained unchanged.
