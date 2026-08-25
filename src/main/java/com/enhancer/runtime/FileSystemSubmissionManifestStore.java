@@ -100,6 +100,37 @@ public final class FileSystemSubmissionManifestStore
         return decode(canonicalId, envelope.payload());
     }
 
+    Optional<SubmissionManifestMigrationInspection> inspectForMigration(
+            String submissionId) throws IOException {
+        String canonicalId = canonicalUuid(submissionId, "submissionId");
+        Optional<ValidatedEnvelope> resolved = readValidatedEnvelope(
+                artifactPath(canonicalId), canonicalId);
+        if (resolved.isEmpty()) {
+            return Optional.empty();
+        }
+        ValidatedEnvelope source = resolved.orElseThrow();
+        int version = schemaVersion(source.payload(), canonicalId);
+        DurableSubmissionManifest manifest;
+        boolean alreadyCurrent;
+        if (version == CURRENT_SCHEMA_VERSION) {
+            manifest = decode(canonicalId, source.payload());
+            alreadyCurrent = true;
+        } else if (version == PREVIOUS_SCHEMA_VERSION) {
+            manifest = decodeIntermediate(canonicalId, source.payload());
+            alreadyCurrent = false;
+        } else if (version == LEGACY_MIGRATION_SOURCE_SCHEMA_VERSION) {
+            manifest = decodePrevious(canonicalId, source.payload());
+            alreadyCurrent = false;
+        } else {
+            throw corrupted(canonicalId, "payload schema version is unsupported");
+        }
+        return Optional.of(new SubmissionManifestMigrationInspection(
+                version,
+                manifest,
+                source.bytes(),
+                alreadyCurrent));
+    }
+
     /**
      * Explicitly migrates one schema-v1 manifest to the current schema.
      * Callers must stop submission using this identity before invoking it.
@@ -350,6 +381,55 @@ public final class FileSystemSubmissionManifestStore
                     "payload could not be decoded",
                     exception);
         } catch (RuntimeException exception) {
+            throw corrupted(
+                    expectedSubmissionId,
+                    "payload could not be decoded",
+                    exception);
+        }
+    }
+
+    private DurableSubmissionManifest decodeIntermediate(
+            String expectedSubmissionId,
+            byte[] payload) throws IOException {
+        try (DataInputStream input =
+                new DataInputStream(new ByteArrayInputStream(payload))) {
+            if (input.readInt() != PREVIOUS_SCHEMA_VERSION) {
+                throw corrupted(
+                        expectedSubmissionId,
+                        "payload schema version is unsupported");
+            }
+            if (!PAYLOAD_KIND.equals(readString(input))) {
+                throw corrupted(expectedSubmissionId, "payload kind is invalid");
+            }
+            String queueId = readString(input);
+            int maxWorkItems = input.readInt();
+            String requiredCapability = readString(input);
+            SchedulerPriority priority = readPriority(input);
+            DurableSubmissionManifest manifest = new DurableSubmissionManifest(
+                    queueId,
+                    maxWorkItems,
+                    requiredCapability,
+                    readLegacyMessageEnvelope(input),
+                    priority);
+            if (!expectedSubmissionId.equals(manifest.submissionId())) {
+                throw corrupted(
+                        expectedSubmissionId,
+                        "submission identity does not match artifact");
+            }
+            if (input.available() != 0) {
+                throw corrupted(
+                        expectedSubmissionId,
+                        "payload contains trailing bytes");
+            }
+            return manifest;
+        } catch (CorruptedManifestException exception) {
+            throw exception;
+        } catch (EOFException exception) {
+            throw corrupted(
+                    expectedSubmissionId,
+                    "payload ended before all fields were read",
+                    exception);
+        } catch (IOException | RuntimeException exception) {
             throw corrupted(
                     expectedSubmissionId,
                     "payload could not be decoded",

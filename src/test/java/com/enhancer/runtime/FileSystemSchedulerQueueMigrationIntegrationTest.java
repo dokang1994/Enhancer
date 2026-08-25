@@ -93,6 +93,41 @@ class FileSystemSchedulerQueueMigrationIntegrationTest {
     }
 
     @Test
+    void inspectsExactSchemaV3StateAsV4WithoutWriting() throws Exception {
+        Path root = temporaryRoot.resolve("inspect-v3");
+        QueuedWork first = new QueuedWork(
+                workItem(FIRST_ID), List.of(), SchedulerPriority.EXPEDITED);
+        QueuedWork second = new QueuedWork(
+                workItem(SECOND_ID), List.of(FIRST_ID), SchedulerPriority.NORMAL);
+        byte[] source = schemaV3Envelope(
+                List.of(first, second),
+                List.of(second),
+                Optional.of(first),
+                1009L);
+        writeArtifact(root, source);
+        FileSystemSchedulerQueueStore store =
+                new FileSystemSchedulerQueueStore(root);
+
+        SchedulerQueueMigrationInspection inspection =
+                store.inspectForMigration(QUEUE_ID).orElseThrow();
+
+        assertEquals(3, inspection.sourceSchemaVersion());
+        assertFalse(inspection.alreadyCurrent());
+        assertEquals(SchedulerQueueState.CURRENT_SCHEMA_VERSION,
+                inspection.state().schemaVersion());
+        assertEquals(3, inspection.state().maximumExpeditedBurst());
+        assertEquals(1, inspection.state().consecutiveExpeditedClaims());
+        assertEquals(Optional.empty(),
+                inspection.state().recoveryPreferredWorkItemId());
+        assertEquals(List.of(first, second), inspection.state().admittedWork());
+        assertEquals(List.of(second), inspection.state().pendingWork());
+        assertEquals(Optional.of(first), inspection.state().activeWork());
+        assertArrayEquals(source, inspection.sourceBytes());
+        assertArrayEquals(source, Files.readAllBytes(artifact(root)));
+        assertFalse(hasMigrationCandidate(root));
+    }
+
+    @Test
     void absentAndCurrentArtifactsAreIdempotentNonWritingOutcomes()
             throws Exception {
         Path absentRoot = temporaryRoot.resolve("absent");
@@ -200,6 +235,54 @@ class FileSystemSchedulerQueueMigrationIntegrationTest {
         return schemaEnvelope(2, admitted, pending, active, storedAtMillis);
     }
 
+    private static byte[] schemaV3Envelope(
+            List<QueuedWork> admitted,
+            List<QueuedWork> pending,
+            Optional<QueuedWork> active,
+            long storedAtMillis) throws Exception {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        try (DataOutputStream output = new DataOutputStream(bytes)) {
+            output.writeInt(3);
+            writeString(output, "scheduler-queue-state");
+            writeString(output, QUEUE_ID);
+            output.writeLong(7);
+            output.writeInt(8);
+            output.writeInt(3);
+            output.writeInt(1);
+            output.writeBoolean(false);
+            output.writeBoolean(true);
+            writeString(output, LOGICAL_RUN);
+            writeStringList(output, admitted.stream()
+                    .map(work -> work.workItem().workItemId())
+                    .toList());
+            writeSchemaV3QueuedWorkList(output, admitted);
+            writeSchemaV3QueuedWorkList(output, pending);
+            output.writeBoolean(active.isPresent());
+            if (active.isPresent()) {
+                writeSchemaV3QueuedWork(output, active.orElseThrow());
+            }
+            writeStringSet(output, Set.of());
+            writeStringSet(output, Set.of());
+        }
+        return envelope(bytes.toByteArray(), storedAtMillis);
+    }
+
+    private static void writeSchemaV3QueuedWorkList(
+            DataOutputStream output,
+            List<QueuedWork> work) throws Exception {
+        output.writeInt(work.size());
+        for (QueuedWork queuedWork : work) {
+            writeSchemaV3QueuedWork(output, queuedWork);
+        }
+    }
+
+    private static void writeSchemaV3QueuedWork(
+            DataOutputStream output,
+            QueuedWork queuedWork) throws Exception {
+        writeQueuedWork(output, queuedWork);
+        writeString(output, queuedWork.priority().name());
+    }
+
     private static byte[] schemaEnvelope(
             int schemaVersion,
             List<QueuedWork> admitted,
@@ -230,6 +313,11 @@ class FileSystemSchedulerQueueMigrationIntegrationTest {
             writeStringSet(output, Set.of());
         }
         byte[] payload = bytes.toByteArray();
+        return envelope(payload, storedAtMillis);
+    }
+
+    private static byte[] envelope(byte[] payload, long storedAtMillis)
+            throws Exception {
         byte[] digest = MessageDigest.getInstance("SHA-256").digest(
                 ByteBuffer.allocate(
                                 Integer.BYTES

@@ -197,6 +197,50 @@ public final class FileSystemAgentRuntimeStateStore
     public AgentRuntimeState resolve(String goalId) throws IOException {
         String canonicalGoalId =
                 AgentRuntimeState.requireCanonicalGoalId(goalId);
+        return decode(
+                canonicalGoalId,
+                readValidatedEnvelope(canonicalGoalId).payload());
+    }
+
+    Optional<AgentRuntimeMigrationInspection> inspectForMigration(String goalId)
+            throws IOException {
+        String canonicalGoalId =
+                AgentRuntimeState.requireCanonicalGoalId(goalId);
+        Path artifact = artifactPath(canonicalGoalId);
+        if (!Files.exists(artifact, LinkOption.NOFOLLOW_LINKS)) {
+            return Optional.empty();
+        }
+        ValidatedEnvelope validated = readValidatedEnvelope(canonicalGoalId);
+        byte[] payload = validated.payload();
+        if (payload.length < Integer.BYTES) {
+            throw corrupted(
+                    canonicalGoalId,
+                    "state ended before its schema version was read");
+        }
+        int sourceSchemaVersion = ByteBuffer.wrap(payload).getInt();
+        AgentRuntimeState state;
+        boolean alreadyCurrent;
+        if (sourceSchemaVersion == AgentRuntimeState.CURRENT_SCHEMA_VERSION) {
+            state = decode(canonicalGoalId, payload);
+            alreadyCurrent = true;
+        } else if (sourceSchemaVersion
+                == AgentRuntimeState.PREVIOUS_SCHEMA_VERSION) {
+            state = decodePrevious(canonicalGoalId, payload);
+            alreadyCurrent = false;
+        } else {
+            throw corrupted(
+                    canonicalGoalId,
+                    "state schema version is unsupported for migration");
+        }
+        return Optional.of(new AgentRuntimeMigrationInspection(
+                sourceSchemaVersion,
+                state,
+                validated.envelope(),
+                alreadyCurrent));
+    }
+
+    private ValidatedEnvelope readValidatedEnvelope(String canonicalGoalId)
+            throws IOException {
         Path artifact = artifactPath(canonicalGoalId);
         if (!Files.exists(artifact, LinkOption.NOFOLLOW_LINKS)) {
             throw new MissingAgentRuntimeStateException(canonicalGoalId);
@@ -254,7 +298,7 @@ public final class FileSystemAgentRuntimeStateStore
                     canonicalGoalId,
                     "envelope digest does not match stored metadata");
         }
-        return decode(canonicalGoalId, payload);
+        return new ValidatedEnvelope(payload, envelope);
     }
 
     private void validateAgentRunHistoryPrefix(
@@ -540,6 +584,72 @@ public final class FileSystemAgentRuntimeStateStore
         }
     }
 
+    private AgentRuntimeState decodePrevious(
+            String expectedGoalId,
+            byte[] payload) throws CorruptedAgentRuntimeStateException {
+        try (DataInputStream input =
+                new DataInputStream(new ByteArrayInputStream(payload))) {
+            int schemaVersion = input.readInt();
+            if (schemaVersion
+                    != AgentRuntimeState.PREVIOUS_SCHEMA_VERSION) {
+                throw corrupted(
+                        expectedGoalId,
+                        "previous state schema version is unsupported");
+            }
+            if (!PAYLOAD_KIND.equals(readString(input))) {
+                throw corrupted(
+                        expectedGoalId,
+                        "state payload kind is invalid");
+            }
+            String goalId = readString(input);
+            if (!expectedGoalId.equals(goalId)) {
+                throw corrupted(
+                        expectedGoalId,
+                        "state Goal identity does not match artifact");
+            }
+            long revision = input.readLong();
+            long lastIssuedFenceToken = input.readLong();
+            RuntimeGoalStatus goalStatus =
+                    readEnum(input, RuntimeGoalStatus.class, "Goal status");
+            WorkItem workItem = readPreviousWorkItem(input);
+            List<RuntimeAgentRun> agentRuns = readPreviousAgentRuns(input);
+            List<AgentRunRetryDecisionRecord> retryDecisions =
+                    readRetryDecisions(input);
+            List<MessageEnvelope> controlRequests =
+                    readPreviousMessageEnvelopes(input);
+            List<LeaseTimeoutRecord> leaseTimeouts = readLeaseTimeouts(input);
+            Optional<CancellationApplicationRecord> cancellationApplication =
+                    readCancellationApplication(input);
+            if (input.available() != 0) {
+                throw corrupted(
+                        expectedGoalId,
+                        "state contains trailing bytes");
+            }
+            return new AgentRuntimeState(
+                    AgentRuntimeState.CURRENT_SCHEMA_VERSION,
+                    revision,
+                    lastIssuedFenceToken,
+                    new RuntimeGoal(goalId, workItem, goalStatus),
+                    agentRuns,
+                    retryDecisions,
+                    controlRequests,
+                    leaseTimeouts,
+                    cancellationApplication);
+        } catch (CorruptedAgentRuntimeStateException exception) {
+            throw exception;
+        } catch (EOFException exception) {
+            throw corrupted(
+                    expectedGoalId,
+                    "state ended before all fields were read",
+                    exception);
+        } catch (IOException | RuntimeException exception) {
+            throw corrupted(
+                    expectedGoalId,
+                    "state could not be decoded",
+                    exception);
+        }
+    }
+
     private void writeLeaseTimeouts(
             DataOutputStream output,
             List<LeaseTimeoutRecord> records) throws IOException {
@@ -649,6 +759,30 @@ public final class FileSystemAgentRuntimeStateStore
                 resultMessage);
     }
 
+    private RuntimeAgentRun readPreviousAgentRun(DataInputStream input)
+            throws IOException {
+        String agentRunId = readString(input);
+        String goalId = readString(input);
+        String workItemId = readString(input);
+        RuntimeAgentRunStatus status = readEnum(
+                input,
+                RuntimeAgentRunStatus.class,
+                "AgentRun status");
+        Optional<AgentRunLease> lease = readPresence(input)
+                ? Optional.of(readLease(input))
+                : Optional.empty();
+        Optional<MessageEnvelope> resultMessage = readPresence(input)
+                ? Optional.of(readPreviousMessageEnvelope(input))
+                : Optional.empty();
+        return new RuntimeAgentRun(
+                agentRunId,
+                goalId,
+                workItemId,
+                status,
+                lease,
+                resultMessage);
+    }
+
     private void writeAgentRuns(
             DataOutputStream output,
             List<RuntimeAgentRun> agentRuns) throws IOException {
@@ -670,6 +804,19 @@ public final class FileSystemAgentRuntimeStateStore
         List<RuntimeAgentRun> agentRuns = new ArrayList<>(size);
         for (int index = 0; index < size; index++) {
             agentRuns.add(readAgentRun(input));
+        }
+        return List.copyOf(agentRuns);
+    }
+
+    private List<RuntimeAgentRun> readPreviousAgentRuns(DataInputStream input)
+            throws IOException {
+        int size = input.readInt();
+        if (size < 0 || size > AgentRuntimeState.MAX_ATTEMPTS_PER_GOAL) {
+            throw new IOException("AgentRun history size is invalid");
+        }
+        List<RuntimeAgentRun> agentRuns = new ArrayList<>(size);
+        for (int index = 0; index < size; index++) {
+            agentRuns.add(readPreviousAgentRun(input));
         }
         return List.copyOf(agentRuns);
     }
@@ -763,6 +910,14 @@ public final class FileSystemAgentRuntimeStateStore
                 readMessageEnvelope(input));
     }
 
+    private WorkItem readPreviousWorkItem(DataInputStream input)
+            throws IOException {
+        return new WorkItem(
+                readString(input),
+                readString(input),
+                readPreviousMessageEnvelope(input));
+    }
+
     private void writeMessageEnvelope(
             DataOutputStream output,
             MessageEnvelope envelope) throws IOException {
@@ -780,6 +935,68 @@ public final class FileSystemAgentRuntimeStateStore
         byte[] encoded = new byte[length];
         input.readFully(encoded);
         return MESSAGE_CODEC.decode(encoded);
+    }
+
+    private MessageEnvelope readPreviousMessageEnvelope(DataInputStream input)
+            throws IOException {
+        if (!MessageEnvelope.ENVELOPE_VERSION.equals(readString(input))) {
+            throw new IOException(
+                    "Agent runtime message envelope version is unsupported");
+        }
+        String messageId = readString(input);
+        String correlationId = readString(input);
+        Optional<String> causationId = readOptionalString(input);
+        String logicalRunId = readString(input);
+        String producer = readString(input);
+        Instant occurredAt = readInstant(input);
+        String payloadKind = readString(input);
+        if (WORK_PAYLOAD_KIND.equals(payloadKind)) {
+            return new MessageEnvelope(
+                    messageId,
+                    correlationId,
+                    causationId,
+                    logicalRunId,
+                    producer,
+                    occurredAt,
+                    new WorkPayload(
+                            readApprovedTaskRevision(input),
+                            readString(input),
+                            readStringSet(input),
+                            readExecutionInput(input)));
+        }
+        if (RESULT_PAYLOAD_KIND.equals(payloadKind)) {
+            return new MessageEnvelope(
+                    messageId,
+                    correlationId,
+                    causationId,
+                    logicalRunId,
+                    producer,
+                    occurredAt,
+                    new ResultPayload(
+                            readString(input),
+                            readString(input),
+                            readEnum(
+                                    input,
+                                    VerificationStatus.class,
+                                    "verification status")));
+        }
+        if (CONTROL_PAYLOAD_KIND.equals(payloadKind)) {
+            return new MessageEnvelope(
+                    messageId,
+                    correlationId,
+                    causationId,
+                    logicalRunId,
+                    producer,
+                    occurredAt,
+                    new ControlPayload(
+                            readEnum(
+                                    input,
+                                    ControlSignal.class,
+                                    "control signal"),
+                            readString(input)));
+        }
+        throw new IOException(
+                "Agent runtime message payload kind is invalid");
     }
 
     private void writeMessageEnvelopes(
@@ -805,6 +1022,20 @@ public final class FileSystemAgentRuntimeStateStore
         List<MessageEnvelope> envelopes = new ArrayList<>(size);
         for (int index = 0; index < size; index++) {
             envelopes.add(readMessageEnvelope(input));
+        }
+        return List.copyOf(envelopes);
+    }
+
+    private List<MessageEnvelope> readPreviousMessageEnvelopes(
+            DataInputStream input) throws IOException {
+        int size = input.readInt();
+        if (size < 0 || size > AgentRuntimeState.MAX_CONTROL_REQUESTS) {
+            throw new IOException(
+                    "Agent runtime control ledger size is invalid");
+        }
+        List<MessageEnvelope> envelopes = new ArrayList<>(size);
+        for (int index = 0; index < size; index++) {
+            envelopes.add(readPreviousMessageEnvelope(input));
         }
         return List.copyOf(envelopes);
     }
@@ -1041,5 +1272,22 @@ public final class FileSystemAgentRuntimeStateStore
                 goalId,
                 reason,
                 cause);
+    }
+
+    private record ValidatedEnvelope(byte[] payload, byte[] envelope) {
+        private ValidatedEnvelope {
+            payload = payload.clone();
+            envelope = envelope.clone();
+        }
+
+        @Override
+        public byte[] payload() {
+            return payload.clone();
+        }
+
+        @Override
+        public byte[] envelope() {
+            return envelope.clone();
+        }
     }
 }

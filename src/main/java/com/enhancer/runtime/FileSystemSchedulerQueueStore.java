@@ -221,6 +221,39 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
         return decode(canonicalQueueId, payload);
     }
 
+    Optional<SchedulerQueueMigrationInspection> inspectForMigration(String queueId)
+            throws IOException {
+        String canonicalQueueId =
+                SchedulerQueueState.requireCanonicalQueueId(queueId);
+        Optional<ValidatedEnvelope> resolved = readValidatedEnvelope(
+                artifactPath(canonicalQueueId), canonicalQueueId);
+        if (resolved.isEmpty()) {
+            return Optional.empty();
+        }
+        ValidatedEnvelope source = resolved.orElseThrow();
+        int version = schemaVersion(source.payload(), canonicalQueueId);
+        SchedulerQueueState state;
+        boolean alreadyCurrent;
+        if (version == SchedulerQueueState.CURRENT_SCHEMA_VERSION) {
+            state = decode(canonicalQueueId, source.payload());
+            alreadyCurrent = true;
+        } else if (version == SchedulerQueueState.PREVIOUS_SCHEMA_VERSION) {
+            state = decodeIntermediate(canonicalQueueId, source.payload());
+            alreadyCurrent = false;
+        } else if (version
+                == SchedulerQueueState.LEGACY_MIGRATION_SOURCE_SCHEMA_VERSION) {
+            state = decodePrevious(canonicalQueueId, source.payload());
+            alreadyCurrent = false;
+        } else {
+            throw corrupted(canonicalQueueId, "state schema version is unsupported");
+        }
+        return Optional.of(new SchedulerQueueMigrationInspection(
+                version,
+                state,
+                source.bytes(),
+                alreadyCurrent));
+    }
+
     /**
      * Explicitly migrates one schema-v2 queue to the current schema. Callers
      * must stop every Scheduler using the queue before invoking it.
@@ -558,6 +591,78 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
         }
     }
 
+    private SchedulerQueueState decodeIntermediate(
+            String expectedQueueId,
+            byte[] payload) throws CorruptedSchedulerQueueStateException {
+        try (DataInputStream input =
+                new DataInputStream(new ByteArrayInputStream(payload))) {
+            if (input.readInt() != SchedulerQueueState.PREVIOUS_SCHEMA_VERSION) {
+                throw corrupted(
+                        expectedQueueId,
+                        "state schema version is unsupported");
+            }
+            if (!PAYLOAD_KIND.equals(readString(input))) {
+                throw corrupted(
+                        expectedQueueId,
+                        "state payload kind is invalid");
+            }
+            String queueId = readString(input);
+            if (!expectedQueueId.equals(queueId)) {
+                throw corrupted(
+                        expectedQueueId,
+                        "state queue identity does not match artifact");
+            }
+            long revision = input.readLong();
+            int maxWorkItems = input.readInt();
+            int maximumExpeditedBurst = input.readInt();
+            int consecutiveExpeditedClaims = input.readInt();
+            Optional<String> recoveryPreferredWorkItemId =
+                    readOptionalString(input);
+            Optional<String> logicalRunId = readOptionalString(input);
+            List<String> admissionOrder = readStringList(input);
+            List<QueuedWork> admittedWork =
+                    readIntermediateQueuedWorkList(input);
+            List<QueuedWork> pendingWork =
+                    readIntermediateQueuedWorkList(input);
+            Optional<QueuedWork> activeWork =
+                    readIntermediateOptionalQueuedWork(input);
+            Set<String> completedWorkItemIds = readStringSet(input);
+            Set<String> failedWorkItemIds = readStringSet(input);
+            if (input.available() != 0) {
+                throw corrupted(
+                        expectedQueueId,
+                        "state contains trailing bytes");
+            }
+            return new SchedulerQueueState(
+                    SchedulerQueueState.CURRENT_SCHEMA_VERSION,
+                    queueId,
+                    revision,
+                    maxWorkItems,
+                    maximumExpeditedBurst,
+                    consecutiveExpeditedClaims,
+                    recoveryPreferredWorkItemId,
+                    logicalRunId,
+                    admissionOrder,
+                    admittedWork,
+                    pendingWork,
+                    activeWork,
+                    completedWorkItemIds,
+                    failedWorkItemIds);
+        } catch (CorruptedSchedulerQueueStateException exception) {
+            throw exception;
+        } catch (EOFException exception) {
+            throw corrupted(
+                    expectedQueueId,
+                    "state ended before all fields were read",
+                    exception);
+        } catch (IOException | RuntimeException exception) {
+            throw corrupted(
+                    expectedQueueId,
+                    "state could not be decoded",
+                    exception);
+        }
+    }
+
     private void writeQueuedWorkList(
             DataOutputStream output,
             List<QueuedWork> values) throws IOException {
@@ -587,6 +692,16 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
         return List.copyOf(values);
     }
 
+    private List<QueuedWork> readIntermediateQueuedWorkList(
+            DataInputStream input) throws IOException {
+        int size = readCollectionSize(input);
+        List<QueuedWork> values = new ArrayList<>();
+        for (int index = 0; index < size; index++) {
+            values.add(readIntermediateQueuedWork(input));
+        }
+        return List.copyOf(values);
+    }
+
     private void writeOptionalQueuedWork(
             DataOutputStream output,
             Optional<QueuedWork> value) throws IOException {
@@ -607,6 +722,13 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
             DataInputStream input) throws IOException {
         return readPresence(input)
                 ? Optional.of(readPreviousQueuedWork(input))
+                : Optional.empty();
+    }
+
+    private Optional<QueuedWork> readIntermediateOptionalQueuedWork(
+            DataInputStream input) throws IOException {
+        return readPresence(input)
+                ? Optional.of(readIntermediateQueuedWork(input))
                 : Optional.empty();
     }
 
@@ -650,6 +772,24 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
                         readString(input),
                         readLegacyMessageEnvelope(input)),
                 readStringSet(input));
+    }
+
+    private QueuedWork readIntermediateQueuedWork(DataInputStream input)
+            throws IOException {
+        WorkItem workItem = new WorkItem(
+                readString(input),
+                readString(input),
+                readLegacyMessageEnvelope(input));
+        Set<String> dependencies = readStringSet(input);
+        SchedulerPriority priority;
+        try {
+            priority = SchedulerPriority.valueOf(readString(input));
+        } catch (IllegalArgumentException exception) {
+            throw new IOException(
+                    "Scheduler queue priority is unsupported",
+                    exception);
+        }
+        return new QueuedWork(workItem, dependencies, priority);
     }
 
     private Optional<ValidatedEnvelope> readValidatedEnvelope(

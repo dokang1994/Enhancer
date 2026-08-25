@@ -16,12 +16,12 @@ implement-coordinated-durable-model-work-migration
 
 ## Context
 
-The pure `ModelWorkPayload`, complete profile-bearing execution input, and ModelWork-
-only message-envelope/process-spool v2 are implemented and verified. Submission
-manifest v2, Scheduler queue v3, and AgentRuntime v4 still accept only legacy
-`WorkPayload`, and current execution paths assume legacy RunRecord v1. RFC-0018 requires
-these retained surfaces to migrate as one stopped-owner closure rather than through
-independent partial upgrades.
+The pure `ModelWorkPayload`, complete profile-bearing execution input, ModelWork-only
+message-envelope/process-spool v2, and current manifest v3, queue v4, and AgentRuntime
+v5 dual-payload retention are implemented and verified. Migration-only ordered readers
+and a complete-closure zero-write preflight are also implemented; candidate preparation,
+consumer-first publication, and crash re-entry remain. Current execution paths still
+assume legacy RunRecord v1, so typed ModelWork remains non-executable.
 
 ## Justified By
 
@@ -124,7 +124,7 @@ and committing the verified GREEN increment.
 
 ### Increment 2 - legacy-inspection-and-zero-write-preflight
 
-State: In Progress
+State: Completed
 Depends On: current-schema-dual-payload-retention
 Scope: Add migration-only ordered decoding and an explicit closure plan that inspects
 all named points under a pre-existing stopped-owner fence, classifies legacy work, and
@@ -135,12 +135,11 @@ corrupt, future, partial, or cross-store mismatched closures refuse before any n
 root or candidate write.
 Verification: Focused store migration and coordinated preflight tests, filesystem
 entry/byte/timestamp invariance checks, candidate-absence checks, and governance tests.
-Next Action: Select prepare-and-consumer-first-cutover after recording evidence and
-committing the verified GREEN increment.
+Next Action: Completed with fresh evidence; select prepare-and-consumer-first-cutover.
 
 ### Increment 3 - prepare-and-consumer-first-cutover
 
-State: Pending
+State: In Progress
 Depends On: legacy-inspection-and-zero-write-preflight
 Scope: Prepare and reread all candidates after preflight, revalidate immutable binding
 points, and publish a complete real-filesystem temporary closure in consumer-first
@@ -187,4 +186,4 @@ admission integration; request explicit delivery authority if a push is desired.
 
 ## Next
 
-Execute Increment 2 `legacy-inspection-and-zero-write-preflight` RED-first.
+Execute Increment 3 `prepare-and-consumer-first-cutover` RED-first.

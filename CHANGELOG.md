@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-08-25 - Add Coordinated Durable Migration Preflight
+
+- Added migration-only, zero-write ordered inspection for submission manifest v1-v3,
+  Scheduler queue v2-v4, and AgentRuntime v4-v5 while ordinary readers remain current-
+  schema-only.
+- Added an explicit stopped-owner closure plan and preflight that validates exact cross-
+  store WorkItem bindings and stable source bytes, preserves mixed/absent-input read-file
+  work, and refuses partial, mismatched, invalid, corrupt, future, or drifted closures.
+- Added the permanent `UNMIGRATABLE_LEGACY_MODEL_WORK` / `PROFILE_REQUIRED` refusal
+  before candidate or target writes. Candidate publication, RunRecord v2, model
+  admission, and model execution remain unconnected.
+
 ## 2026-08-25 - Retain Typed Model Work Across Current Durable Schemas
 
 - Advanced submission manifests to v3, Scheduler queues to v4, and AgentRuntime state

@@ -6100,3 +6100,30 @@ Outcome:
   producer, external receiver, RunRecord v2, admission, gateway, provider, network, or
   execution authority was connected. Coordinated legacy inspection and zero-write
   preflight remain the next active increment.
+
+## 2026-08-25 - Coordinated Durable Migration Inspection And Preflight Verification
+
+- An aligned runtime RED failed because no migration inspection value or method existed;
+  the minimum implementation kept ordinary AgentRuntime resolution v5-only and added a
+  read-only v4 decoder that currentizes exact legacy inline envelopes while retaining
+  complete validated source bytes. Current, absent, future, and defensive-copy boundary
+  tests passed without artifact or directory timestamp changes.
+- Aligned manifest and queue REDs failed at compilation for missing inspection contracts.
+  The implemented readers inspect manifest v1/v2/v3 and queue v2/v3/v4 in order,
+  preserve priority and scheduling/recovery fields, create no lock or candidate, and
+  leave ordinary resolution current-only. Existing point migration regressions remained
+  GREEN.
+- The pure classifier gives `read-file` precedence over mixed legacy Tool scope. The
+  coordinated preflight requires an explicit externally held fence and named closure,
+  compares exact WorkItem content across stores, resamples full source bytes for drift,
+  and refuses missing or mismatched closures without writing. Model-only legacy work
+  returned `UNMIGRATABLE_LEGACY_MODEL_WORK` / `PROFILE_REQUIRED`; exact current and mixed
+  read-file closures returned non-writing `ALREADY_CURRENT`.
+- Focused verification passed nine runtime store, migration, classifier, and preflight
+  suites. The fresh pre-document README-owned Java 17 Gradle test completed with
+  `BUILD SUCCESSFUL` in 1 minute 45 seconds; JUnit XML aggregation found 971 tests with
+  zero failures and 10 existing environment-dependent skips. `git diff --check` was
+  clean before document synchronization.
+- Candidate preparation, consumer-first publication, crash re-entry, real user artifact
+  mutation, typed ModelWork submission/execution, RunRecord v2, admission, gateway,
+  provider, network, push, merge, release, and deployment remain outside this increment.

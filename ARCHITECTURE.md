@@ -1633,13 +1633,20 @@ spool frames retain their exact v1 bytes, including the Gate 12 cancellation-sig
 input, while only model work uses envelope/spool v2. Submission manifest v3, Scheduler
 queue v4, and AgentRuntime v5 embed that exact envelope/profile so retry and process
 recovery require no manifest-only, registry, or ambient lookup. This durable retention
-family is current, while stopped-owner migration
-preserves legacy read-file work losslessly and refuses executable legacy model work
-without a profile before any write. Profile-aware execution remains blocked pending a
+family is current. Migration-only readers inspect manifest v1-v3, queue v2-v4, and
+AgentRuntime v4-v5 without widening ordinary current-only resolution. One explicit
+point-resolved plan validates an externally held stopped-owner fence, the complete named
+manifest/queue/runtime closure, optional spool and binding points, exact cross-store
+WorkItem content, and stable source bytes before returning `READY` or non-writing
+`ALREADY_CURRENT`. Legacy read-file work, including mixed Tool scope and absent input,
+is retained losslessly; unprofiled model work refuses as
+`UNMIGRATABLE_LEGACY_MODEL_WORK` / `PROFILE_REQUIRED`, and partial, invalid, mismatched,
+corrupt, future, or drifted closures refuse before candidates or targets are written.
+Profile-aware execution remains blocked pending a
 model RunRecord v2, the exact active governed task, the same execution-policy instance,
 fresh RFC-0015/RFC-0016 evaluation, and later candidate/provider authority. The
-coordinated legacy inspection, zero-write preflight, candidate publication, and crash
-re-entry remain the active follow-up.
+candidate preparation, consumer-first publication, and crash re-entry remain the active
+follow-up.
 
 ## Agent Orchestration Contract
 
