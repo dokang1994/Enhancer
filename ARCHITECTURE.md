@@ -1651,12 +1651,19 @@ family is already current; current-schema candidates then replace AgentRuntime, 
 and manifests atomically after exact source-byte rechecks, followed by the same no-write
 validation of named ingress points. A final complete preflight must resolve the closure
 as `ALREADY_CURRENT`. Crash-boundary re-entry, already-current prefix preservation, and
-exhaustive source-drift behavior remain the active hardening follow-up; no cross-store
+exhaustive source-drift behavior are current: every ordered publication exposes a
+package-private post-publication interruption seam, re-entry skips candidate creation
+and publication for each exact current prefix, resumes at the first old store, and
+never rolls back or rewrites that prefix. Fence, binding, immutable spool, runtime,
+queue, manifest, and ingress drift all return the typed source-invalid refusal while
+preserving the changed source and every later target, and failed operations remove
+their remaining candidates. Ordinary current-only readers still reject the old suffix
+of a mixed closure; only the explicit migration path may resume it. No cross-store
 atomicity or directory power-loss property is claimed.
 Profile-aware execution remains blocked pending a
 model RunRecord v2, the exact active governed task, the same execution-policy instance,
-fresh RFC-0015/RFC-0016 evaluation, and later candidate/provider authority. The
-crash re-entry hardening remains the active follow-up.
+fresh RFC-0015/RFC-0016 evaluation, and later candidate/provider authority. The bounded
+operator and end-to-end recovery closure remain the active follow-up.
 
 ## Agent Orchestration Contract
 

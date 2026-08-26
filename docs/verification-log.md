@@ -6151,3 +6151,28 @@ Outcome:
   real user artifact mutation, typed ModelWork execution, RunRecord v2, admission,
   gateway, provider, network, push, merge, release, and deployment remain outside this
   increment.
+
+## 2026-08-26 - Coordinated Durable Migration Crash Re-entry And Drift Verification
+
+- The aligned RED failed at test compilation because the cutover hook exposed no
+  post-publication boundary. The minimum implementation added that package-private seam
+  after each immutable validation or atomic replacement without changing the public
+  operation.
+- Parameterized real-filesystem tests interrupted all six publication points after
+  completion. Every re-entry retained current-prefix bytes and mtimes, skipped their
+  candidates and publication hooks, resumed at the first old store, removed remaining
+  candidates, and ended with an exact current closure. A repeated exact-current call
+  returned `ALREADY_CURRENT` with no event, byte, timestamp, or candidate change.
+- A separate eight-point matrix drifted the stopped-owner fence, binding/effect-ledger
+  point, result/work/ingress spools, AgentRuntime, queue, and manifest. Each attempt
+  returned `SOURCE_INVALID` / `VALID_SOURCE_REQUIRED`, preserved the changed bytes and
+  every later target, and left no candidate. Ordinary readers rejected the first old
+  suffix while migration-only preflight retained the bounded READY re-entry path.
+- Focused coordinator, preflight, per-store migration/drift, and governance verification
+  completed with `BUILD SUCCESSFUL` in 5 seconds. The fresh pre-document README-owned
+  Java 17 Gradle test completed with `BUILD SUCCESSFUL` in 1 minute 19 seconds; JUnit XML
+  aggregation found 180 suites and 987 tests: 977 passed, 10 existing environment-
+  dependent cases skipped, zero failed, and zero errored.
+- The bounded operator/CLI, real user artifact mutation, typed ModelWork execution,
+  RunRecord v2, admission, gateway, provider, network, push, merge, release, and
+  deployment remain outside this increment.

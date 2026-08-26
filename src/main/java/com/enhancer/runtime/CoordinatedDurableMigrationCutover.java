@@ -132,6 +132,7 @@ public final class CoordinatedDurableMigrationCutover {
                 revalidateFenceAndBindings(plan, fence, bindings);
                 runtimeStore.publishCoordinatedMigrationCandidate(
                         candidate.inspection(), candidate.path());
+                hook.afterPublication(PublicationPoint.AGENT_RUNTIME, source);
             }
             if (queueCandidate.isPresent()) {
                 QueueCandidate candidate = queueCandidate.orElseThrow();
@@ -141,6 +142,7 @@ public final class CoordinatedDurableMigrationCutover {
                 revalidateFenceAndBindings(plan, fence, bindings);
                 queueStore.publishCoordinatedMigrationCandidate(
                         candidate.inspection(), candidate.path());
+                hook.afterPublication(PublicationPoint.SCHEDULER_QUEUE, source);
             }
             for (ManifestCandidate candidate : manifestCandidates) {
                 Path source = manifestStore.artifactPath(
@@ -150,6 +152,8 @@ public final class CoordinatedDurableMigrationCutover {
                 revalidateFenceAndBindings(plan, fence, bindings);
                 manifestStore.publishCoordinatedMigrationCandidate(
                         candidate.inspection(), candidate.path());
+                hook.afterPublication(
+                        PublicationPoint.SUBMISSION_MANIFEST, source);
             }
             publishImmutablePoints(
                     PublicationPoint.INGRESS_SPOOL,
@@ -193,6 +197,7 @@ public final class CoordinatedDurableMigrationCutover {
             revalidateFenceAndBindings(plan, fence, bindings);
             revalidate(snapshot);
             FileSpoolMessageTransport.read(snapshot.path());
+            hook.afterPublication(point, snapshot.path());
         }
     }
 
@@ -287,6 +292,10 @@ public final class CoordinatedDurableMigrationCutover {
         }
 
         default void beforePublication(PublicationPoint point, Path source)
+                throws IOException {
+        }
+
+        default void afterPublication(PublicationPoint point, Path source)
                 throws IOException {
         }
     }

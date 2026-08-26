@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-08-26 - Harden Coordinated Migration Crash Re-entry And Source Drift
+
+- Added a bounded post-publication interruption seam and parameterized real-filesystem
+  coverage for all six consumer-first publication boundaries.
+- Proved re-entry resumes at the first old store, leaves every current prefix byte and
+  timestamp unchanged, cleans remaining candidates, and returns non-writing
+  `ALREADY_CURRENT` once the complete closure is current.
+- Added drift coverage for the stopped-owner fence, immutable binding, result/work/
+  ingress spools, AgentRuntime, queue, and manifest. Every drift returns the typed
+  source-invalid refusal, preserves the changed source and every later target, and
+  leaves ordinary readers fail closed on any old mixed-closure suffix.
+
 ## 2026-08-26 - Add Coordinated Durable Migration Cutover
 
 - Added same-directory candidate preparation and semantic reread for legacy

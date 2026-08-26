@@ -21,8 +21,10 @@ message-envelope/process-spool v2, and current manifest v3, queue v4, and AgentR
 v5 dual-payload retention are implemented and verified. Migration-only ordered readers
 and a complete-closure zero-write preflight are implemented. Candidate preparation and
 consumer-first real-filesystem temporary cutover are also implemented and verified;
-crash re-entry and source-drift hardening remain. Current execution paths still assume
-legacy RunRecord v1, so typed ModelWork remains non-executable.
+all publication-boundary crash re-entry, current-prefix preservation, candidate cleanup,
+and source-drift hardening are implemented and verified. The bounded operator and final
+recovery closure remain. Current execution paths still assume legacy RunRecord v1, so
+typed ModelWork remains non-executable.
 
 ## Justified By
 
@@ -155,7 +157,7 @@ crash-reentry-source-drift-hardening after committing the verified GREEN increme
 
 ### Increment 4 - crash-reentry-source-drift-hardening
 
-State: In Progress
+State: Completed
 Depends On: prepare-and-consumer-first-cutover
 Scope: Prove every publication boundary, source-drift refusal, candidate cleanup,
 mixed-closure fail-closed behavior, and idempotent re-entry without rollback or
@@ -165,12 +167,12 @@ are non-writing ALREADY_CURRENT; source drift preserves the changed source and a
 later targets; operation remains blocked while the closure is mixed.
 Verification: Parameterized coordinator crash/re-entry tests, existing per-store drift
 regressions, filesystem byte/timestamp assertions, and governance tests.
-Next Action: Select bounded-operator-and-recovery-closure after recording evidence and
-committing the verified GREEN increment.
+Next Action: Completed with fresh evidence; select
+bounded-operator-and-recovery-closure after committing the verified GREEN increment.
 
 ### Increment 5 - bounded-operator-and-recovery-closure
 
-State: Pending
+State: In Progress
 Depends On: crash-reentry-source-drift-hardening
 Scope: Expose only the explicit bounded stopped-owner migration operation, close
 recovery and CLI regressions, run full verification, and synchronize owning lifecycle
@@ -187,4 +189,4 @@ admission integration; request explicit delivery authority if a push is desired.
 
 ## Next
 
-Execute Increment 4 `crash-reentry-source-drift-hardening` RED-first.
+Execute Increment 5 `bounded-operator-and-recovery-closure` RED-first.
