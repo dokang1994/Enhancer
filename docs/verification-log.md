@@ -6127,3 +6127,27 @@ Outcome:
 - Candidate preparation, consumer-first publication, crash re-entry, real user artifact
   mutation, typed ModelWork submission/execution, RunRecord v2, admission, gateway,
   provider, network, push, merge, release, and deployment remain outside this increment.
+
+## 2026-08-26 - Coordinated Durable Migration Candidate And Cutover Verification
+
+- The aligned RED first failed at test compilation only because the coordinated cutover
+  API and publication hook did not exist. After correcting one test-only transport
+  assertion and binding the fixture to the canonical manifest-derived WorkItem identity,
+  the real-filesystem cutover integration passed.
+- The minimum implementation prepares and rereads all legacy AgentRuntime v5, queue v4,
+  and manifest v3 candidates before the first publication; validates result and legacy
+  read-file work spool points without rewriting them; publishes runtime, queue, then
+  manifest candidates after exact source-byte checks; and validates ingress last. The
+  stopped-owner fence, immutable binding/effect-ledger point, and spool bytes remained
+  exact, and fresh ordinary readers recovered the expected current closure.
+- Focused verification passed the coordinated cutover/preflight, manifest/queue/runtime
+  migration, spool/codec, isolated execution, Scheduler recovery-status, and governance
+  suites with `BUILD SUCCESSFUL` in 10 seconds.
+- The fresh pre-document README-owned Java 17 Gradle test completed with
+  `BUILD SUCCESSFUL` in 1 minute 45 seconds. JUnit XML aggregation found 180 suites and
+  972 tests: 962 passed, 10 existing environment-dependent cases skipped, zero failed,
+  and zero errored.
+- Crash-boundary re-entry, exhaustive source drift, candidate cleanup interruption,
+  real user artifact mutation, typed ModelWork execution, RunRecord v2, admission,
+  gateway, provider, network, push, merge, release, and deployment remain outside this
+  increment.

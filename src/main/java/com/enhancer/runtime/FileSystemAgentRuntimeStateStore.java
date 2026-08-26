@@ -239,9 +239,71 @@ public final class FileSystemAgentRuntimeStateStore
                 alreadyCurrent));
     }
 
+    Path prepareCoordinatedMigrationCandidate(
+            AgentRuntimeMigrationInspection inspection) throws IOException {
+        Objects.requireNonNull(inspection, "inspection must not be null");
+        if (inspection.alreadyCurrent()) {
+            throw new IllegalArgumentException(
+                    "a current AgentRuntime does not require a migration candidate");
+        }
+        prepareRoot();
+        String goalId = inspection.state().goal().goalId();
+        Path candidate = Files.createTempFile(
+                storageRoot, ".coordinated-runtime-migration-", ".tmp");
+        boolean valid = false;
+        try {
+            writeCandidate(candidate, encodeEnvelope(inspection.state()));
+            ValidatedEnvelope reread = readValidatedEnvelope(candidate, goalId);
+            AgentRuntimeState decoded = decode(goalId, reread.payload());
+            if (!MessageDigest.isEqual(
+                    encode(inspection.state()), encode(decoded))) {
+                throw corrupted(
+                        goalId,
+                        "migration candidate does not match inspected state");
+            }
+            valid = true;
+            return candidate;
+        } finally {
+            if (!valid) {
+                Files.deleteIfExists(candidate);
+            }
+        }
+    }
+
+    void publishCoordinatedMigrationCandidate(
+            AgentRuntimeMigrationInspection inspection,
+            Path candidate) throws IOException {
+        Objects.requireNonNull(inspection, "inspection must not be null");
+        Objects.requireNonNull(candidate, "candidate must not be null");
+        String goalId = inspection.state().goal().goalId();
+        Path artifact = artifactPath(goalId);
+        ValidatedEnvelope current = readValidatedEnvelope(artifact, goalId);
+        if (!MessageDigest.isEqual(
+                inspection.sourceBytes(), current.envelope())) {
+            throw new IOException("AgentRuntime migration source changed: " + goalId);
+        }
+        try {
+            Files.move(
+                    candidate,
+                    artifact,
+                    StandardCopyOption.ATOMIC_MOVE,
+                    StandardCopyOption.REPLACE_EXISTING);
+        } catch (AtomicMoveNotSupportedException exception) {
+            throw new IOException(
+                    "atomic coordinated AgentRuntime migration is not supported",
+                    exception);
+        }
+    }
+
     private ValidatedEnvelope readValidatedEnvelope(String canonicalGoalId)
             throws IOException {
-        Path artifact = artifactPath(canonicalGoalId);
+        return readValidatedEnvelope(
+                artifactPath(canonicalGoalId), canonicalGoalId);
+    }
+
+    private ValidatedEnvelope readValidatedEnvelope(
+            Path artifact,
+            String canonicalGoalId) throws IOException {
         if (!Files.exists(artifact, LinkOption.NOFOLLOW_LINKS)) {
             throw new MissingAgentRuntimeStateException(canonicalGoalId);
         }
@@ -438,24 +500,7 @@ public final class FileSystemAgentRuntimeStateStore
     private void publish(
             AgentRuntimeState state,
             boolean replaceExisting) throws IOException {
-        byte[] payload = encode(state);
-        if (payload.length > MAX_STATE_BYTES) {
-            throw new IOException(
-                    "Agent runtime state exceeds the supported size limit");
-        }
-        long storedAtMillis = Instant.now().toEpochMilli();
-        byte[] digest = envelopeDigest(
-                storedAtMillis,
-                payload.length,
-                payload);
-        ByteBuffer envelope = ByteBuffer.allocate(
-                        HEADER_BYTES + payload.length)
-                .putInt(ENVELOPE_MAGIC)
-                .putLong(storedAtMillis)
-                .putInt(payload.length)
-                .put(digest)
-                .put(payload);
-        envelope.flip();
+        ByteBuffer envelope = ByteBuffer.wrap(encodeEnvelope(state));
 
         Path pending = Files.createTempFile(
                 storageRoot, ".pending-", ".tmp");
@@ -495,6 +540,40 @@ public final class FileSystemAgentRuntimeStateStore
             }
         } finally {
             Files.deleteIfExists(pending);
+        }
+    }
+
+    private byte[] encodeEnvelope(AgentRuntimeState state) throws IOException {
+        byte[] payload = encode(state);
+        if (payload.length > MAX_STATE_BYTES) {
+            throw new IOException(
+                    "Agent runtime state exceeds the supported size limit");
+        }
+        long storedAtMillis = Instant.now().toEpochMilli();
+        byte[] digest = envelopeDigest(
+                storedAtMillis,
+                payload.length,
+                payload);
+        return ByteBuffer.allocate(HEADER_BYTES + payload.length)
+                .putInt(ENVELOPE_MAGIC)
+                .putLong(storedAtMillis)
+                .putInt(payload.length)
+                .put(digest)
+                .put(payload)
+                .array();
+    }
+
+    private void writeCandidate(Path candidate, byte[] envelope)
+            throws IOException {
+        try (FileChannel channel = FileChannel.open(
+                candidate,
+                StandardOpenOption.WRITE,
+                StandardOpenOption.TRUNCATE_EXISTING)) {
+            ByteBuffer remaining = ByteBuffer.wrap(envelope);
+            while (remaining.hasRemaining()) {
+                channel.write(remaining);
+            }
+            channel.force(true);
         }
     }
 
@@ -1221,7 +1300,7 @@ public final class FileSystemAgentRuntimeStateStore
         }
     }
 
-    private Path artifactPath(String goalId) {
+    Path artifactPath(String goalId) {
         Path artifact = storageRoot
                 .resolve(goalId + FILE_SUFFIX)
                 .normalize();

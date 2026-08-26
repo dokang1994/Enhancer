@@ -131,6 +131,66 @@ public final class FileSystemSubmissionManifestStore
                 alreadyCurrent));
     }
 
+    Path prepareCoordinatedMigrationCandidate(
+            SubmissionManifestMigrationInspection inspection) throws IOException {
+        Objects.requireNonNull(inspection, "inspection must not be null");
+        if (inspection.alreadyCurrent()) {
+            throw new IllegalArgumentException(
+                    "a current manifest does not require a migration candidate");
+        }
+        prepareRoot();
+        String submissionId = inspection.manifest().submissionId();
+        Path candidate = Files.createTempFile(
+                storageRoot, ".coordinated-manifest-migration-", ".tmp");
+        boolean valid = false;
+        try {
+            writeCandidate(candidate, encodeEnvelope(inspection.manifest()));
+            ValidatedEnvelope reread = readValidatedEnvelope(candidate, submissionId)
+                    .orElseThrow(() -> corrupted(
+                            submissionId, "migration candidate is missing"));
+            DurableSubmissionManifest decoded = decode(
+                    submissionId, reread.payload());
+            if (!inspection.manifest().equals(decoded)) {
+                throw corrupted(
+                        submissionId,
+                        "migration candidate does not match inspected manifest");
+            }
+            valid = true;
+            return candidate;
+        } finally {
+            if (!valid) {
+                Files.deleteIfExists(candidate);
+            }
+        }
+    }
+
+    void publishCoordinatedMigrationCandidate(
+            SubmissionManifestMigrationInspection inspection,
+            Path candidate) throws IOException {
+        Objects.requireNonNull(inspection, "inspection must not be null");
+        Objects.requireNonNull(candidate, "candidate must not be null");
+        String submissionId = inspection.manifest().submissionId();
+        Path artifact = artifactPath(submissionId);
+        Optional<ValidatedEnvelope> current = readValidatedEnvelope(
+                artifact, submissionId);
+        if (current.isEmpty()
+                || !MessageDigest.isEqual(
+                        inspection.sourceBytes(), current.orElseThrow().bytes())) {
+            throw new ConcurrentSubmissionManifestMigrationException(submissionId);
+        }
+        try {
+            Files.move(
+                    candidate,
+                    artifact,
+                    StandardCopyOption.ATOMIC_MOVE,
+                    StandardCopyOption.REPLACE_EXISTING);
+        } catch (AtomicMoveNotSupportedException exception) {
+            throw new IOException(
+                    "atomic coordinated submission manifest migration is not supported",
+                    exception);
+        }
+    }
+
     /**
      * Explicitly migrates one schema-v1 manifest to the current schema.
      * Callers must stop submission using this identity before invoking it.

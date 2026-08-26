@@ -254,6 +254,64 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
                 alreadyCurrent));
     }
 
+    Path prepareCoordinatedMigrationCandidate(
+            SchedulerQueueMigrationInspection inspection) throws IOException {
+        Objects.requireNonNull(inspection, "inspection must not be null");
+        if (inspection.alreadyCurrent()) {
+            throw new IllegalArgumentException(
+                    "a current queue does not require a migration candidate");
+        }
+        prepareRoot();
+        String queueId = inspection.state().queueId();
+        Path candidate = Files.createTempFile(
+                storageRoot, ".coordinated-queue-migration-", ".tmp");
+        boolean valid = false;
+        try {
+            writeCandidate(candidate, encodeEnvelope(inspection.state()));
+            ValidatedEnvelope reread = readValidatedEnvelope(candidate, queueId)
+                    .orElseThrow(() -> corrupted(
+                            queueId, "migration candidate is missing"));
+            SchedulerQueueState decoded = decode(queueId, reread.payload());
+            if (!sameState(inspection.state(), decoded)) {
+                throw corrupted(
+                        queueId,
+                        "migration candidate does not match inspected state");
+            }
+            valid = true;
+            return candidate;
+        } finally {
+            if (!valid) {
+                Files.deleteIfExists(candidate);
+            }
+        }
+    }
+
+    void publishCoordinatedMigrationCandidate(
+            SchedulerQueueMigrationInspection inspection,
+            Path candidate) throws IOException {
+        Objects.requireNonNull(inspection, "inspection must not be null");
+        Objects.requireNonNull(candidate, "candidate must not be null");
+        String queueId = inspection.state().queueId();
+        Path artifact = artifactPath(queueId);
+        Optional<ValidatedEnvelope> current = readValidatedEnvelope(artifact, queueId);
+        if (current.isEmpty()
+                || !MessageDigest.isEqual(
+                        inspection.sourceBytes(), current.orElseThrow().bytes())) {
+            throw new ConcurrentSchedulerQueueMigrationException(queueId);
+        }
+        try {
+            Files.move(
+                    candidate,
+                    artifact,
+                    StandardCopyOption.ATOMIC_MOVE,
+                    StandardCopyOption.REPLACE_EXISTING);
+        } catch (AtomicMoveNotSupportedException exception) {
+            throw new IOException(
+                    "atomic coordinated Scheduler queue migration is not supported",
+                    exception);
+        }
+    }
+
     /**
      * Explicitly migrates one schema-v2 queue to the current schema. Callers
      * must stop every Scheduler using the queue before invoking it.
@@ -1171,7 +1229,7 @@ public final class FileSystemSchedulerQueueStore implements SchedulerQueueStore 
         }
     }
 
-    private Path artifactPath(String queueId) {
+    Path artifactPath(String queueId) {
         Path artifact = storageRoot
                 .resolve(queueId + FILE_SUFFIX)
                 .normalize();

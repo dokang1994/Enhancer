@@ -1642,11 +1642,21 @@ WorkItem content, and stable source bytes before returning `READY` or non-writin
 is retained losslessly; unprofiled model work refuses as
 `UNMIGRATABLE_LEGACY_MODEL_WORK` / `PROFILE_REQUIRED`, and partial, invalid, mismatched,
 corrupt, future, or drifted closures refuse before candidates or targets are written.
+After a successful preflight, `CoordinatedDurableMigrationCutover` resnapshots every
+named source, prepares and rereads same-directory current-schema candidates for each
+legacy AgentRuntime, queue, and manifest, and revalidates the stopped-owner fence plus
+immutable binding points before publication. Result and work spool points are first
+validated without replacement because their payload-sensitive legacy or ModelWork wire
+family is already current; current-schema candidates then replace AgentRuntime, queue,
+and manifests atomically after exact source-byte rechecks, followed by the same no-write
+validation of named ingress points. A final complete preflight must resolve the closure
+as `ALREADY_CURRENT`. Crash-boundary re-entry, already-current prefix preservation, and
+exhaustive source-drift behavior remain the active hardening follow-up; no cross-store
+atomicity or directory power-loss property is claimed.
 Profile-aware execution remains blocked pending a
 model RunRecord v2, the exact active governed task, the same execution-policy instance,
 fresh RFC-0015/RFC-0016 evaluation, and later candidate/provider authority. The
-candidate preparation, consumer-first publication, and crash re-entry remain the active
-follow-up.
+crash re-entry hardening remains the active follow-up.
 
 ## Agent Orchestration Contract
 

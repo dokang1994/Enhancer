@@ -19,9 +19,10 @@ implement-coordinated-durable-model-work-migration
 The pure `ModelWorkPayload`, complete profile-bearing execution input, ModelWork-only
 message-envelope/process-spool v2, and current manifest v3, queue v4, and AgentRuntime
 v5 dual-payload retention are implemented and verified. Migration-only ordered readers
-and a complete-closure zero-write preflight are also implemented; candidate preparation,
-consumer-first publication, and crash re-entry remain. Current execution paths still
-assume legacy RunRecord v1, so typed ModelWork remains non-executable.
+and a complete-closure zero-write preflight are implemented. Candidate preparation and
+consumer-first real-filesystem temporary cutover are also implemented and verified;
+crash re-entry and source-drift hardening remain. Current execution paths still assume
+legacy RunRecord v1, so typed ModelWork remains non-executable.
 
 ## Justified By
 
@@ -139,7 +140,7 @@ Next Action: Completed with fresh evidence; select prepare-and-consumer-first-cu
 
 ### Increment 3 - prepare-and-consumer-first-cutover
 
-State: In Progress
+State: Completed
 Depends On: legacy-inspection-and-zero-write-preflight
 Scope: Prepare and reread all candidates after preflight, revalidate immutable binding
 points, and publish a complete real-filesystem temporary closure in consumer-first
@@ -149,12 +150,12 @@ runtime, queue, manifest, and ingress order while all payload, profile, capabili
 priority, dependency, lease, retry, status, and history data remains equal.
 Verification: Coordinated real-filesystem cutover integration tests plus spool and
 Scheduler recovery-status regressions and governance tests.
-Next Action: Select crash-reentry-source-drift-hardening after recording evidence and
-committing the verified GREEN increment.
+Next Action: Completed with fresh evidence; select
+crash-reentry-source-drift-hardening after committing the verified GREEN increment.
 
 ### Increment 4 - crash-reentry-source-drift-hardening
 
-State: Pending
+State: In Progress
 Depends On: prepare-and-consumer-first-cutover
 Scope: Prove every publication boundary, source-drift refusal, candidate cleanup,
 mixed-closure fail-closed behavior, and idempotent re-entry without rollback or
@@ -186,4 +187,4 @@ admission integration; request explicit delivery authority if a push is desired.
 
 ## Next
 
-Execute Increment 3 `prepare-and-consumer-first-cutover` RED-first.
+Execute Increment 4 `crash-reentry-source-drift-hardening` RED-first.

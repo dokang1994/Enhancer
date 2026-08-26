@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-08-26 - Add Coordinated Durable Migration Cutover
+
+- Added same-directory candidate preparation and semantic reread for legacy
+  AgentRuntime, Scheduler queue, and submission manifest points after complete
+  stopped-owner preflight.
+- Added ordered consumer-first cutover: immutable result/work spool validation,
+  AgentRuntime then queue then manifest atomic replacement with exact source-byte
+  rechecks, and immutable ingress validation while fence and binding bytes remain
+  unchanged.
+- Added a real-filesystem temporary closure integration proving all candidates exist
+  before publication, legacy read-file spool bytes are not reframed, and fresh current
+  readers recover the retained work, capability, priority, dependency, and runtime
+  state. Crash re-entry/source-drift hardening remains the next increment; ModelWork
+  execution, RunRecord v2, admission, gateway, provider, and network remain unconnected.
+
 ## 2026-08-25 - Add Coordinated Durable Migration Preflight
 
 - Added migration-only, zero-write ordered inspection for submission manifest v1-v3,
