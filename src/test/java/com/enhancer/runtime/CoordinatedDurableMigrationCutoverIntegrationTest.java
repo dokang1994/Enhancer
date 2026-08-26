@@ -14,11 +14,13 @@ import com.enhancer.bus.ResultPayload;
 import com.enhancer.bus.TransportMessage;
 import com.enhancer.bus.TransportStatus;
 import com.enhancer.bus.WorkPayload;
+import com.enhancer.cli.EnhancerCli;
 import com.enhancer.kernel.VerificationStatus;
 import com.enhancer.workspace.ApprovedTaskRevision;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -27,6 +29,7 @@ import java.nio.file.attribute.FileTime;
 import java.security.MessageDigest;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -184,6 +187,53 @@ class CoordinatedDurableMigrationCutoverIntegrationTest {
         assertFalse(hasCandidates(fixture.root()));
     }
 
+    @Test
+    void boundedCliMigratesOnlyTheExplicitClosureAndReportsCurrentReplay()
+            throws Exception {
+        Fixture fixture = fixture("bounded-cli");
+        String[] arguments = coordinatedCliArguments(fixture);
+
+        Captured migrated = executeCli(arguments);
+
+        assertEquals(0, migrated.exitCode());
+        assertTrue(migrated.stdout().contains("status=MIGRATED"));
+        assertTrue(migrated.stdout().contains("manifests=1"));
+        assertTrue(migrated.stdout().contains("runtimes=1"));
+        assertCurrent(fixture);
+        List<byte[]> currentBytes = fixture.sourceArtifacts().stream()
+                .map(CoordinatedDurableMigrationCutoverIntegrationTest::read)
+                .toList();
+        List<FileTime> currentTimes = modificationTimes(fixture.sourceArtifacts());
+
+        Captured replay = executeCli(arguments);
+
+        assertEquals(0, replay.exitCode());
+        assertTrue(replay.stdout().contains("status=ALREADY_CURRENT"));
+        assertSourceBytes(fixture.sourceArtifacts(), currentBytes);
+        assertEquals(currentTimes, modificationTimes(fixture.sourceArtifacts()));
+    }
+
+    @Test
+    void boundedCliRefusesUnprofiledLegacyModelWorkWithoutAnyWrite()
+            throws Exception {
+        Fixture fixture = fixture("bounded-cli-model-only", Set.of("model-invoke"));
+        List<byte[]> bytes = fixture.sourceArtifacts().stream()
+                .map(CoordinatedDurableMigrationCutoverIntegrationTest::read)
+                .toList();
+        List<FileTime> times = modificationTimes(fixture.sourceArtifacts());
+
+        Captured refused = executeCli(coordinatedCliArguments(fixture));
+
+        assertEquals(2, refused.exitCode());
+        assertTrue(refused.stdout().contains("status=REFUSED"));
+        assertTrue(refused.stdout().contains(
+                "refusalCode=UNMIGRATABLE_LEGACY_MODEL_WORK"));
+        assertTrue(refused.stdout().contains("refusalDetail=PROFILE_REQUIRED"));
+        assertSourceBytes(fixture.sourceArtifacts(), bytes);
+        assertEquals(times, modificationTimes(fixture.sourceArtifacts()));
+        assertFalse(hasCandidates(fixture.root()));
+    }
+
     @ParameterizedTest
     @EnumSource(DriftPoint.class)
     void sourceDriftPreservesTheChangedSourceAndEveryLaterTarget(
@@ -229,6 +279,11 @@ class CoordinatedDurableMigrationCutoverIntegrationTest {
     }
 
     private Fixture fixture(String name) throws Exception {
+        return fixture(name, Set.of("read-file", "model-invoke"));
+    }
+
+    private Fixture fixture(String name, Set<String> allowedTools)
+            throws Exception {
         Path root = temporaryRoot.resolve(name);
         Path manifestRoot = root.resolve("manifests");
         Path queueRoot = root.resolve("queue");
@@ -242,7 +297,7 @@ class CoordinatedDurableMigrationCutoverIntegrationTest {
         Files.write(fence, fenceBytes);
         Files.write(binding, bindingBytes);
 
-        MessageEnvelope workMessage = workMessage();
+        MessageEnvelope workMessage = workMessage(allowedTools);
         String workItemId = DurableWorkItemAdmissionHandler.workItemIdFor(
                 SUBMISSION_ID);
         WorkItem workItem = new WorkItem(
@@ -461,7 +516,44 @@ class CoordinatedDurableMigrationCutoverIntegrationTest {
         return fixture.sourceBytes().get(index);
     }
 
-    private static MessageEnvelope workMessage() {
+    private static String[] coordinatedCliArguments(Fixture fixture)
+            throws Exception {
+        return new String[] {
+                "scheduler-migrate-durable-closure",
+                "--fence-file", fixture.fence().toString(),
+                "--expected-fence-sha256", sha256(fixture.sourceBytes().get(7)),
+                "--manifest-root", fixture.manifestRoot().toString(),
+                "--submission-id", SUBMISSION_ID,
+                "--queue-root", fixture.queueRoot().toString(),
+                "--queue-id", QUEUE_ID,
+                "--runtime-root", fixture.runtimeRoot().toString(),
+                "--goal-id", GOAL_ID,
+                "--work-spool-point", fixture.workPoint().toString(),
+                "--result-spool-point", fixture.resultPoint().toString(),
+                "--ingress-spool-point", fixture.ingressPoint().toString(),
+                "--binding-point", fixture.binding().toString()
+        };
+    }
+
+    private static String sha256(byte[] value) throws Exception {
+        return HexFormat.of().formatHex(
+                MessageDigest.getInstance("SHA-256").digest(value));
+    }
+
+    private static Captured executeCli(String[] arguments) {
+        ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+        ByteArrayOutputStream stderr = new ByteArrayOutputStream();
+        int exitCode = new EnhancerCli().execute(
+                arguments,
+                new PrintStream(stdout, true, StandardCharsets.UTF_8),
+                new PrintStream(stderr, true, StandardCharsets.UTF_8));
+        return new Captured(
+                exitCode,
+                stdout.toString(StandardCharsets.UTF_8),
+                stderr.toString(StandardCharsets.UTF_8));
+    }
+
+    private static MessageEnvelope workMessage(Set<String> allowedTools) {
         return new MessageEnvelope(
                 SUBMISSION_ID,
                 "coordinated-cutover-correlation",
@@ -475,7 +567,7 @@ class CoordinatedDurableMigrationCutoverIntegrationTest {
                                 "CURRENT_TASK.md",
                                 "a".repeat(64)),
                         "b".repeat(64),
-                        Set.of("read-file", "model-invoke"),
+                        allowedTools,
                         Optional.empty()));
     }
 
@@ -671,6 +763,9 @@ class CoordinatedDurableMigrationCutoverIntegrationTest {
             AgentRuntimeState runtimeState,
             List<Path> sourceArtifacts,
             List<byte[]> sourceBytes) {
+    }
+
+    private record Captured(int exitCode, String stdout, String stderr) {
     }
 
     private enum DriftPoint {

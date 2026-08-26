@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -22,9 +22,10 @@ v5 dual-payload retention are implemented and verified. Migration-only ordered r
 and a complete-closure zero-write preflight are implemented. Candidate preparation and
 consumer-first real-filesystem temporary cutover are also implemented and verified;
 all publication-boundary crash re-entry, current-prefix preservation, candidate cleanup,
-and source-drift hardening are implemented and verified. The bounded operator and final
-recovery closure remain. Current execution paths still assume legacy RunRecord v1, so
-typed ModelWork remains non-executable.
+and source-drift hardening are implemented and verified. The explicit bounded operator,
+legacy read-file migration/restart closure, model-only zero-write refusal, external typed
+receive refusal, and existing execution guards are also verified. Current execution
+paths still assume legacy RunRecord v1, so typed ModelWork remains non-executable.
 
 ## Justified By
 
@@ -172,7 +173,7 @@ bounded-operator-and-recovery-closure after committing the verified GREEN increm
 
 ### Increment 5 - bounded-operator-and-recovery-closure
 
-State: In Progress
+State: Completed
 Depends On: crash-reentry-source-drift-hardening
 Scope: Expose only the explicit bounded stopped-owner migration operation, close
 recovery and CLI regressions, run full verification, and synchronize owning lifecycle
@@ -184,9 +185,12 @@ state truthfully represent the completed local work.
 Verification: Focused CLI, receiver, isolated-execution, recovery-status, migration,
 codec/golden, governance, and README-owned full Gradle test tasks plus diff and commit
 inspection.
-Next Action: Await separate authority for Model RunRecord v2 and Scheduler model-work
-admission integration; request explicit delivery authority if a push is desired.
+Next Action: Completed with fresh evidence and a verified local commit boundary. Await
+separate authority for Model RunRecord v2 and Scheduler model-work admission integration;
+request explicit delivery authority if a push is desired.
 
 ## Next
 
-Execute Increment 5 `bounded-operator-and-recovery-closure` RED-first.
+Await separate user authority for Model RunRecord v2 and Scheduler model-work admission
+integration. No next Active Task is authorized; request explicit delivery authority if
+a push is desired.

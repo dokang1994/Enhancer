@@ -87,6 +87,23 @@ final class CliArguments {
     private static final Set<String>
             SCHEDULER_MIGRATE_SUBMISSION_MANIFEST_OPTIONS =
                     Set.of("submission-root", "submission-id");
+    private static final Set<String> SCHEDULER_MIGRATE_DURABLE_CLOSURE_OPTIONS =
+            Set.of(
+                    "fence-file",
+                    "expected-fence-sha256",
+                    "manifest-root",
+                    "queue-root",
+                    "queue-id",
+                    "runtime-root");
+    private static final Set<String>
+            SCHEDULER_MIGRATE_DURABLE_CLOSURE_REPEATABLE_OPTIONS =
+                    Set.of(
+                            "submission-id",
+                            "goal-id",
+                            "work-spool-point",
+                            "result-spool-point",
+                            "ingress-spool-point",
+                            "binding-point");
     private static final Set<String> SCHEDULER_CYCLE_OPTIONS = Set.of(
             "project-root",
             "queue-root",
@@ -242,6 +259,7 @@ final class CliArguments {
                             + "scheduler-spool-work, scheduler-spool-control, "
                             + "scheduler-migrate-cycle-checkpoint, "
                             + "scheduler-migrate-queue, "
+                            + "scheduler-migrate-durable-closure, "
                             + "scheduler-migrate-submission-manifest, or "
                             + "checkpoint operation");
         }
@@ -299,6 +317,8 @@ final class CliArguments {
                                 options.get("submission-id"),
                                 "submission-id"));
             }
+            case "scheduler-migrate-durable-closure" ->
+                    parseSchedulerMigrateDurableClosure(arguments);
             case "scheduler-cycle" -> parseSchedulerCycle(
                     parseOptions(
                             arguments,
@@ -364,6 +384,58 @@ final class CliArguments {
                 nonBlank(options.single().get("step"), "step"),
                 nonBlank(options.single().get("next-action"), "next-action"),
                 options.repeated().getOrDefault("artifact", List.of()));
+    }
+
+    private static SchedulerMigrateDurableClosureCliCommand
+            parseSchedulerMigrateDurableClosure(String[] arguments) {
+        RepeatableOptions options = parseRepeatableOptions(
+                arguments,
+                SCHEDULER_MIGRATE_DURABLE_CLOSURE_OPTIONS,
+                SCHEDULER_MIGRATE_DURABLE_CLOSURE_REPEATABLE_OPTIONS);
+        String digest = options.single().get("expected-fence-sha256");
+        if (!SHA_256.matcher(digest).matches()) {
+            throw new CliUsageException(
+                    "expected-fence-sha256 must be 64 lowercase hexadecimal characters");
+        }
+        List<String> submissionIds = canonicalUuids(
+                options.repeated().getOrDefault("submission-id", List.of()),
+                "submission-id");
+        List<String> goalIds = canonicalUuids(
+                options.repeated().getOrDefault("goal-id", List.of()),
+                "goal-id");
+        if (submissionIds.isEmpty() || goalIds.isEmpty()) {
+            throw new CliUsageException(
+                    "at least one --submission-id and --goal-id are required");
+        }
+        return new SchedulerMigrateDurableClosureCliCommand(
+                path(options.single().get("fence-file"), "fence-file"),
+                digest,
+                path(options.single().get("manifest-root"), "manifest-root"),
+                submissionIds,
+                path(options.single().get("queue-root"), "queue-root"),
+                canonicalUuid(options.single().get("queue-id"), "queue-id"),
+                path(options.single().get("runtime-root"), "runtime-root"),
+                goalIds,
+                paths(options.repeated().getOrDefault(
+                        "work-spool-point", List.of()), "work-spool-point"),
+                paths(options.repeated().getOrDefault(
+                        "result-spool-point", List.of()), "result-spool-point"),
+                paths(options.repeated().getOrDefault(
+                        "ingress-spool-point", List.of()), "ingress-spool-point"),
+                paths(options.repeated().getOrDefault(
+                        "binding-point", List.of()), "binding-point"));
+    }
+
+    private static List<String> canonicalUuids(
+            List<String> values,
+            String name) {
+        return values.stream()
+                .map(value -> canonicalUuid(value, name))
+                .toList();
+    }
+
+    private static List<Path> paths(List<String> values, String name) {
+        return values.stream().map(value -> path(value, name)).toList();
     }
 
     private static SchedulerApplyCancelCliCommand parseSchedulerApplyCancel(

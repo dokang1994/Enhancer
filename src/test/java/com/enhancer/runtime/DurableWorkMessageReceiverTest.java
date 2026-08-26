@@ -91,6 +91,21 @@ class DurableWorkMessageReceiverTest {
         assertEquals(1, queue.pendingCount());
     }
 
+    @Test
+    void refusesExternalTypedModelWorkBeforeQueueMutation() throws Exception {
+        RecordingStore store = new RecordingStore();
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.create(QUEUE_ID, 8, store);
+        DurableWorkMessageReceiver receiver = new DurableWorkMessageReceiver(
+                DESTINATION, "model-worker", SchedulerPriority.NORMAL, queue);
+
+        assertThrows(IllegalArgumentException.class, () -> receiver.receive(
+                new TransportMessage(DESTINATION, ModelWorkFixtures.envelope())));
+
+        assertEquals(0, queue.revision());
+        assertEquals(0, queue.pendingCount());
+    }
+
     private static MessageEnvelope workMessage() {
         return workMessage("receiver-test");
     }

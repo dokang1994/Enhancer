@@ -1660,10 +1660,16 @@ preserving the changed source and every later target, and failed operations remo
 their remaining candidates. Ordinary current-only readers still reject the old suffix
 of a mixed closure; only the explicit migration path may resume it. No cross-store
 atomicity or directory power-loss property is claimed.
+The supported `scheduler-migrate-durable-closure` CLI constructs that path only from
+explicit roots, repeatable submission/Goal identities, and exact optional spool and
+binding files. It verifies a non-empty bounded fence file against a caller-supplied
+SHA-256 before constructing the plan, performs no filesystem discovery, and reports
+`MIGRATED`, non-writing `ALREADY_CURRENT`, or the typed refusal pair. This operator
+surface creates no submission, receive, admission, RunRecord, Tool, gateway, provider,
+network, or model-execution authority.
 Profile-aware execution remains blocked pending a
 model RunRecord v2, the exact active governed task, the same execution-policy instance,
-fresh RFC-0015/RFC-0016 evaluation, and later candidate/provider authority. The bounded
-operator and end-to-end recovery closure remain the active follow-up.
+fresh RFC-0015/RFC-0016 evaluation, and later candidate/provider authority.
 
 ## Agent Orchestration Contract
 

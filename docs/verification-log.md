@@ -6176,3 +6176,27 @@ Outcome:
 - The bounded operator/CLI, real user artifact mutation, typed ModelWork execution,
   RunRecord v2, admission, gateway, provider, network, push, merge, release, and
   deployment remain outside this increment.
+
+## 2026-08-26 - Bounded Coordinated Migration Operator And Task Closure Verification
+
+- The aligned RED executed the new command name and returned the expected usage failure
+  because no bounded coordinated migration CLI existed. The minimum implementation
+  added an explicit repeated-point command value and parser, bounded/digest-checked the
+  stopped-owner fence file, constructed only the caller-enumerated plan, and reported
+  migrated/current or the typed refusal pair without discovery.
+- A real-filesystem temporary legacy read-file closure migrated through the CLI and
+  resolved through fresh manifest v3, queue v4, and AgentRuntime v5 readers. Exact replay
+  returned `ALREADY_CURRENT` with all named bytes and mtimes unchanged. A model-only
+  legacy closure exited `2` with `UNMIGRATABLE_LEGACY_MODEL_WORK` /
+  `PROFILE_REQUIRED`, zero named-point writes, and no candidate.
+- External typed ModelWork receive was explicitly refused before queue revision or
+  pending count changed. Focused CLI, receiver, execution-guard, isolated-execution,
+  recovery-status, spool/codec, and governance verification completed with
+  `BUILD SUCCESSFUL` in 10 seconds.
+- The fresh pre-document README-owned Java 17 Gradle test completed with
+  `BUILD SUCCESSFUL` in 1 minute 15 seconds. JUnit XML aggregation found 180 suites and
+  990 tests: 980 passed, 10 existing environment-dependent cases skipped, zero failed,
+  and zero errored.
+- Model RunRecord v2, Scheduler model-work admission, exact active-task/policy sourcing,
+  gateway/provider/network execution, real user artifact mutation, push, merge, release,
+  and deployment require separate authority and remain unimplemented.

@@ -643,11 +643,32 @@ manifest before replaying it:
 ```
 
 The bounded result is `MIGRATED`, `ALREADY_CURRENT`, or `ABSENT`. Migration retains the
-exact schema-v1 intent, assigns `NORMAL`, and publishes schema v2 only after validating
+exact schema-v1 intent, assigns `NORMAL`, and publishes current schema v3 only after validating
 and rereading a same-directory candidate and confirming the source bytes did not change.
 It does not create or recover a queue, admit or claim work, execute a worker or Tool, or
 accept priority input. Ordinary submission resolution rejects schema v1, so do not use
 either submission command on that identity until the explicit migration succeeds.
+
+### Migrate A Complete Durable Scheduler Closure
+
+Stop every owner of the named Scheduler, publisher, receiver, and isolated-worker
+points behind a pre-existing fence file outside the migration roots. Then invoke the
+coordinated operation with the complete point-resolved closure; `--submission-id` and
+`--goal-id` are repeatable and required, while each spool/binding point option is
+repeatable and included only when that point exists:
+
+```powershell
+.\scripts\gradle.ps1 run --args="scheduler-migrate-durable-closure --fence-file C:\Enhancer\maintenance\scheduler.fence --expected-fence-sha256 <lowercase-sha256> --manifest-root C:\Enhancer\.enhancer\submissions --submission-id <canonical-submission-uuid> --queue-root C:\Enhancer\.enhancer\queue --queue-id <canonical-queue-uuid> --runtime-root C:\Enhancer\.enhancer\runtime --goal-id <canonical-goal-uuid> --work-spool-point <exact-transport-file> --result-spool-point <exact-transport-file> --ingress-spool-point <exact-transport-file> --binding-point <exact-binding-file>"
+```
+
+The command never discovers roots or identities. It verifies the non-empty fence file
+against the caller-supplied digest, preflights the complete closure, prepares and
+rereads all candidates, and publishes consumer-first. `MIGRATED` and
+`ALREADY_CURRENT` exit `0`; a typed refusal prints `refusalCode` and `refusalDetail`
+and exits `2`. Legacy read-file spool bytes and immutable result, ingress, fence, and
+binding points are not rewritten. Unprofiled legacy model work refuses as
+`UNMIGRATABLE_LEGACY_MODEL_WORK` / `PROFILE_REQUIRED`. This operation does not enable
+typed ModelWork receive, admission, RunRecord creation, gateway access, or execution.
 
 ## Development Session Checkpoints
 

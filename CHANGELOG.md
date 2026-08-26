@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-08-26 - Complete The Bounded Coordinated Migration Operator
+
+- Added `scheduler-migrate-durable-closure`, which accepts only explicit roots,
+  repeatable submission/Goal identities, exact optional spool/binding points, and a
+  bounded fence file matching a caller-supplied SHA-256; it performs no discovery.
+- Proved the CLI migrates a real temporary legacy read-file closure, restarts through
+  fresh current readers, and reports non-writing `ALREADY_CURRENT` replay. Unprofiled
+  legacy model work reports the exact permanent refusal pair with zero writes.
+- Added an explicit external typed ModelWork receiver regression proving refusal before
+  queue mutation. Existing RunRecord-v1 executor and isolated child-launch guards remain
+  intact; ModelWork submission, admission, RunRecord v2, gateway, provider, network, and
+  execution remain unconnected.
+
 ## 2026-08-26 - Harden Coordinated Migration Crash Re-entry And Source Drift
 
 - Added a bounded post-publication interruption seam and parameterized real-filesystem

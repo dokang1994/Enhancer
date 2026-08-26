@@ -43,6 +43,8 @@ import com.enhancer.runtime.CancellationProofFileReader;
 import com.enhancer.runtime.ControlAuthorizationDeniedException;
 import com.enhancer.runtime.ControlRequestAuthorizer;
 import com.enhancer.runtime.ControlSpoolPublisher;
+import com.enhancer.runtime.CoordinatedDurableMigrationCutover;
+import com.enhancer.runtime.CoordinatedDurableMigrationPlan;
 import com.enhancer.runtime.DurableAgentRunWorker;
 import com.enhancer.runtime.DurableControlMessageReceiveResult;
 import com.enhancer.runtime.DurableControlMessageReceiver;
@@ -124,10 +126,13 @@ import java.nio.file.Path;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.StandardCopyOption;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -223,6 +228,10 @@ public final class EnhancerCli {
                     instanceof SchedulerMigrateCycleCheckpointCliCommand migration) {
                 return executeSchedulerMigrateCycleCheckpoint(
                         migration, stdout);
+            }
+            if (command
+                    instanceof SchedulerMigrateDurableClosureCliCommand migration) {
+                return executeSchedulerMigrateDurableClosure(migration, stdout);
             }
             if (command instanceof SchedulerMigrateQueueCliCommand migration) {
                 return executeSchedulerMigrateQueue(migration, stdout);
@@ -865,6 +874,69 @@ public final class EnhancerCli {
                         + FileSystemPendingFinalizationStore
                                 .CURRENT_SCHEMA_VERSION) + "\n");
         return 0;
+    }
+
+    private int executeSchedulerMigrateDurableClosure(
+            SchedulerMigrateDurableClosureCliCommand command,
+            PrintStream stdout) throws IOException {
+        byte[] fenceBytes = validatedFenceBytes(command);
+        CoordinatedDurableMigrationPlan plan =
+                new CoordinatedDurableMigrationPlan(
+                        command.fenceFile(),
+                        fenceBytes,
+                        command.manifestRoot(),
+                        command.submissionIds(),
+                        command.queueRoot(),
+                        command.queueId(),
+                        command.runtimeRoot(),
+                        command.goalIds(),
+                        command.workSpoolPoints(),
+                        command.resultSpoolPoints(),
+                        command.ingressSpoolPoints(),
+                        command.bindingPoints());
+        CoordinatedDurableMigrationCutover.Result result =
+                new CoordinatedDurableMigrationCutover().execute(plan);
+        int exitCode = result.status()
+                        == CoordinatedDurableMigrationCutover.Status.REFUSED
+                ? CliExitCode.USAGE_OR_CONFIGURATION.code()
+                : CliExitCode.COMPLETED.code();
+        List<String> output = new ArrayList<>();
+        output.add("status=" + result.status());
+        output.add("exitCode=" + exitCode);
+        output.add("queueId=" + command.queueId());
+        output.add("manifests=" + command.submissionIds().size());
+        output.add("runtimes=" + command.goalIds().size());
+        result.refusalCode().ifPresent(code ->
+                output.add("refusalCode=" + code));
+        result.refusalDetail().ifPresent(detail ->
+                output.add("refusalDetail=" + detail));
+        writeBounded(stdout, String.join("\n", output) + "\n");
+        return exitCode;
+    }
+
+    private byte[] validatedFenceBytes(
+            SchedulerMigrateDurableClosureCliCommand command)
+            throws IOException {
+        if (!Files.isRegularFile(command.fenceFile(), LinkOption.NOFOLLOW_LINKS)
+                || Files.size(command.fenceFile()) < 1
+                || Files.size(command.fenceFile()) > 64 * 1024) {
+            throw new CliUsageException(
+                    "fence-file must be a non-empty regular file no larger than 65536 bytes");
+        }
+        byte[] bytes = Files.readAllBytes(command.fenceFile());
+        byte[] expected = HexFormat.of().parseHex(
+                command.expectedFenceSha256());
+        byte[] actual;
+        try {
+            actual = MessageDigest.getInstance("SHA-256").digest(bytes);
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 is unavailable", exception);
+        }
+        if (!MessageDigest.isEqual(expected, actual)) {
+            throw new CliUsageException(
+                    "expected-fence-sha256 does not match fence-file");
+        }
+        return bytes;
     }
 
     private int executeSchedulerMigrateQueue(
