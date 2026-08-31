@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -142,7 +142,7 @@ standalone boundary is ready for its local GREEN commit.
 
 ### Increment 2 - verify-and-close-model-invocation-preparation
 
-State: In Progress
+State: Completed
 Depends On: fresh-model-invocation-preparation
 Scope: Run the full README-owned Java 17 regression, synchronize only affected current-
 state, architecture, task, changelog, handoff, and append-only verification owners, run
@@ -157,6 +157,5 @@ boundary before any model invocation or runtime wiring.
 
 ## Next
 
-Complete Increment 2: commit the verified standalone preparation boundary, run the full
-README-owned Java 17 regression, synchronize closure state, and stop before candidate
-suitability or any Tool/gateway activity.
+Await separate user authority to specify candidate suitability and a proven-local
+gateway boundary before any model invocation or runtime wiring.

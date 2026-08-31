@@ -6386,3 +6386,31 @@ Outcome:
 - Both GREEN invocations reported `BUILD SUCCESSFUL`; `git diff --check` passed. A
   production-source search found no caller of the new preparer or preparation result.
   Full README-owned regression and final governance remain Increment 2.
+
+## 2026-08-31 - Scheduler Model Invocation Preparation Full Regression And Closure
+
+- Increment 1 was committed locally as `0eebfc3` after its focused preparation,
+  execution-guard, package-boundary, and governance checks passed; the worktree was
+  clean before the full regression.
+- The fresh unfiltered README-owned Java 17 Gradle `test` task completed with
+  `BUILD SUCCESSFUL` in 1 minute 29 seconds. JUnit XML aggregation found 188 suites and
+  1,026 tests: 1,014 passed, 12 environment- or privilege-dependent cases skipped,
+  zero failed, and zero errored. The two skips added by this increment are the governed
+  prompt reader's privilege-dependent symbolic-link cases; the other 10 were existing.
+- `git diff --check` passed after the full regression, and the working tree remained
+  clean at that verification boundary.
+- Implemented maturity remains bounded to exact active-task, prompt, request, policy,
+  profile-composition, and admission-decision preparation. Candidate suitability,
+  Tool/gateway/provider/network activity, Model RunRecord writing, runtime callers,
+  push, merge, release, and deployment remain absent and outside this completed task.
+
+## 2026-08-31 - Scheduler Model Invocation Preparation Post-Closure Governance
+
+- After task and changelog closure synchronization, fresh focused Java 17 verification
+  passed `SchedulerModelInvocationPreparerTest`, `GovernedModelPromptReaderTest`, and
+  all architecture/document suites with `BUILD SUCCESSFUL` in 5 seconds.
+- JUnit XML aggregation found 7 suites and 23 tests: 21 passed, the two privilege-
+  dependent symbolic-link cases skipped, zero failed, and zero errored.
+- `git diff --check` passed. A final architecture/document-only run follows this
+  append-only evidence entry so the repository's complete Markdown input set is
+  verified in its final pre-commit form.

@@ -11,8 +11,10 @@
   preparer caller was added.
 - RED-first and focused regressions cover every RFC-0016 reason, RFC-0015 timeout
   refusal, object identity, fresh re-evaluation, prompt containment/bounds, existing
-  Tool behavior, and current ModelWork execution guards. Full-regression closure remains
-  the second task increment.
+  Tool behavior, and current ModelWork execution guards. The fresh full Java 17
+  regression passed 1,026 tests across 188 suites: 1,014 passed, 12 environment- or
+  privilege-dependent cases skipped, zero failed, and zero errored. The implementation
+  increment was committed locally as `0eebfc3`; no push occurred.
 
 ## 2026-08-31 - Add Exact Scheduler Active-Task Resolution
 
