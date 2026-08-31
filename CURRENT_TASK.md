@@ -2,91 +2,91 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Define and accept RFC-0019 as the additive Model RunRecord v2 and exact Scheduler
-task/request/policy/admission integration contract required before typed ModelWork may
-approach candidate suitability or gateway execution, without implementation.
+Implement the additive Model RunRecord v2 value, typed store/resolve boundary, and
+filesystem codec RED-first while preserving exact RunRecord v1 behavior and every typed
+ModelWork execution guard.
 
 ## Task ID
 
-specify-model-run-record-v2-and-scheduler-admission
+implement-additive-model-run-record-v2
 
 ## Context
 
-RFC-0018's typed ModelWork envelope, manifest v3, queue v4, AgentRuntime v5, coordinated
-migration, and bounded operator are implemented and verified. Typed ModelWork remains
-blocked before in-process execution, point recovery, child launch, and external receive.
-RunRecord payload v1 cannot independently audit the WorkItem/message identity,
-independent capability projection, complete profile, and model request. The current
-legacy Scheduler also synthesizes `ApprovedTask`, reuses capability as model class, and
-constructs fixed request/policy values without RFC-0015/RFC-0016 composition. The next
-contract must resolve those gaps before any execution wiring.
+RFC-0019 is accepted and defines the first implementation step as a standalone
+model-specific record plus explicit v2 persistence discrimination before any Scheduler
+task resolution, request preparation, admission, candidate selection, or execution
+wiring. Existing RunRecord v1 remains the read-file and legacy lifecycle record, and
+typed ModelWork currently fails before every execution path. Local `main` contains the
+accepted RFC and is intentionally ahead of `origin/main`; this task grants no push.
 
 ## Justified By
 
+- User continuation request on 2026-08-31 into additive Model RunRecord v2 implementation
 - User continuation request on 2026-08-31 into the Model RunRecord v2 and Scheduler admission specification
-- User continuation request on 2026-08-25 into the coordinated durable ModelWork migration implementation
-- User continuation request on 2026-08-21 into the Scheduler complete-profile transport specification
 
 ## Approval
 
-The user's explicit 2026-08-31 continuation authorizes one documentation-only RFC-0019
-specification, bounded read-only RunRecord/schema/recovery and authority/wiring reviews,
-owning architecture/RFC-planning/index/decision/task/changelog/verification
-synchronization, correction of directly related stale architecture wording, fresh Java
-17 Markdown-sensitive verification, development-session checkpoints, and ordinary
-local commits at verified GREEN increment boundaries. It authorizes no Java or binary-
-schema implementation, artifact migration, command or caller change, Scheduler
-execution wiring, child launch, admission invocation, candidate suitability, gateway or
-provider execution, network or remote transmission, credentials or spend, push, merge,
-release, deployment, external effect, permission change, or destructive cleanup.
+The user's explicit 2026-08-31 continuation authorizes the first RFC-0019
+implementation sequence only: RED-first Java tests, the minimum additive value and
+typed persistence contracts, filesystem payload-v2 encoding/decoding over the existing
+RunRecord envelope/reference namespace, v1 compatibility and execution-guard
+regressions, owning implementation-state/architecture/task/changelog/verification
+document synchronization, development-session checkpoints, bounded read-only subagent
+reviews, and ordinary local commits at verified GREEN increment boundaries. It
+authorizes no exact-task resolver, Scheduler request/policy preparation, RFC-0015/
+RFC-0016 runtime invocation, candidate or gateway execution, production model-record
+writer, caller cutover, artifact migration, CLI change, external receive, network,
+provider, credentials, spend, push, merge, release, deployment, permission change, or
+destructive cleanup.
 
 ## Acceptance Criteria
 
-- RFC-0019 defines an additive model-specific RunRecord payload v2 that retains the
-  exact WorkItem and work-message identities, unchanged independent capability
-  projection, complete RFC-0014 profile, exact RFC-0013 request, existing policy/result/
-  digest/evidence/verification/lifecycle data, and no persisted admission decision.
-- Existing read-file `RunRecord` payload v1, public v1 readers, reference namespace,
-  envelope integrity, replay behavior, and encoded bytes remain unchanged. Cross-kind
-  identity reuse, partial projection, and silent v2-to-v1 fallback fail closed.
-- The exact active governed `ApprovedTask` source is point-resolved from the governed
-  task document and must match the retained task identity, source path, source digest,
-  and Tool scope; generated descriptions or approval evidence are not accepted.
-- The Scheduler-specific source for every `ModelRequest` and `ExecutionPolicy` field is
-  explicit. Model class comes from the profile, capability remains the unchanged active
-  WorkItem projection, response-character and token ceilings stay independent, longer
-  profiles are never clamped, and one policy instance reaches both RFC-0016 and the
-  later `ToolExecutor`.
-- Fresh RFC-0015/RFC-0016 evaluation, typed rejection before Tool/gateway activity,
-  retry/re-entry behavior, process-parent/child binding, model-v2 result validation,
-  and post-record deterministic recovery are fully ordered without persisting
-  `Admitted` or reconstructing provenance from ambient stores.
-- The contract keeps typed ModelWork execution blocked until separately accepted
-  candidate-suitability and proven-local gateway boundaries exist, and grants no route,
-  provider, endpoint, destination, credential, network, transmission, spend, cache,
-  fallback, or external-receive authority.
-- Architecture, RFC index/planning, accepted-decision index, changelog, task cursor, and
-  append-only verification evidence are synchronized. Focused governance and the full
-  README-owned Java 17 regression pass freshly with a documentation-only diff.
+- One immutable `ModelRunRecord` retains exactly the canonical WorkItem identity,
+  unchanged required capability, exact typed ModelWork envelope, exact prepared
+  `ModelRequest`, and existing lifecycle `RunRecord`, with RFC-0019 structural binding
+  enforced and no admission/provider/route/credential/network/spend field.
+- Separate `ModelRunRecordStore` and `ResolvedModelRunRecord` contracts expose model
+  persistence and resolution without widening `RunRecordStore` or
+  `ResolvedRunRecord`.
+- `FileSystemRunRecordStore` supports payload version 2 through the same envelope,
+  artifact suffix, reference grammar, root, integrity, size, atomic-publication, and
+  exact-replay rules while keeping payload version 1 encoding byte-for-byte unchanged.
+- The v1 resolver rejects v2 with an explicit unsupported-kind failure and never
+  projects the nested lifecycle record; the v2 resolver rejects v1, and cross-kind or
+  changed-content identity reuse fails before rewrite.
+- V2 round-trip preserves every WorkItem/message/profile/request/lifecycle component;
+  malformed, unknown, corrupt, truncated, trailing, noncanonical, oversized, foreign,
+  and structurally invalid input fails closed.
+- Existing opaque reference listing may observe both kinds without resolving them;
+  existing v1 writers/readers and their public behavior remain source-compatible.
+- In-process, process-parent, child, external-receiver, finalizer, recovery/status,
+  Project Brain, runtime-event, CLI replay, and every other current production path
+  remain v1-only or explicitly guarded. No production code writes a Model RunRecord.
+- Focused RED/GREEN tests, literal/new v1 golden compatibility, relevant execution-
+  guard regressions, architecture/governance checks, and the full README-owned Java 17
+  regression pass freshly. Owning state and append-only evidence documents are current.
 
 ## Out Of Scope
 
-Java implementation; RunRecord binary writer/reader changes; schema or artifact
-migration; task resolver, request/policy factory, admission, finalizer, result handler,
-recovery reader, process worker, submission, receiver, CLI, Tool, gateway, or adapter
-changes; candidate suitability; routing, providers, endpoints, destinations, network or
-remote transmission; credentials, paid services, pricing, tokenizers, usage
-normalization, caching, fallback, streaming, MCP, capability maturity promotion,
-release, deployment, push, merge, history rewrite, permission changes, and destructive
-cleanup.
+Exact active-task resolution; request/policy preparation; RFC-0015/RFC-0016 invocation;
+candidate suitability or locality proof; ToolExecutor or gateway execution; model
+finalizer/result/recovery/process/worker wiring; production v2 writer; submission,
+receiver, CLI, Project Brain, runtime-event, or status support for v2; migration or
+rewriting existing artifacts; providers, routes, endpoints, destinations, network or
+remote transmission; credentials, paid services, pricing, tokenizers, caching,
+fallback, streaming, MCP, capability maturity beyond evidence supported by this pure
+persistence boundary, push, merge, history rewrite, release, deployment, permission
+changes, and destructive cleanup.
 
 ## Allowed Tools
 
 - read-file
+- write-code
+- write-tests
 - write-docs
 - build-output
 - verify
@@ -98,61 +98,69 @@ cleanup.
 
 ## Verification
 
-- Increment 1: two bounded read-only reviews independently identified the existing
-  RunRecord v1 compatibility constraints and Scheduler authority/wiring gaps. The
-  primary Agent reconciled those recommendations against repository authority and
-  corrected the draft so Model RunRecord v2 directly retains the exact prepared
-  `ModelRequest`. Focused governance passed 21 tests across 6 suites with zero failures,
-  errors, or skips, and `git diff --check` passed.
-- Increment 2: the fresh unfiltered README-owned Java 17 Gradle `test` task completed
-  with `BUILD SUCCESSFUL` in 2 minutes 19 seconds. JUnit XML aggregation found 180
-  suites and 990 tests: 980 passed, 10 existing environment-dependent cases skipped,
-  zero failed, and zero errored. After closure synchronization, final focused governance
-  passed 21 tests across 6 suites with zero failures, errors, or skips, and
-  `git diff --check` passed. No implementation or maturity state changed.
+- Increment 1: the aligned RED failed at test compilation only because the five new
+  model-record value/port types did not exist. The minimum implementation added the
+  exact five-component immutable `ModelRunRecord`, structurally bound typed work,
+  request, profile, task, Tool, digest, and lifecycle provenance, separate typed
+  persistence/resolution ports, and explicit two-kind mismatch vocabulary. Focused
+  GREEN passed 18 tests across 6 suites with zero failures, errors, or skips, including
+  existing `RunRecord` and runtime package-boundary regressions. `git diff --check`
+  passed.
 
 ## Dynamic Workflow
 
-Workflow ID: specify-model-run-record-v2-and-scheduler-admission
+Workflow ID: implement-additive-model-run-record-v2
 Mode: Sequential
-Increment Limit: 2
+Increment Limit: 3
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
-Stop Conditions: Stop on v1 compatibility ambiguity, missing authority source,
-admission/recovery ambiguity, candidate or gateway authority expansion, failed
-governance/regression verification, task drift, checkpoint drift, new external
-authority, exhausted bounds, or unsafe recovery.
+Stop Conditions: Stop on v1 byte drift, ambiguous kind dispatch, incomplete standalone
+provenance, execution-guard regression, task or checkpoint drift, failed verification,
+new execution/external authority, exhausted bounds, or unsafe recovery.
 
-### Increment 1 - define-and-accept-rfc-0019
+### Increment 1 - model-run-record-value-and-ports
 
 State: Completed
 Depends On: none
-Scope: Reconcile the bounded read-only schema/recovery and authority/wiring reviews,
-define and accept the minimum RFC-0019 contract, correct directly related architecture
-drift, and synchronize RFC planning/index, decision, changelog, task, and append-only
-focused verification evidence.
-Exit Criteria: The RFC resolves every acceptance criterion without implementation or
-artifact change, focused governance passes, the diff is documentation-only and clean,
-evidence is appended once, and the verified increment is committed locally.
-Verification: RFC/decision/architecture/document-ownership/dynamic-workflow governance
-tests and `git diff --check`.
-Next Action: Select Increment 2 and run the full README-owned regression.
+Scope: Add aligned failing tests, then implement the minimum immutable ModelRunRecord,
+typed model store/resolve contracts, and explicit kind-mismatch failure vocabulary
+without modifying filesystem bytes or adding a writer.
+Exit Criteria: Focused value/contract tests pass, existing RunRecord tests remain GREEN,
+the diff adds no runtime caller, and the verified increment is committed locally.
+Verification: Focused model/run contract tests, existing RunRecord tests, architecture
+guards, and `git diff --check`.
+Next Action: Use the verified value/port boundary as fresh dependency evidence for
+Increment 2.
 
-### Increment 2 - verify-and-close-rfc-0019
+### Increment 2 - filesystem-model-run-record-v2
 
-State: Completed
-Depends On: define-and-accept-rfc-0019
-Scope: Run the full README-owned Java 17 regression, synchronize only changed lifecycle
-owners, rerun final Markdown governance, and close the task.
-Exit Criteria: Full and final governance verification pass, no implementation or
-maturity claim appears, the closure is committed locally, and the worktree/checkpoint
-reach the intended clean stable state.
+State: In Progress
+Depends On: model-run-record-value-and-ports
+Scope: Add aligned failing filesystem/golden/guard tests, then implement payload-v2
+encoding, decoding, typed dispatch, exact replay, and cross-kind refusal in the shared
+filesystem store without a production model writer.
+Exit Criteria: V2 persistence and tamper tests pass, literal and newly encoded v1 bytes
+remain exact, execution guards stay GREEN, focused verification evidence is appended,
+and the verified increment is committed locally.
+Verification: RunRecord filesystem/golden/model-work guard suites, architecture
+governance, and `git diff --check`.
+Next Action: Commit the verified codec/store boundary, then select Increment 3.
+
+### Increment 3 - verify-and-close-model-run-record-v2
+
+State: Pending
+Depends On: filesystem-model-run-record-v2
+Scope: Run the full README-owned Java 17 regression, synchronize only affected current-
+state, architecture, task, changelog, handoff, and append-only verification owners, run
+final governance, and close the task locally.
+Exit Criteria: Full and final focused verification pass, capability claims remain
+bounded to the implemented persistence boundary, all three increments are committed,
+and the worktree/checkpoint reach the intended clean stable state.
 Verification: Full `test`, focused governance, JUnit XML aggregation,
 `git diff --check`, and final Git/checkpoint inspection.
-Next Action: Implement the additive Model RunRecord v2 contract RED-first under
-separate user authority while typed ModelWork execution remains blocked.
+Next Action: Implement exact active-task resolution and revision/scope binding under
+separate user authority, without execution.
 
 ## Next
 
-Await separate user authority to implement additive Model RunRecord v2 RED-first.
-Typed ModelWork execution remains blocked before candidate suitability and a proven-
-local gateway boundary.
+Complete Increment 2 RED-first: add filesystem payload-v2 dispatch, v1 literal/new
+goldens, exact replay, and fail-closed cross-kind coverage without a production writer.

@@ -6258,3 +6258,21 @@ Outcome:
 - Model RunRecord v2 implementation, task/request/policy/admission wiring, candidate
   suitability, gateway/provider/network execution, push, merge, release, and deployment
   remain outside this completed task and require separate authority.
+
+## 2026-08-31 - Model RunRecord V2 Value And Typed-Port Verification
+
+- The aligned RED failed at `compileTestJava` only because `ModelRunRecord`,
+  `ModelRunRecordStore`, `ResolvedModelRunRecord`, `RunRecordKind`, and
+  `UnsupportedRunRecordKindException` did not exist. The failure matched RFC-0019 and
+  the active Increment 1 contract.
+- The minimum implementation added only those value/port types. It binds exact typed
+  work, task/scope, request/profile, Tool, digest, and lifecycle provenance; preserves
+  independent capability/profile capability and failed-lifecycle typed digest data;
+  and adds no filesystem writer, runtime caller, admission, candidate, or gateway path.
+- Fresh focused Java 17 verification passed 18 tests across 6 suites with
+  `BUILD SUCCESSFUL`: `ModelRunRecordTest`, `ModelRunRecordStoreContractTest`,
+  `ResolvedModelRunRecordTest`, `RunRecordKindTest`, existing `RunRecordTest`, and
+  `RuntimePackageBoundaryTest`. JUnit XML reported zero failures, errors, or skips.
+- `git diff --check` passed after the implementation. Filesystem payload-v2 dispatch,
+  v1 golden compatibility, exact replay, and cross-kind storage refusal remain the next
+  sequential increment; no production Model RunRecord writer exists.

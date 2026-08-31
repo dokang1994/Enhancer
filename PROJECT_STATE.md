@@ -2,15 +2,15 @@
 
 ## Updated At
 
-2026-08-21
+2026-08-31
 
 ## Repository State
 
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 420 Java files.
-- Test source: 175 Java files.
+- Production source: 440 Java files.
+- Test source: 187 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -19,6 +19,21 @@ it does not restate which commit published which increment.
 ## Capability Maturity
 
 ### Contract Verified
+
+- The RFC-0019 additive model-record value and type-level persistence boundary under
+  `com.enhancer.run` is Contract Verified. `ModelRunRecord` is one exact five-component
+  immutable record retaining canonical WorkItem identity, independent required
+  capability, exact typed ModelWork envelope and complete profile, exact prepared
+  `ModelRequest`, and the existing lifecycle `RunRecord`. Its constructor binds distinct
+  WorkItem/message identities, logical run, retained task identity/source/Tool scope,
+  exact model Tool request/correlation/target/limits, request/profile alignment, and any
+  performed-verification digest while preserving the typed expected digest for failed
+  lifecycles. `ModelRunRecordStore` and `ResolvedModelRunRecord` are separate from the
+  unchanged v1 ports, and `RunRecordKind` plus
+  `UnsupportedRunRecordKindException` distinguish the two known kinds from corruption.
+  Filesystem payload-v2 encoding/decoding, any production writer or caller, task
+  resolution, admission, candidate selection, gateway execution, provider/network,
+  credential, and spend authority remain absent.
 
 - The RFC-0016 pure model invocation-admission boundary under `com.enhancer.model` is
   Contract Verified. One stateless field-free evaluator intersects the exact active

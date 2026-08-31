@@ -1673,13 +1673,16 @@ fresh RFC-0015/RFC-0016 evaluation, and later candidate/provider authority.
 
 RFC-0019 defines that next additive provenance and preparation boundary without
 enabling execution. Existing `RunRecord` payload v1 and its public v1-only store/resolve
-path remain unchanged. A separate `ModelRunRecord` retains one canonical WorkItem
-identity, the unchanged independent capability projection, the exact ModelWork envelope,
-the exact prepared `ModelRequest` including its bounded prompt snapshot, and the existing
-lifecycle record. The shared filesystem envelope and reference
-namespace may dispatch payload version 1 to the exact legacy record and version 2 to
-the model record, but each typed resolver rejects the other kind and cross-kind identity
-reuse fails closed. No current production writer creates v2.
+path remain unchanged. The implemented separate `ModelRunRecord` retains one canonical
+WorkItem identity, the unchanged independent capability projection, the exact ModelWork
+envelope, the exact prepared `ModelRequest` including its bounded prompt snapshot, and
+the existing lifecycle record. It structurally binds those values while deliberately
+leaving WorkItem and profile capability independent. Separate model store/resolve ports
+and a closed two-kind mismatch vocabulary prevent v2 from being projected through the
+v1 type-level boundary. The shared filesystem envelope and reference namespace will
+dispatch payload version 1 to the exact legacy record and version 2 to the model record;
+that codec and cross-kind exact-replay boundary are not yet implemented. No current
+production writer creates v2.
 
 Before a typed model attempt, the Scheduler must freshly load `CURRENT_TASK.md` through
 the existing Context and ApprovedTask readers, require `In Progress`, and bind task ID,

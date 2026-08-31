@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-08-31 into additive Model RunRecord v2 implementation
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-31-implement-additive-model-run-record-v2.md)
+
 ### User continuation request on 2026-08-31 into the Model RunRecord v2 and Scheduler admission specification
 
 Status: Accepted Decision

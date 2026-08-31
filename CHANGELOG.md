@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-08-31 - Implement Model RunRecord V2 Value And Typed Ports
+
+- Added the exact immutable five-component `ModelRunRecord`, retaining canonical
+  WorkItem identity, independent capability, exact typed ModelWork envelope/profile,
+  exact prepared request, and existing lifecycle record without persisting admission,
+  provider, route, network, credential, or spend data.
+- Added separate model persistence/resolution contracts and an explicit two-kind
+  mismatch vocabulary without widening the legacy `RunRecordStore` or
+  `ResolvedRunRecord` shapes.
+- Bound model work, governed task/scope, Tool request, request/profile limits, and
+  lifecycle digest structurally while keeping capability and profile capability
+  independent. Filesystem v2 bytes and every production writer/caller remain absent.
+
 ## 2026-08-31 - Specify Model RunRecord V2 And Scheduler Admission Preparation
 
 - Accepted RFC-0019 as the additive model-specific RunRecord and exact Scheduler
