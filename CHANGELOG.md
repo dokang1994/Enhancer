@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-08-31 - Specify Model RunRecord V2 And Scheduler Admission Preparation
+
+- Accepted RFC-0019 as the additive model-specific RunRecord and exact Scheduler
+  task/request/policy/admission preparation contract while preserving read-file
+  RunRecord v1 bytes, readers, replay, and reference behavior.
+- Required exact active-task revision and Tool-scope resolution, profile-sourced model
+  class, explicit Scheduler request limits, one shared execution-policy instance, fresh
+  RFC-0015/RFC-0016 evaluation, and pre-record versus post-record recovery ordering.
+- Kept admission decisions non-persistent and typed ModelWork blocked before candidate
+  suitability or gateway activity; no Java, schema, artifact, command, runtime,
+  provider, network, credential, spend, release, or deployment state changed.
+
 ## 2026-08-26 - Complete The Bounded Coordinated Migration Operator
 
 - Added `scheduler-migrate-durable-closure`, which accepts only explicit roots,

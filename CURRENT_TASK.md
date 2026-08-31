@@ -2,67 +2,87 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Deliver the five completed and verified coordinated durable ModelWork migration commits
-from local `main` to `origin/main` with a non-force fast-forward push, observe external
-verification, and record truthful delivery evidence.
+Define and accept RFC-0019 as the additive Model RunRecord v2 and exact Scheduler
+task/request/policy/admission integration contract required before typed ModelWork may
+approach candidate suitability or gateway execution, without implementation.
 
 ## Task ID
 
-deliver-coordinated-durable-model-work-migration-to-main
+specify-model-run-record-v2-and-scheduler-admission
 
 ## Context
 
-The clean local `main` currently ends at `628d24e` and contains five commits after the
-tracked `origin/main` at `9424062`. Those commits implement and verify current-schema
-dual-payload retention, coordinated preflight and cutover, crash re-entry and drift
-hardening, and the bounded migration operator. They already lie directly on `main`, so
-a non-force fast-forward push is the requested merge. A fresh fetch and ancestry check
-remain mandatory before external delivery.
+RFC-0018's typed ModelWork envelope, manifest v3, queue v4, AgentRuntime v5, coordinated
+migration, and bounded operator are implemented and verified. Typed ModelWork remains
+blocked before in-process execution, point recovery, child launch, and external receive.
+RunRecord payload v1 cannot independently audit the WorkItem/message identity,
+independent capability projection, complete profile, and model request. The current
+legacy Scheduler also synthesizes `ApprovedTask`, reuses capability as model class, and
+constructs fixed request/policy values without RFC-0015/RFC-0016 composition. The next
+contract must resolve those gaps before any execution wiring.
 
 ## Justified By
 
-- User request on 2026-08-31 to commit, push, and merge the coordinated durable ModelWork migration to main
+- User continuation request on 2026-08-31 into the Model RunRecord v2 and Scheduler admission specification
 - User continuation request on 2026-08-25 into the coordinated durable ModelWork migration implementation
+- User continuation request on 2026-08-21 into the Scheduler complete-profile transport specification
 
 ## Approval
 
-The user's explicit 2026-08-31 request authorizes a bounded delivery-authority commit,
-fresh local verification, non-force push of aligned local `main` to `origin/main`,
-remote-ref and GitHub Actions observation, one truthful delivery-evidence follow-up
-commit, and one final non-force push. It authorizes no force operation, history rewrite,
-temporary branch, synthetic merge commit, tag, release, deployment, branch deletion,
-permission or credential change, destructive cleanup, or additional implementation.
+The user's explicit 2026-08-31 continuation authorizes one documentation-only RFC-0019
+specification, bounded read-only RunRecord/schema/recovery and authority/wiring reviews,
+owning architecture/RFC-planning/index/decision/task/changelog/verification
+synchronization, correction of directly related stale architecture wording, fresh Java
+17 Markdown-sensitive verification, development-session checkpoints, and ordinary
+local commits at verified GREEN increment boundaries. It authorizes no Java or binary-
+schema implementation, artifact migration, command or caller change, Scheduler
+execution wiring, child launch, admission invocation, candidate suitability, gateway or
+provider execution, network or remote transmission, credentials or spend, push, merge,
+release, deployment, external effect, permission change, or destructive cleanup.
 
 ## Acceptance Criteria
 
-- Fresh fetch and ref inspection prove `origin/main` is an ancestor of local `main`
-  immediately before each push; any divergence stops delivery.
-- The delivery authority and cursor are committed locally only after focused governance
-  and fresh full README-owned Java 17 Markdown-sensitive verification pass.
-- Pushes use the explicit `main:main` refspec without force and preserve linear history;
-  no temporary branch or synthetic merge commit is created.
-- The first push delivers all five completed commits plus the delivery-authority commit,
-  and the advertised remote `refs/heads/main` matches the pushed local HEAD.
-- The push-triggered GitHub Actions verification is observed to a successful terminal
-  conclusion before delivery evidence is recorded.
-- One append-only delivery observation records the exact pushed range, ref identities,
-  fast-forward/merge meaning, and external verification result; the task cursor is then
-  completed in one bounded follow-up commit.
-- The follow-up commit is pushed without force after a fresh ancestry check; final local
-  HEAD, `origin/main`, and advertised remote main match, the worktree is clean, and the
-  final push-triggered verification is successful.
-- No product implementation, RFC contract, maturity, architecture, Roadmap, runtime,
-  schema, permission, tag, release, or deployment change occurs.
+- RFC-0019 defines an additive model-specific RunRecord payload v2 that retains the
+  exact WorkItem and work-message identities, unchanged independent capability
+  projection, complete RFC-0014 profile, exact RFC-0013 request, existing policy/result/
+  digest/evidence/verification/lifecycle data, and no persisted admission decision.
+- Existing read-file `RunRecord` payload v1, public v1 readers, reference namespace,
+  envelope integrity, replay behavior, and encoded bytes remain unchanged. Cross-kind
+  identity reuse, partial projection, and silent v2-to-v1 fallback fail closed.
+- The exact active governed `ApprovedTask` source is point-resolved from the governed
+  task document and must match the retained task identity, source path, source digest,
+  and Tool scope; generated descriptions or approval evidence are not accepted.
+- The Scheduler-specific source for every `ModelRequest` and `ExecutionPolicy` field is
+  explicit. Model class comes from the profile, capability remains the unchanged active
+  WorkItem projection, response-character and token ceilings stay independent, longer
+  profiles are never clamped, and one policy instance reaches both RFC-0016 and the
+  later `ToolExecutor`.
+- Fresh RFC-0015/RFC-0016 evaluation, typed rejection before Tool/gateway activity,
+  retry/re-entry behavior, process-parent/child binding, model-v2 result validation,
+  and post-record deterministic recovery are fully ordered without persisting
+  `Admitted` or reconstructing provenance from ambient stores.
+- The contract keeps typed ModelWork execution blocked until separately accepted
+  candidate-suitability and proven-local gateway boundaries exist, and grants no route,
+  provider, endpoint, destination, credential, network, transmission, spend, cache,
+  fallback, or external-receive authority.
+- Architecture, RFC index/planning, accepted-decision index, changelog, task cursor, and
+  append-only verification evidence are synchronized. Focused governance and the full
+  README-owned Java 17 regression pass freshly with a documentation-only diff.
 
 ## Out Of Scope
 
-Force push, rebase, reset, amend, squash, cherry-pick, temporary branch, synthetic merge
-commit, tag, release, deployment, branch deletion, permission or credential changes,
-destructive cleanup, additional implementation, RFC changes, and maturity promotion.
+Java implementation; RunRecord binary writer/reader changes; schema or artifact
+migration; task resolver, request/policy factory, admission, finalizer, result handler,
+recovery reader, process worker, submission, receiver, CLI, Tool, gateway, or adapter
+changes; candidate suitability; routing, providers, endpoints, destinations, network or
+remote transmission; credentials, paid services, pricing, tokenizers, usage
+normalization, caching, fallback, streaming, MCP, capability maturity promotion,
+release, deployment, push, merge, history rewrite, permission changes, and destructive
+cleanup.
 
 ## Allowed Tools
 
@@ -74,68 +94,58 @@ destructive cleanup, additional implementation, RFC changes, and maturity promot
 - git-inspect
 - git-stage
 - git-commit
-- git-fetch
-- git-push
-- gh-inspect
+- subagent-readonly
 
 ## Verification
 
-- Increment 1: focused governance passed 21 tests across 6 suites, the fresh full Java
-  17 regression passed 990 tests across 180 suites with zero failures/errors and 10
-  skips, and `99fa18f` was committed after clean diff checks. A fresh fetch proved
-  remote `9424062` was the local merge base; non-force `main:main` push fast-forwarded
-  `9424062..99fa18f`, fetched and advertised refs matched, and GitHub Actions run
-  `33347793672` job `99355175758` succeeded with two dependency-deprecation warnings.
-- Increment 2: the exact first-push observation was committed as `8b6ee20` after 21
-  focused governance tests and clean diff checks. A fresh ancestry check then proved
-  remote `99fa18f` was the local merge base; non-force `main:main` push fast-forwarded
-  `99fa18f..8b6ee20`, fetched and advertised refs matched, and GitHub Actions run
-  `33348013114` job `99355785232` succeeded with the same two non-failing dependency-
-  deprecation warnings.
+- Increment 1: two bounded read-only reviews independently identified the existing
+  RunRecord v1 compatibility constraints and Scheduler authority/wiring gaps. The
+  primary Agent reconciled those recommendations against repository authority and
+  corrected the draft so Model RunRecord v2 directly retains the exact prepared
+  `ModelRequest`. Focused governance passed 21 tests across 6 suites with zero failures,
+  errors, or skips, and `git diff --check` passed.
 
 ## Dynamic Workflow
 
-Workflow ID: deliver-coordinated-durable-model-work-migration-to-main
+Workflow ID: specify-model-run-record-v2-and-scheduler-admission
 Mode: Sequential
 Increment Limit: 2
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
-Stop Conditions: Stop on failed local or external verification, remote divergence,
-non-fast-forward refusal, unexpected path or ref, checkpoint drift, task drift, new
-external authority, exhausted bounds, or unsafe recovery.
+Stop Conditions: Stop on v1 compatibility ambiguity, missing authority source,
+admission/recovery ambiguity, candidate or gateway authority expansion, failed
+governance/regression verification, task drift, checkpoint drift, new external
+authority, exhausted bounds, or unsafe recovery.
 
-### Increment 1 - verify-and-push-coordinated-migration
+### Increment 1 - define-and-accept-rfc-0019
 
 State: Completed
 Depends On: none
-Scope: Commit the delivery authority/cursor, rerun local governance and full
-verification, recheck ancestry, push aligned local main without force, verify the
-remote ref, and observe the triggered GitHub Actions verification.
-Exit Criteria: Local checks pass, the delivery-authority commit and all five completed
-increments are present on remote main through a fast-forward push, the advertised ref
-matches, and the triggered GitHub Actions run succeeds.
-Verification: Focused governance tests, README-owned full Gradle test task, diff checks,
-fetch/merge-base/ref inspection, non-force push output, advertised remote ref, and
-GitHub Actions conclusion.
-Next Action: Append delivery evidence once, close the cursor, commit, and push the
-bounded follow-up.
+Scope: Reconcile the bounded read-only schema/recovery and authority/wiring reviews,
+define and accept the minimum RFC-0019 contract, correct directly related architecture
+drift, and synchronize RFC planning/index, decision, changelog, task, and append-only
+focused verification evidence.
+Exit Criteria: The RFC resolves every acceptance criterion without implementation or
+artifact change, focused governance passes, the diff is documentation-only and clean,
+evidence is appended once, and the verified increment is committed locally.
+Verification: RFC/decision/architecture/document-ownership/dynamic-workflow governance
+tests and `git diff --check`.
+Next Action: Select Increment 2 and run the full README-owned regression.
 
-### Increment 2 - record-and-push-delivery-evidence
+### Increment 2 - verify-and-close-rfc-0019
 
-State: Completed
-Depends On: verify-and-push-coordinated-migration
-Scope: Append the exact delivery observation, complete the task cursor, verify the
-Markdown-sensitive repository, commit the bounded evidence update, recheck ancestry,
-push without force, and verify final refs and external verification.
-Exit Criteria: Delivery evidence and the completed cursor are on remote main, final
-local/fetched/advertised refs match, final external verification succeeds, and the
-worktree and checkpoint are clean and stable.
-Verification: Focused governance tests, git diff checks, commit inspection, fresh
-fetch/merge-base/ref checks, non-force push output, GitHub Actions conclusion, and final
-clean-tree inspection.
-Next Action: Await separate authority for Model RunRecord v2 and Scheduler model-work
-admission integration.
+State: In Progress
+Depends On: define-and-accept-rfc-0019
+Scope: Run the full README-owned Java 17 regression, synchronize only changed lifecycle
+owners, rerun final Markdown governance, and close the task.
+Exit Criteria: Full and final governance verification pass, no implementation or
+maturity claim appears, the closure is committed locally, and the worktree/checkpoint
+reach the intended clean stable state.
+Verification: Full `test`, focused governance, JUnit XML aggregation,
+`git diff --check`, and final Git/checkpoint inspection.
+Next Action: Implement the additive Model RunRecord v2 contract RED-first under
+separate user authority while typed ModelWork execution remains blocked.
 
 ## Next
 
-Await separate user authority for Model RunRecord v2 and Scheduler model-work admission
-integration. No next Active Task is authorized.
+Complete Increment 2 through the full regression, final governance verification, and
+local closure commit without push or implementation.

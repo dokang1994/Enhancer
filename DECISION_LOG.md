@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-08-31 into the Model RunRecord v2 and Scheduler admission specification
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-31-specify-model-run-record-v2-and-scheduler-admission.md)
+
 ### User request on 2026-08-31 to commit, push, and merge the coordinated durable ModelWork migration to main
 
 Status: Accepted Decision

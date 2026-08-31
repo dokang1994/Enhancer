@@ -922,6 +922,7 @@ Scope:
 
 - provider-neutral ModelRequest, response, usage, and routing contracts;
 - provider-neutral execution profiles for capability, model class, locality, reasoning, context, token, cost, time, and data-classification requirements;
+- additive model-specific RunRecord provenance plus exact Scheduler task, request, policy, capability, and fresh admission preparation before candidate suitability;
 - Model Router with deterministic fake plus explicitly selected provider adapters;
 - timeout, cancellation, token, context, cost, redaction, and response-validation budgets;
 - versioned per-model quality evaluation, policy-scoped fallback and response caching, prompt-injection resistance, source attribution, and visible uncertainty;
@@ -1228,6 +1229,7 @@ Status: Accepted
 - RFC-0016: Model Invocation Admission
 - RFC-0017: Model Invocation Input Sourcing
 - RFC-0018: Scheduler Model Profile Transport
+- RFC-0019: Scheduler Model RunRecord And Admission Preparation
 
 RFC acceptance does not imply Contract Verified, Integrated, Operational, or Released capability maturity.
 

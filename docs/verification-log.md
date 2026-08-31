@@ -1,5 +1,21 @@
 # Verification Log
 
+## 2026-08-31 - RFC-0019 Contract And Focused Governance Verification
+
+- Two bounded read-only reviews identified the RunRecord v1 compatibility constraints
+  and the exact Scheduler task/request/policy/admission gaps. The primary Agent
+  reconciled the recommendations against repository authority and required Model
+  RunRecord v2 to retain the exact prepared `ModelRequest`, including the bounded prompt
+  snapshot, rather than relying on a later mutable-file read.
+- RFC-0019 was synchronized with the owning architecture, Roadmap RFC list, RFC index,
+  accepted-decision pair, task cursor, and changelog. The diff remains documentation-
+  only and keeps every typed ModelWork execution guard in place.
+- Focused Java 17 Gradle verification passed 21 tests across 6 suites with zero
+  failures, zero errors, and zero skips. `git diff --check` also passed.
+- Java implementation, binary schema or artifact changes, task/admission/execution
+  wiring, candidate suitability, gateway/provider/network activity, capability maturity,
+  push, merge, release, and deployment remain outside this increment.
+
 Append-only evidence behind the state claimed in `PROJECT_STATE.md`: per-increment
 RED/GREEN results, focused and full regression counts, lint status, and promotion
 outcomes.

@@ -761,7 +761,7 @@ Planner, Coder, Reviewer, Tester, and Memory are roles or workers behind message
 
 ### Gate 8 WorkItem Admission Contract
 
-The Gate 8 admission contract is an immutable scheduler-facing `WorkItem` under `com.enhancer.runtime`. A work-item identity is a canonical UUID distinct from the Gate 7 message identity because logical work and one delivery attempt are different identities. The item retains exactly one existing `MessageEnvelope` carrying `WorkPayload` plus one bounded required-capability name; logical run identity, approved task revision, Workspace snapshot identity, and allowed Tools are projections of that unchanged envelope rather than caller-supplied copies.
+The Gate 8 admission contract is an immutable scheduler-facing `WorkItem` under `com.enhancer.runtime`. A work-item identity is a canonical UUID distinct from the Gate 7 message identity because logical work and one delivery attempt are different identities. The item retains exactly one existing `MessageEnvelope` carrying legacy `WorkPayload` or exact `ModelWorkPayload` plus one bounded required-capability name; logical run identity, approved task revision, Workspace snapshot identity, and allowed Tools are projections of that unchanged envelope rather than caller-supplied copies. Typed ModelWork retention grants no execution authority.
 
 Admission rejects non-work payloads, malformed or reused identities, and blank or oversized capabilities. It creates no approval, Tool permission, state transition, dependency, queue, lease, persistence, or execution authority. The dependency-ready single-worker Scheduler queue is its first consumer, and the separate durable Goal/AgentRun lifecycle below retains the same exact WorkItem. Budgets, cancellation, leases, worker execution, and broader recovery remain later Gate 8 increments.
 
@@ -1670,6 +1670,36 @@ network, or model-execution authority.
 Profile-aware execution remains blocked pending a
 model RunRecord v2, the exact active governed task, the same execution-policy instance,
 fresh RFC-0015/RFC-0016 evaluation, and later candidate/provider authority.
+
+RFC-0019 defines that next additive provenance and preparation boundary without
+enabling execution. Existing `RunRecord` payload v1 and its public v1-only store/resolve
+path remain unchanged. A separate `ModelRunRecord` retains one canonical WorkItem
+identity, the unchanged independent capability projection, the exact ModelWork envelope,
+the exact prepared `ModelRequest` including its bounded prompt snapshot, and the existing
+lifecycle record. The shared filesystem envelope and reference
+namespace may dispatch payload version 1 to the exact legacy record and version 2 to
+the model record, but each typed resolver rejects the other kind and cross-kind identity
+reuse fails closed. No current production writer creates v2.
+
+Before a typed model attempt, the Scheduler must freshly load `CURRENT_TASK.md` through
+the existing Context and ApprovedTask readers, require `In Progress`, and bind task ID,
+source path, complete source digest, and Tool scope to the retained task revision. It
+then receives explicit gateway-timeout and response-character limits, constructs one
+exact `ExecutionPolicy`, resolves one prompt snapshot, builds `ModelRequest` with the
+profile model class, composes RFC-0015, and evaluates RFC-0016 with that same policy
+instance plus the unchanged active WorkItem capability. Neither admitted nor rejected
+decisions persist. The exact prompt/request must reach any later invocation without a
+second mutable-file read.
+
+Preparation stops at the absent candidate-suitability boundary even when RFC-0016
+returns `Admitted`; the deterministic fake is not locality or suitability proof. Before
+a v2 record exists, a later actual retry repeats exact task/request/policy sourcing and
+fresh admission. After an exact v2 reference exists, recovery validates complete
+WorkItem/message/capability/profile/request/policy/result provenance and resumes only
+deterministic finalization without another task lookup, admission, Tool, or gateway
+invocation. Runtime disposition for pre-execution refusal, candidate/local-gateway
+proof, execution/finalizer/recovery wiring, typed submission or receive, providers,
+network, credentials, and spend remain separately accepted work.
 
 ## Agent Orchestration Contract
 
