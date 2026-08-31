@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -114,6 +114,11 @@ changes, and destructive cleanup.
   execution guards, receiver, finalizer, recovery, Project Brain metadata, and
   architecture governance passed 170 tests across 23 suites with zero failures,
   errors, or skips. `git diff --check` passed.
+- Increment 3: the fresh unfiltered README-owned Java 17 Gradle `test` task completed
+  with `BUILD SUCCESSFUL` in 2 minutes 16 seconds. JUnit XML aggregated 185 suites and
+  1,011 tests: 1,001 passed, 10 existing environment-dependent cases skipped, zero
+  failed, and zero errored. Final focused governance and `git diff --check` passed after
+  closure synchronization.
 
 ## Dynamic Workflow
 
@@ -156,7 +161,7 @@ Increment 3.
 
 ### Increment 3 - verify-and-close-model-run-record-v2
 
-State: In Progress
+State: Completed
 Depends On: filesystem-model-run-record-v2
 Scope: Run the full README-owned Java 17 regression, synchronize only affected current-
 state, architecture, task, changelog, handoff, and append-only verification owners, run
@@ -171,5 +176,6 @@ separate user authority, without execution.
 
 ## Next
 
-Complete Increment 3: run the full README-owned regression, synchronize closure owners,
-and close the local task without adding a production model-record caller.
+Await separate user authority to implement exact active-task resolution and retained
+revision/Tool-scope binding without execution. Typed ModelWork remains blocked before
+request/policy preparation, admission, candidate suitability, and gateway activity.

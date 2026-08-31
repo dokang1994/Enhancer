@@ -6304,3 +6304,20 @@ Outcome:
   `resolveModel` only in the typed port and filesystem store; no Scheduler, CLI,
   finalizer, recovery, Project Brain, runtime-event, submission, receiver, Tool, or
   gateway caller writes or consumes v2.
+
+## 2026-08-31 - Model RunRecord V2 Full Regression And Task Closure Verification
+
+- The fresh unfiltered README-owned Java 17 Gradle `test` task completed with
+  `BUILD SUCCESSFUL` in 2 minutes 16 seconds.
+- JUnit XML aggregation found 185 suites and 1,011 tests: 1,001 passed, 10 existing
+  environment-dependent cases skipped, zero failed, and zero errored.
+- After closure synchronization, final focused model-record and governance verification
+  passed 47 tests across 10 suites with zero failures, errors, or skips, and
+  `git diff --check` passed.
+- The working tree was clean immediately after the full regression. Increment 1 was
+  committed locally as `93d55dc`, and Increment 2 was committed locally as `d9afce3`.
+- Model RunRecord v2 has a verified standalone value, typed persistence boundary,
+  canonical filesystem codec, explicit kind dispatch, v1 literal/new byte compatibility,
+  and no production caller. Exact active-task resolution, request/policy preparation,
+  admission, candidate suitability, gateway/provider/network execution, push, merge,
+  release, and deployment remain outside this completed task.
