@@ -1726,23 +1726,25 @@ invocation. Runtime disposition for pre-execution refusal, candidate/local-gatew
 proof, execution/finalizer/recovery wiring, typed submission or receive, providers,
 network, credentials, and spend remain separately accepted work.
 
-RFC-0020 defines the next closed local-candidate boundary without enabling invocation.
-One future opaque final `DeterministicFakeModelCandidate` factory accepts only an exact
+RFC-0020's first sequence implements a closed local-candidate boundary without enabling
+invocation. One opaque final `DeterministicFakeModelCandidate` factory accepts only an exact
 final `DeterministicFakeModelGateway`, retains that same gateway instance, and supplies
 fixed repository-owned deterministic-echo facts. It accepts no generic gateway,
 caller-provided locality or capability metadata, registry, provider, route, endpoint,
 credential, price, tokenizer, or ambient default. The candidate and its suitability
 result are process-local and non-persistent.
 
-The future field-free suitability evaluator receives the exact RFC-0016 `Admitted`
+The field-free `ModelCandidateSuitability` receives the exact RFC-0016 `Admitted`
 value and exact candidate and checks model class, capability, and reasoning before the
-current mandatory `TOKEN_SEMANTICS_UNAVAILABLE` rejection. The fake's existing usage
-and request bounds are character-based, so RFC-0020 assigns no numeric context or token
-capacity and makes no `Suitable` result reachable. Later context/token, free-only cost,
-and public-classification predicates are ordered but require separately accepted token
-semantics first. The current `ModelInvokeTool` remains incompatible with the later
-identity seam because it reconstructs a `ModelRequest` and owns a generic gateway; no
-typed ModelWork guard, caller, Tool, gateway behavior, schema, or maturity changes.
+mandatory `TOKEN_SEMANTICS_UNAVAILABLE` rejection. Its sealed result and closed reason
+order retain the future continuation without constructing `Suitable`. The fake's
+existing usage and request bounds are character-based, so the implementation assigns no
+numeric context or token capacity. Later context/token, free-only cost, and public-
+classification predicates require separately accepted token semantics first. Source and
+reflection guards keep the four definition types free of I/O, Tool, generic-gateway,
+provider, credential, evidence, RunRecord, and runtime dependencies and require zero
+production callers outside those definitions. The current `ModelInvokeTool`, typed
+ModelWork guards, gateway behavior, durable schemas, and runtime wiring remain unchanged.
 
 ## Agent Orchestration Contract
 

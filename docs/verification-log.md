@@ -6462,3 +6462,26 @@ Outcome:
 - `git diff --check` passed. A final architecture/document-only run follows this
   append-only entry so the complete final Markdown state is freshly verified before
   the closure commit.
+
+## 2026-08-31 - Fail-Closed Local Model Candidate Suitability Implementation
+
+- Two bounded read-only reviews examined the minimal API/test shape and security,
+  dependency, non-persistence, and execution-guard surfaces. The primary Agent retained
+  the RFC-minimal four production types and rejected three proposed extra status enums
+  as unnecessary scope expansion.
+- The aligned RED invocation failed at `compileTestJava` with 49 `cannot find symbol`
+  errors only for the four absent RFC-0020 contract types. No existing test or contract
+  failed.
+- After the minimum implementation, focused candidate behavior, reflection, ordering,
+  fail-closed, source-dependency, and zero-production-caller tests completed with
+  `BUILD SUCCESSFUL`.
+- A fresh related Java 17 regression completed with `BUILD SUCCESSFUL` in 16 seconds.
+  JUnit XML aggregation found 17 suites and 135 tests: all 135 passed with zero skipped,
+  failed, or errored. It covered RFC-0014 through RFC-0020 values and admission, the
+  deterministic fake gateway, existing `ModelInvokeTool`, Scheduler preparation,
+  in-process/process-parent/process-child typed ModelWork guards, external receive,
+  durable runtime schemas, runtime package boundaries, and the decision index.
+- Production and test source counts are 450 and 194 Java files respectively. No
+  production source outside the four new definition files references the candidate or
+  suitability types. Final Markdown-sensitive source, diff, and governance verification
+  follows this append-only entry before the increment commit.

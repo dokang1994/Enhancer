@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-08-31 - Add Fail-Closed Local Model Candidate Suitability
+
+- Added an opaque exact `DeterministicFakeModelGateway` candidate binding with fixed
+  repository-owned identity, capability, reasoning, locality, token-availability,
+  charge, and classification facts; callers cannot supply or widen candidate metadata.
+- Added the field-free RFC-0020 evaluator, sealed exact-identity decision, and ordered
+  rejection vocabulary. Model class, capability, and reasoning are checked in order,
+  then every current matching request stops at `TOKEN_SEMANTICS_UNAVAILABLE`; no
+  evaluator path constructs `Suitable`.
+- RED-first behavior, reflection, and source guards cover exact instance retention,
+  closed API shape, first-match ordering, null failures, forbidden dependencies, and
+  zero production callers outside the four definition files. Related model, Scheduler,
+  Tool, typed ModelWork execution, external receive, durable schema, runtime package,
+  and decision-index regression passed 135 tests across 17 suites with zero skipped,
+  failed, or errored. No caller, invocation, schema, runtime, provider, network,
+  credential, spend, push, merge, release, or deployment was added or performed.
+
 ## 2026-08-31 - Specify Deterministic Local Model Candidate Suitability
 
 - Accepted RFC-0020 as a closed invocation-local binding from one exact final

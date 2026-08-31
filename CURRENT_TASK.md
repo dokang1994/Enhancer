@@ -2,30 +2,30 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Define and accept RFC-0020 as the minimum explicit deterministic-fake candidate
-suitability and proven-local gateway contract required after RFC-0016 admission and
-before any typed ModelWork invocation or runtime wiring, without implementation.
+Implement the first RFC-0020 fail-closed deterministic-fake candidate binding and
+stateless suitability evaluator RED-first, stopping at
+`TOKEN_SEMANTICS_UNAVAILABLE` without any caller or invocation wiring.
 
 ## Task ID
 
-specify-local-model-candidate-suitability
+implement-fail-closed-local-model-candidate
 
 ## Context
 
-RFC-0019 model provenance, exact active-task resolution, and invocation-scoped request/
-policy/admission preparation are Contract Verified. Even an admitted preparation still
-stops because no contract binds an actual gateway instance to trusted local provenance
-or proves that one candidate satisfies the retained model class, capability, reasoning,
-context, token, cost, and classification requirements. The deterministic fake is the
-only currently executed gateway, but its class name, lack of credentials, zero-looking
-cost, or existing implementation cannot become ambient locality or suitability proof.
+RFC-0020 is accepted and requires one opaque exact deterministic-fake binding plus a
+field-free evaluator over the exact RFC-0016 `Admitted` value. Current fake usage is
+character-based, so the initial evaluator may reject model class, capability, or
+reasoning first but must otherwise stop at `TOKEN_SEMANTICS_UNAVAILABLE`. Typed
+ModelWork execution remains guarded before Tool/gateway activity, and no current caller
+constructs a candidate or invokes suitability.
 
 ## Justified By
 
+- User continuation request on 2026-08-31 into fail-closed local model candidate implementation
 - User continuation request on 2026-08-31 into local model candidate suitability specification
 - User continuation request on 2026-08-31 into Scheduler model request and admission preparation
 - User continuation request on 2026-08-31 into exact Scheduler active-task resolution
@@ -33,70 +33,73 @@ cost, or existing implementation cannot become ambient locality or suitability p
 
 ## Approval
 
-The user's explicit 2026-08-31 continuation authorizes one documentation-only RFC-0020
-specification; bounded read-only reviews of the existing gateway, admission, profile,
-preparation, Tool, and package-boundary contracts; synchronization of owning
-architecture, RFC index/planning, decision, task, changelog, and append-only
-verification documents; directly related stale-wording correction; development-session
-checkpoints; fresh README-owned Java 17 Markdown-sensitive verification; and ordinary
-local commits at verified GREEN increment boundaries. It authorizes no Java or binary-
-schema implementation, gateway or Tool invocation, candidate registry or routing,
+The user's explicit 2026-08-31 continuation authorizes only RFC-0020 implementation
+sequence 1: RED-first Java tests; one opaque final exact-fake candidate binding with
+repository-owned fixed facts; one field-free deterministic suitability evaluator;
+sealed exact-identity result shapes and the closed ordered rejection vocabulary; typed
+`TOKEN_SEMANTICS_UNAVAILABLE` refusal before every later predicate; bounded read-only
+API/security reviews; owning architecture/state/task/changelog/decision/verification
+synchronization; checkpoints; fresh Java 17 verification; and ordinary local commits at
+verified GREEN boundaries. It authorizes no token semantics or numeric capacity,
+reachable suitable path, Tool or gateway invocation, generic candidate or registry,
 runtime/process/worker/finalizer/recovery/caller wiring, Model RunRecord writing,
-submission/receive/CLI changes, provider adapter, endpoint, destination, network or
-remote transmission, credentials, paid service, spend, push, merge, release,
-deployment, permission change, external effect, or destructive cleanup.
+submission/receive/CLI or durable-schema change, provider, route, endpoint,
+destination, network or remote transmission, credentials, paid service, spend, push,
+merge, release, deployment, permission change, external effect, or destructive cleanup.
 
 ## Acceptance Criteria
 
-- RFC-0020 defines one explicit invocation-local candidate input limited to the current
-  deterministic fake and binds the exact `ModelGateway` instance to repository-owned,
-  closed local provenance. Caller text, class names, model labels, profile values,
-  absent credentials, public classification, or zero cost cannot self-certify locality.
-- The candidate exposes only fixed repository-owned test-candidate identity and bounded
-  capability facts required to compare the retained model class, independent required
-  capability, reasoning level, context and token capacities, free-only cost, and maximum
-  model-visible data classification. It introduces no provider, route, destination,
-  endpoint, credential, price feed, tokenizer conversion, registry, discovery, fallback,
-  cache, or ambient default.
-- One stateless deterministic suitability boundary accepts only the exact RFC-0016
-  `Admitted` value and one explicit proven-local candidate. It returns a closed typed
-  first-match result for every retained requirement and never repairs, narrows, clamps,
-  or replaces the request, profile, capability, policy, or gateway instance.
-- A suitable result retains the exact admitted request/profile and exact candidate/
-  gateway binding for the next separately authorized invocation seam. It is ephemeral
-  eligibility, not Tool, gateway, task, route, transmission, persistence, credential,
-  spend, or external-effect authority, and it is never serialized, cached, replayed, or
-  used as an authorization token.
-- The future invocation seam is ordered explicitly: fresh RFC-0019 preparation, admitted
-  decision, candidate suitability, then the same prepared `ModelRequest`, same policy,
-  and candidate-bound gateway instance reach one later Tool/gateway execution boundary
-  without a second prompt read or candidate substitution. Pre-record retry reevaluates;
-  post-record recovery performs no admission, suitability, Tool, or gateway activity.
-- Typed ModelWork execution guards, existing deterministic-fake gateway behavior,
-  `ModelInvokeTool`, all durable schemas, and every production caller remain unchanged.
-  The specification names the later RED-first implementation and runtime integration as
-  separate consumers and defines focused failure, identity, non-expansion, and package-
-  boundary verification for them.
-- Architecture, RFC index/planning, accepted-decision index, changelog, task cursor, and
-  append-only verification evidence are synchronized. Focused governance and the full
-  README-owned Java 17 regression pass freshly with a documentation-only diff.
+- `DeterministicFakeModelCandidate` is an opaque final non-record with one private exact
+  `DeterministicFakeModelGateway` field, no generic gateway/interface implementation,
+  and one public factory whose only input is the exact final fake type. It retains and
+  returns that same gateway instance and rejects null.
+- Candidate identity, model class, required capability, maximum reasoning, token-
+  semantics availability, provider-charge status, and maximum data classification are
+  fixed repository-owned facts exactly as RFC-0020 specifies. No caller supplies or
+  alters metadata, locality, provider, route, credential, price, tokenizer, capacity,
+  registry, supplier, or default.
+- `ModelCandidateSuitability` is public, final, field-free, and accepts exactly one
+  `ModelInvocationAdmissionDecision.Admitted` and one exact fake candidate. Nulls are
+  programming errors; evaluation performs no I/O, lookup, Tool, gateway, evidence,
+  persistence, process, network, credential, or external activity.
+- The sealed decision retains either the exact admitted and candidate object instances
+  or one closed rejection reason. The reason vocabulary and repository order include
+  model class, capability, reasoning, token semantics, later context/input/output/total
+  capacities, free-only cost, and classification without making later predicates
+  reachable.
+- Evaluation returns the deterministic first mismatch for model class, capability, and
+  reasoning, then always returns `TOKEN_SEMANTICS_UNAVAILABLE` for the current candidate.
+  No evaluator call returns `Suitable`, assigns numeric context/token capacity, converts
+  characters or `ModelUsage` to tokens, or evaluates the later cost/classification path.
+- Focused tests prove exact gateway/admitted/candidate identity, opaque API shape, fixed
+  facts, null failures, first-match precedence, unreachable suitable evaluation, and
+  forbidden-dependency absence. Existing RFC-0013 through RFC-0020 model tests,
+  Scheduler preparation, `ModelInvokeTool`, typed ModelWork execution guards, durable
+  schemas, production-caller absence, and package boundaries remain unchanged.
+- Relevant focused RED/GREEN, execution-guard, package/reflection/source-dependency,
+  governance, and full README-owned Java 17 regression pass freshly. Owning documents
+  and append-only verification evidence are current.
 
 ## Out Of Scope
 
-Java implementation; request/profile/gateway/Tool signatures; candidate registry,
-selection, router, provider, provider model, endpoint, destination, outbound policy,
-network or remote transmission; credentials, paid services, pricing, currency
-conversion, tokenizer or usage normalization; gateway or Tool execution; prompt reread,
-redaction, prompt scanning, injection resistance, attribution, evaluation, caching,
-fallback, retry, or streaming; Model RunRecord writing, lifecycle disposition,
-finalizer, result validation, runtime/process/worker/recovery/status/caller wiring;
-typed producer, submission, receiver, CLI, durable schema, migration, MCP, capability
-maturity promotion, push, merge, history rewrite, release, deployment, permission
-changes, external effects, and destructive cleanup.
+Token semantics, token counting, tokenizer, usage normalization, or numeric context/
+input/output/total capacity; reachable suitable evaluation; generic candidate port,
+registry, discovery, selection, router, provider, provider model, endpoint, destination,
+outbound policy, network or remote transmission; credentials, paid services, pricing,
+currency conversion; request/profile/gateway/Tool signature or behavior changes;
+gateway or Tool execution; prompt reread, redaction, scanning, injection resistance,
+attribution, evaluation, caching, fallback, retry, or streaming; Model RunRecord writing,
+lifecycle disposition, finalizer, result validation, runtime/process/worker/recovery/
+status/caller wiring; typed producer, submission, receiver, CLI, durable schema,
+migration, MCP, capability maturity beyond the standalone boundary, push, merge,
+history rewrite, release, deployment, permission changes, external effects, and
+destructive cleanup.
 
 ## Allowed Tools
 
 - read-file
+- write-code
+- write-tests
 - write-docs
 - build-output
 - verify
@@ -108,58 +111,53 @@ changes, external effects, and destructive cleanup.
 
 ## Verification
 
-- Increment 1: two bounded read-only reviews examined candidate/locality and lifecycle/
-  identity boundaries. One review initially hit a host model-capacity error and its
-  single bounded retry completed. The reviews and primary inspection found that the
-  exact fake can be closed over one gateway instance but its character-based usage
-  cannot prove token semantics or capacity. RFC-0020 therefore keeps `Suitable`
-  unreachable behind `TOKEN_SEMANTICS_UNAVAILABLE`. Focused governance passed 24 tests
-  across 8 suites with zero failures, errors, or skips, and `git diff --check` passed.
+Evidence is appended once per completed increment to `docs/verification-log.md` after
+the declared checks complete.
 
 ## Dynamic Workflow
 
-Workflow ID: specify-local-model-candidate-suitability
+Workflow ID: implement-fail-closed-local-model-candidate
 Mode: Sequential
 Increment Limit: 2
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
-Stop Conditions: Stop on forgeable locality, hidden candidate selection, unsupported
-token/pricing claims, request/profile/policy/gateway substitution, invocation or runtime
-authority expansion, failed governance/regression verification, task or checkpoint
-drift, new external authority, exhausted bounds, or unsafe recovery.
+Stop Conditions: Stop on generic or forgeable gateway binding, caller-supplied candidate
+facts, numeric token/capacity claim, reachable suitable evaluation, Tool/gateway or
+runtime activity, failed verification, task or checkpoint drift, new external
+authority, exhausted bounds, or unsafe recovery.
 
-### Increment 1 - define-and-accept-rfc-0020
+### Increment 1 - implement-fail-closed-candidate-suitability
 
 State: Completed
 Depends On: none
-Scope: Reconcile bounded read-only suitability/locality and lifecycle/non-expansion
-reviews, define and accept the minimum deterministic-fake RFC-0020 contract, synchronize
-its owning documents, append focused evidence once, and commit the verified document-
-only increment locally.
-Exit Criteria: The RFC resolves every acceptance criterion without implementation or
-runtime change, focused governance passes, the diff is documentation-only and clean,
-evidence is appended once, and the increment is committed locally.
-Verification: RFC/decision/architecture/document-ownership/dynamic-workflow governance
-tests and `git diff --check`.
-Next Action: Completed; accepted RFC-0020 and owning documents passed focused
-governance and are ready for the local Increment 1 commit.
+Scope: Reconcile bounded read-only API/security reviews, establish aligned missing-
+symbol RED, implement only the opaque exact-fake binding, fixed facts, sealed result,
+closed reasons, and field-free evaluator through the token-semantics stop, synchronize
+owning documents/evidence, and commit the verified GREEN increment locally.
+Exit Criteria: Every acceptance criterion for the fail-closed standalone boundary
+passes; no suitable result is produced, no production caller or external activity
+exists, evidence is appended once, and the increment is committed locally.
+Verification: Focused candidate/suitability/RFC-0013-through-RFC-0020/model/preparation/
+execution-guard/package-boundary/governance tests, production-source searches, and
+`git diff --check`.
+Next Action: Use the appended Increment 1 evidence as the dependency input for the
+full-regression closure increment.
 
-### Increment 2 - verify-and-close-rfc-0020
+### Increment 2 - verify-and-close-fail-closed-candidate
 
-State: Completed
-Depends On: define-and-accept-rfc-0020
+State: In Progress
+Depends On: implement-fail-closed-candidate-suitability
 Scope: Read fresh Increment 1 evidence, run the full README-owned Java 17 regression,
-synchronize only changed lifecycle owners, rerun final Markdown governance, and close
-the task locally.
-Exit Criteria: Full and final governance verification pass, no implementation or
-maturity claim appears, the closure is committed locally, and the worktree/checkpoint
-reach the intended clean stable state.
+synchronize only changed lifecycle owners, rerun final focused/governance verification,
+and close the task locally.
+Exit Criteria: Full and final verification pass, maturity remains bounded to the
+standalone fail-closed candidate boundary, both increments are committed, and the
+worktree/checkpoint reach the intended clean stable state.
 Verification: Full `test`, focused governance, JUnit XML aggregation,
 `git diff --check`, and final Git/checkpoint inspection.
-Next Action: Implement RFC-0020 RED-first under separate user authority before any
-typed ModelWork invocation or runtime wiring.
+Next Action: Separately specify deterministic token semantics and proven capacities
+before making `Suitable` reachable or wiring any invocation.
 
 ## Next
 
-Await separate user authority to implement the fail-closed RFC-0020 exact-fake
-candidate binding and suitability evaluator RED-first, preserving
-`TOKEN_SEMANTICS_UNAVAILABLE` and every typed ModelWork execution guard.
+Run the full README-owned Java 17 regression, inspect aggregate evidence and Git state,
+then close the task and checkpoint locally without push or invocation wiring.
