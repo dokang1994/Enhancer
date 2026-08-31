@@ -80,8 +80,13 @@ destructive cleanup, additional implementation, RFC changes, and maturity promot
 
 ## Verification
 
-Evidence is appended once per completed delivery increment to
-`docs/verification-log.md` after the declared checks complete.
+- Increment 1: focused governance passed 21 tests across 6 suites, the fresh full Java
+  17 regression passed 990 tests across 180 suites with zero failures/errors and 10
+  skips, and `99fa18f` was committed after clean diff checks. A fresh fetch proved
+  remote `9424062` was the local merge base; non-force `main:main` push fast-forwarded
+  `9424062..99fa18f`, fetched and advertised refs matched, and GitHub Actions run
+  `33347793672` job `99355175758` succeeded with two dependency-deprecation warnings.
+- Increment 2 evidence is pending.
 
 ## Dynamic Workflow
 
@@ -95,7 +100,7 @@ external authority, exhausted bounds, or unsafe recovery.
 
 ### Increment 1 - verify-and-push-coordinated-migration
 
-State: In Progress
+State: Completed
 Depends On: none
 Scope: Commit the delivery authority/cursor, rerun local governance and full
 verification, recheck ancestry, push aligned local main without force, verify the
@@ -111,7 +116,7 @@ bounded follow-up.
 
 ### Increment 2 - record-and-push-delivery-evidence
 
-State: Pending
+State: In Progress
 Depends On: verify-and-push-coordinated-migration
 Scope: Append the exact delivery observation, complete the task cursor, verify the
 Markdown-sensitive repository, commit the bounded evidence update, recheck ancestry,
@@ -127,5 +132,5 @@ admission integration.
 
 ## Next
 
-Complete Increment 1 and do not record delivery evidence until the first push and its
-external verification have succeeded.
+Complete Increment 2 by committing and pushing the exact delivery observation, then
+verify final refs and external verification.
