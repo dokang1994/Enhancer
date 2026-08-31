@@ -10,9 +10,11 @@
   scope. Reader failures remain unchanged, legacy work is refused before filesystem
   access, and no cache, writer, request/policy preparation, admission, runtime caller,
   Tool, gateway, provider, network, credential, or spend path was added.
-- RED-first and focused regression verification passed across the resolver, context,
-  approved-task, ModelWork, snapshot-digest, execution-guard, and package-boundary
-  surfaces. Full-regression closure remains the second task increment.
+- RED-first focused verification passed across the resolver, context, approved-task,
+  ModelWork, snapshot-digest, execution-guard, and package-boundary surfaces. The
+  unfiltered Java 17 regression then passed 1,016 tests across 186 suites with 10
+  existing environment-dependent skips and zero failures or errors. The resolver
+  increment was committed locally as `4560c08`; no push occurred.
 
 ## 2026-08-31 - Implement Filesystem Model RunRecord V2
 

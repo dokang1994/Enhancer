@@ -6341,3 +6341,24 @@ Outcome:
   boundaries.
 - Both Gradle invocations reported `BUILD SUCCESSFUL`, and `git diff --check` passed.
   Full README-owned regression and final governance remain Increment 2.
+
+## 2026-08-31 - Exact Active-Task Resolution Full Regression And Closure
+
+- Increment 1 was committed locally as `4560c08` after its focused and governance
+  checks passed; the worktree was clean before the full regression.
+- The fresh unfiltered README-owned Java 17 Gradle `test` task completed with
+  `BUILD SUCCESSFUL` in 2 minutes 5 seconds. JUnit XML aggregation found 186 suites and
+  1,016 tests: 1,006 passed, 10 existing environment-dependent cases skipped, zero
+  failed, and zero errored.
+- The implemented maturity remains bounded to exact active-task resolution. Request or
+  prompt preparation, policy construction, RFC-0015/RFC-0016 runtime composition,
+  candidate suitability, Model RunRecord writing, gateway/provider/network activity,
+  push, merge, release, and deployment remain absent.
+
+## 2026-08-31 - Exact Active-Task Resolution Post-Closure Governance
+
+- After task and handoff closure synchronization, fresh focused verification passed
+  `ExactActiveTaskResolverTest` plus all five architecture/document suites with
+  `BUILD SUCCESSFUL`.
+- JUnit XML aggregation found 6 suites and 18 tests: all 18 passed with zero failures,
+  errors, or skips. `git diff --check` also passed.

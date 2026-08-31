@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -125,7 +125,7 @@ verified resolver boundary is ready for its local GREEN commit.
 
 ### Increment 2 - verify-and-close-exact-task-resolution
 
-State: In Progress
+State: Completed
 Depends On: exact-active-task-resolver
 Scope: Run the full README-owned Java 17 regression, synchronize only affected current-
 state, architecture, task, changelog, handoff, and append-only verification owners, run
@@ -141,6 +141,6 @@ candidate suitability and gateway activity.
 
 ## Next
 
-Complete Increment 2: commit the verified resolver boundary, run the full README-owned
-Java 17 regression, synchronize closure state, and stop before request/policy
-preparation or execution.
+Await separate user authority to implement explicit Scheduler request/policy
+preparation and fresh RFC-0015/RFC-0016 evaluation while stopping before candidate
+suitability and gateway activity.
