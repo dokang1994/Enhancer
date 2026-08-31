@@ -18,7 +18,10 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
+import java.security.MessageDigest;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -29,6 +32,21 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 class FileSystemRunRecordStoreIntegrationTest {
+    private static final int ENVELOPE_MAGIC = 0x454E5234;
+    private static final int HEADER_BYTES = Integer.BYTES + Long.BYTES + Integer.BYTES + 32;
+    private static final String V1_GOLDEN_PAYLOAD_BASE64 =
+            "AAAAAQAAAA1sb2dpY2FsLXJ1bi0xAAABn13sYAAAAAAPcnVuLXJlY29yZC10YXNr"
+                    + "AAAAD1BlcnNpc3QgdGhlIHJ1bgAAABZBcHByb3ZlZCBieSB0ZXN0IG93bmVyAAAA"
+                    + "AQAAAAlyZWFkLWZpbGUAAAAPQ1VSUkVOVF9UQVNLLm1kAAAACXJlYWQtZmlsZQAA"
+                    + "AA1jb3JyZWxhdGlvbi0xAAAAAQAAAARwYXRoAAAACnRhcmdldC50eHQAAAAHQUxM"
+                    + "T1dFRAAAAApDOi9wcm9qZWN0AAAAAQAAAAlyZWFkLWZpbGUAAAAAAAAAAAAAEAAA"
+                    + "AAAAAAAD6AAAAAlyZWFkLWZpbGUAAAAHU1VDQ0VTUwAAAAAADnJlYWQgc3VjY2Vl"
+                    + "ZGVkAAAAB2NvbnRlbnQAAAAHAAABAAAAQGVkNzAwMmI0MzllOWFjODQ1ZjIyMzU3"
+                    + "ZDgyMmJhYzE0NDQ3MzBmYmRiNjAxNmQzZWM5NDMyMjk3YjllYzlmNzMBAAAAQGVk"
+                    + "NzAwMmI0MzllOWFjODQ1ZjIyMzU3ZDgyMmJhYzE0NDQ3MzBmYmRiNjAxNmQzZWM5"
+                    + "NDMyMjk3YjllYzlmNzMAAAAIVkVSSUZJRUQAAAAIVkVSSUZJRUQAAAAsY29tcGxl"
+                    + "dGUgY29udGVudCBtYXRjaGVkIHRoZSBleHBlY3RlZCBkaWdlc3QAAAABAAAAFUFX"
+                    + "QUlUSU5HX1ZFUklGSUNBVElPTgAAAAlDT01QTEVURUQ=";
     @TempDir
     Path storageRoot;
 
@@ -43,6 +61,30 @@ class FileSystemRunRecordStoreIntegrationTest {
         assertEquals(record, resolved.record());
         assertEquals(stored.reference(), resolved.metadata().reference());
         assertEquals(stored.sha256(), resolved.metadata().sha256());
+    }
+
+    @Test
+    void decodesTheLiteralV1GoldenAndNewV1EncodingRemainsByteIdentical() throws Exception {
+        byte[] goldenPayload = Base64.getDecoder().decode(V1_GOLDEN_PAYLOAD_BASE64);
+        String literalId = "11111111-1111-1111-1111-111111111111";
+        Instant storedAt = Instant.parse("2026-08-31T00:00:00Z");
+        Files.createDirectories(storageRoot);
+        Files.write(
+                storageRoot.resolve(literalId + ".run-record"),
+                envelope(storedAt.toEpochMilli(), goldenPayload));
+
+        ResolvedRunRecord literal = new FileSystemRunRecordStore(storageRoot)
+                .resolve("run-record/" + literalId);
+        assertEquals(record(), literal.record());
+        assertEquals(storedAt, literal.metadata().storedAt());
+
+        String newId = "22222222-2222-2222-2222-222222222222";
+        new FileSystemRunRecordStore(storageRoot).persist(newId, record());
+        byte[] newlyEncoded = Files.readAllBytes(
+                storageRoot.resolve(newId + ".run-record"));
+        assertTrue(Arrays.equals(
+                goldenPayload,
+                Arrays.copyOfRange(newlyEncoded, HEADER_BYTES, newlyEncoded.length)));
     }
 
     @Test
@@ -150,6 +192,23 @@ class FileSystemRunRecordStoreIntegrationTest {
         Files.setLastModifiedTime(
                 storageRoot.resolve(stored.recordId() + ".run-record"),
                 FileTime.from(Instant.parse("2026-07-16T00:00:00Z").plusSeconds(seconds)));
+    }
+
+    private byte[] envelope(long storedAtMillis, byte[] payload) throws Exception {
+        ByteBuffer digestInput = ByteBuffer.allocate(
+                        Integer.BYTES + Long.BYTES + Integer.BYTES + payload.length)
+                .putInt(ENVELOPE_MAGIC)
+                .putLong(storedAtMillis)
+                .putInt(payload.length)
+                .put(payload);
+        byte[] digest = MessageDigest.getInstance("SHA-256").digest(digestInput.array());
+        return ByteBuffer.allocate(HEADER_BYTES + payload.length)
+                .putInt(ENVELOPE_MAGIC)
+                .putLong(storedAtMillis)
+                .putInt(payload.length)
+                .put(digest)
+                .put(payload)
+                .array();
     }
 
     private RunRecord record() {

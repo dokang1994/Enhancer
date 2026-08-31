@@ -10,7 +10,7 @@
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
 - Production source: 440 Java files.
-- Test source: 187 Java files.
+- Test source: 188 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -31,7 +31,13 @@ it does not restate which commit published which increment.
   lifecycles. `ModelRunRecordStore` and `ResolvedModelRunRecord` are separate from the
   unchanged v1 ports, and `RunRecordKind` plus
   `UnsupportedRunRecordKindException` distinguish the two known kinds from corruption.
-  Filesystem payload-v2 encoding/decoding, any production writer or caller, task
+  `FileSystemRunRecordStore` implements both type-level ports over the unchanged
+  envelope, reference namespace, four-MiB bound, atomic publication, opaque listing,
+  and exact replay. Payload v1 has a literal decode/new-encode golden and remains byte-
+  identical; canonical payload v2 retains the exact model envelope, request, and
+  lifecycle values and rejects cross-kind resolution/reuse, unknown/corrupt/truncated/
+  trailing/oversized/foreign/noncanonical input, or changed-content identity reuse
+  without rewriting the first artifact. No production caller writes v2. Exact task
   resolution, admission, candidate selection, gateway execution, provider/network,
   credential, and spend authority remain absent.
 

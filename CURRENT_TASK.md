@@ -106,6 +106,14 @@ changes, and destructive cleanup.
   GREEN passed 18 tests across 6 suites with zero failures, errors, or skips, including
   existing `RunRecord` and runtime package-boundary regressions. `git diff --check`
   passed.
+- Increment 2: the aligned RED failed at test compilation only because the filesystem
+  store did not implement the typed model port. The minimum codec dispatch preserved
+  the exact v1 encoder, added canonical payload v2 and typed resolution, rejected known
+  cross-kind reads and identity reuse explicitly, and left no production caller.
+  Literal/new v1 bytes, v2 round-trip/replay/tamper/canonicality, retained ModelWork,
+  execution guards, receiver, finalizer, recovery, Project Brain metadata, and
+  architecture governance passed 170 tests across 23 suites with zero failures,
+  errors, or skips. `git diff --check` passed.
 
 ## Dynamic Workflow
 
@@ -133,7 +141,7 @@ Increment 2.
 
 ### Increment 2 - filesystem-model-run-record-v2
 
-State: In Progress
+State: Completed
 Depends On: model-run-record-value-and-ports
 Scope: Add aligned failing filesystem/golden/guard tests, then implement payload-v2
 encoding, decoding, typed dispatch, exact replay, and cross-kind refusal in the shared
@@ -143,11 +151,12 @@ remain exact, execution guards stay GREEN, focused verification evidence is appe
 and the verified increment is committed locally.
 Verification: RunRecord filesystem/golden/model-work guard suites, architecture
 governance, and `git diff --check`.
-Next Action: Commit the verified codec/store boundary, then select Increment 3.
+Next Action: Use the verified codec/store boundary as fresh dependency evidence for
+Increment 3.
 
 ### Increment 3 - verify-and-close-model-run-record-v2
 
-State: Pending
+State: In Progress
 Depends On: filesystem-model-run-record-v2
 Scope: Run the full README-owned Java 17 regression, synchronize only affected current-
 state, architecture, task, changelog, handoff, and append-only verification owners, run
@@ -162,5 +171,5 @@ separate user authority, without execution.
 
 ## Next
 
-Complete Increment 2 RED-first: add filesystem payload-v2 dispatch, v1 literal/new
-goldens, exact replay, and fail-closed cross-kind coverage without a production writer.
+Complete Increment 3: run the full README-owned regression, synchronize closure owners,
+and close the local task without adding a production model-record caller.

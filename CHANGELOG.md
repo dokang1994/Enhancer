@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-08-31 - Implement Filesystem Model RunRecord V2
+
+- Extended `FileSystemRunRecordStore` with canonical model payload v2 over the unchanged
+  RunRecord envelope, four-MiB bound, artifact/reference namespace, atomic publication,
+  opaque listing, and exact-replay behavior.
+- Added typed v1/v2 dispatch: each resolver rejects the other known kind explicitly,
+  unknown or malformed input remains corruption, and cross-kind or changed-content
+  identity reuse preserves the first artifact.
+- Pinned a literal v1 payload golden and proved newly encoded v1 bytes remain exact;
+  added v2 round-trip, Unicode/nanosecond envelope, capability separation, replay,
+  tamper, foreign-kind, canonicality, size, and execution-guard regressions. No
+  production caller writes v2 and typed ModelWork remains blocked before execution.
+
 ## 2026-08-31 - Implement Model RunRecord V2 Value And Typed Ports
 
 - Added the exact immutable five-component `ModelRunRecord`, retaining canonical

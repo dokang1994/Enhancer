@@ -1,5 +1,7 @@
 package com.enhancer.run;
 
+import com.enhancer.bus.DurableMessageEnvelopeCodec;
+import com.enhancer.bus.MessageEnvelope;
 import com.enhancer.io.BoundedFileOperations;
 import com.enhancer.io.FileSizeLimitExceededException;
 import com.enhancer.loop.AgentLoopStopReason;
@@ -12,6 +14,7 @@ import com.enhancer.tool.VerificationEvidence;
 import com.enhancer.kernel.VerificationCode;
 import com.enhancer.kernel.VerificationDecision;
 import com.enhancer.kernel.VerificationStatus;
+import com.enhancer.model.ModelRequest;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -35,9 +38,11 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
@@ -53,9 +58,11 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.UUID;
 
-public final class FileSystemRunRecordStore implements RunRecordStore {
+public final class FileSystemRunRecordStore
+        implements RunRecordStore, ModelRunRecordStore {
     private static final int ENVELOPE_MAGIC = 0x454E5234;
     private static final int PAYLOAD_VERSION = 1;
+    private static final int MODEL_PAYLOAD_VERSION = 2;
     private static final int DIGEST_BYTES = 32;
     private static final int HEADER_BYTES = Integer.BYTES + Long.BYTES + Integer.BYTES + DIGEST_BYTES;
     private static final int MAX_PAYLOAD_BYTES = 4 * 1024 * 1024;
@@ -144,6 +151,80 @@ public final class FileSystemRunRecordStore implements RunRecordStore {
     }
 
     @Override
+    public StoredRunRecord persistModel(ModelRunRecord record) throws IOException {
+        return persistModel(UUID.randomUUID().toString(), record);
+    }
+
+    @Override
+    public StoredRunRecord persistModel(String recordId, ModelRunRecord record)
+            throws IOException {
+        StoredRunRecord.requireCanonicalUuid(recordId);
+        Objects.requireNonNull(record, "record must not be null");
+        Files.createDirectories(storageRoot);
+        if (!Files.isDirectory(storageRoot, LinkOption.NOFOLLOW_LINKS)) {
+            throw new IOException("RunRecord storage root must be a directory");
+        }
+
+        Path destination = artifactPath(recordId);
+        if (Files.exists(destination, LinkOption.NOFOLLOW_LINKS)) {
+            return requireExactModelReplay(recordId, record);
+        }
+        byte[] payload = encodeModel(record);
+        if (payload.length > MAX_PAYLOAD_BYTES) {
+            throw new IOException("RunRecord payload exceeds the supported size limit");
+        }
+        Instant storedAt = Instant.now().truncatedTo(ChronoUnit.MILLIS);
+        byte[] digest = envelopeDigest(storedAt.toEpochMilli(), payload.length, payload);
+        ByteBuffer envelope = ByteBuffer.allocate(HEADER_BYTES + payload.length)
+                .putInt(ENVELOPE_MAGIC)
+                .putLong(storedAt.toEpochMilli())
+                .putInt(payload.length)
+                .put(digest)
+                .put(payload);
+        envelope.flip();
+
+        Path pending = Files.createTempFile(storageRoot, ".pending-", ".tmp");
+        try {
+            try (FileChannel channel = FileChannel.open(
+                    pending,
+                    StandardOpenOption.WRITE,
+                    StandardOpenOption.TRUNCATE_EXISTING)) {
+                while (envelope.hasRemaining()) {
+                    channel.write(envelope);
+                }
+                channel.force(true);
+            }
+            try {
+                Files.move(pending, destination, StandardCopyOption.ATOMIC_MOVE);
+            } catch (FileAlreadyExistsException concurrentPublication) {
+                return requireExactModelReplay(recordId, record);
+            } catch (AtomicMoveNotSupportedException exception) {
+                throw new IOException("atomic RunRecord persistence is not supported", exception);
+            }
+        } finally {
+            Files.deleteIfExists(pending);
+        }
+
+        return new StoredRunRecord(
+                recordId,
+                REFERENCE_PREFIX + recordId,
+                storedAt,
+                payload.length,
+                HexFormat.of().formatHex(digest));
+    }
+
+    private StoredRunRecord requireExactModelReplay(
+            String recordId,
+            ModelRunRecord expected) throws IOException {
+        ResolvedModelRunRecord existing = resolveModel(REFERENCE_PREFIX + recordId);
+        if (!existing.record().equals(expected)) {
+            throw new IOException(
+                    "RunRecord identity already belongs to a different ModelRunRecord");
+        }
+        return existing.metadata();
+    }
+
+    @Override
     public List<String> references() throws IOException {
         if (!Files.isDirectory(storageRoot, LinkOption.NOFOLLOW_LINKS)) {
             return List.of();
@@ -226,6 +307,21 @@ public final class FileSystemRunRecordStore implements RunRecordStore {
 
     @Override
     public ResolvedRunRecord resolve(String reference) throws IOException {
+        StoredPayload stored = readStoredPayload(reference);
+        requirePayloadKind(reference, stored.payload(), RunRecordKind.RUN_RECORD_V1);
+        RunRecord record = decode(reference, stored.payload());
+        return new ResolvedRunRecord(metadata(stored), record);
+    }
+
+    @Override
+    public ResolvedModelRunRecord resolveModel(String reference) throws IOException {
+        StoredPayload stored = readStoredPayload(reference);
+        requirePayloadKind(reference, stored.payload(), RunRecordKind.MODEL_RUN_RECORD_V2);
+        ModelRunRecord record = decodeModel(reference, stored.payload());
+        return new ResolvedModelRunRecord(metadata(stored), record);
+    }
+
+    private StoredPayload readStoredPayload(String reference) throws IOException {
         String recordId = parseReference(reference);
         Path artifact = artifactPath(recordId);
         if (!Files.exists(artifact, LinkOption.NOFOLLOW_LINKS)) {
@@ -272,14 +368,45 @@ public final class FileSystemRunRecordStore implements RunRecordStore {
             throw corrupted(reference, "envelope digest does not match stored metadata");
         }
 
-        RunRecord record = decode(reference, payload);
-        StoredRunRecord metadata = new StoredRunRecord(
+        return new StoredPayload(
                 recordId,
                 reference,
-                Instant.ofEpochMilli(storedAtMillis),
-                payload.length,
-                HexFormat.of().formatHex(declaredDigest));
-        return new ResolvedRunRecord(metadata, record);
+                storedAtMillis,
+                declaredDigest,
+                payload);
+    }
+
+    private StoredRunRecord metadata(StoredPayload stored) {
+        return new StoredRunRecord(
+                stored.recordId(),
+                stored.reference(),
+                Instant.ofEpochMilli(stored.storedAtMillis()),
+                stored.payload().length,
+                HexFormat.of().formatHex(stored.digest()));
+    }
+
+    private void requirePayloadKind(
+            String reference,
+            byte[] payload,
+            RunRecordKind expectedKind) throws IOException {
+        if (payload.length < Integer.BYTES) {
+            throw corrupted(reference, "payload ended before its version was read");
+        }
+        int payloadVersion = ByteBuffer.wrap(payload).getInt();
+        RunRecordKind actualKind;
+        if (payloadVersion == PAYLOAD_VERSION) {
+            actualKind = RunRecordKind.RUN_RECORD_V1;
+        } else if (payloadVersion == MODEL_PAYLOAD_VERSION) {
+            actualKind = RunRecordKind.MODEL_RUN_RECORD_V2;
+        } else {
+            throw corrupted(reference, "payload version is unsupported");
+        }
+        if (actualKind != expectedKind) {
+            throw new UnsupportedRunRecordKindException(
+                    reference,
+                    expectedKind,
+                    actualKind);
+        }
     }
 
     private byte[] encode(RunRecord record) throws IOException {
@@ -327,6 +454,74 @@ public final class FileSystemRunRecordStore implements RunRecordStore {
             output.writeInt(record.iterations());
             writeString(output, record.workerStopReason().name());
             writeString(output, record.finalStopReason().name());
+        }
+        return bytes.toByteArray();
+    }
+
+    private byte[] encodeModel(ModelRunRecord record) throws IOException {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        try (DataOutputStream output = new DataOutputStream(bytes)) {
+            output.writeInt(MODEL_PAYLOAD_VERSION);
+            writeString(output, record.workItemId());
+            writeString(output, record.requiredCapability());
+
+            byte[] encodedEnvelope = new DurableMessageEnvelopeCodec()
+                    .encode(record.workMessage());
+            if (encodedEnvelope.length > DurableMessageEnvelopeCodec.MAX_ENCODED_BYTES) {
+                throw new IOException(
+                        "model work envelope exceeds the supported size limit");
+            }
+            output.writeInt(encodedEnvelope.length);
+            output.write(encodedEnvelope);
+
+            ModelRequest modelRequest = record.modelRequest();
+            writeString(output, modelRequest.correlationId());
+            writeString(output, modelRequest.prompt());
+            writeString(output, modelRequest.modelClass());
+            output.writeLong(modelRequest.timeout().getSeconds());
+            output.writeInt(modelRequest.timeout().getNano());
+            output.writeInt(modelRequest.maxResponseLength());
+
+            RunRecord lifecycle = record.lifecycleRecord();
+            writeString(output, lifecycle.logicalRunId());
+            output.writeLong(lifecycle.recordedAt().toEpochMilli());
+
+            ApprovedTask task = lifecycle.approvedTask();
+            writeString(output, task.taskId());
+            writeString(output, task.description());
+            writeString(output, task.approvalEvidence());
+            writeSet(output, task.allowedTools());
+            writeString(output, task.sourceDocument());
+
+            ToolRequest request = lifecycle.toolRequest();
+            writeString(output, request.toolName());
+            writeString(output, request.correlationId());
+            writeMap(output, request.arguments());
+
+            PolicyDecision policy = lifecycle.policyDecision();
+            writeString(output, policy.status().name());
+            writeString(output, policy.projectRoot());
+            writeSet(output, policy.allowedTools());
+            writeSet(output, policy.deniedTools());
+            output.writeLong(policy.maxReadBytes());
+            output.writeLong(policy.timeoutMillis());
+
+            ToolResult result = lifecycle.toolResult();
+            writeString(output, result.toolName());
+            writeString(output, result.status().name());
+            writeOptionalInt(output, result.exitCode());
+            writeOptionalString(output, result.failureCode().map(Enum::name));
+            writeEvidence(output, result.evidence());
+            writeOptionalString(output, lifecycle.expectedContentSha256());
+
+            VerificationDecision verification = lifecycle.verification();
+            writeString(output, verification.status().name());
+            writeString(output, verification.code().name());
+            writeString(output, verification.reason());
+
+            output.writeInt(lifecycle.iterations());
+            writeString(output, lifecycle.workerStopReason().name());
+            writeString(output, lifecycle.finalStopReason().name());
         }
         return bytes.toByteArray();
     }
@@ -390,6 +585,113 @@ public final class FileSystemRunRecordStore implements RunRecordStore {
                     iterations,
                     workerStopReason,
                     finalStopReason);
+        } catch (CorruptedRunRecordException exception) {
+            throw exception;
+        } catch (EOFException exception) {
+            throw corrupted(reference, "payload ended before all fields were read", exception);
+        } catch (IOException | RuntimeException exception) {
+            throw corrupted(reference, "payload could not be decoded", exception);
+        }
+    }
+
+    private ModelRunRecord decodeModel(String reference, byte[] payload)
+            throws CorruptedRunRecordException {
+        try (DataInputStream input = new DataInputStream(new ByteArrayInputStream(payload))) {
+            if (input.readInt() != MODEL_PAYLOAD_VERSION) {
+                throw corrupted(reference, "payload version is unsupported");
+            }
+            String workItemId = readString(input);
+            String requiredCapability = readString(input);
+
+            int envelopeLength = input.readInt();
+            if (envelopeLength < 0
+                    || envelopeLength > DurableMessageEnvelopeCodec.MAX_ENCODED_BYTES
+                    || envelopeLength > input.available()) {
+                throw corrupted(reference, "model work envelope length is invalid");
+            }
+            byte[] encodedEnvelope = new byte[envelopeLength];
+            input.readFully(encodedEnvelope);
+            MessageEnvelope workMessage = new DurableMessageEnvelopeCodec()
+                    .decode(encodedEnvelope);
+
+            String requestCorrelationId = readString(input);
+            String prompt = readString(input);
+            String modelClass = readString(input);
+            long timeoutSeconds = input.readLong();
+            int timeoutNanos = input.readInt();
+            if (timeoutNanos < 0 || timeoutNanos > 999_999_999) {
+                throw corrupted(reference, "model request timeout nanos are invalid");
+            }
+            ModelRequest modelRequest = new ModelRequest(
+                    requestCorrelationId,
+                    prompt,
+                    modelClass,
+                    Duration.ofSeconds(timeoutSeconds, timeoutNanos),
+                    input.readInt());
+
+            String logicalRunId = readString(input);
+            Instant recordedAt = Instant.ofEpochMilli(input.readLong());
+            ApprovedTask task = new ApprovedTask(
+                    readString(input),
+                    readString(input),
+                    readString(input),
+                    readSet(input),
+                    readString(input));
+            ToolRequest request = new ToolRequest(
+                    readString(input),
+                    readString(input),
+                    readMap(input));
+            PolicyDecision policy = new PolicyDecision(
+                    readEnum(input, PolicyDecisionStatus.class),
+                    readString(input),
+                    readSet(input),
+                    readSet(input),
+                    input.readLong(),
+                    input.readLong());
+            ToolResult result = new ToolResult(
+                    readString(input),
+                    readEnum(input, ToolResultStatus.class),
+                    readOptionalInt(input),
+                    readOptionalEnum(input, ToolFailureCode.class),
+                    readEvidence(input));
+            Optional<String> expectedContentSha256 = readOptionalString(input);
+            VerificationDecision verification = new VerificationDecision(
+                    readEnum(input, VerificationStatus.class),
+                    readEnum(input, VerificationCode.class),
+                    readString(input));
+            int iterations = input.readInt();
+            AgentLoopStopReason workerStopReason = readEnum(
+                    input,
+                    AgentLoopStopReason.class);
+            AgentLoopStopReason finalStopReason = readEnum(
+                    input,
+                    AgentLoopStopReason.class);
+            if (input.available() != 0) {
+                throw corrupted(reference, "payload contains trailing bytes");
+            }
+
+            RunRecord lifecycle = new RunRecord(
+                    logicalRunId,
+                    recordedAt,
+                    task,
+                    request,
+                    policy,
+                    result,
+                    expectedContentSha256,
+                    verification,
+                    iterations,
+                    workerStopReason,
+                    finalStopReason);
+            ModelRunRecord record = new ModelRunRecord(
+                    workItemId,
+                    requiredCapability,
+                    workMessage,
+                    modelRequest,
+                    lifecycle);
+            if (!Arrays.equals(payload, encodeModel(record))) {
+                throw corrupted(reference, "model payload is not canonically encoded");
+            }
+            return record;
         } catch (CorruptedRunRecordException exception) {
             throw exception;
         } catch (EOFException exception) {
@@ -608,5 +910,13 @@ public final class FileSystemRunRecordStore implements RunRecordStore {
     }
 
     private record RecordFile(String reference, long modifiedMillis) {
+    }
+
+    private record StoredPayload(
+            String recordId,
+            String reference,
+            long storedAtMillis,
+            byte[] digest,
+            byte[] payload) {
     }
 }

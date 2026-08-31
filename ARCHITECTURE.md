@@ -1679,10 +1679,13 @@ envelope, the exact prepared `ModelRequest` including its bounded prompt snapsho
 the existing lifecycle record. It structurally binds those values while deliberately
 leaving WorkItem and profile capability independent. Separate model store/resolve ports
 and a closed two-kind mismatch vocabulary prevent v2 from being projected through the
-v1 type-level boundary. The shared filesystem envelope and reference namespace will
-dispatch payload version 1 to the exact legacy record and version 2 to the model record;
-that codec and cross-kind exact-replay boundary are not yet implemented. No current
-production writer creates v2.
+v1 type-level boundary. The shared filesystem store now dispatches payload version 1
+to the exact legacy record and canonical payload version 2 to the model record while
+retaining the same outer envelope, four-MiB bound, artifact/reference namespace,
+atomic publication, opaque listing, and exact replay. Each typed resolver rejects the
+other known kind, unknown or noncanonical input remains corruption, and cross-kind or
+changed-content identity reuse leaves the first artifact unchanged. Literal and newly
+encoded v1 payloads are byte-identical. No current production caller writes v2.
 
 Before a typed model attempt, the Scheduler must freshly load `CURRENT_TASK.md` through
 the existing Context and ApprovedTask readers, require `In Progress`, and bind task ID,

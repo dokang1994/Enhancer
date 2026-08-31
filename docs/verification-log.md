@@ -6276,3 +6276,31 @@ Outcome:
 - `git diff --check` passed after the implementation. Filesystem payload-v2 dispatch,
   v1 golden compatibility, exact replay, and cross-kind storage refusal remain the next
   sequential increment; no production Model RunRecord writer exists.
+
+## 2026-08-31 - Filesystem Model RunRecord V2 Verification
+
+- The aligned RED failed at `compileTestJava` only because
+  `FileSystemRunRecordStore` did not yet implement `ModelRunRecordStore`,
+  `persistModel`, or `resolveModel`. Existing source compiled, so the failure matched
+  RFC-0019 and the active Increment 2 boundary.
+- The minimum implementation retained the existing v1 encoder and outer envelope,
+  added canonical payload v2 with the durable typed ModelWork envelope, exact request,
+  and existing lifecycle field representation, and added explicit known-kind dispatch.
+  A millisecond-aligned lifecycle timestamp invariant makes the unchanged v1 lifecycle
+  representation exact inside v2.
+- A literal 560-byte v1 payload decoded to the expected record, and a newly persisted
+  v1 record produced the identical payload bytes. V2 tests proved complete value round-
+  trip including supplementary Unicode and nanosecond message time, fresh-store exact
+  replay without byte/mtime change, both cross-kind resolver and identity-reuse
+  refusals, mixed opaque listing, changed-content refusal, and fail-closed unknown,
+  digest-corrupt, truncated, trailing, oversized, foreign nested payload, structural
+  identity, and noncanonical collection-order input.
+- Fresh focused Java 17 verification completed with `BUILD SUCCESSFUL` in 40 seconds.
+  JUnit XML aggregated 23 suites and 170 tests: 170 passed, zero skipped, zero failed,
+  and zero errored. The selection included RunRecord v1/v2, ModelWork wire/retention,
+  in-process and process-parent guards, external receive, finalizer, recovery, Project
+  Brain metadata, and architecture/document governance regressions.
+- `git diff --check` passed. Production-source search found `persistModel` and
+  `resolveModel` only in the typed port and filesystem store; no Scheduler, CLI,
+  finalizer, recovery, Project Brain, runtime-event, submission, receiver, Tool, or
+  gateway caller writes or consumes v2.

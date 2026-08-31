@@ -7,6 +7,7 @@ import com.enhancer.model.ModelRequest;
 import com.enhancer.model.ProfiledModelRequest;
 import com.enhancer.tool.ToolRequest;
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -51,6 +52,12 @@ public record ModelRunRecord(
         if (!workMessage.logicalRunId().equals(lifecycleRecord.logicalRunId())) {
             throw new IllegalArgumentException(
                     "workMessage and lifecycleRecord logicalRunId values must match");
+        }
+        if (!lifecycleRecord.recordedAt()
+                .truncatedTo(ChronoUnit.MILLIS)
+                .equals(lifecycleRecord.recordedAt())) {
+            throw new IllegalArgumentException(
+                    "lifecycle recordedAt must use the unchanged v1 millisecond precision");
         }
 
         requireTaskBinding(payload, lifecycleRecord);

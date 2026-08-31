@@ -202,6 +202,28 @@ class ModelRunRecordTest {
                         .executionInput().expectedResponseSha256());
     }
 
+    @Test
+    void requiresLifecycleTimeToFitTheUnchangedV1MillisecondRepresentation() {
+        Fixture fixture = fixture();
+        RunRecord lifecycle = fixture.lifecycle();
+        RunRecord nanosecondLifecycle = new RunRecord(
+                lifecycle.logicalRunId(),
+                lifecycle.recordedAt().plusNanos(1),
+                lifecycle.approvedTask(),
+                lifecycle.toolRequest(),
+                lifecycle.policyDecision(),
+                lifecycle.toolResult(),
+                lifecycle.expectedContentSha256(),
+                lifecycle.verification(),
+                lifecycle.iterations(),
+                lifecycle.workerStopReason(),
+                lifecycle.finalStopReason());
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> fixture.withLifecycle(nanosecondLifecycle));
+    }
+
     private static Fixture fixture() {
         MessageEnvelope message = modelMessage(payload(
                 "profile-capability", MODEL_CLASS, Duration.ofSeconds(3)));
