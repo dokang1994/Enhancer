@@ -6485,3 +6485,21 @@ Outcome:
   production source outside the four new definition files references the candidate or
   suitability types. Final Markdown-sensitive source, diff, and governance verification
   follows this append-only entry before the increment commit.
+
+## 2026-08-31 - Fail-Closed Local Model Candidate Full Regression And Closure
+
+- Increment 1 was committed locally as `309f6d5` after its RED/GREEN candidate,
+  suitability, dependency, non-caller, execution-guard, durable-schema, architecture,
+  and document verification passed. The worktree was clean before the full regression.
+- The fresh unfiltered README-owned Java 17 Gradle `test` task completed with
+  `BUILD SUCCESSFUL` in 1 minute 53 seconds. JUnit XML aggregation found 191 suites and
+  1,038 tests: 1,026 passed, 12 existing environment- or privilege-dependent cases
+  skipped, zero failed, and zero errored.
+- `git diff --check` passed and the worktree remained clean immediately after the full
+  regression. Implemented maturity remains bounded to the standalone fail-closed
+  candidate boundary; no token semantics, capacity, reachable suitable path, caller,
+  invocation, schema, runtime, provider, network, credential, spend, push, merge,
+  release, or deployment was added or performed.
+- Final task/changelog closure edits follow this append-only entry; a fresh focused
+  architecture/document/candidate run and diff inspection follow before the closure
+  commit.

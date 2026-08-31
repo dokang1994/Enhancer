@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -144,7 +144,7 @@ full-regression closure increment.
 
 ### Increment 2 - verify-and-close-fail-closed-candidate
 
-State: In Progress
+State: Completed
 Depends On: implement-fail-closed-candidate-suitability
 Scope: Read fresh Increment 1 evidence, run the full README-owned Java 17 regression,
 synchronize only changed lifecycle owners, rerun final focused/governance verification,
@@ -159,5 +159,5 @@ before making `Suitable` reachable or wiring any invocation.
 
 ## Next
 
-Run the full README-owned Java 17 regression, inspect aggregate evidence and Git state,
-then close the task and checkpoint locally without push or invocation wiring.
+Separately specify deterministic token semantics and proven context/input/output/total
+capacities before making `Suitable` reachable or wiring any invocation.

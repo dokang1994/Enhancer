@@ -16,6 +16,10 @@
   and decision-index regression passed 135 tests across 17 suites with zero skipped,
   failed, or errored. No caller, invocation, schema, runtime, provider, network,
   credential, spend, push, merge, release, or deployment was added or performed.
+- The implementation increment was committed locally as `309f6d5`. The subsequent
+  fresh unfiltered Java 17 regression passed 1,038 tests across 191 suites: 1,026
+  passed, 12 existing environment- or privilege-dependent cases skipped, zero failed,
+  and zero errored. The task closed with no push.
 
 ## 2026-08-31 - Specify Deterministic Local Model Candidate Suitability
 
