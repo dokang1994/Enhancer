@@ -1726,6 +1726,24 @@ invocation. Runtime disposition for pre-execution refusal, candidate/local-gatew
 proof, execution/finalizer/recovery wiring, typed submission or receive, providers,
 network, credentials, and spend remain separately accepted work.
 
+RFC-0020 defines the next closed local-candidate boundary without enabling invocation.
+One future opaque final `DeterministicFakeModelCandidate` factory accepts only an exact
+final `DeterministicFakeModelGateway`, retains that same gateway instance, and supplies
+fixed repository-owned deterministic-echo facts. It accepts no generic gateway,
+caller-provided locality or capability metadata, registry, provider, route, endpoint,
+credential, price, tokenizer, or ambient default. The candidate and its suitability
+result are process-local and non-persistent.
+
+The future field-free suitability evaluator receives the exact RFC-0016 `Admitted`
+value and exact candidate and checks model class, capability, and reasoning before the
+current mandatory `TOKEN_SEMANTICS_UNAVAILABLE` rejection. The fake's existing usage
+and request bounds are character-based, so RFC-0020 assigns no numeric context or token
+capacity and makes no `Suitable` result reachable. Later context/token, free-only cost,
+and public-classification predicates are ordered but require separately accepted token
+semantics first. The current `ModelInvokeTool` remains incompatible with the later
+identity seam because it reconstructs a `ModelRequest` and owns a generic gateway; no
+typed ModelWork guard, caller, Tool, gateway behavior, schema, or maturity changes.
+
 ## Agent Orchestration Contract
 
 ### Development-Time Adaptive Subagent Delegation
@@ -1908,6 +1926,9 @@ Major design areas are tracked in `docs/rfcs/`.
 - `RFC-0015`: Profiled Model Request
 - `RFC-0016`: Model Invocation Admission
 - `RFC-0017`: Model Invocation Input Sourcing
+- `RFC-0018`: Scheduler Model Profile Transport
+- `RFC-0019`: Scheduler Model RunRecord And Admission Preparation
+- `RFC-0020`: Deterministic Local Model Candidate Suitability
 
 ## First Architecture Slice
 

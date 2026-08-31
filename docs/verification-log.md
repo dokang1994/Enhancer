@@ -6414,3 +6414,24 @@ Outcome:
 - `git diff --check` passed. A final architecture/document-only run follows this
   append-only evidence entry so the repository's complete Markdown input set is
   verified in its final pre-commit form.
+
+## 2026-08-31 - Deterministic Local Model Candidate Suitability Specification
+
+- Two bounded read-only reviews examined the existing candidate/locality and lifecycle/
+  identity boundaries. One lifecycle review initially failed because the host-selected
+  model was at capacity; its single bounded retry completed. The primary Agent
+  reconciled both recommendations against RFC-0013 through RFC-0019 and current source.
+- The review found that an opaque candidate can bind one exact final deterministic fake
+  gateway instance to closed repository-owned local provenance. It also found that the
+  fake's character-based `ModelUsage` and request bounds cannot prove token semantics,
+  context capacity, or input/output/total-token capacities.
+- RFC-0020 therefore specifies exact admitted/candidate identity and ordered
+  suitability while making `Suitable` unreachable at the typed
+  `TOKEN_SEMANTICS_UNAVAILABLE` reason. It assigns no placeholder token values and
+  changes no Java, schema, caller, Tool/gateway, runtime, network, credential, spend, or
+  maturity state.
+- Fresh focused Java 17 governance completed with `BUILD SUCCESSFUL` in 2 seconds.
+  JUnit XML aggregation found 8 suites and 24 tests: all 24 passed with zero skipped,
+  failed, or errored. The selection covered architecture/package boundaries, dynamic
+  workflow, document ownership, decision/index/task justification, approved-task
+  parsing, and canonical Roadmap planning. `git diff --check` passed.

@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-08-31 - Specify Deterministic Local Model Candidate Suitability
+
+- Accepted RFC-0020 as a closed invocation-local binding from one exact final
+  deterministic fake gateway instance to fixed repository-owned local candidate facts.
+- Defined exact admitted/candidate identity retention and deterministic model-class,
+  capability, reasoning, token, cost, and classification suitability ordering without
+  a registry, generic gateway wrapper, provider, route, credential, or ambient default.
+- Kept the suitable path unreachable because current fake usage is character-based and
+  cannot prove token semantics or capacity. No Java, schema, caller, Tool/gateway,
+  runtime, network, credential, spend, maturity, release, or deployment state changed.
+
 ## 2026-08-31 - Add Scheduler Model Invocation Preparation
 
 - Added explicit Scheduler invocation limits and a fresh standalone preparer that
