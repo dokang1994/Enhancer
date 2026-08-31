@@ -10,6 +10,10 @@
 - Kept the suitable path unreachable because current fake usage is character-based and
   cannot prove token semantics or capacity. No Java, schema, caller, Tool/gateway,
   runtime, network, credential, spend, maturity, release, or deployment state changed.
+  The fresh full Java 17 regression passed 1,026 tests across 188 suites: 1,014 passed,
+  12 existing environment- or privilege-dependent cases skipped, zero failed, and zero
+  errored. The specification increment was committed locally as `6c998b7`; no push
+  occurred.
 
 ## 2026-08-31 - Add Scheduler Model Invocation Preparation
 

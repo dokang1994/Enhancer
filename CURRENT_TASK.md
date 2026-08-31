@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -145,7 +145,7 @@ governance and are ready for the local Increment 1 commit.
 
 ### Increment 2 - verify-and-close-rfc-0020
 
-State: In Progress
+State: Completed
 Depends On: define-and-accept-rfc-0020
 Scope: Read fresh Increment 1 evidence, run the full README-owned Java 17 regression,
 synchronize only changed lifecycle owners, rerun final Markdown governance, and close
@@ -160,6 +160,6 @@ typed ModelWork invocation or runtime wiring.
 
 ## Next
 
-Complete Increment 2 through the full README-owned Java 17 regression, final Markdown
-governance, closure synchronization, and a local verified commit without Java
-implementation, push, or gateway activity.
+Await separate user authority to implement the fail-closed RFC-0020 exact-fake
+candidate binding and suitability evaluator RED-first, preserving
+`TOKEN_SEMANTICS_UNAVAILABLE` and every typed ModelWork execution guard.
