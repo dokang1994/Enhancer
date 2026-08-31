@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -104,6 +104,12 @@ cleanup.
   corrected the draft so Model RunRecord v2 directly retains the exact prepared
   `ModelRequest`. Focused governance passed 21 tests across 6 suites with zero failures,
   errors, or skips, and `git diff --check` passed.
+- Increment 2: the fresh unfiltered README-owned Java 17 Gradle `test` task completed
+  with `BUILD SUCCESSFUL` in 2 minutes 19 seconds. JUnit XML aggregation found 180
+  suites and 990 tests: 980 passed, 10 existing environment-dependent cases skipped,
+  zero failed, and zero errored. After closure synchronization, final focused governance
+  passed 21 tests across 6 suites with zero failures, errors, or skips, and
+  `git diff --check` passed. No implementation or maturity state changed.
 
 ## Dynamic Workflow
 
@@ -133,7 +139,7 @@ Next Action: Select Increment 2 and run the full README-owned regression.
 
 ### Increment 2 - verify-and-close-rfc-0019
 
-State: In Progress
+State: Completed
 Depends On: define-and-accept-rfc-0019
 Scope: Run the full README-owned Java 17 regression, synchronize only changed lifecycle
 owners, rerun final Markdown governance, and close the task.
@@ -147,5 +153,6 @@ separate user authority while typed ModelWork execution remains blocked.
 
 ## Next
 
-Complete Increment 2 through the full regression, final governance verification, and
-local closure commit without push or implementation.
+Await separate user authority to implement additive Model RunRecord v2 RED-first.
+Typed ModelWork execution remains blocked before candidate suitability and a proven-
+local gateway boundary.
