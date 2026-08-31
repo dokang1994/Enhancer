@@ -6321,3 +6321,23 @@ Outcome:
   and no production caller. Exact active-task resolution, request/policy preparation,
   admission, candidate suitability, gateway/provider/network execution, push, merge,
   release, and deployment remain outside this completed task.
+
+## 2026-08-31 - Exact Scheduler Active-Task Resolver Verification
+
+- The aligned RED failed at `compileTestJava` only because
+  `ExactActiveTaskResolver` and `ActiveTaskMismatchException` did not exist: 17 symbol
+  errors named only those intended new types and members.
+- The minimum implementation composes the existing `ProjectContextReader` and
+  `ApprovedTaskReader` exactly once per typed call, returns their exact `ApprovedTask`
+  instance, hashes the same complete decoded UTF-8 source content, and compares retained
+  task ID, source document, lowercase SHA-256, and immutable Tool-set equality. It adds
+  no cache, store, writer, registry, ambient lookup, request/admission/execution path, or
+  production caller.
+- Fresh focused GREEN passed 5 resolver tests with zero failures, errors, or skips.
+  The broader focused regression then passed 52 tests across 8 suites: 51 passed, one
+  existing environment-dependent case skipped, zero failed, and zero errored. It
+  covered project-context containment/decoding, approved-task parsing, typed WorkItem,
+  repository-memory digest semantics, current execution guards, and runtime package
+  boundaries.
+- Both Gradle invocations reported `BUILD SUCCESSFUL`, and `git diff --check` passed.
+  Full README-owned regression and final governance remain Increment 2.

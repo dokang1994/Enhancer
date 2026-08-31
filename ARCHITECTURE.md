@@ -1667,9 +1667,9 @@ SHA-256 before constructing the plan, performs no filesystem discovery, and repo
 `MIGRATED`, non-writing `ALREADY_CURRENT`, or the typed refusal pair. This operator
 surface creates no submission, receive, admission, RunRecord, Tool, gateway, provider,
 network, or model-execution authority.
-Profile-aware execution remains blocked pending a
-model RunRecord v2, the exact active governed task, the same execution-policy instance,
-fresh RFC-0015/RFC-0016 evaluation, and later candidate/provider authority.
+Profile-aware execution remains blocked pending request/policy preparation with the
+same execution-policy instance, fresh RFC-0015/RFC-0016 evaluation, and later
+candidate/provider authority.
 
 RFC-0019 defines that next additive provenance and preparation boundary without
 enabling execution. Existing `RunRecord` payload v1 and its public v1-only store/resolve
@@ -1687,15 +1687,23 @@ other known kind, unknown or noncanonical input remains corruption, and cross-ki
 changed-content identity reuse leaves the first artifact unchanged. Literal and newly
 encoded v1 payloads are byte-identical. No current production caller writes v2.
 
-Before a typed model attempt, the Scheduler must freshly load `CURRENT_TASK.md` through
-the existing Context and ApprovedTask readers, require `In Progress`, and bind task ID,
-source path, complete source digest, and Tool scope to the retained task revision. It
-then receives explicit gateway-timeout and response-character limits, constructs one
-exact `ExecutionPolicy`, resolves one prompt snapshot, builds `ModelRequest` with the
-profile model class, composes RFC-0015, and evaluates RFC-0016 with that same policy
-instance plus the unchanged active WorkItem capability. Neither admitted nor rejected
-decisions persist. The exact prompt/request must reach any later invocation without a
-second mutable-file read.
+Before a typed model attempt, `ExactActiveTaskResolver` accepts only an explicit project
+root and typed ModelWork `WorkItem`. On every call it loads the complete governed
+context once through `ProjectContextReader`, resolves the exact `In Progress`
+`ApprovedTask` once through `ApprovedTaskReader`, hashes the already decoded complete
+source content as lowercase SHA-256, and requires exact retained task ID, source path,
+digest, and immutable Tool-set equality. Legacy work and each mismatch fail with a
+closed typed reason; reader failures retain their existing type. Successful resolution
+returns the same reader-produced task instance and adds no cache, store, registry,
+ambient lookup, or caller. It neither uses the WorkItem source path to select authority
+nor rereads the source after context capture.
+
+A later Scheduler preparation boundary must receive explicit gateway-timeout and
+response-character limits, construct one exact `ExecutionPolicy`, resolve one prompt
+snapshot, build `ModelRequest` with the profile model class, compose RFC-0015, and
+evaluate RFC-0016 with that same policy instance plus the unchanged active WorkItem
+capability. Neither admitted nor rejected decisions persist. The exact prompt/request
+must reach any later invocation without a second mutable-file read.
 
 Preparation stops at the absent candidate-suitability boundary even when RFC-0016
 returns `Admitted`; the deterministic fake is not locality or suitability proof. Before

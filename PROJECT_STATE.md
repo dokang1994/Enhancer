@@ -9,8 +9,8 @@
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 440 Java files.
-- Test source: 188 Java files.
+- Production source: 442 Java files.
+- Test source: 189 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -19,6 +19,19 @@ it does not restate which commit published which increment.
 ## Capability Maturity
 
 ### Contract Verified
+
+- The RFC-0019 exact Scheduler active-task resolution boundary under
+  `com.enhancer.runtime` is Contract Verified. `ExactActiveTaskResolver` accepts an
+  explicit project root and typed ModelWork `WorkItem`, reads the complete governed
+  context and active `ApprovedTask` exactly once per call through the existing readers,
+  hashes the already decoded complete source content with lowercase SHA-256, and returns
+  the same reader-produced task only when retained task ID, source document, digest, and
+  immutable Tool set all match exactly. Legacy work is refused before filesystem I/O;
+  mismatch reasons are closed and typed, while missing, inactive, malformed, oversized,
+  outside-root symbolic/junction, and invalid-UTF-8 reader failures remain fail-closed.
+  The resolver has no cache, store, registry, ambient lookup, writer, production caller,
+  request/policy preparation, admission, candidate, Tool, gateway, provider, network,
+  credential, or spend authority.
 
 - The RFC-0019 additive model-record value and type-level persistence boundary under
   `com.enhancer.run` is Contract Verified. `ModelRunRecord` is one exact five-component
@@ -37,8 +50,8 @@ it does not restate which commit published which increment.
   identical; canonical payload v2 retains the exact model envelope, request, and
   lifecycle values and rejects cross-kind resolution/reuse, unknown/corrupt/truncated/
   trailing/oversized/foreign/noncanonical input, or changed-content identity reuse
-  without rewriting the first artifact. No production caller writes v2. Exact task
-  resolution, admission, candidate selection, gateway execution, provider/network,
+  without rewriting the first artifact. No production caller writes v2. Request/policy
+  preparation, admission, candidate selection, gateway execution, provider/network,
   credential, and spend authority remain absent.
 
 - The RFC-0016 pure model invocation-admission boundary under `com.enhancer.model` is

@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-08-31 - Add Exact Scheduler Active-Task Resolution
+
+- Added `ExactActiveTaskResolver` for typed ModelWork. Each call freshly composes the
+  existing project-context and approved-task readers and returns their exact task only
+  when retained task ID, source path, complete decoded-content SHA-256, and Tool set
+  match current repository authority.
+- Added closed mismatch reasons for legacy work, task identity, source, digest, and Tool
+  scope. Reader failures remain unchanged, legacy work is refused before filesystem
+  access, and no cache, writer, request/policy preparation, admission, runtime caller,
+  Tool, gateway, provider, network, credential, or spend path was added.
+- RED-first and focused regression verification passed across the resolver, context,
+  approved-task, ModelWork, snapshot-digest, execution-guard, and package-boundary
+  surfaces. Full-regression closure remains the second task increment.
+
 ## 2026-08-31 - Implement Filesystem Model RunRecord V2
 
 - Extended `FileSystemRunRecordStore` with canonical model payload v2 over the unchanged

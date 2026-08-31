@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-08-31 into exact Scheduler active-task resolution
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-31-implement-exact-scheduler-active-task-resolution.md)
+
 ### User continuation request on 2026-08-31 into additive Model RunRecord v2 implementation
 
 Status: Accepted Decision
