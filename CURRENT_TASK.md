@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -86,7 +86,12 @@ destructive cleanup, additional implementation, RFC changes, and maturity promot
   remote `9424062` was the local merge base; non-force `main:main` push fast-forwarded
   `9424062..99fa18f`, fetched and advertised refs matched, and GitHub Actions run
   `33347793672` job `99355175758` succeeded with two dependency-deprecation warnings.
-- Increment 2 evidence is pending.
+- Increment 2: the exact first-push observation was committed as `8b6ee20` after 21
+  focused governance tests and clean diff checks. A fresh ancestry check then proved
+  remote `99fa18f` was the local merge base; non-force `main:main` push fast-forwarded
+  `99fa18f..8b6ee20`, fetched and advertised refs matched, and GitHub Actions run
+  `33348013114` job `99355785232` succeeded with the same two non-failing dependency-
+  deprecation warnings.
 
 ## Dynamic Workflow
 
@@ -116,7 +121,7 @@ bounded follow-up.
 
 ### Increment 2 - record-and-push-delivery-evidence
 
-State: In Progress
+State: Completed
 Depends On: verify-and-push-coordinated-migration
 Scope: Append the exact delivery observation, complete the task cursor, verify the
 Markdown-sensitive repository, commit the bounded evidence update, recheck ancestry,
@@ -132,5 +137,5 @@ admission integration.
 
 ## Next
 
-Complete Increment 2 by committing and pushing the exact delivery observation, then
-verify final refs and external verification.
+Await separate user authority for Model RunRecord v2 and Scheduler model-work admission
+integration. No next Active Task is authorized.
