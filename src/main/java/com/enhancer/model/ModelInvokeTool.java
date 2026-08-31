@@ -7,17 +7,8 @@ import com.enhancer.tool.ToolFailureCode;
 import com.enhancer.tool.ToolRequest;
 import com.enhancer.tool.ToolResult;
 import com.enhancer.tool.ToolResultStatus;
-import com.enhancer.io.BoundedFileOperations;
-import com.enhancer.io.FileSizeLimitExceededException;
 import com.enhancer.tool.VerificationEvidence;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.CodingErrorAction;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
@@ -43,12 +34,23 @@ public final class ModelInvokeTool implements Tool {
 
     private final ModelGateway gateway;
     private final EvidenceRecorder evidenceRecorder;
+    private final GovernedModelPromptReader promptReader;
 
     public ModelInvokeTool(ModelGateway gateway, EvidenceRecorder evidenceRecorder) {
+        this(gateway, evidenceRecorder, new GovernedModelPromptReader());
+    }
+
+    ModelInvokeTool(
+            ModelGateway gateway,
+            EvidenceRecorder evidenceRecorder,
+            GovernedModelPromptReader promptReader) {
         this.gateway = Objects.requireNonNull(gateway, "gateway must not be null");
         this.evidenceRecorder = Objects.requireNonNull(
                 evidenceRecorder,
                 "evidenceRecorder must not be null");
+        this.promptReader = Objects.requireNonNull(
+                promptReader,
+                "promptReader must not be null");
     }
 
     @Override
@@ -106,7 +108,7 @@ public final class ModelInvokeTool implements Tool {
      * governed {@link #PROMPT_PATH_ARGUMENT} file read with the same containment and
      * size bounds as governed read-file work.
      */
-    private static String resolvePrompt(ToolRequest request, ExecutionPolicy policy)
+    private String resolvePrompt(ToolRequest request, ExecutionPolicy policy)
             throws IOException {
         String inline = request.arguments().get(PROMPT_ARGUMENT);
         String promptPath = request.arguments().get(PROMPT_PATH_ARGUMENT);
@@ -121,68 +123,7 @@ public final class ModelInvokeTool implements Tool {
             throw new IllegalArgumentException(
                     "exactly one of prompt or prompt-path is required");
         }
-        return readContainedPromptFile(promptPath, policy);
-    }
-
-    private static String readContainedPromptFile(
-            String promptPath,
-            ExecutionPolicy policy) throws IOException {
-        Path relativePath = Path.of(promptPath);
-        if (relativePath.isAbsolute()) {
-            throw new IllegalArgumentException(
-                    "prompt-path must be relative to the project root");
-        }
-
-        Path normalizedRoot = policy.projectRoot();
-        Path candidate = normalizedRoot.resolve(relativePath).normalize();
-        if (!candidate.startsWith(normalizedRoot)) {
-            throw new SecurityException("prompt-path resolves outside the project root");
-        }
-
-        Path realRoot;
-        try {
-            realRoot = normalizedRoot.toRealPath();
-        } catch (NoSuchFileException exception) {
-            throw new IOException("project root not found", exception);
-        }
-        if (!Files.isDirectory(realRoot)) {
-            throw new IOException("project root must be a directory");
-        }
-        Path realFile;
-        try {
-            realFile = candidate.toRealPath();
-        } catch (NoSuchFileException exception) {
-            throw new IOException("prompt file not found: " + promptPath, exception);
-        }
-        if (!realFile.startsWith(realRoot)) {
-            throw new SecurityException(
-                    "prompt-path resolves outside the real project root");
-        }
-        if (!Files.isRegularFile(realFile)) {
-            throw new IOException("prompt-path must identify a regular file");
-        }
-        if (Files.size(realFile) > policy.maxReadBytes()) {
-            throw new IOException("prompt file size exceeds policy limit");
-        }
-
-        byte[] bytes;
-        try {
-            bytes = BoundedFileOperations.readAllBytes(realFile, policy.maxReadBytes());
-        } catch (FileSizeLimitExceededException exception) {
-            throw new IOException(
-                    "prompt file size changed beyond policy limit while reading",
-                    exception);
-        }
-        try {
-            return StandardCharsets.UTF_8
-                    .newDecoder()
-                    .onMalformedInput(CodingErrorAction.REPORT)
-                    .onUnmappableCharacter(CodingErrorAction.REPORT)
-                    .decode(ByteBuffer.wrap(bytes))
-                    .toString();
-        } catch (CharacterCodingException exception) {
-            throw new IOException("prompt file is not valid UTF-8", exception);
-        }
+        return promptReader.readFile(promptPath, policy);
     }
 
     private static String requiredArgument(ToolRequest request, String name) {

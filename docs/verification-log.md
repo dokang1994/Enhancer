@@ -6362,3 +6362,27 @@ Outcome:
   `BUILD SUCCESSFUL`.
 - JUnit XML aggregation found 6 suites and 18 tests: all 18 passed with zero failures,
   errors, or skips. `git diff --check` also passed.
+
+## 2026-08-31 - Scheduler Model Invocation Preparation Verification
+
+- The first RED included an unrelated Windows default-source-encoding failure from a
+  non-ASCII test literal; that literal was replaced before classification. The aligned
+  RED then failed at `compileTestJava` only because `GovernedModelPromptReader`,
+  `SchedulerModelInvocationLimits`, `SchedulerModelInvocationPreparation`, and
+  `SchedulerModelInvocationPreparer` did not exist.
+- The minimum implementation shares the existing model Tool prompt-file logic, resolves
+  task authority freshly, constructs one exact policy, reads one prompt snapshot,
+  prepares the profile-model-class request without timeout clamping, composes RFC-0015,
+  evaluates RFC-0016 with the same policy object and unchanged WorkItem capability, and
+  retains the exact task/policy/profiled-request/decision instances. It adds no
+  production caller, candidate, gateway, evidence, or model-record writer.
+- Initial focused GREEN passed 10 tests across 2 suites: 8 passed, two privilege-
+  dependent symbolic-link cases skipped, zero failed, and zero errored. The broader
+  focused regression passed 91 tests across 12 suites: 89 passed, the same two cases
+  skipped, zero failed, and zero errored. It covered ModelRequest/RFC-0015/RFC-0016,
+  prompt and bounded-file semantics, exact-task resolution, typed WorkItem, existing
+  ModelInvokeTool behavior, external receive, process-parent guards, and runtime package
+  boundaries.
+- Both GREEN invocations reported `BUILD SUCCESSFUL`; `git diff --check` passed. A
+  production-source search found no caller of the new preparer or preparation result.
+  Full README-owned regression and final governance remain Increment 2.

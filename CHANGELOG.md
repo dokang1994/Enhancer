@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-08-31 - Add Scheduler Model Invocation Preparation
+
+- Added explicit Scheduler invocation limits and a fresh standalone preparer that
+  preserves the exact active task, one invocation policy object, profile-aligned
+  request, and ephemeral RFC-0016 decision while stopping before candidate suitability.
+- Extracted the existing bounded contained strict-UTF-8 prompt-file read into one shared
+  component used by both the preparer and `ModelInvokeTool`; no second prompt read,
+  hidden default, capability/model-class conflation, cache, persistence, or production
+  preparer caller was added.
+- RED-first and focused regressions cover every RFC-0016 reason, RFC-0015 timeout
+  refusal, object identity, fresh re-evaluation, prompt containment/bounds, existing
+  Tool behavior, and current ModelWork execution guards. Full-regression closure remains
+  the second task increment.
+
 ## 2026-08-31 - Add Exact Scheduler Active-Task Resolution
 
 - Added `ExactActiveTaskResolver` for typed ModelWork. Each call freshly composes the

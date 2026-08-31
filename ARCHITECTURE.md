@@ -1667,9 +1667,8 @@ SHA-256 before constructing the plan, performs no filesystem discovery, and repo
 `MIGRATED`, non-writing `ALREADY_CURRENT`, or the typed refusal pair. This operator
 surface creates no submission, receive, admission, RunRecord, Tool, gateway, provider,
 network, or model-execution authority.
-Profile-aware execution remains blocked pending request/policy preparation with the
-same execution-policy instance, fresh RFC-0015/RFC-0016 evaluation, and later
-candidate/provider authority.
+Profile-aware execution remains blocked pending candidate suitability, a proven-local
+gateway boundary, and later runtime/finalization/recovery wiring.
 
 RFC-0019 defines that next additive provenance and preparation boundary without
 enabling execution. Existing `RunRecord` payload v1 and its public v1-only store/resolve
@@ -1698,12 +1697,24 @@ returns the same reader-produced task instance and adds no cache, store, registr
 ambient lookup, or caller. It neither uses the WorkItem source path to select authority
 nor rereads the source after context capture.
 
-A later Scheduler preparation boundary must receive explicit gateway-timeout and
-response-character limits, construct one exact `ExecutionPolicy`, resolve one prompt
-snapshot, build `ModelRequest` with the profile model class, compose RFC-0015, and
-evaluate RFC-0016 with that same policy instance plus the unchanged active WorkItem
-capability. Neither admitted nor rejected decisions persist. The exact prompt/request
-must reach any later invocation without a second mutable-file read.
+`SchedulerModelInvocationPreparer` is the standalone invocation-scoped implementation
+of the next boundary. It receives immutable `SchedulerModelInvocationLimits` plus
+explicit policy inputs, resolves the exact active task first, constructs one
+`ExecutionPolicy` allowing only `model-invoke`, reads the typed target once through
+`GovernedModelPromptReader`, builds `ModelRequest` with the exact profile model class,
+composes RFC-0015, and evaluates RFC-0016 with that same policy object and unchanged
+WorkItem capability. `GovernedModelPromptReader` owns the previously private model Tool
+file-read logic unchanged, so current real-path containment, regular-file, streaming
+byte ceiling, mutable-growth, and strict-UTF-8 behavior has one implementation shared
+with `ModelInvokeTool`.
+
+The immutable `SchedulerModelInvocationPreparation` retains the exact resolved task,
+same policy, exact profiled request, and ephemeral decision for the separately accepted
+next boundary. An admitted decision must retain that same profiled-request instance.
+Every call rereads task and prompt authority and reevaluates admission; no cache,
+registry, persistence, production caller, candidate, Tool execution, gateway, evidence,
+or Model RunRecord writer exists. The exact prompt/request must reach any later
+invocation without a second mutable-file read.
 
 Preparation stops at the absent candidate-suitability boundary even when RFC-0016
 returns `Admitted`; the deterministic fake is not locality or suitability proof. Before

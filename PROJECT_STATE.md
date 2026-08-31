@@ -9,8 +9,8 @@
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 442 Java files.
-- Test source: 189 Java files.
+- Production source: 446 Java files.
+- Test source: 191 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -19,6 +19,20 @@ it does not restate which commit published which increment.
 ## Capability Maturity
 
 ### Contract Verified
+
+- The RFC-0019 Scheduler model request/policy/admission preparation boundary under
+  `com.enhancer.runtime` is Contract Verified. Immutable
+  `SchedulerModelInvocationLimits` retains only explicit gateway-timeout and response-
+  character bounds. `SchedulerModelInvocationPreparer` freshly resolves the exact
+  active task, creates one `model-invoke`-only `ExecutionPolicy` from explicit resource
+  inputs, reads one typed target snapshot through the shared
+  `GovernedModelPromptReader`, builds the exact profile-model-class `ModelRequest`,
+  composes RFC-0015, and evaluates RFC-0016 with that same policy object and unchanged
+  WorkItem capability. Its immutable result retains the exact task, policy, profiled
+  request, and ephemeral decision without caching or persistence. Existing model Tool
+  prompt behavior uses the same reader. No production caller, candidate/suitability
+  proof, Tool/gateway activity, evidence, Model RunRecord writer, provider/network,
+  credential, or spend authority exists.
 
 - The RFC-0019 exact Scheduler active-task resolution boundary under
   `com.enhancer.runtime` is Contract Verified. `ExactActiveTaskResolver` accepts an
@@ -50,9 +64,9 @@ it does not restate which commit published which increment.
   identical; canonical payload v2 retains the exact model envelope, request, and
   lifecycle values and rejects cross-kind resolution/reuse, unknown/corrupt/truncated/
   trailing/oversized/foreign/noncanonical input, or changed-content identity reuse
-  without rewriting the first artifact. No production caller writes v2. Request/policy
-  preparation, admission, candidate selection, gateway execution, provider/network,
-  credential, and spend authority remain absent.
+  without rewriting the first artifact. No production caller writes v2. Candidate
+  selection, gateway execution, provider/network, credential, and spend authority
+  remain absent.
 
 - The RFC-0016 pure model invocation-admission boundary under `com.enhancer.model` is
   Contract Verified. One stateless field-free evaluator intersects the exact active

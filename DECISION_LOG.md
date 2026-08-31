@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-08-31 into Scheduler model request and admission preparation
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-08-31-implement-scheduler-model-invocation-preparation.md)
+
 ### User continuation request on 2026-08-31 into exact Scheduler active-task resolution
 
 Status: Accepted Decision
