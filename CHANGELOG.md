@@ -11,8 +11,12 @@
   temporary branch or synthetic merge commit.
 - Local HEAD, fetched tracking ref, and advertised remote main matched `eb7286c`.
   Push-triggered GitHub Actions `verify` run `33464488872` succeeded in 53 seconds.
-  Runner deprecation annotations were warnings only; the verified follow-up evidence
-  commit and final push remain.
+  Runner deprecation annotations were warnings only.
+- The exact first-push observation was committed as `5af378c` after focused governance
+  passed 27 tests across 9 suites. A fresh ancestry check then proved remote
+  `eb7286c` was its merge base; the second non-force `main:main` push advanced remote
+  main to `5af378c`. Local, tracking, and advertised refs matched, and push-triggered
+  GitHub Actions `verify` run `33464690440` succeeded.
 
 ## 2026-09-01 - Specify Deterministic Fake Token Semantics And Capacity
 

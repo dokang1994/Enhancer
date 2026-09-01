@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -114,7 +114,7 @@ bounded follow-up.
 
 ### Increment 2 - record-and-push-delivery-evidence
 
-State: In Progress
+State: Completed
 Depends On: verify-and-push-gate-9-model-boundaries
 Scope: Append the exact delivery observation, complete the task cursor, verify the
 Markdown-sensitive repository, commit the bounded evidence update, recheck ancestry,
@@ -129,5 +129,6 @@ Next Action: Await separate authority to implement RFC-0021 sequence 1 RED-first
 
 ## Next
 
-Verify and commit the bounded delivery-evidence follow-up, then recheck ancestry and
-push it without force before final external verification.
+Await separate user authority to implement RFC-0021 sequence 1 RED-first: the pure
+well-formed Unicode-scalar counter, fixed token-aware candidate-v2 facts, and remaining
+standalone suitability predicates, with no production caller or invocation seam.
