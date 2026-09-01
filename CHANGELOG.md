@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-09-01 - Authorize Accumulated Gate 9 Delivery
+
+- Accepted the user's bounded request to commit, fast-forward local `main` to
+  `origin/main` without force, observe GitHub Actions, and publish one verified
+  follow-up delivery-evidence commit.
+- The fifteen completed local commits already lie directly on `main`; no temporary
+  branch or synthetic merge commit is required. No push or delivery claim is recorded
+  until fresh local and remote verification succeeds.
+
 ## 2026-09-01 - Specify Deterministic Fake Token Semantics And Capacity
 
 - Accepted RFC-0021 with the fake-only

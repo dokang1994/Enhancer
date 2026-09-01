@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User request on 2026-09-01 to commit, push, and merge accumulated Gate 9 model-boundary work to main
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-09-01-deliver-accumulated-gate-9-model-boundaries-to-main.md)
+
 ### User continuation request on 2026-09-01 into deterministic fake token semantics and capacity specification
 
 Status: Accepted Decision
