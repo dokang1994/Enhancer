@@ -98,7 +98,7 @@ external authority, exhausted bounds, or unsafe recovery.
 
 ### Increment 1 - verify-and-push-gate-9-model-boundaries
 
-State: In Progress
+State: Completed
 Depends On: none
 Scope: Commit the delivery authority/cursor, rerun local governance and full
 verification, recheck ancestry, push aligned local main without force, verify the
@@ -114,7 +114,7 @@ bounded follow-up.
 
 ### Increment 2 - record-and-push-delivery-evidence
 
-State: Pending
+State: In Progress
 Depends On: verify-and-push-gate-9-model-boundaries
 Scope: Append the exact delivery observation, complete the task cursor, verify the
 Markdown-sensitive repository, commit the bounded evidence update, recheck ancestry,
@@ -129,5 +129,5 @@ Next Action: Await separate authority to implement RFC-0021 sequence 1 RED-first
 
 ## Next
 
-Complete Increment 1 and do not record delivery evidence until the first push and its
-external verification have succeeded.
+Verify and commit the bounded delivery-evidence follow-up, then recheck ancestry and
+push it without force before final external verification.

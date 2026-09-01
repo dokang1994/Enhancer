@@ -1,13 +1,18 @@
 # Changelog
 
-## 2026-09-01 - Authorize Accumulated Gate 9 Delivery
+## 2026-09-01 - Deliver Accumulated Gate 9 Work To Main
 
-- Accepted the user's bounded request to commit, fast-forward local `main` to
-  `origin/main` without force, observe GitHub Actions, and publish one verified
-  follow-up delivery-evidence commit.
-- The fifteen completed local commits already lie directly on `main`; no temporary
-  branch or synthetic merge commit is required. No push or delivery claim is recorded
-  until fresh local and remote verification succeeds.
+- Accepted the user's bounded delivery request and committed the delivery authority as
+  `eb7286c` after focused governance and a fresh full Java 17 regression passed.
+- Fresh fetch proved tracked `origin/main` at `8d70bb3` was the merge base and
+  ancestor of local `main`; explicit non-force `main:main` push advanced remote main
+  through sixteen linear commits to `eb7286c`. Because the completed work was already
+  directly on local `main`, this fast-forward is the requested merge without a
+  temporary branch or synthetic merge commit.
+- Local HEAD, fetched tracking ref, and advertised remote main matched `eb7286c`.
+  Push-triggered GitHub Actions `verify` run `33464488872` succeeded in 53 seconds.
+  Runner deprecation annotations were warnings only; the verified follow-up evidence
+  commit and final push remain.
 
 ## 2026-09-01 - Specify Deterministic Fake Token Semantics And Capacity
 

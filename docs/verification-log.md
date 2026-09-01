@@ -6556,3 +6556,28 @@ Outcome:
 - `git diff --check` passed. A final architecture/document-only run follows this
   append-only entry so the complete final Markdown state is freshly verified before
   the closure commit.
+
+## 2026-09-01 - Accumulated Gate 9 First Main Delivery
+
+- The delivery authority and cursor were committed locally as `eb7286c` after focused
+  governance completed with `BUILD SUCCESSFUL` and the fresh unfiltered README-owned
+  Java 17 regression completed with `BUILD SUCCESSFUL` in 1 minute 18 seconds. JUnit
+  XML aggregation found 191 suites and 1,038 tests: 1,026 passed, 12 existing
+  environment- or privilege-dependent cases skipped, zero failed, and zero errored.
+- Fresh `git fetch origin main` observed `origin/main` at
+  `8d70bb366cbfd6517b038c179af1e34ef9af5ead`. That ref was the exact merge base and
+  ancestor of local `eb7286c29f7936d0dc979ed1c6fdfef2d46a2002`, with sixteen
+  commits in the delivery range: fifteen completed Gate 9 commits plus the delivery-
+  authority commit.
+- Explicit non-force `git push origin main:main` advanced remote main from `8d70bb3`
+  to `eb7286c`. The commits were already directly on local `main`, so this linear
+  fast-forward is the requested merge; no temporary branch or synthetic merge commit
+  was created.
+- Local HEAD, fetched `origin/main`, and advertised `refs/heads/main` all resolved to
+  `eb7286c29f7936d0dc979ed1c6fdfef2d46a2002`.
+- Push-triggered GitHub Actions workflow `verify` run `33464488872` completed
+  successfully in 53 seconds. Its two annotations concerned upcoming Node.js 20 and
+  `setup-java@v4` deprecations; they did not fail verification.
+- This entry records the first delivery observation once. A focused
+  Markdown-sensitive verification, bounded follow-up commit, fresh ancestry check,
+  second non-force push, and final external verification follow before task closure.
