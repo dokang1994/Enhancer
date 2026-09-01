@@ -6503,3 +6503,27 @@ Outcome:
 - Final task/changelog closure edits follow this append-only entry; a fresh focused
   architecture/document/candidate run and diff inspection follow before the closure
   commit.
+
+## 2026-09-01 - Deterministic Fake Token Semantics And Capacity Specification
+
+- Two bounded read-only reviews compared UTF-16 code units, Unicode scalars, and UTF-8
+  bytes against RFC-0013 through RFC-0020, current Java-string bounds, the exact fake
+  response, identity stability, request-budget separation, retry, and recovery. The
+  primary Agent selected fake-only well-formed Unicode-scalar counting, strengthened
+  malformed-surrogate handling to fail closed, and retained the security review's
+  candidate-identity versioning requirement.
+- Independent response-algebra inspection confirmed a fixed ASCII overhead of 152
+  before decimal prompt-length digits. An ASCII prompt length of 261,986 produces the
+  exact 262,144 response ceiling and combined scalar total 524,130; 261,987 produces
+  262,145 and is refused by the existing gateway bound.
+- RFC-0021 accepts `deterministic-unicode-scalar-v1`, future candidate identity
+  `deterministic-fake-v2`, and fixed context/input/output/total capacities
+  524,288/262,144/262,144/524,130. It keeps candidate/profile suitability separate
+  from actual exact-request counting and budget refusal, maps no generic `ModelUsage`,
+  and authorizes no invocation or caller.
+- Fresh focused Java 17 governance completed with `BUILD SUCCESSFUL` in 5 seconds.
+  JUnit XML aggregation found 9 suites and 27 tests: all 27 passed with zero skipped,
+  failed, or errored. The selection covered all architecture/document suites plus
+  approved-task, task-justification, and canonical repository-task planner governance.
+- `git diff --check` passed and changed Java source count was zero. A final focused
+  governance run follows this append-only evidence entry before the Increment 1 commit.

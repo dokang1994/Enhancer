@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-09-01 into deterministic fake token semantics and capacity specification
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-09-01-specify-deterministic-fake-token-semantics-and-capacity.md)
+
 ### User continuation request on 2026-08-31 into fail-closed local model candidate implementation
 
 Status: Accepted Decision

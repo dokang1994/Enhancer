@@ -925,6 +925,9 @@ Scope:
 - additive model-specific RunRecord provenance plus exact Scheduler task, request, policy, capability, and fresh admission preparation before candidate suitability;
 - a closed deterministic-fake candidate binding and fail-closed local suitability
   boundary that exposes missing token semantics before any invocation;
+- accepted deterministic-fake Unicode-scalar token semantics, versioned token-aware
+  candidate identity, and proven standalone context/input/output/total capacities
+  before any request-budget or invocation seam;
 - Model Router with deterministic fake plus explicitly selected provider adapters;
 - timeout, cancellation, token, context, cost, redaction, and response-validation budgets;
 - versioned per-model quality evaluation, policy-scoped fallback and response caching, prompt-injection resistance, source attribution, and visible uncertainty;
@@ -1233,6 +1236,7 @@ Status: Accepted
 - RFC-0018: Scheduler Model Profile Transport
 - RFC-0019: Scheduler Model RunRecord And Admission Preparation
 - RFC-0020: Deterministic Local Model Candidate Suitability
+- RFC-0021: Deterministic Fake Token Semantics And Capacity
 
 RFC acceptance does not imply Contract Verified, Integrated, Operational, or Released capability maturity.
 

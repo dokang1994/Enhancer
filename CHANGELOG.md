@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-09-01 - Specify Deterministic Fake Token Semantics And Capacity
+
+- Accepted RFC-0021 with the fake-only
+  `deterministic-unicode-scalar-v1` unit, fail-closed malformed-surrogate handling,
+  and a versioned future `deterministic-fake-v2` candidate identity so
+  `deterministic-fake-v1` does not silently change meaning.
+- Proved fixed context/input/output/total capacities of
+  524,288/262,144/262,144/524,130 from the exact deterministic response formula.
+  Candidate/profile suitability remains separate from actual exact-request token and
+  response-budget validation.
+- No Java, test source, candidate/evaluator/gateway/Tool behavior, caller, schema,
+  runtime, provider, network, credential, spend, push, merge, release, or deployment
+  changed. Focused governance passed 27 tests across 9 suites with zero skipped,
+  failed, or errored; full-regression closure follows separately.
+
 ## 2026-08-31 - Add Fail-Closed Local Model Candidate Suitability
 
 - Added an opaque exact `DeterministicFakeModelGateway` candidate binding with fixed

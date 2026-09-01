@@ -1746,6 +1746,33 @@ provider, credential, evidence, RunRecord, and runtime dependencies and require 
 production callers outside those definitions. The current `ModelInvokeTool`, typed
 ModelWork guards, gateway behavior, durable schemas, and runtime wiring remain unchanged.
 
+RFC-0021 defines the separately versioned token and capacity continuation without
+changing that implementation. The future token-aware candidate identity is
+`deterministic-fake-v2`; `deterministic-fake-v1` permanently retains its current
+token-unavailable meaning. The fake-only
+`deterministic-unicode-scalar-v1` unit counts one well-formed Unicode scalar without
+normalization or encoding and fails closed on malformed surrogate input. It is not a
+provider token or a mapping from generic `ModelUsage`.
+
+For an exact fake prompt with UTF-16 length `n`, scalar count `s`, and decimal digit
+count `d(n)`, the response has UTF-16 length `n + 152 + d(n)` and scalar count
+`s + 152 + d(n)`. The accepted fixed capacities are 524,288 context, 262,144 input,
+262,144 output, and the tight 524,130 combined total. An ASCII prompt of 261,986 units
+produces the exact 262,144-unit response ceiling and combined total; one more unit
+exceeds the existing response bound. Context remains the larger independent input-plus-
+output envelope so RFC-0020's context and total rejection reasons stay distinct under
+RFC-0014's profile invariant.
+
+A later standalone RED-first increment may add the pure counter, fixed candidate-v2
+facts, remaining ordered profile comparisons, and a reachable ephemeral `Suitable`
+with no production caller. Suitability compares declared profile requirements with
+candidate capacities only. A separately accepted same-request seam must count and
+validate the exact admitted prompt and predicted fake response against request and
+profile budgets before any gateway activity, while retaining the same request, policy,
+candidate, and gateway identities. Current candidate/evaluator behavior, gateway,
+`ModelUsage`, `ModelInvokeTool`, Scheduler preparation, schemas, execution guards,
+runtime, and recovery remain unchanged.
+
 ## Agent Orchestration Contract
 
 ### Development-Time Adaptive Subagent Delegation
@@ -1931,6 +1958,7 @@ Major design areas are tracked in `docs/rfcs/`.
 - `RFC-0018`: Scheduler Model Profile Transport
 - `RFC-0019`: Scheduler Model RunRecord And Admission Preparation
 - `RFC-0020`: Deterministic Local Model Candidate Suitability
+- `RFC-0021`: Deterministic Fake Token Semantics And Capacity
 
 ## First Architecture Slice
 
@@ -2229,5 +2257,6 @@ Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts bel
 
 ## Open Architecture Questions
 
-- Context size and token budgeting strategy are not selected yet.
+- Provider and general model context/token strategies are not selected; RFC-0021
+  defines only the closed deterministic fake's standalone semantics and capacities.
 - Future LLM-backed Planner input/output schema is not selected yet.

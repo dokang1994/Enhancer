@@ -2,46 +2,44 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Implement the first RFC-0020 fail-closed deterministic-fake candidate binding and
-stateless suitability evaluator RED-first, stopping at
-`TOKEN_SEMANTICS_UNAVAILABLE` without any caller or invocation wiring.
+Specify the smallest truthful deterministic-fake token semantics and proven context,
+input, output, and total capacity contract before any suitability implementation or
+model invocation wiring.
 
 ## Task ID
 
-implement-fail-closed-local-model-candidate
+specify-deterministic-fake-token-semantics-and-capacity
 
 ## Context
 
-RFC-0020 is accepted and requires one opaque exact deterministic-fake binding plus a
-field-free evaluator over the exact RFC-0016 `Admitted` value. Current fake usage is
-character-based, so the initial evaluator may reject model class, capability, or
-reasoning first but must otherwise stop at `TOKEN_SEMANTICS_UNAVAILABLE`. Typed
-ModelWork execution remains guarded before Tool/gateway activity, and no current caller
-constructs a candidate or invokes suitability.
+RFC-0020 intentionally stops candidate evaluation at
+`TOKEN_SEMANTICS_UNAVAILABLE`. The deterministic fake currently reports generic
+character-based `ModelUsage` units and enforces Java-string length bounds, while the
+RFC-0014 profile expresses provider-neutral token requirements. No accepted contract
+defines a fake token unit, malformed-Unicode behavior, exact counting boundary, or
+numeric context/input/output/total capacities. Those facts must be specified and made
+independently testable before a later task may change the candidate or make `Suitable`
+reachable.
 
 ## Justified By
 
+- User continuation request on 2026-09-01 into deterministic fake token semantics and capacity specification
 - User continuation request on 2026-08-31 into fail-closed local model candidate implementation
 - User continuation request on 2026-08-31 into local model candidate suitability specification
-- User continuation request on 2026-08-31 into Scheduler model request and admission preparation
-- User continuation request on 2026-08-31 into exact Scheduler active-task resolution
-- User continuation request on 2026-08-31 into the Model RunRecord v2 and Scheduler admission specification
 
 ## Approval
 
-The user's explicit 2026-08-31 continuation authorizes only RFC-0020 implementation
-sequence 1: RED-first Java tests; one opaque final exact-fake candidate binding with
-repository-owned fixed facts; one field-free deterministic suitability evaluator;
-sealed exact-identity result shapes and the closed ordered rejection vocabulary; typed
-`TOKEN_SEMANTICS_UNAVAILABLE` refusal before every later predicate; bounded read-only
-API/security reviews; owning architecture/state/task/changelog/decision/verification
-synchronization; checkpoints; fresh Java 17 verification; and ordinary local commits at
-verified GREEN boundaries. It authorizes no token semantics or numeric capacity,
-reachable suitable path, Tool or gateway invocation, generic candidate or registry,
+The user's explicit 2026-09-01 continuation authorizes only a documentation contract
+for deterministic-fake token semantics and proven capacities: bounded read-only
+contract/security reviews; one accepted RFC and matching decision/index entries;
+owning architecture/roadmap/task/changelog/verification synchronization; checkpoints;
+fresh README-owned Java 17 verification; and ordinary local commits at verified GREEN
+boundaries. It authorizes no Java or test-source change, tokenizer implementation,
+candidate/evaluator behavior change, reachable `Suitable`, Tool or gateway invocation,
 runtime/process/worker/finalizer/recovery/caller wiring, Model RunRecord writing,
 submission/receive/CLI or durable-schema change, provider, route, endpoint,
 destination, network or remote transmission, credentials, paid service, spend, push,
@@ -49,57 +47,48 @@ merge, release, deployment, permission change, external effect, or destructive c
 
 ## Acceptance Criteria
 
-- `DeterministicFakeModelCandidate` is an opaque final non-record with one private exact
-  `DeterministicFakeModelGateway` field, no generic gateway/interface implementation,
-  and one public factory whose only input is the exact final fake type. It retains and
-  returns that same gateway instance and rejects null.
-- Candidate identity, model class, required capability, maximum reasoning, token-
-  semantics availability, provider-charge status, and maximum data classification are
-  fixed repository-owned facts exactly as RFC-0020 specifies. No caller supplies or
-  alters metadata, locality, provider, route, credential, price, tokenizer, capacity,
-  registry, supplier, or default.
-- `ModelCandidateSuitability` is public, final, field-free, and accepts exactly one
-  `ModelInvocationAdmissionDecision.Admitted` and one exact fake candidate. Nulls are
-  programming errors; evaluation performs no I/O, lookup, Tool, gateway, evidence,
-  persistence, process, network, credential, or external activity.
-- The sealed decision retains either the exact admitted and candidate object instances
-  or one closed rejection reason. The reason vocabulary and repository order include
-  model class, capability, reasoning, token semantics, later context/input/output/total
-  capacities, free-only cost, and classification without making later predicates
+- An accepted RFC defines one exact repository-owned deterministic-fake token unit and
+  counting algorithm, including null, empty, line-ending, supplementary-character,
+  and malformed-surrogate behavior, without treating current `ModelUsage` values as
+  provider-token evidence or claiming portability to any provider tokenizer.
+- The RFC defines exact context, input, output, and total capacity values plus the
+  invariants and executable evidence a later implementation must supply. Every number
+  is justified by an explicit closed fake contract and overflow-safe bounds, not by a
+  model label, ambient machine capacity, or an unsupported character-to-provider-token
+  conversion.
+- The RFC distinguishes candidate/profile capacity suitability from actual request
+  counting and budget enforcement, preserves the exact admitted request and candidate
+  identities, and specifies fail-closed ordering before `Suitable` can become
   reachable.
-- Evaluation returns the deterministic first mismatch for model class, capability, and
-  reasoning, then always returns `TOKEN_SEMANTICS_UNAVAILABLE` for the current candidate.
-  No evaluator call returns `Suitable`, assigns numeric context/token capacity, converts
-  characters or `ModelUsage` to tokens, or evaluates the later cost/classification path.
-- Focused tests prove exact gateway/admitted/candidate identity, opaque API shape, fixed
-  facts, null failures, first-match precedence, unreachable suitable evaluation, and
-  forbidden-dependency absence. Existing RFC-0013 through RFC-0020 model tests,
-  Scheduler preparation, `ModelInvokeTool`, typed ModelWork execution guards, durable
-  schemas, production-caller absence, and package boundaries remain unchanged.
-- Relevant focused RED/GREEN, execution-guard, package/reflection/source-dependency,
-  governance, and full README-owned Java 17 regression pass freshly. Owning documents
-  and append-only verification evidence are current.
+- The contract keeps `ModelUsage` generic unless a separately justified mapping is
+  explicitly defined, creates no provider/route/credential/network/spend authority,
+  and does not weaken classification, locality, task, Tool, timeout, evidence,
+  verification, retry, or recovery boundaries.
+- The RFC states the later RED-first implementation surface, focused verification,
+  compatibility limits, and exact stop before the separately accepted same-request/
+  same-policy/same-gateway invocation seam.
+- RFC/decision/architecture/index/ownership/dynamic-workflow/approved-task/task-
+  justification/planner governance, `git diff --check`, and the full README-owned Java
+  17 regression pass freshly. Owning documents and append-only verification evidence
+  are current.
 
 ## Out Of Scope
 
-Token semantics, token counting, tokenizer, usage normalization, or numeric context/
-input/output/total capacity; reachable suitable evaluation; generic candidate port,
-registry, discovery, selection, router, provider, provider model, endpoint, destination,
-outbound policy, network or remote transmission; credentials, paid services, pricing,
-currency conversion; request/profile/gateway/Tool signature or behavior changes;
-gateway or Tool execution; prompt reread, redaction, scanning, injection resistance,
-attribution, evaluation, caching, fallback, retry, or streaming; Model RunRecord writing,
-lifecycle disposition, finalizer, result validation, runtime/process/worker/recovery/
-status/caller wiring; typed producer, submission, receiver, CLI, durable schema,
-migration, MCP, capability maturity beyond the standalone boundary, push, merge,
-history rewrite, release, deployment, permission changes, external effects, and
-destructive cleanup.
+Java or test-source implementation; candidate/evaluator/request/profile/gateway/Tool
+signature or behavior changes; reachable suitable evaluation; generic tokenizer,
+provider tokenizer, usage normalization, provider model, registry, discovery,
+selection, router, endpoint, destination, outbound policy, network or remote
+transmission; credentials, paid services, pricing, currency conversion; gateway or
+Tool execution; prompt reread, redaction, scanning, injection resistance, attribution,
+evaluation, caching, fallback, retry, or streaming; Model RunRecord writing, lifecycle
+disposition, finalizer, result validation, runtime/process/worker/recovery/status/caller
+wiring; typed producer, submission, receiver, CLI, durable schema, migration, MCP,
+capability maturity, push, merge, history rewrite, release, deployment, permission
+changes, external effects, and destructive cleanup.
 
 ## Allowed Tools
 
 - read-file
-- write-code
-- write-tests
 - write-docs
 - build-output
 - verify
@@ -116,48 +105,49 @@ the declared checks complete.
 
 ## Dynamic Workflow
 
-Workflow ID: implement-fail-closed-local-model-candidate
+Workflow ID: specify-deterministic-fake-token-semantics-and-capacity
 Mode: Sequential
 Increment Limit: 2
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
-Stop Conditions: Stop on generic or forgeable gateway binding, caller-supplied candidate
-facts, numeric token/capacity claim, reachable suitable evaluation, Tool/gateway or
-runtime activity, failed verification, task or checkpoint drift, new external
-authority, exhausted bounds, or unsafe recovery.
+Stop Conditions: Stop on provider-token claims, reuse of unproven usage units, numeric
+capacity without a closed proof obligation, hidden invocation authority, Java/test
+source change, failed verification, task or checkpoint drift, new external authority,
+exhausted bounds, or unsafe recovery.
 
-### Increment 1 - implement-fail-closed-candidate-suitability
+### Increment 1 - specify-deterministic-token-and-capacity-contract
 
 State: Completed
 Depends On: none
-Scope: Reconcile bounded read-only API/security reviews, establish aligned missing-
-symbol RED, implement only the opaque exact-fake binding, fixed facts, sealed result,
-closed reasons, and field-free evaluator through the token-semantics stop, synchronize
-owning documents/evidence, and commit the verified GREEN increment locally.
-Exit Criteria: Every acceptance criterion for the fail-closed standalone boundary
-passes; no suitable result is produced, no production caller or external activity
-exists, evidence is appended once, and the increment is committed locally.
-Verification: Focused candidate/suitability/RFC-0013-through-RFC-0020/model/preparation/
-execution-guard/package-boundary/governance tests, production-source searches, and
-`git diff --check`.
+Scope: Reconcile bounded read-only token/API and security/lifecycle reviews, specify and
+accept only the deterministic-fake token unit, counting behavior, proven capacities,
+later suitability obligations, and non-expansion boundary; synchronize owning
+architecture/index/roadmap/decision/evidence documents; and commit the verified
+documentation increment locally.
+Exit Criteria: Every documentation acceptance criterion passes, no Java/test source or
+runtime behavior changes, verification evidence is appended once, and the increment is
+committed locally.
+Verification: Focused RFC/index/decision/ownership/dynamic-workflow/approved-task/task-
+justification/planner/architecture governance tests, `git diff --check`, and changed-
+path inspection.
 Next Action: Use the appended Increment 1 evidence as the dependency input for the
 full-regression closure increment.
 
-### Increment 2 - verify-and-close-fail-closed-candidate
+### Increment 2 - verify-and-close-token-capacity-specification
 
-State: Completed
-Depends On: implement-fail-closed-candidate-suitability
+State: In Progress
+Depends On: specify-deterministic-token-and-capacity-contract
 Scope: Read fresh Increment 1 evidence, run the full README-owned Java 17 regression,
 synchronize only changed lifecycle owners, rerun final focused/governance verification,
 and close the task locally.
-Exit Criteria: Full and final verification pass, maturity remains bounded to the
-standalone fail-closed candidate boundary, both increments are committed, and the
-worktree/checkpoint reach the intended clean stable state.
+Exit Criteria: Full and final verification pass, maturity remains unchanged, both
+increments are committed locally, and the worktree/checkpoint reach the intended clean
+stable state.
 Verification: Full `test`, focused governance, JUnit XML aggregation,
 `git diff --check`, and final Git/checkpoint inspection.
-Next Action: Separately specify deterministic token semantics and proven capacities
-before making `Suitable` reachable or wiring any invocation.
+Next Action: Separately implement the accepted token/capacity contract RED-first before
+any same-request invocation seam.
 
 ## Next
 
-Separately specify deterministic token semantics and proven context/input/output/total
-capacities before making `Suitable` reachable or wiring any invocation.
+Run the full README-owned Java 17 regression, then close this documentation-only task
+without implementing token counting or making `Suitable` reachable.
