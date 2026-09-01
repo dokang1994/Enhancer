@@ -6527,3 +6527,32 @@ Outcome:
   approved-task, task-justification, and canonical repository-task planner governance.
 - `git diff --check` passed and changed Java source count was zero. A final focused
   governance run follows this append-only evidence entry before the Increment 1 commit.
+
+## 2026-09-01 - Deterministic Fake Token Capacity Full Regression And Closure
+
+- Increment 1 was committed locally as `a74325d` after RFC-0021, its accepted decision,
+  architecture mirrors, RFC indexes, Roadmap scope, task cursor, Changelog, and focused
+  verification evidence were synchronized. The committed diff was documentation-only.
+- The fresh unfiltered README-owned Java 17 Gradle `test` task completed with
+  `BUILD SUCCESSFUL` in 2 minutes 5 seconds. JUnit XML aggregation found 191 suites
+  and 1,038 tests: 1,026 passed, 12 existing environment- or privilege-dependent cases
+  skipped, zero failed, and zero errored.
+- `git diff --check` passed and the worktree was clean immediately after the full
+  regression. Capability maturity and implementation state remain unchanged; the
+  current candidate still stops at `TOKEN_SEMANTICS_UNAVAILABLE`.
+- No token counter, token-aware candidate facts, reachable `Suitable`, actual-request
+  budget seam, caller, invocation, schema, runtime, provider, network, credential,
+  spend, push, merge, release, or deployment was implemented or performed.
+- Final task, Changelog, and handoff synchronization follows this append-only entry; a
+  fresh focused governance run and diff inspection follow before the closure commit.
+
+## 2026-09-01 - Deterministic Fake Token Capacity Post-Closure Governance
+
+- After task, Changelog, verification-log, and handoff closure synchronization, fresh
+  focused Java 17 governance completed with `BUILD SUCCESSFUL` in 8 seconds.
+- JUnit XML aggregation found 9 suites and 27 tests: all 27 passed with zero skipped,
+  failed, or errored. The selection covered all architecture/document suites plus
+  approved-task, task-justification, and canonical repository-task planner governance.
+- `git diff --check` passed. A final architecture/document-only run follows this
+  append-only entry so the complete final Markdown state is freshly verified before
+  the closure commit.

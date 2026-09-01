@@ -13,7 +13,10 @@
 - No Java, test source, candidate/evaluator/gateway/Tool behavior, caller, schema,
   runtime, provider, network, credential, spend, push, merge, release, or deployment
   changed. Focused governance passed 27 tests across 9 suites with zero skipped,
-  failed, or errored; full-regression closure follows separately.
+  failed, or errored. The specification increment was committed locally as
+  `a74325d`; the subsequent fresh full Java 17 regression passed 1,038 tests across
+  191 suites: 1,026 passed, 12 existing environment- or privilege-dependent cases
+  skipped, zero failed, and zero errored.
 
 ## 2026-08-31 - Add Fail-Closed Local Model Candidate Suitability
 

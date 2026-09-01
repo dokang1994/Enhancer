@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -134,7 +134,7 @@ full-regression closure increment.
 
 ### Increment 2 - verify-and-close-token-capacity-specification
 
-State: In Progress
+State: Completed
 Depends On: specify-deterministic-token-and-capacity-contract
 Scope: Read fresh Increment 1 evidence, run the full README-owned Java 17 regression,
 synchronize only changed lifecycle owners, rerun final focused/governance verification,
@@ -149,5 +149,6 @@ any same-request invocation seam.
 
 ## Next
 
-Run the full README-owned Java 17 regression, then close this documentation-only task
-without implementing token counting or making `Suitable` reachable.
+Separately implement RFC-0021 sequence 1 RED-first: the pure well-formed Unicode-scalar
+counter, fixed token-aware candidate-v2 facts, and remaining standalone suitability
+predicates, with no production caller or invocation seam.
