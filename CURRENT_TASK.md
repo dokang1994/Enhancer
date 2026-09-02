@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -115,7 +115,7 @@ task in one verified follow-up increment.
 
 ### Increment 2 - verify-and-close-token-capacity
 
-State: In Progress
+State: Completed
 Depends On: implement-standalone-token-capacity
 Scope: Reconcile architecture/state/task/handoff/changelog ownership, append fresh
 verification evidence once, run Markdown-sensitive governance and the full README-
@@ -130,5 +130,5 @@ same-request invocation seam.
 
 ## Next
 
-Synchronize canonical documents, run the full README-owned regression, and close
-Increment 2 only after reading the fresh results.
+Await separate user authority to specify the closed exact-request budget refusal and
+same-request/same-policy/same-gateway invocation seam required by RFC-0021 sequence 2.

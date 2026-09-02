@@ -2,15 +2,15 @@
 
 ## Updated At
 
-2026-08-31
+2026-09-02
 
 ## Repository State
 
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 450 Java files.
-- Test source: 194 Java files.
+- Production source: 451 Java files.
+- Test source: 195 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -20,18 +20,21 @@ it does not restate which commit published which increment.
 
 ### Contract Verified
 
-- The first RFC-0020 local-candidate sequence under `com.enhancer.model` is Contract
-  Verified. Opaque final `DeterministicFakeModelCandidate` binds and retains only one
-  exact `DeterministicFakeModelGateway` instance and supplies fixed repository-owned
-  deterministic-echo facts. Field-free `ModelCandidateSuitability` accepts the exact
-  RFC-0016 `Admitted` subtype and exact candidate, applies model-class, capability, and
-  reasoning checks in order, and then always rejects at
-  `TOKEN_SEMANTICS_UNAVAILABLE`. Its sealed exact-identity result and ordered closed
-  reasons expose no reachable suitable evaluation. Reflection and source guards prove
-  the four definition types have no generic gateway, I/O, Tool, provider, credential,
+- The RFC-0020/RFC-0021 standalone local-candidate boundary under
+  `com.enhancer.model` is Contract Verified. Field-free
+  `DeterministicFakeTokenCounter` implements fail-closed well-formed Unicode-scalar
+  counting and checked exact-fake response algebra. Opaque final
+  `DeterministicFakeModelCandidate` retains only one exact gateway and exposes fixed
+  `deterministic-fake-v2`, `deterministic-unicode-scalar-v1`, and
+  524,288/262,144/262,144/524,130 context/input/output/total facts. Field-free
+  `ModelCandidateSuitability` applies the complete closed model-class, capability,
+  reasoning, semantics, capacity, zero-cost, and public-classification order and can
+  retain exact inputs in ephemeral `Suitable`. Reflection and source guards prove the
+  five definition types have no generic gateway, I/O, Tool, provider, credential,
   evidence, RunRecord, process, runtime, persistence, or production-caller wiring.
-  Current fake usage remains character-based; no token semantics or capacity, caller,
-  invocation, schema, runtime, network, credential, or spend authority was added.
+  Gateway rendering and generic `ModelUsage` remain character-based; no actual-request
+  budget seam, invocation, schema, runtime, network, credential, or spend authority
+  was added.
 
 - The RFC-0019 Scheduler model request/policy/admission preparation boundary under
   `com.enhancer.runtime` is Contract Verified. Immutable

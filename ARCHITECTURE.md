@@ -1726,33 +1726,21 @@ invocation. Runtime disposition for pre-execution refusal, candidate/local-gatew
 proof, execution/finalizer/recovery wiring, typed submission or receive, providers,
 network, credentials, and spend remain separately accepted work.
 
-RFC-0020's first sequence implements a closed local-candidate boundary without enabling
-invocation. One opaque final `DeterministicFakeModelCandidate` factory accepts only an exact
-final `DeterministicFakeModelGateway`, retains that same gateway instance, and supplies
-fixed repository-owned deterministic-echo facts. It accepts no generic gateway,
-caller-provided locality or capability metadata, registry, provider, route, endpoint,
-credential, price, tokenizer, or ambient default. The candidate and its suitability
-result are process-local and non-persistent.
+RFC-0020 and RFC-0021 implement a closed local-candidate boundary without enabling
+invocation. One opaque final `DeterministicFakeModelCandidate` factory accepts only an
+exact final `DeterministicFakeModelGateway`, retains that same gateway instance, and
+supplies fixed repository-owned deterministic-echo, token-semantics, capacity, cost,
+and classification facts. It accepts no generic gateway, caller-provided metadata or
+capacity, registry, provider, route, endpoint, credential, price, tokenizer, or ambient
+default. The candidate and its suitability result are process-local and non-persistent.
 
-The field-free `ModelCandidateSuitability` receives the exact RFC-0016 `Admitted`
-value and exact candidate and checks model class, capability, and reasoning before the
-mandatory `TOKEN_SEMANTICS_UNAVAILABLE` rejection. Its sealed result and closed reason
-order retain the future continuation without constructing `Suitable`. The fake's
-existing usage and request bounds are character-based, so the implementation assigns no
-numeric context or token capacity. Later context/token, free-only cost, and public-
-classification predicates require separately accepted token semantics first. Source and
-reflection guards keep the four definition types free of I/O, Tool, generic-gateway,
-provider, credential, evidence, RunRecord, and runtime dependencies and require zero
-production callers outside those definitions. The current `ModelInvokeTool`, typed
-ModelWork guards, gateway behavior, durable schemas, and runtime wiring remain unchanged.
-
-RFC-0021 defines the separately versioned token and capacity continuation without
-changing that implementation. The future token-aware candidate identity is
-`deterministic-fake-v2`; `deterministic-fake-v1` permanently retains its current
-token-unavailable meaning. The fake-only
-`deterministic-unicode-scalar-v1` unit counts one well-formed Unicode scalar without
-normalization or encoding and fails closed on malformed surrogate input. It is not a
-provider token or a mapping from generic `ModelUsage`.
+The token-aware candidate identity is `deterministic-fake-v2`;
+`deterministic-fake-v1` permanently retains its historical token-unavailable meaning.
+The field-free `DeterministicFakeTokenCounter` implements fake-only
+`deterministic-unicode-scalar-v1`: it counts well-formed Java-string Unicode scalars as
+`long`, performs no normalization or encoding, and fails closed on malformed
+surrogates without reproducing input. Its package-private fake-response algebra uses
+checked arithmetic. It is not a provider token or a mapping from generic `ModelUsage`.
 
 For an exact fake prompt with UTF-16 length `n`, scalar count `s`, and decimal digit
 count `d(n)`, the response has UTF-16 length `n + 152 + d(n)` and scalar count
@@ -1763,15 +1751,21 @@ exceeds the existing response bound. Context remains the larger independent inpu
 output envelope so RFC-0020's context and total rejection reasons stay distinct under
 RFC-0014's profile invariant.
 
-A later standalone RED-first increment may add the pure counter, fixed candidate-v2
-facts, remaining ordered profile comparisons, and a reachable ephemeral `Suitable`
-with no production caller. Suitability compares declared profile requirements with
-candidate capacities only. A separately accepted same-request seam must count and
+The field-free `ModelCandidateSuitability` receives the exact RFC-0016 `Admitted`
+value and exact candidate. It checks model class, capability, reasoning, token
+availability, context, input, output, total, zero-cost, and public-classification facts
+in the closed first-match order, then returns a reachable ephemeral `Suitable` retaining
+the exact inputs. Suitability compares declared profile requirements with fixed
+candidate facts only and performs no actual-request counting. Source and reflection
+guards keep all five definition types free of I/O, Tool, generic-gateway, provider,
+credential, evidence, RunRecord, runtime, and production-caller wiring.
+
+A separately accepted same-request seam must count and
 validate the exact admitted prompt and predicted fake response against request and
 profile budgets before any gateway activity, while retaining the same request, policy,
-candidate, and gateway identities. Current candidate/evaluator behavior, gateway,
-`ModelUsage`, `ModelInvokeTool`, Scheduler preparation, schemas, execution guards,
-runtime, and recovery remain unchanged.
+candidate, and gateway identities. The gateway's `deterministic-fake-v1` rendering,
+generic character-based `ModelUsage`, `ModelInvokeTool`, Scheduler preparation,
+schemas, execution guards, runtime, and recovery remain unchanged.
 
 ## Agent Orchestration Contract
 

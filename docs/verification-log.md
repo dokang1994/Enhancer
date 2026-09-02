@@ -6629,3 +6629,36 @@ Outcome:
   `ModelUsage` change, Tool/evidence/RunRecord/runtime dependency, or schema wiring.
   Canonical document synchronization and the fresh full regression follow in
   Increment 2.
+
+## 2026-09-02 - Deterministic Fake Token Capacity Full Regression And Closure
+
+- Increment 1 was committed locally as `1de1c42` after its RED/GREEN counter,
+  checked-algebra, candidate, suitability, non-caller, governance, and diff checks
+  passed. The dependency evidence was read before Increment 2 became active.
+- Architecture and its compact mirror now describe the implemented standalone
+  counter/candidate/evaluator boundary. Project State records Contract Verified
+  maturity and the unchanged lack of actual-request or invocation wiring; Roadmap,
+  Changelog, task cursor, and session handoff were synchronized according to their
+  owning facts.
+- The fresh unfiltered README-owned Java 17 Gradle `test` task completed with
+  `BUILD SUCCESSFUL` in 2 minutes 36 seconds. JUnit XML aggregation found 192 suites
+  and 1,045 tests: 1,033 passed, 12 existing environment- or privilege-dependent
+  cases skipped, zero failed, and zero errored.
+- `git diff --check` passed after the full regression. No production caller, actual-
+  request budget seam, invocation, gateway/usage behavior change, schema/runtime
+  integration, provider, network, credential, spend, push, merge, release, or
+  deployment was added or performed.
+- Final task/evidence/Changelog synchronization follows this append-only entry. Fresh
+  focused Markdown-sensitive governance and diff inspection follow before the closure
+  commit and stable checkpoint clear.
+
+## 2026-09-02 - Deterministic Fake Token Capacity Post-Closure Governance
+
+- After architecture/state/Roadmap/task/Changelog/handoff/evidence synchronization,
+  fresh focused Java 17 governance completed with `BUILD SUCCESSFUL` in 4 seconds.
+- JUnit XML aggregation found 8 suites and 27 tests: all 27 passed with zero skipped,
+  failed, or errored. The selection covered decision indexing, document ownership,
+  dynamic workflow, candidate locality/non-caller guards, task justification,
+  approved-task reading/revision, and repository-task planning.
+- `git diff --check` passed. A final focused run over this complete append-only
+  Markdown state follows before the closure commit and stable checkpoint clear.

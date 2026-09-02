@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-09-02 - Implement Deterministic Fake Token Capacity
+
+- Added a field-free `deterministic-unicode-scalar-v1` counter with fail-closed
+  malformed-surrogate handling and checked exact-fake response algebra. Focused tests
+  cover supplied Unicode forms, digit boundaries, arithmetic overflow, the 261,986
+  success ceiling, and the unchanged gateway refusal at 261,987.
+- Advanced the exact closed candidate to fixed `deterministic-fake-v2` semantics and
+  524,288/262,144/262,144/524,130 context/input/output/total capacities without adding
+  caller-supplied state. Completed the field-free first-match suitability predicates
+  through zero cost and public classification, with exact-identity `Suitable` results.
+- Production caller, actual-request counting, invocation, gateway rendering, generic
+  `ModelUsage`, Tool/evidence/RunRecord/runtime wiring, schemas, provider/network,
+  credential, spend, push, merge, release, and deployment remain unchanged or absent.
+- Increment 1 was committed locally as `1de1c42` after 19 focused behavior/boundary
+  tests and 23 focused governance tests passed with zero failures or skips.
+- The subsequent fresh unfiltered Java 17 regression passed 1,045 tests across 192
+  suites: 1,033 passed, 12 existing environment- or privilege-dependent cases skipped,
+  zero failed, and zero errored. The task closed with no push.
+
 ## 2026-09-01 - Deliver Accumulated Gate 9 Work To Main
 
 - Accepted the user's bounded delivery request and committed the delivery authority as
