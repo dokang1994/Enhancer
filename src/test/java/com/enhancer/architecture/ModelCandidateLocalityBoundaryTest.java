@@ -18,6 +18,7 @@ class ModelCandidateLocalityBoundaryTest {
     private static final Path PROJECT_ROOT = Path.of("").toAbsolutePath().normalize();
     private static final Path PRODUCTION_ROOT = PROJECT_ROOT.resolve("src/main/java");
     private static final Set<String> DEFINITION_FILES = Set.of(
+            "DeterministicFakeTokenCounter.java",
             "DeterministicFakeModelCandidate.java",
             "ModelCandidateSuitability.java",
             "ModelCandidateSuitabilityDecision.java",
@@ -37,6 +38,9 @@ class ModelCandidateLocalityBoundaryTest {
                 "HttpMessageApiModelProviderAdapter",
                 "ModelInvokeTool",
                 "ModelUsage",
+                "java.text.Normalizer",
+                "java.nio.charset",
+                "getBytes(",
                 "RunRecord");
         Pattern genericGateway = Pattern.compile("\\bModelGateway\\b");
         Pattern toolType = Pattern.compile("\\bTool(?:Request|Result|Executor)?\\b");
@@ -54,8 +58,14 @@ class ModelCandidateLocalityBoundaryTest {
 
         String evaluator = readModelSource("ModelCandidateSuitability.java");
         assertFalse(Pattern.compile("\\binvoke\\s*\\(").matcher(evaluator).find());
-        assertFalse(Pattern.compile("\\bSuitable\\b").matcher(evaluator).find(),
-                "the initial evaluator must have no reachable suitable construction");
+        assertFalse(evaluator.contains("DeterministicFakeTokenCounter"));
+        assertFalse(Pattern.compile("\\b(?:request|prompt|maxResponseLength)\\s*\\(")
+                .matcher(evaluator)
+                .find());
+
+        String counter = readModelSource("DeterministicFakeTokenCounter.java");
+        assertFalse(counter.contains("codePoints()"));
+        assertFalse(counter.contains("codePointCount("));
     }
 
     @Test
@@ -69,8 +79,24 @@ class ModelCandidateLocalityBoundaryTest {
                                 () -> path + " must not bind or consume candidates yet");
                         assertFalse(source.contains("ModelCandidateSuitability"),
                                 () -> path + " must not call or persist suitability yet");
+                        assertFalse(source.contains("DeterministicFakeTokenCounter"),
+                                () -> path + " must not count fake tokens yet");
+                        assertFalse(source.contains("deterministic-fake-v2"),
+                                () -> path + " must not consume the candidate identity yet");
+                        assertFalse(source.contains("deterministic-unicode-scalar-v1"),
+                                () -> path + " must not consume token semantics yet");
                     });
         }
+    }
+
+    @Test
+    void exactFakeGatewayRenderingAndGenericUsageRemainUnchanged() throws IOException {
+        String source = readModelSource("DeterministicFakeModelGateway.java");
+        assertFalse(source.contains("DeterministicFakeTokenCounter"));
+        assertFalse(source.contains("DeterministicFakeModelCandidate"));
+        assertTrue(source.contains("deterministic-fake-v1\\n"));
+        assertTrue(source.contains(
+                "new ModelUsage(request.prompt().length(), text.length())"));
     }
 
     @Test

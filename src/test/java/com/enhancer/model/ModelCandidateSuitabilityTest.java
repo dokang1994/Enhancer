@@ -2,7 +2,6 @@ package com.enhancer.model;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -22,7 +21,7 @@ class ModelCandidateSuitabilityTest {
             DeterministicFakeModelCandidate.bind(new DeterministicFakeModelGateway());
 
     @Test
-    void rejectsInDeterministicFirstMatchOrder() {
+    void rejectsEveryPredicateInDeterministicFirstMatchOrder() {
         assertRejected(
                 ModelCandidateSuitabilityRejectionReason.MODEL_CLASS_UNSUPPORTED,
                 admitted("other-model", "other-capability", ModelReasoningRequirement.EXTENDED));
@@ -32,52 +31,120 @@ class ModelCandidateSuitabilityTest {
         assertRejected(
                 ModelCandidateSuitabilityRejectionReason.REASONING_REQUIREMENT_UNSUPPORTED,
                 admitted("deterministic-fake", "deterministic-echo", ModelReasoningRequirement.STANDARD));
+
         assertRejected(
-                ModelCandidateSuitabilityRejectionReason.REASONING_REQUIREMENT_UNSUPPORTED,
-                admitted("deterministic-fake", "deterministic-echo", ModelReasoningRequirement.EXTENDED));
+                ModelCandidateSuitabilityRejectionReason.CONTEXT_CAPACITY_INSUFFICIENT,
+                admitted(
+                        524_290,
+                        new ModelTokenBudget(262_145, 262_145, 524_290),
+                        new ModelCostBudget("USD", 1),
+                        ModelDataClassification.RESTRICTED));
         assertRejected(
-                ModelCandidateSuitabilityRejectionReason.TOKEN_SEMANTICS_UNAVAILABLE,
-                admitted("deterministic-fake", "deterministic-echo", ModelReasoningRequirement.MINIMAL));
+                ModelCandidateSuitabilityRejectionReason.INPUT_TOKEN_CAPACITY_INSUFFICIENT,
+                admitted(
+                        524_288,
+                        new ModelTokenBudget(262_145, 262_143, 524_288),
+                        new ModelCostBudget("USD", 1),
+                        ModelDataClassification.RESTRICTED));
+        assertRejected(
+                ModelCandidateSuitabilityRejectionReason.OUTPUT_TOKEN_CAPACITY_INSUFFICIENT,
+                admitted(
+                        524_288,
+                        new ModelTokenBudget(262_143, 262_145, 524_288),
+                        new ModelCostBudget("USD", 1),
+                        ModelDataClassification.RESTRICTED));
+        assertRejected(
+                ModelCandidateSuitabilityRejectionReason.TOTAL_TOKEN_CAPACITY_INSUFFICIENT,
+                admitted(
+                        524_131,
+                        new ModelTokenBudget(262_000, 262_131, 524_131),
+                        new ModelCostBudget("USD", 1),
+                        ModelDataClassification.RESTRICTED));
+        assertRejected(
+                ModelCandidateSuitabilityRejectionReason.FREE_ONLY_COST_REQUIRED,
+                admitted(
+                        2,
+                        new ModelTokenBudget(1, 1, 2),
+                        new ModelCostBudget("KRW", 1),
+                        ModelDataClassification.RESTRICTED));
+        assertRejected(
+                ModelCandidateSuitabilityRejectionReason.DATA_CLASSIFICATION_UNSUPPORTED,
+                admitted(
+                        2,
+                        new ModelTokenBudget(1, 1, 2),
+                        new ModelCostBudget("USD", 0),
+                        ModelDataClassification.INTERNAL));
     }
 
     @Test
-    void tokenSemanticsStopPrecedesAllLaterProfilePredicates() {
-        ModelInvocationAdmissionDecision.Admitted freePublic = admitted(
-                "deterministic-fake",
-                "deterministic-echo",
-                ModelReasoningRequirement.MINIMAL,
-                2,
+    void acceptsEachExactThresholdAndRejectsOneTokenAboveIt() {
+        assertSuitable(admitted(
+                524_288,
                 new ModelTokenBudget(1, 1, 2),
                 new ModelCostBudget("USD", 0),
-                ModelDataClassification.PUBLIC);
-        ModelInvocationAdmissionDecision.Admitted paidRestricted = admitted(
-                "deterministic-fake",
-                "deterministic-echo",
-                ModelReasoningRequirement.MINIMAL,
-                100,
-                new ModelTokenBudget(10, 20, 30),
-                new ModelCostBudget("KRW", 50_000),
-                ModelDataClassification.RESTRICTED);
+                ModelDataClassification.PUBLIC));
+        assertRejected(
+                ModelCandidateSuitabilityRejectionReason.CONTEXT_CAPACITY_INSUFFICIENT,
+                admitted(
+                        524_289,
+                        new ModelTokenBudget(1, 1, 2),
+                        new ModelCostBudget("USD", 0),
+                        ModelDataClassification.PUBLIC));
 
+        assertSuitable(admitted(
+                262_145,
+                new ModelTokenBudget(262_144, 1, 262_145),
+                new ModelCostBudget("USD", 0),
+                ModelDataClassification.PUBLIC));
         assertRejected(
-                ModelCandidateSuitabilityRejectionReason.TOKEN_SEMANTICS_UNAVAILABLE,
-                freePublic);
+                ModelCandidateSuitabilityRejectionReason.INPUT_TOKEN_CAPACITY_INSUFFICIENT,
+                admitted(
+                        262_146,
+                        new ModelTokenBudget(262_145, 1, 262_146),
+                        new ModelCostBudget("USD", 0),
+                        ModelDataClassification.PUBLIC));
+
+        assertSuitable(admitted(
+                262_145,
+                new ModelTokenBudget(1, 262_144, 262_145),
+                new ModelCostBudget("USD", 0),
+                ModelDataClassification.PUBLIC));
         assertRejected(
-                ModelCandidateSuitabilityRejectionReason.TOKEN_SEMANTICS_UNAVAILABLE,
-                paidRestricted);
+                ModelCandidateSuitabilityRejectionReason.OUTPUT_TOKEN_CAPACITY_INSUFFICIENT,
+                admitted(
+                        262_146,
+                        new ModelTokenBudget(1, 262_145, 262_146),
+                        new ModelCostBudget("USD", 0),
+                        ModelDataClassification.PUBLIC));
+
+        assertSuitable(admitted(
+                524_130,
+                new ModelTokenBudget(262_000, 262_130, 524_130),
+                new ModelCostBudget("USD", 0),
+                ModelDataClassification.PUBLIC));
+        assertRejected(
+                ModelCandidateSuitabilityRejectionReason.TOTAL_TOKEN_CAPACITY_INSUFFICIENT,
+                admitted(
+                        524_131,
+                        new ModelTokenBudget(262_000, 262_131, 524_131),
+                        new ModelCostBudget("USD", 0),
+                        ModelDataClassification.PUBLIC));
     }
 
     @Test
-    void everyCurrentProfilePartitionFailsClosed() {
-        for (String modelClass : new String[] {"deterministic-fake", "other-model"}) {
-            for (String capability : new String[] {"deterministic-echo", "other-capability"}) {
-                for (ModelReasoningRequirement reasoning : ModelReasoningRequirement.values()) {
-                    assertFalse(evaluator.evaluate(
-                                    admitted(modelClass, capability, reasoning), candidate)
-                            instanceof ModelCandidateSuitabilityDecision.Suitable);
-                }
-            }
-        }
+    void returnsSuitableWithTheExactAdmittedAndCandidateInstances() {
+        ModelInvocationAdmissionDecision.Admitted admitted = admitted(
+                524_288,
+                new ModelTokenBudget(261_986, 262_144, 524_130),
+                new ModelCostBudget("USD", 0),
+                ModelDataClassification.PUBLIC);
+
+        ModelCandidateSuitabilityDecision.Suitable suitable = assertInstanceOf(
+                ModelCandidateSuitabilityDecision.Suitable.class,
+                evaluator.evaluate(admitted, candidate));
+
+        assertSame(admitted, suitable.admitted());
+        assertSame(candidate, suitable.candidate());
     }
 
     @Test
@@ -135,10 +202,6 @@ class ModelCandidateSuitabilityTest {
                 "deterministic-fake",
                 "deterministic-echo",
                 ModelReasoningRequirement.MINIMAL);
-        ModelCandidateSuitabilityDecision.Suitable suitable =
-                new ModelCandidateSuitabilityDecision.Suitable(admitted, candidate);
-        assertSame(admitted, suitable.admitted());
-        assertSame(candidate, suitable.candidate());
         assertThrows(
                 NullPointerException.class,
                 () -> new ModelCandidateSuitabilityDecision.Suitable(null, candidate));
@@ -174,6 +237,14 @@ class ModelCandidateSuitabilityTest {
         assertEquals(expected, rejected.reason());
     }
 
+    private void assertSuitable(ModelInvocationAdmissionDecision.Admitted admitted) {
+        ModelCandidateSuitabilityDecision.Suitable suitable = assertInstanceOf(
+                ModelCandidateSuitabilityDecision.Suitable.class,
+                evaluator.evaluate(admitted, candidate));
+        assertSame(admitted, suitable.admitted());
+        assertSame(candidate, suitable.candidate());
+    }
+
     private static void assertRecordShape(
             Class<?> type, String[] expectedNames, Class<?>[] expectedTypes) {
         assertTrue(type.isRecord());
@@ -200,6 +271,21 @@ class ModelCandidateSuitabilityTest {
                 new ModelTokenBudget(1, 1, 2),
                 new ModelCostBudget("USD", 0),
                 ModelDataClassification.PUBLIC);
+    }
+
+    private static ModelInvocationAdmissionDecision.Admitted admitted(
+            long minimumContextTokens,
+            ModelTokenBudget tokenBudget,
+            ModelCostBudget costBudget,
+            ModelDataClassification classification) {
+        return admitted(
+                "deterministic-fake",
+                "deterministic-echo",
+                ModelReasoningRequirement.MINIMAL,
+                minimumContextTokens,
+                tokenBudget,
+                costBudget,
+                classification);
     }
 
     private static ModelInvocationAdmissionDecision.Admitted admitted(

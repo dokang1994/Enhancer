@@ -24,14 +24,21 @@ class DeterministicFakeModelCandidateTest {
                 DeterministicFakeModelCandidate.bind(gateway);
 
         assertSame(gateway, candidate.gateway());
-        assertEquals("deterministic-fake-v1", candidate.candidateId());
+        assertEquals("deterministic-fake-v2", candidate.candidateId());
         assertEquals("deterministic-fake", candidate.modelClass());
         assertEquals("deterministic-echo", candidate.requiredCapability());
         assertEquals(
                 ModelReasoningRequirement.MINIMAL,
                 candidate.maximumReasoningRequirement());
         assertEquals("CLOSED_IN_PROCESS_FAKE", candidate.localityProvenance());
-        assertFalse(candidate.tokenSemanticsAvailable());
+        assertEquals(
+                "deterministic-unicode-scalar-v1",
+                candidate.tokenSemanticsId());
+        assertTrue(candidate.tokenSemanticsAvailable());
+        assertEquals(524_288, candidate.maximumContextTokens());
+        assertEquals(262_144, candidate.maximumInputTokens());
+        assertEquals(262_144, candidate.maximumOutputTokens());
+        assertEquals(524_130, candidate.maximumTotalTokens());
         assertFalse(candidate.hasProviderCharge());
         assertEquals(
                 ModelDataClassification.PUBLIC,

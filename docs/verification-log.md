@@ -6602,3 +6602,30 @@ Outcome:
   `main`. Final task-cursor synchronization, focused Markdown verification, closure
   commit/push, ref inspection, and push-triggered external verification follow before
   the session checkpoint becomes stable.
+
+## 2026-09-02 - Deterministic Fake Token Capacity Standalone Implementation
+
+- RED-first focused compilation failed on the absent `DeterministicFakeTokenCounter`
+  and five absent candidate-v2 fact getters with 19 missing-symbol errors. The primary
+  Agent classified that failure as aligned with RFC-0021 and the Active Task before
+  adding production code.
+- Added a field-free pure counter that returns `long`, counts well-formed Unicode
+  scalars without normalization or encoding, rejects every malformed-surrogate
+  position without prompt content in diagnostics, and uses checked arithmetic for
+  count and exact response derivation. Package-private algebra is checked against the
+  actual unchanged fake rendering across decimal digit boundaries and explicit
+  overflow inputs.
+- The exact candidate now exposes fixed `deterministic-fake-v2`,
+  `deterministic-unicode-scalar-v1`, availability, and context/input/output/total
+  capacities 524,288/262,144/262,144/524,130 while retaining the exact gateway as its
+  sole instance field. The field-free evaluator now applies all remaining ordered
+  capacity, zero-cost, and public-classification predicates and retains exact input
+  identities in reachable ephemeral `Suitable` results.
+- Fresh focused Java 17 verification completed with `BUILD SUCCESSFUL` in 11 seconds.
+  JUnit XML reported 4 suites and 19 tests: all 19 passed with zero skipped, failed,
+  or errored. `git diff --check` passed.
+- Source and reflection guards prove there is still no production caller, actual-
+  request counting, candidate selection input, invocation, gateway change, generic
+  `ModelUsage` change, Tool/evidence/RunRecord/runtime dependency, or schema wiring.
+  Canonical document synchronization and the fresh full regression follow in
+  Increment 2.

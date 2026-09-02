@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-09-02 into RFC-0021 sequence 1 implementation
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-09-02-implement-deterministic-fake-token-capacity.md)
+
 ### User request on 2026-09-01 to commit, push, and merge accumulated Gate 9 model-boundary work to main
 
 Status: Accepted Decision

@@ -10,6 +10,11 @@ import java.util.Objects;
  */
 public final class DeterministicFakeModelCandidate {
 
+    private static final long MAXIMUM_CONTEXT_TOKENS = 524_288L;
+    private static final long MAXIMUM_INPUT_TOKENS = 262_144L;
+    private static final long MAXIMUM_OUTPUT_TOKENS = 262_144L;
+    private static final long MAXIMUM_TOTAL_TOKENS = 524_130L;
+
     private final DeterministicFakeModelGateway gateway;
 
     private DeterministicFakeModelCandidate(DeterministicFakeModelGateway gateway) {
@@ -25,7 +30,7 @@ public final class DeterministicFakeModelCandidate {
     }
 
     public String candidateId() {
-        return "deterministic-fake-v1";
+        return "deterministic-fake-v2";
     }
 
     public String modelClass() {
@@ -45,7 +50,27 @@ public final class DeterministicFakeModelCandidate {
     }
 
     public boolean tokenSemanticsAvailable() {
-        return false;
+        return true;
+    }
+
+    public String tokenSemanticsId() {
+        return "deterministic-unicode-scalar-v1";
+    }
+
+    public long maximumContextTokens() {
+        return MAXIMUM_CONTEXT_TOKENS;
+    }
+
+    public long maximumInputTokens() {
+        return MAXIMUM_INPUT_TOKENS;
+    }
+
+    public long maximumOutputTokens() {
+        return MAXIMUM_OUTPUT_TOKENS;
+    }
+
+    public long maximumTotalTokens() {
+        return MAXIMUM_TOTAL_TOKENS;
     }
 
     public boolean hasProviderCharge() {

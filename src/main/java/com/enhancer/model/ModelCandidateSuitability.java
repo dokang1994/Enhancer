@@ -23,7 +23,35 @@ public final class ModelCandidateSuitability {
             return rejected(
                     ModelCandidateSuitabilityRejectionReason.REASONING_REQUIREMENT_UNSUPPORTED);
         }
-        return rejected(ModelCandidateSuitabilityRejectionReason.TOKEN_SEMANTICS_UNAVAILABLE);
+        if (!candidate.tokenSemanticsAvailable()) {
+            return rejected(ModelCandidateSuitabilityRejectionReason.TOKEN_SEMANTICS_UNAVAILABLE);
+        }
+        if (profile.minimumContextTokens() > candidate.maximumContextTokens()) {
+            return rejected(
+                    ModelCandidateSuitabilityRejectionReason.CONTEXT_CAPACITY_INSUFFICIENT);
+        }
+        if (profile.tokenBudget().maxInputTokens() > candidate.maximumInputTokens()) {
+            return rejected(
+                    ModelCandidateSuitabilityRejectionReason.INPUT_TOKEN_CAPACITY_INSUFFICIENT);
+        }
+        if (profile.tokenBudget().maxOutputTokens() > candidate.maximumOutputTokens()) {
+            return rejected(
+                    ModelCandidateSuitabilityRejectionReason.OUTPUT_TOKEN_CAPACITY_INSUFFICIENT);
+        }
+        if (profile.tokenBudget().maxTotalTokens() > candidate.maximumTotalTokens()) {
+            return rejected(
+                    ModelCandidateSuitabilityRejectionReason.TOTAL_TOKEN_CAPACITY_INSUFFICIENT);
+        }
+        if (profile.costBudget().maxMicrounits() != 0L) {
+            return rejected(ModelCandidateSuitabilityRejectionReason.FREE_ONLY_COST_REQUIRED);
+        }
+        if (profile.dataClassification().compareTo(
+                        candidate.maximumDataClassification())
+                > 0) {
+            return rejected(
+                    ModelCandidateSuitabilityRejectionReason.DATA_CLASSIFICATION_UNSUPPORTED);
+        }
+        return new ModelCandidateSuitabilityDecision.Suitable(admitted, candidate);
     }
 
     private static ModelCandidateSuitabilityDecision.Rejected rejected(

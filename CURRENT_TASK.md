@@ -2,74 +2,79 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Deliver the fifteen completed and verified Gate 9 model-boundary commits from local
-`main` to `origin/main` with non-force fast-forward pushes, observe external
-verification, and record truthful delivery evidence.
+Implement RFC-0021 sequence 1 RED-first: the pure well-formed Unicode-scalar
+counter, the fixed token-aware `deterministic-fake-v2` candidate facts, and the
+remaining standalone field-free suitability predicates, with no production caller
+or invocation seam.
 
 ## Task ID
 
-deliver-accumulated-gate-9-model-boundaries-to-main
+implement-deterministic-fake-token-capacity
 
 ## Context
 
-The clean local `main` ends at `4e52209` and contains fifteen commits after the
-tracked `origin/main` at `8d70bb3`. The range specifies and implements Model
-RunRecord v2, exact active-task resolution, Scheduler model preparation, fail-closed
-local-candidate suitability, and RFC-0021 deterministic-fake token/capacity semantics.
-Those commits already lie directly on `main`, so a non-force fast-forward push is the
-requested merge. A fresh fetch and ancestry check remain mandatory before each
-external delivery.
+RFC-0020's closed candidate and suitability evaluator are implemented and verified,
+but intentionally stop at `TOKEN_SEMANTICS_UNAVAILABLE`. RFC-0021 now supplies the
+accepted fake-only scalar-counting algorithm, stable v2 candidate identity, exact
+response algebra, four proven capacities, and the remaining first-match predicates.
+The completed delivery task recorded this implementation as the sole next action, and
+the user requested continuation on 2026-09-02.
 
 ## Justified By
 
-- User request on 2026-09-01 to commit, push, and merge accumulated Gate 9 model-boundary work to main
+- User continuation request on 2026-09-02 into RFC-0021 sequence 1 implementation
 - User continuation request on 2026-09-01 into deterministic fake token semantics and capacity specification
-- User continuation request on 2026-08-31 into fail-closed local model candidate implementation
-- User continuation request on 2026-08-31 into local model candidate suitability specification
 
 ## Approval
 
-The user's explicit 2026-09-01 request authorizes a bounded delivery-authority commit,
-fresh local verification, non-force push of aligned local `main` to `origin/main`,
-remote-ref and GitHub Actions observation, one truthful delivery-evidence follow-up
-commit, and one final non-force push. It authorizes no force operation, history rewrite,
-temporary branch, synthetic merge commit, tag, release, deployment, branch deletion,
-permission or credential change, destructive cleanup, or additional implementation.
+The user's 2026-09-02 continuation authorizes the bounded RED-first standalone
+implementation described by RFC-0021 sequence 1, corresponding tests, repository
+document synchronization, fresh verification, and ordinary local GREEN commits. It
+authorizes no production caller, actual-request budget seam, gateway or Tool
+invocation, runtime/process/worker/finalizer/recovery integration, durable schema,
+provider, network, credential, paid service, push, merge, release, deployment,
+permission change, destructive cleanup, or external effect.
 
 ## Acceptance Criteria
 
-- Fresh fetch and ref inspection prove `origin/main` is an ancestor of local `main`
-  immediately before each push; any divergence stops delivery.
-- The delivery authority and cursor are committed locally only after focused governance
-  and fresh full README-owned Java 17 Markdown-sensitive verification pass.
-- Pushes use the explicit `main:main` refspec without force and preserve linear
-  history; no temporary branch or synthetic merge commit is created.
-- The first push delivers all fifteen completed commits plus the delivery-authority
-  commit, and advertised remote `refs/heads/main` matches the pushed local HEAD.
-- The push-triggered GitHub Actions verification reaches a successful terminal
-  conclusion before delivery evidence is recorded.
-- One append-only delivery observation records the exact pushed range, ref identities,
-  fast-forward/merge meaning, and external verification result; the task cursor is then
-  completed in one bounded follow-up commit.
-- The follow-up commit is pushed without force after a fresh ancestry check; final
-  local HEAD, fetched `origin/main`, and advertised remote main match, final external
-  verification succeeds, and the worktree/checkpoint are clean and stable.
-- No product implementation, RFC contract, maturity, architecture, Roadmap, runtime,
-  schema, permission, tag, release, or deployment change occurs.
+- A pure counter returns `long` Unicode-scalar counts for well-formed Java strings,
+  rejects null and every malformed-surrogate position, and performs no normalization,
+  replacement, encoding, provider-tokenizer, or `ModelUsage` work.
+- Exact fake response count derivation uses checked arithmetic and is tested against
+  actual rendering across decimal digit boundaries, including the 261,986 success and
+  261,987 refusal boundaries.
+- The exact candidate exposes fixed `deterministic-fake-v2`,
+  `deterministic-unicode-scalar-v1`, token availability, and the four RFC-0021
+  capacities while retaining exactly one instance field: the bound exact gateway.
+- The field-free evaluator preserves the closed first-match order, makes every
+  capacity/cost/classification reason reachable, and returns `Suitable` with the exact
+  admitted and candidate identities only after every fixed predicate passes.
+- Production callers, actual-request counting, gateway/Tool activity, evidence,
+  RunRecord/runtime effects, schemas, typed ModelWork guards, and generic `ModelUsage`
+  behavior remain unchanged.
+- Focused tests, architecture/governance tests, `git diff --check`, and the full
+  README-owned Java 17 regression pass freshly before completion.
+- Canonical documents and append-only verification evidence truthfully describe the
+  implemented standalone boundary without promoting runtime capability maturity.
 
 ## Out Of Scope
 
-Force push, rebase, reset, amend, squash, cherry-pick, temporary branch, synthetic merge
-commit, tag, release, deployment, branch deletion, permission or credential changes,
-destructive cleanup, additional implementation, RFC changes, and maturity promotion.
+Actual-request budget validation or refusal algebra; same-request/same-policy/
+same-gateway invocation seam; any production caller; gateway or Tool invocation;
+Scheduler execution; Model RunRecord persistence; runtime, worker, finalizer, retry,
+or recovery wiring; typed ModelWork producer/receiver; provider or general tokenizer;
+usage normalization; schema or migration; network, credentials, spend; push, merge,
+release, deployment, permission changes, and destructive cleanup.
 
 ## Allowed Tools
 
 - read-file
+- write-code
+- write-tests
 - write-docs
 - build-output
 - verify
@@ -77,58 +82,53 @@ destructive cleanup, additional implementation, RFC changes, and maturity promot
 - git-inspect
 - git-stage
 - git-commit
-- git-fetch
-- git-push
-- gh-inspect
 
 ## Verification
 
-Evidence is appended once per completed delivery increment to
-`docs/verification-log.md` after the declared checks complete.
+Use RED-first focused tests for observable behavior. Append fresh GREEN evidence once
+per completed increment to `docs/verification-log.md`; subagent recommendations are
+not verification evidence.
 
 ## Dynamic Workflow
 
-Workflow ID: deliver-accumulated-gate-9-model-boundaries-to-main
+Workflow ID: implement-deterministic-fake-token-capacity
 Mode: Sequential
 Increment Limit: 2
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
-Stop Conditions: Stop on failed local or external verification, remote divergence,
-non-fast-forward refusal, unexpected path or ref, checkpoint drift, task drift, new
-external authority, exhausted bounds, or unsafe recovery.
+Stop Conditions: Stop on contract conflict, failed verification, malformed-input
+ambiguity, production-caller or invocation drift, new authority, checkpoint drift,
+exhausted bounds, or unsafe recovery.
 
-### Increment 1 - verify-and-push-gate-9-model-boundaries
+### Increment 1 - implement-standalone-token-capacity
 
 State: Completed
 Depends On: none
-Scope: Commit the delivery authority/cursor, rerun local governance and full
-verification, recheck ancestry, push aligned local main without force, verify the
-remote ref, and observe the triggered GitHub Actions verification.
-Exit Criteria: Local checks pass, the delivery-authority commit and all fifteen
-completed increments are present on remote main through a fast-forward push, the
-advertised ref matches, and the triggered GitHub Actions run succeeds.
-Verification: Focused governance tests, README-owned full Gradle test task, diff checks,
-fetch/merge-base/ref inspection, non-force push output, advertised remote ref, and
-GitHub Actions conclusion.
-Next Action: Append delivery evidence once, close the cursor, commit, and push the
-bounded follow-up.
+Scope: Add RED tests, implement the pure scalar counter and checked fake-response
+derivation, expose fixed candidate-v2 facts, and complete the standalone suitability
+predicates without adding a caller or invocation.
+Exit Criteria: All focused behavioral and boundary tests pass; source guards prove
+the implementation remains standalone and preserves unrelated contracts.
+Verification: Focused counter, gateway-algebra, candidate, suitability, and locality-
+boundary tests plus `git diff --check`.
+Next Action: Synchronize canonical documents, run the full regression, and close the
+task in one verified follow-up increment.
 
-### Increment 2 - record-and-push-delivery-evidence
+### Increment 2 - verify-and-close-token-capacity
 
-State: Completed
-Depends On: verify-and-push-gate-9-model-boundaries
-Scope: Append the exact delivery observation, complete the task cursor, verify the
-Markdown-sensitive repository, commit the bounded evidence update, recheck ancestry,
-push without force, and verify final refs and external verification.
-Exit Criteria: Delivery evidence and the completed cursor are on remote main, final
-local/fetched/advertised refs match, final external verification succeeds, and the
-worktree and checkpoint are clean and stable.
-Verification: Focused governance tests, `git diff` checks, commit inspection, fresh
-fetch/merge-base/ref checks, non-force push output, GitHub Actions conclusion, and final
-clean-tree inspection.
-Next Action: Await separate authority to implement RFC-0021 sequence 1 RED-first.
+State: In Progress
+Depends On: implement-standalone-token-capacity
+Scope: Reconcile architecture/state/task/handoff/changelog ownership, append fresh
+verification evidence once, run Markdown-sensitive governance and the full README-
+owned Java 17 regression, and commit the completed standalone boundary.
+Exit Criteria: All applicable checks pass freshly, canonical documents are current,
+the worktree has the intended local commits only, and the checkpoint is stable and
+clear.
+Verification: Focused governance tests, full `./scripts/gradle.ps1 test`, diff/commit/
+status inspection, and checkpoint reconciliation.
+Next Action: Await separate authority to specify the exact-request budget and
+same-request invocation seam.
 
 ## Next
 
-Await separate user authority to implement RFC-0021 sequence 1 RED-first: the pure
-well-formed Unicode-scalar counter, fixed token-aware candidate-v2 facts, and remaining
-standalone suitability predicates, with no production caller or invocation seam.
+Synchronize canonical documents, run the full README-owned regression, and close
+Increment 2 only after reading the fresh results.
