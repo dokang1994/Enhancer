@@ -19,6 +19,9 @@
 - Focused Markdown-sensitive governance passed 27 tests across 8 suites with zero
   skips, failures, or errors; `git diff --check` passed and changed Java source count
   was zero.
+- The verified specification increment was committed locally as `0eddd37`; the fresh
+  full README-owned regression then passed 1,045 tests across 192 suites with 1,033
+  passed, 12 skipped, and zero failures or errors.
 
 ## 2026-09-02 - Implement Deterministic Fake Token Capacity
 

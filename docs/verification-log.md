@@ -6689,3 +6689,33 @@ Outcome:
   implementation, gateway or Tool call, caller, evidence, RunRecord/schema, runtime,
   provider, network, credential, spend, push, merge, release, or deployment changed.
   The full README-owned regression follows in Increment 2.
+
+## 2026-09-02 - Exact-Request Specification Full Regression And Closure
+
+- The verified RFC/decision/architecture/task/evidence specification increment was
+  committed locally as `0eddd37` (`Specify exact-request model invocation seam`).
+- Fresh full Java 17 verification used the README-owned
+  `.\scripts\gradle.ps1 test` command and completed with `BUILD SUCCESSFUL` in
+  2 minutes 11 seconds.
+- JUnit XML aggregation found 192 suites and 1,045 tests: 1,033 passed, 12 were
+  skipped, and zero failed or errored.
+- The full regression left the worktree clean. Increment 2 and the Active Task are now
+  closed; the next action requires separate user authority for RFC-0022 sequences 1
+  and 2 RED-first implementation without a production caller.
+- No Java/test implementation, gateway or Tool call, caller, evidence or RunRecord
+  write, schema/runtime/finalizer/retry/recovery wiring, provider, network, credential,
+  spend, push, merge, release, deployment, permission change, destructive cleanup, or
+  external effect occurred.
+
+## 2026-09-02 - Exact-Request Specification Post-Closure Governance
+
+- After task/increment completion, next-action, Changelog, and full-regression evidence
+  synchronization, fresh focused Java 17 governance completed with
+  `BUILD SUCCESSFUL` in 4 seconds.
+- JUnit XML aggregation found 8 suites and 27 tests: all 27 passed with zero skipped,
+  failed, or errored. The selection covered decision indexing, document ownership,
+  dynamic workflow, candidate locality/non-caller guards, task justification,
+  approved-task reading/revision, and repository-task planning.
+- `git diff --check` passed and the closure diff was reviewed. A final focused run over
+  this complete append-only Markdown state follows before the closure commit and stable
+  checkpoint clear.

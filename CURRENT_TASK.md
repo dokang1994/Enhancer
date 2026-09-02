@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -119,7 +119,7 @@ regression.
 
 ### Increment 2 - verify-and-close-exact-request-specification
 
-State: In Progress
+State: Completed
 Depends On: specify-exact-request-invocation-contract
 Scope: Run the full Markdown-sensitive Java 17 regression, record fresh evidence,
 close the task/handoff, and commit the verified specification closure.
@@ -132,4 +132,5 @@ and invocation boundary RED-first without a production caller.
 
 ## Next
 
-Run the full README-owned regression, read the fresh results, and close Increment 2.
+Await separate user authority to implement RFC-0022 sequences 1 and 2 RED-first with
+no production caller.
