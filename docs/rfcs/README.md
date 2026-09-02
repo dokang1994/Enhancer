@@ -27,6 +27,7 @@ RFCs preserve long-term architecture intent and make references stable across Ch
 - `RFC-0019`: Scheduler Model RunRecord And Admission Preparation
 - `RFC-0020`: Deterministic Local Model Candidate Suitability
 - `RFC-0021`: Deterministic Fake Token Semantics And Capacity
+- `RFC-0022`: Deterministic Fake Exact-Request Budget And Invocation Seam
 
 ## Status Values
 

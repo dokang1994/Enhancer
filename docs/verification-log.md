@@ -6662,3 +6662,30 @@ Outcome:
   approved-task reading/revision, and repository-task planning.
 - `git diff --check` passed. A final focused run over this complete append-only
   Markdown state follows before the closure commit and stable checkpoint clear.
+
+## 2026-09-02 - Exact-Request Model Budget And Invocation Seam Specification
+
+- Two bounded read-only reviews compared the existing request/profile/admission,
+  Scheduler preparation policy identity, candidate/suitability/counter/gateway, Tool,
+  Model RunRecord v2, retry, and recovery contracts. The primary Agent retained the
+  API review's private-construction budget-success boundary and the security review's
+  opaque non-revealing result, zero-activity, and code-only gateway-failure constraints.
+- RFC-0022 accepts a future field-free preparation over exact `Suitable` plus exact
+  policy and a future field-free invoker accepting only its opaque `Ready`. The
+  retained identity chain supplies the exact admitted request and candidate-bound
+  gateway without a second prompt read, request reconstruction, or caller-substituted
+  gateway.
+- Algebra review proved `PREDICTED_TOTAL_TOKEN_BUDGET_EXCEEDED` is unreachable after
+  successful individual checks for every valid current `ModelTokenBudget`, because
+  `maxInput + maxOutput <= maxTotal`. The stable reason, checked addition, and ordered
+  comparison remain defensive; the RFC forbids weakening the profile or fabricating
+  invalid test input to make the branch reachable.
+- Fresh focused Java 17 governance completed with `BUILD SUCCESSFUL` in 10 seconds.
+  JUnit XML aggregation found 8 suites and 27 tests: all 27 passed with zero skipped,
+  failed, or errored. The selection covered decision/index, document ownership,
+  dynamic workflow, local-candidate non-caller guards, task justification, approved-
+  task reading/revision, and repository-task planning.
+- `git diff --check` passed and changed Java source count was zero. No Java/test
+  implementation, gateway or Tool call, caller, evidence, RunRecord/schema, runtime,
+  provider, network, credential, spend, push, merge, release, or deployment changed.
+  The full README-owned regression follows in Increment 2.

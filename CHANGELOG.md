@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-09-02 - Specify Exact-Request Model Budget And Invocation Seam
+
+- Accepted RFC-0022 for a closed deterministic-fake actual-request preparation that
+  counts the exact retained prompt once and applies malformed/input/response-length/
+  output/checked-total budget checks before creating an opaque private-construction
+  `Ready`.
+- Defined a same-request/same-policy/same-candidate-gateway invoker that accepts only
+  `Ready`, performs defensive policy and cancellation checks, calls the exact gateway
+  at most once, and returns opaque untrusted-response, pre-call-refusal, or code-only
+  gateway-failure outcomes without raw exception text.
+- Proved the total-budget reason is a defensive unreachable branch under the current
+  `ModelTokenBudget` invariant rather than weakening the profile or changing first-
+  match order to fabricate a witness.
+- No Java, test source, caller, Tool/gateway behavior, evidence, RunRecord/schema,
+  runtime, provider, network, credential, spend, push, merge, release, or deployment
+  changed.
+- Focused Markdown-sensitive governance passed 27 tests across 8 suites with zero
+  skips, failures, or errors; `git diff --check` passed and changed Java source count
+  was zero.
+
 ## 2026-09-02 - Implement Deterministic Fake Token Capacity
 
 - Added a field-free `deterministic-unicode-scalar-v1` counter with fail-closed

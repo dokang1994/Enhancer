@@ -926,6 +926,8 @@ Scope:
 - a closed deterministic-fake candidate binding, implemented Unicode-scalar counter,
   fixed token-aware identity and capacities, and complete standalone suitability
   boundary before any actual-request budget or invocation seam;
+- an accepted closed deterministic-fake exact-request budget and same-request/same-
+  policy/same-candidate-gateway invocation contract before any production caller;
 - Model Router with deterministic fake plus explicitly selected provider adapters;
 - timeout, cancellation, token, context, cost, redaction, and response-validation budgets;
 - versioned per-model quality evaluation, policy-scoped fallback and response caching, prompt-injection resistance, source attribution, and visible uncertainty;
@@ -1235,6 +1237,7 @@ Status: Accepted
 - RFC-0019: Scheduler Model RunRecord And Admission Preparation
 - RFC-0020: Deterministic Local Model Candidate Suitability
 - RFC-0021: Deterministic Fake Token Semantics And Capacity
+- RFC-0022: Deterministic Fake Exact-Request Budget And Invocation Seam
 
 RFC acceptance does not imply Contract Verified, Integrated, Operational, or Released capability maturity.
 

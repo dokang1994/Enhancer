@@ -1767,6 +1767,25 @@ candidate, and gateway identities. The gateway's `deterministic-fake-v1` renderi
 generic character-based `ModelUsage`, `ModelInvokeTool`, Scheduler preparation,
 schemas, execution guards, runtime, and recovery remain unchanged.
 
+RFC-0022 specifies that seam without implementing it. A future field-free
+`DeterministicFakeExactRequestPreparation` accepts only exact `Suitable` plus the
+RFC-0019 policy instance, counts the retained request prompt once, and applies
+malformed-input, actual-input, predicted response UTF-16 length, predicted output, and
+checked-total comparisons in order. Only its private-construction opaque `Ready`
+variant can enter the field-free invoker; request, policy, candidate, and gateway are
+derived through that retained identity chain rather than supplied again.
+
+The total-budget reason stays as a defensive stable branch even though RFC-0014's
+`maxInput + maxOutput <= maxTotal` invariant makes it unreachable after both
+individual checks for every valid current profile. The future invoker rechecks the
+retained policy allowlist, strict timeout relationship, and current cancellation before
+one exact candidate-bound gateway call. Its opaque result distinguishes returned
+untrusted response, pre-call refusal, and unchanged `ModelFailureCode` without raw
+exception text. This standalone seam supplies no ToolExecutor isolation, evidence,
+verification, RunRecord, retry, runtime, or production-caller authority; later typed
+ModelWork process integration must prove the exact Scheduler policy identity and own
+those effects.
+
 ## Agent Orchestration Contract
 
 ### Development-Time Adaptive Subagent Delegation
@@ -1953,6 +1972,7 @@ Major design areas are tracked in `docs/rfcs/`.
 - `RFC-0019`: Scheduler Model RunRecord And Admission Preparation
 - `RFC-0020`: Deterministic Local Model Candidate Suitability
 - `RFC-0021`: Deterministic Fake Token Semantics And Capacity
+- `RFC-0022`: Deterministic Fake Exact-Request Budget And Invocation Seam
 
 ## First Architecture Slice
 
@@ -2252,5 +2272,6 @@ Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts bel
 ## Open Architecture Questions
 
 - Provider and general model context/token strategies are not selected; RFC-0021
-  defines only the closed deterministic fake's standalone semantics and capacities.
+  implements fake-only Unicode-scalar semantics and fixed capacities, while RFC-0022
+  specifies only the still-unimplemented exact-request and exact-fake invocation seam.
 - Future LLM-backed Planner input/output schema is not selected yet.
