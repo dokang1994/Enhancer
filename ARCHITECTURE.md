@@ -1777,10 +1777,9 @@ derived through that retained identity chain rather than supplied again.
 
 The total-budget reason stays as a defensive stable branch even though RFC-0014's
 `maxInput + maxOutput <= maxTotal` invariant makes it unreachable after both
-individual checks for every valid current profile. The still-unimplemented invoker
-must recheck the retained policy allowlist, strict timeout relationship, and current
-cancellation before one exact candidate-bound gateway call. Its opaque result
-distinguishes returned
+individual checks for every valid current profile. The field-free invoker rechecks the
+retained policy allowlist, strict timeout relationship, and current cancellation before
+one exact candidate-bound gateway call. Its opaque result distinguishes returned
 untrusted response, pre-call refusal, and unchanged `ModelFailureCode` without raw
 exception text. This standalone seam supplies no ToolExecutor isolation, evidence,
 verification, RunRecord, retry, runtime, or production-caller authority; later typed
@@ -2274,5 +2273,6 @@ Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts bel
 
 - Provider and general model context/token strategies are not selected; RFC-0021
   implements fake-only Unicode-scalar semantics and fixed capacities, while RFC-0022
-  specifies only the still-unimplemented exact-request and exact-fake invocation seam.
+  implements only the standalone exact-request and exact-fake invocation seam without
+  a production caller or runtime integration.
 - Future LLM-backed Planner input/output schema is not selected yet.

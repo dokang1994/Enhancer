@@ -2,15 +2,15 @@
 
 ## Updated At
 
-2026-09-02
+2026-09-03
 
 ## Repository State
 
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 454 Java files.
-- Test source: 196 Java files.
+- Production source: 457 Java files.
+- Test source: 197 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -20,7 +20,7 @@ it does not restate which commit published which increment.
 
 ### Contract Verified
 
-- The RFC-0022 sequence-1 exact-request preparation boundary under
+- The RFC-0022 standalone exact-request preparation and invocation boundary under
   `com.enhancer.model` is Contract Verified. Field-free
   `DeterministicFakeExactRequestPreparation` accepts exact `Suitable` plus exact
   `ExecutionPolicy`, reads the retained prompt once, counts its well-formed Unicode
@@ -30,9 +30,18 @@ it does not restate which commit published which increment.
   counts, or one closed reason with non-revealing rendering. Focused behavior,
   reflection, source-order, total-invariant, and locality guards cover equality/one-
   over boundaries, supplementary input, malformed positions, the tight fake maximum,
-  and zero gateway/Tool/evidence/RunRecord/runtime/caller activity. The invoker,
-  production caller, schema/runtime integration, provider/network, credential, and
-  spend authority remain absent.
+  and zero gateway/Tool/evidence/RunRecord/runtime/caller activity on preparation
+  refusal. Field-free `DeterministicFakeExactRequestInvoker` accepts only `Ready`,
+  rechecks policy allowlisting, strict timeout, and current cancellation in order,
+  then makes at most one exact candidate-bound fake call with the exact admitted
+  request. Opaque results retain the exact `Ready` plus an untrusted returned response,
+  one pre-call reason, or one unchanged `ModelFailureCode`; raw exception text and
+  unchecked failures are not relabeled. Focused source/reflection/interaction tests
+  prove a single invocation site, code-only failure, redacted rendering, and zero
+  production references outside the six RFC-0022 definition types. No production
+  caller, ToolExecutor isolation, evidence/verification/Model RunRecord writer,
+  schema/runtime/finalizer/retry/recovery integration, provider/network, credential,
+  or spend authority exists.
 
 - The RFC-0020/RFC-0021 standalone local-candidate boundary under
   `com.enhancer.model` is Contract Verified. Field-free
@@ -46,8 +55,8 @@ it does not restate which commit published which increment.
   retain exact inputs in ephemeral `Suitable`. Reflection and source guards prove the
   five definition types have no generic gateway, I/O, Tool, provider, credential,
   evidence, RunRecord, process, runtime, persistence, or production-caller wiring.
-  Gateway rendering and generic `ModelUsage` remain character-based; no exact-request
-  invoker, schema, runtime, network, credential, or spend authority exists.
+  Gateway rendering and generic `ModelUsage` remain character-based; no schema,
+  runtime, network, credential, or spend authority exists.
 
 - The RFC-0019 Scheduler model request/policy/admission preparation boundary under
   `com.enhancer.runtime` is Contract Verified. Immutable

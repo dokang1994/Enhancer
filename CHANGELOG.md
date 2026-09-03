@@ -1,6 +1,6 @@
 # Changelog
 
-## 2026-09-03 - Implement Exact-Request Model Budget Preparation
+## 2026-09-03 - Implement Exact-Request Model Budget And Invocation Seam
 
 - Added the field-free RFC-0022 exact-request preparation with closed ordered
   malformed/input/response-length/output/defensive-total budget refusal.
@@ -10,9 +10,15 @@
 - Added RED-first behavior, reflection, source-order, total-invariant, Unicode,
   maximum-bound, and no-production-caller guards. Focused Java 17 verification passed
   70 tests across 14 suites with zero skips, failures, or errors.
-- No gateway call, invoker, production caller, Tool/evidence/RunRecord/schema/runtime/
-  retry/recovery/provider/network/credential/spend path, push, merge, release, or
-  deployment was added or performed.
+- Added the field-free `Ready`-only invoker with ordered allowlist/strict-timeout/
+  cancellation refusal, one exact candidate-bound fake call, untrusted success,
+  unchanged code-only gateway failure, and unchecked-failure propagation.
+- Added RED-first interaction, reflection, source-order, single-call, all-failure-code,
+  real-fake, and rendering guards. Initial focused invoker verification passed 41
+  tests across 7 suites with zero skips, failures, or errors.
+- No production caller, ToolExecutor/evidence/verification/RunRecord/schema/runtime/
+  finalizer/retry/recovery/provider/network/credential/spend path, push, merge,
+  release, or deployment was added or performed.
 
 ## 2026-09-02 - Specify Exact-Request Model Budget And Invocation Seam
 

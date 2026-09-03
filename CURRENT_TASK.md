@@ -127,7 +127,7 @@ Next Action: Select Increment 2 and establish the invoker RED tests.
 
 ### Increment 2 - implement-exact-request-invoker
 
-State: In Progress
+State: Completed
 Depends On: implement-exact-request-preparation
 Scope: Add RED-first field-free invoker and opaque invocation result/reasons with
 ordered pre-call policy refusal, exact at-most-once fake invocation, untrusted success,
@@ -142,7 +142,7 @@ Next Action: Select Increment 3 and run the full regression.
 
 ### Increment 3 - verify-and-close-exact-request-implementation
 
-State: Pending
+State: In Progress
 Depends On: implement-exact-request-invoker
 Scope: Run the full Markdown-sensitive Java 17 regression, record fresh evidence,
 synchronize implementation maturity and canonical documents, close the task/handoff,
@@ -156,4 +156,4 @@ Tool/evidence/response validation, Model RunRecord v2 finalization, and recovery
 
 ## Next
 
-Write and classify the Increment 2 RED tests for the RFC-0022 exact-request invoker.
+Run the full README-owned regression, read the fresh results, and close Increment 3.

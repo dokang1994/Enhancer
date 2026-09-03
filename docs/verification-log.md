@@ -6741,3 +6741,25 @@ Outcome:
   and security test matrix but were not treated as verification evidence. Final
   focused verification over the synchronized Increment 1 state follows before its
   local GREEN commit.
+
+## 2026-09-03 - Exact-Request Invoker Contract
+
+- The primary Agent wrote the exact-request invoker interaction and boundary tests
+  first. The initial focused run failed at `compileTestJava` with 41 missing-symbol
+  errors limited to the absent RFC-0022 invoker, invocation-result, and invocation-
+  rejection-reason types; this was the expected task-aligned RED.
+- The minimum implementation added those three model-package definition types only:
+  a field-free `Ready`-only invoker, a sealed opaque result with private variant
+  constructors, and the three closed pre-call rejection reasons. No production caller
+  or lifecycle integration was added.
+- Fresh focused Java 17 verification completed with `BUILD SUCCESSFUL` in 7 seconds.
+  JUnit XML aggregation found 7 suites and 41 tests: all 41 passed with zero skipped,
+  failed, or errored. Coverage included tool/timeout/cancellation first-match order,
+  cancellation observation count, zero gateway activity on refusal, strict timeout
+  boundaries, exact request/policy/candidate/gateway identities, one mocked and one
+  real fake success, every unchanged `ModelFailureCode`, unchecked exception
+  propagation, private/field-free reflection shape, non-revealing rendering, one exact
+  invocation source site, narrow exception mapping, preparation regression, and
+  production non-caller/locality guards.
+- `git diff --check` passed. Final focused verification over the synchronized
+  Increment 2 state follows before its local GREEN commit.

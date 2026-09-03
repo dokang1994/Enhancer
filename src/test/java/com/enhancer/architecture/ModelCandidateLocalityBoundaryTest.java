@@ -25,7 +25,10 @@ class ModelCandidateLocalityBoundaryTest {
             "ModelCandidateSuitabilityRejectionReason.java",
             "DeterministicFakeExactRequestPreparation.java",
             "DeterministicFakeExactRequestDecision.java",
-            "DeterministicFakeExactRequestRejectionReason.java");
+            "DeterministicFakeExactRequestRejectionReason.java",
+            "DeterministicFakeExactRequestInvoker.java",
+            "DeterministicFakeExactRequestInvocationResult.java",
+            "DeterministicFakeExactRequestInvocationRejectionReason.java");
 
     @Test
     void candidateBoundaryHasNoIoExecutionOrGenericGatewayDependencies() throws IOException {
@@ -94,6 +97,13 @@ class ModelCandidateLocalityBoundaryTest {
                                 () -> path + " must not consume exact request decisions yet");
                         assertFalse(source.contains("DeterministicFakeExactRequestRejectionReason"),
                                 () -> path + " must not consume exact request reasons yet");
+                        assertFalse(source.contains("DeterministicFakeExactRequestInvoker"),
+                                () -> path + " must not invoke exact model requests yet");
+                        assertFalse(source.contains("DeterministicFakeExactRequestInvocationResult"),
+                                () -> path + " must not consume exact invocation results yet");
+                        assertFalse(source.contains(
+                                        "DeterministicFakeExactRequestInvocationRejectionReason"),
+                                () -> path + " must not consume invocation reasons yet");
                     });
         }
     }
