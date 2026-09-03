@@ -140,6 +140,24 @@ class ModelCandidateLocalityBoundaryTest {
     }
 
     @Test
+    void processConsumersRemainReadOnlyUntilEveryV2ReaderIsInstalled()
+            throws IOException {
+        for (String fileName : List.of(
+                "ProcessIsolatedAgentRunExecution.java",
+                "IsolatedWorkMessageHandler.java",
+                "IsolatedResultMessageHandler.java",
+                "IsolatedWorkerMain.java")) {
+            String source = read(findProductionSource(fileName));
+            assertFalse(source.contains("persistModel("),
+                    fileName + " must not publish Model RunRecord v2 yet");
+            assertFalse(source.contains("ModelRunRecordFinalizer"),
+                    fileName + " must not reach the model writer yet");
+            assertFalse(source.contains("DeterministicFakeModelAttemptPipeline"),
+                    fileName + " must not reach the typed pipeline yet");
+        }
+    }
+
+    @Test
     void exactFakeGatewayRenderingAndGenericUsageRemainUnchanged() throws IOException {
         String source = readModelSource("DeterministicFakeModelGateway.java");
         assertFalse(source.contains("DeterministicFakeTokenCounter"));

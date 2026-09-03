@@ -7,27 +7,54 @@ import com.enhancer.bus.ResultPayload;
 import com.enhancer.kernel.VerificationStatus;
 import com.enhancer.model.ModelInvokeTool;
 import com.enhancer.run.RunRecord;
+import com.enhancer.run.ModelRunRecordStore;
 import com.enhancer.run.RunRecordStore;
 import com.enhancer.tool.ReadFileTool;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Validates one isolated-worker Result delivery against the dispatched Work and shared
- * RunRecord. It has no persistence, execution, finalization, or queue authority.
+ * Validates one isolated-worker Result delivery against the dispatched Work and its
+ * payload-kind-specific record. It has no persistence, execution, finalization, or queue authority.
  */
 final class IsolatedResultMessageHandler implements MessageHandler {
     private final WorkItem workItem;
-    private final RunRecordStore runRecordStore;
+    private final Optional<RunRecordStore> runRecordStore;
+    private final Optional<ModelContext> modelContext;
     private Optional<String> acceptedReference = Optional.empty();
 
     IsolatedResultMessageHandler(
             WorkItem workItem,
             RunRecordStore runRecordStore) {
         this.workItem = Objects.requireNonNull(workItem, "workItem must not be null");
-        this.runRecordStore = Objects.requireNonNull(
-                runRecordStore, "runRecordStore must not be null");
+        this.runRecordStore = Optional.of(Objects.requireNonNull(
+                runRecordStore, "runRecordStore must not be null"));
+        this.modelContext = Optional.empty();
+    }
+
+    IsolatedResultMessageHandler(
+            WorkItem workItem,
+            String goalId,
+            String agentRunId,
+            ModelRunRecordStore modelRunRecordStore,
+            ModelRunRecordBindingValidator validator,
+            Path projectRoot,
+            ModelProcessExecutionConfiguration configuration) {
+        this.workItem = Objects.requireNonNull(workItem, "workItem must not be null");
+        if (!workItem.isModelWork()) {
+            throw new IllegalArgumentException(
+                    "the model result handler requires typed ModelWork");
+        }
+        this.runRecordStore = Optional.empty();
+        this.modelContext = Optional.of(new ModelContext(
+                goalId,
+                agentRunId,
+                modelRunRecordStore,
+                validator,
+                projectRoot,
+                configuration));
     }
 
     @Override
@@ -65,17 +92,44 @@ final class IsolatedResultMessageHandler implements MessageHandler {
         requireEqual(
                 workItem.taskRevision().taskId(), resultPayload.taskId(), "task identity");
 
-        RunRecord record = runRecordStore
-                .resolve(resultPayload.runRecordReference())
-                .record();
-        requireRunRecordBinding(record, workItem);
-        VerificationStatus recorded = record.verification().status();
+        VerificationStatus recorded = workItem.isModelWork()
+                ? validateModel(resultPayload)
+                : validateLegacy(resultPayload);
         if (recorded != resultPayload.verificationStatus()) {
             throw new IOException("the child claimed verification status "
                     + resultPayload.verificationStatus()
                     + " but the resolved RunRecord records " + recorded);
         }
         return resultPayload.runRecordReference();
+    }
+
+    private VerificationStatus validateLegacy(ResultPayload resultPayload)
+            throws IOException {
+        RunRecord record = runRecordStore.orElseThrow(() ->
+                        new IOException("the legacy RunRecord store is unavailable"))
+                .resolve(resultPayload.runRecordReference())
+                .record();
+        requireRunRecordBinding(record, workItem);
+        return record.verification().status();
+    }
+
+    private VerificationStatus validateModel(ResultPayload resultPayload)
+            throws IOException {
+        ModelContext context = modelContext.orElseThrow(() ->
+                new IOException("typed ModelWork result validation is unavailable"));
+        String expectedReference = AgentRunRecordIdentity.reference(
+                context.goalId(), context.agentRunId());
+        if (!expectedReference.equals(resultPayload.runRecordReference())) {
+            throw new IOException(
+                    "the model Result reference does not match the deterministic AgentRun identity");
+        }
+        return context.validator().requireBinding(
+                context.modelRunRecordStore().resolveModel(expectedReference),
+                context.goalId(),
+                context.agentRunId(),
+                workItem,
+                context.projectRoot(),
+                context.configuration());
     }
 
     static void requireRunRecordBinding(RunRecord record, WorkItem workItem)
@@ -132,5 +186,23 @@ final class IsolatedResultMessageHandler implements MessageHandler {
     }
 
     private record ExecutionInput(String targetPath, String expectedContentSha256) {
+    }
+
+    private record ModelContext(
+            String goalId,
+            String agentRunId,
+            ModelRunRecordStore modelRunRecordStore,
+            ModelRunRecordBindingValidator validator,
+            Path projectRoot,
+            ModelProcessExecutionConfiguration configuration) {
+        private ModelContext {
+            Objects.requireNonNull(goalId, "goalId must not be null");
+            Objects.requireNonNull(agentRunId, "agentRunId must not be null");
+            Objects.requireNonNull(
+                    modelRunRecordStore, "modelRunRecordStore must not be null");
+            Objects.requireNonNull(validator, "validator must not be null");
+            Objects.requireNonNull(projectRoot, "projectRoot must not be null");
+            Objects.requireNonNull(configuration, "configuration must not be null");
+        }
     }
 }

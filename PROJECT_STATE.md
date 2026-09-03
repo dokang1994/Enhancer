@@ -9,8 +9,8 @@
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 462 Java files.
-- Test source: 203 Java files.
+- Production source: 464 Java files.
+- Test source: 206 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -19,6 +19,21 @@ it does not restate which commit published which increment.
 ## Capability Maturity
 
 ### Contract Verified
+
+- RFC-0023 process validation is Contract Verified while typed execution remains
+  disconnected. `ProcessIsolatedAgentRunExecution` preserves the legacy v1 order and
+  gains a narrow internal model-validation composition that accepts only an exact
+  Work-before-Result closure or deterministic v2 point recovery. It binds Goal/
+  AgentRun record identity, complete WorkItem/envelope/profile, independent capability,
+  prepared request limits and evidence correlation, exact policy scalars, canonical
+  returned-outcome evidence/lifecycle, independent verification, and claimed status.
+  A valid complete v2 outranks a process-timeout fact; missing alone permits timeout,
+  while cross-kind, corrupt, foreign, changed, multiple, symbolic, or non-regular
+  points fail closed. Child handling now selects payload kind explicitly but returns a
+  dedicated disconnected outcome before legacy execution, evidence, record, Result,
+  or launch-side model activity. Process handlers and launchers still contain no v2
+  writer or model-attempt-pipeline call. Durable finalizer/worker and Scheduler
+  recovery/status readers remain v1-only for Increment 4.
 
 - The standalone RFC-0023 deterministic-fake model-attempt pipeline is Contract
   Verified and remains package-private with no process-handler or other production
@@ -32,8 +47,9 @@ it does not restate which commit published which increment.
   verified before `ModelRunRecordFinalizer` builds one millisecond-precision lifecycle
   and point-persists only Model RunRecord v2 at the deterministic AgentRun identity.
   Verified, Rejected, Unverified, and Not Performed/failed lifecycle mappings and exact
-  v2 replay are covered. Existing process handlers, durable finalizer/worker, and
-  Scheduler recovery/status readers remain v1-only and guarded for Increment 3/4.
+  v2 replay are covered. The process readers are now v2-aware, while the durable
+  finalizer/worker and Scheduler recovery/status readers remain v1-only and guarded
+  for Increment 4.
 
 - The first RFC-0023 implementation prerequisite is Contract Verified without a
   production caller. `AgentRunEvidenceIdentity` derives one canonical, versioned,

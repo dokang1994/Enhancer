@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-09-03 - Add Typed ModelWork Process Validation
+
+- Added an internal parent-side v2 validator that binds the deterministic Goal/
+  AgentRun record identity, exact WorkItem and typed envelope, independent capability,
+  prepared request limits, evidence correlation, policy scalars, returned-outcome
+  evidence, lifecycle, independent verification, and Result status.
+- Made process recovery payload-kind-aware without enabling execution: exact v2 Result
+  and point recovery are accepted, complete v2 outranks process timeout, missing alone
+  permits timeout, and cross-kind, corrupt, foreign, changed, or partial prefixes fail
+  closed. A Result now requires its exact regular non-symbolic Work point for both
+  payload kinds.
+- Made child handling explicitly payload-kind-aware with a dedicated disconnected exit,
+  removed the legacy-only Result task cast, and rejected non-regular Work spool points.
+  Source guards prove process handlers and the child contain no v2 writer or standalone
+  pipeline call.
+- The aligned RED phases covered missing validator/configuration contracts, missing
+  process composition, child kind selection, non-regular spool points, and contradictory
+  denied-policy records. Fresh expanded Java 17 verification passed all 90 tests across
+  16 suites with zero failures, errors, or skips; `git diff --check` passed.
+- No durable finalizer/worker/status/recovery change, writer reachability, producer,
+  receiver, supported entry point, schema migration, provider/network, credential,
+  spend, push, merge, release, or deployment was added or performed.
+
 ## 2026-09-03 - Add Standalone Typed ModelWork Attempt Pipeline
 
 - Added one package-private child-local deterministic-fake pipeline that preserves the

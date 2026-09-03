@@ -149,7 +149,7 @@ Next Action: Commit the GREEN standalone pipeline and select Increment 3.
 
 ### Increment 3 - add-v2-aware-process-validation
 
-State: In Progress
+State: Completed
 Depends On: add-standalone-model-attempt-pipeline
 Scope: Add payload-kind-aware child handling, parent exact v2 validation, point
 recovery, Result/Work prefix checks, and timeout precedence while retaining a guard that
@@ -164,7 +164,7 @@ Next Action: Commit the GREEN process-validation increment and select Increment 
 
 ### Increment 4 - add-v2-aware-durable-consumers
 
-State: Pending
+State: In Progress
 Depends On: add-v2-aware-process-validation
 Scope: Add explicit v2 paths to durable finalization, worker processing, retry, and
 Scheduler recovery/status readers while retaining the typed execution reachability
@@ -207,6 +207,6 @@ receiver, or the next Roadmap-selected Gate 9 boundary.
 
 ## Next
 
-Implement Increment 3 RED-first: payload-kind-aware child/parent v2 validation, point
-recovery, Work/Result prefix checks, and timeout precedence while the writer remains
-unreachable from process handlers.
+Implement Increment 4 RED-first: make the durable worker/finalizer and Scheduler
+status/recovery readers select v1 or v2 explicitly, preserve exact historical replay
+and replacement-AgentRun retry, and keep the typed writer unreachable.

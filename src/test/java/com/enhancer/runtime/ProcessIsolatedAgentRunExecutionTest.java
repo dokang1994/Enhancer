@@ -14,6 +14,7 @@ import com.enhancer.bus.TransportMessage;
 import com.enhancer.bus.WorkPayload;
 import com.enhancer.kernel.VerificationStatus;
 import com.enhancer.run.FileSystemRunRecordStore;
+import com.enhancer.run.ModelRunRecordStore;
 import com.enhancer.run.RunRecordStore;
 import com.enhancer.tool.EvidenceStoragePolicy;
 import com.enhancer.tool.FileSystemEvidenceStore;
@@ -64,6 +65,148 @@ class ProcessIsolatedAgentRunExecutionTest {
         assertTrue(Files.notExists(fixture.cycleRoot()));
     }
 
+    @Test
+    void pointRecoversAnExactModelRecordWithoutWorkResultOrChildLaunch()
+            throws Exception {
+        ModelFixture fixture = ModelFixture.create(temporaryRoot, true);
+
+        String reference = fixture.execution(failIfLaunched()).execute(fixture.dispatch());
+
+        assertEquals(
+                AgentRunRecordIdentity.reference(
+                        fixture.dispatch().goalId(), fixture.dispatch().agentRunId()),
+                reference);
+        assertTrue(Files.notExists(fixture.cycleRoot()));
+    }
+
+    @Test
+    void validModelRecordTakesPrecedenceOverAPersistedProcessTimeout()
+            throws Exception {
+        ModelFixture fixture = ModelFixture.create(temporaryRoot, true);
+        fixture.persistTimeout();
+
+        String reference = fixture.execution(failIfLaunched()).execute(fixture.dispatch());
+
+        assertEquals(
+                AgentRunRecordIdentity.reference(
+                        fixture.dispatch().goalId(), fixture.dispatch().agentRunId()),
+                reference);
+    }
+
+    @Test
+    void modelResultWithoutItsWorkPointFailsBeforeRecordAcceptance()
+            throws Exception {
+        ModelFixture fixture = ModelFixture.create(temporaryRoot, true);
+        fixture.spoolResult();
+
+        IOException failure = assertThrows(
+                IOException.class,
+                () -> fixture.execution(failIfLaunched()).execute(fixture.dispatch()));
+
+        assertTrue(failure.getMessage().contains("work"), failure.getMessage());
+    }
+
+    @Test
+    void exactModelWorkResultAndRecordClosureReturnsWithoutLaunching()
+            throws Exception {
+        ModelFixture fixture = ModelFixture.create(temporaryRoot, true);
+        fixture.spoolWork();
+        fixture.spoolResult();
+
+        String reference = fixture.execution(failIfLaunched()).execute(fixture.dispatch());
+
+        assertEquals(
+                AgentRunRecordIdentity.reference(
+                        fixture.dispatch().goalId(), fixture.dispatch().agentRunId()),
+                reference);
+    }
+
+    @Test
+    void modelResultWithANonRegularExtraWorkPointFailsClosed()
+            throws Exception {
+        ModelFixture fixture = ModelFixture.create(temporaryRoot, true);
+        fixture.spoolWork();
+        Files.createDirectory(fixture.cycleRoot()
+                .resolve(IsolatedWorkerMain.WORK_SPOOL)
+                .resolve("foreign.transport"));
+        fixture.spoolResult();
+
+        IOException failure = assertThrows(
+                IOException.class,
+                () -> fixture.execution(failIfLaunched()).execute(fixture.dispatch()));
+
+        assertTrue(failure.getMessage().contains("regular"), failure.getMessage());
+    }
+
+    @Test
+    void modelResultMustClaimTheDeterministicAgentRunReference()
+            throws Exception {
+        ModelFixture fixture = ModelFixture.create(temporaryRoot, true);
+        fixture.spoolWork();
+        fixture.spoolResult("run-record/11111111-1111-1111-1111-111111111111");
+
+        IOException failure = assertThrows(
+                IOException.class,
+                () -> fixture.execution(failIfLaunched()).execute(fixture.dispatch()));
+
+        assertTrue(failure.getMessage().contains("deterministic"), failure.getMessage());
+    }
+
+    @Test
+    void missingModelRecordLetsThePersistedTimeoutGovernWithoutLaunching()
+            throws Exception {
+        ModelFixture fixture = ModelFixture.create(temporaryRoot, false);
+        fixture.persistTimeout();
+
+        IOException failure = assertThrows(
+                IOException.class,
+                () -> fixture.execution(failIfLaunched()).execute(fixture.dispatch()));
+
+        assertTrue(failure.getMessage().contains("TIMED_OUT"), failure.getMessage());
+    }
+
+    @Test
+    void missingModelRecordWithoutTimeoutStopsBeforeSpoolOrLaunch()
+            throws Exception {
+        ModelFixture fixture = ModelFixture.create(temporaryRoot, false);
+
+        IllegalArgumentException failure = assertThrows(
+                IllegalArgumentException.class,
+                () -> fixture.execution(failIfLaunched()).execute(fixture.dispatch()));
+
+        assertTrue(failure.getMessage().contains("intentionally disconnected"));
+        assertTrue(Files.notExists(fixture.cycleRoot()));
+    }
+
+    @Test
+    void crossKindDeterministicRecordIsNotHiddenByTimeout()
+            throws Exception {
+        ModelFixture fixture = ModelFixture.create(temporaryRoot, false);
+        fixture.persistLegacyAtDeterministicIdentity();
+        fixture.persistTimeout();
+
+        IOException failure = assertThrows(
+                IOException.class,
+                () -> fixture.execution(failIfLaunched()).execute(fixture.dispatch()));
+
+        assertTrue(failure.getMessage().contains("kind"), failure.getMessage());
+        assertTrue(!failure.getMessage().contains("TIMED_OUT"), failure.getMessage());
+    }
+
+    @Test
+    void corruptDeterministicModelRecordIsNotHiddenByTimeout()
+            throws Exception {
+        ModelFixture fixture = ModelFixture.create(temporaryRoot, true);
+        fixture.corruptRecord();
+        fixture.persistTimeout();
+
+        IOException failure = assertThrows(
+                IOException.class,
+                () -> fixture.execution(failIfLaunched()).execute(fixture.dispatch()));
+
+        assertTrue(!failure.getMessage().contains("TIMED_OUT"), failure.getMessage());
+    }
+
     @TempDir
     Path temporaryRoot;
 
@@ -96,6 +239,21 @@ class ProcessIsolatedAgentRunExecutionTest {
                 fixture.executionWith(failIfLaunched());
 
         assertEquals(reference, recovering.execute(fixture.dispatch()));
+    }
+
+    @Test
+    void legacyResultWithoutItsWorkPointAlsoFailsClosed() throws IOException {
+        Fixture fixture = Fixture.create(temporaryRoot);
+        fixture.execution().execute(fixture.dispatch());
+        Path workSpool = fixture.cycleRoot().resolve(IsolatedWorkerMain.WORK_SPOOL);
+        Files.delete(IsolatedWorkerMain.soleSpooledMessage(workSpool).orElseThrow());
+        Files.delete(workSpool);
+
+        IOException failure = assertThrows(
+                IOException.class,
+                () -> fixture.executionWith(failIfLaunched()).execute(fixture.dispatch()));
+
+        assertTrue(failure.getMessage().contains("work"), failure.getMessage());
     }
 
     @Test
@@ -616,6 +774,131 @@ class ProcessIsolatedAgentRunExecutionTest {
                         IsolatedWorkerStatus.TIMED_OUT, "destroyed");
             }
         };
+    }
+
+    private record ModelFixture(
+            Path root,
+            Path projectRoot,
+            AgentRunDispatch dispatch,
+            FileSystemRunRecordStore recordStore,
+            ModelProcessValidationTestFixture.Prepared prepared,
+            Path cycleRoot) {
+
+        static ModelFixture create(Path temporaryRoot, boolean persistRecord)
+                throws Exception {
+            Path root = Files.createDirectories(
+                    temporaryRoot.resolve("model-cycle-" + UUID.randomUUID()));
+            Path projectRoot = Files.createDirectories(root.resolve("project"));
+            ModelProcessValidationTestFixture.Prepared prepared =
+                    ModelProcessValidationTestFixture.valid(projectRoot);
+            AgentRunDispatch dispatch = new AgentRunDispatch(
+                    UUID.randomUUID().toString(),
+                    prepared.workItem(),
+                    ModelAttemptTestFixture.GOAL_ID,
+                    ModelAttemptTestFixture.AGENT_RUN_ID,
+                    Fixture.lease());
+            FileSystemRunRecordStore store = new FileSystemRunRecordStore(
+                    root.resolve("run-records"));
+            if (persistRecord) {
+                store.persistModel(
+                        AgentRunRecordIdentity.recordId(
+                                dispatch.goalId(), dispatch.agentRunId()),
+                        prepared.resolved().record());
+            }
+            Path cycleRoot = root.resolve("invocations")
+                    .resolve(dispatch.goalId())
+                    .resolve(dispatch.agentRunId());
+            return new ModelFixture(
+                    root, projectRoot, dispatch, store, prepared, cycleRoot);
+        }
+
+        ProcessIsolatedAgentRunExecution execution(WorkerProcessLauncher launcher) {
+            return new ProcessIsolatedAgentRunExecution(
+                    root.resolve("invocations"),
+                    projectRoot,
+                    root.resolve("evidence"),
+                    root.resolve("run-records"),
+                    recordStore,
+                    (ModelRunRecordStore) recordStore,
+                    prepared.evidenceStore(),
+                    prepared.configuration(),
+                    launcher,
+                    GENEROUS,
+                    timeoutStore(),
+                    Clock.systemUTC());
+        }
+
+        void spoolWork() {
+            spool(
+                    cycleRoot.resolve(IsolatedWorkerMain.WORK_SPOOL),
+                    new TransportMessage(
+                            DeliveryDestination.queue(IsolatedWorkerMain.WORK_SPOOL),
+                            dispatch.workItem().workMessage()),
+                    1);
+        }
+
+        void spoolResult() {
+            spoolResult(AgentRunRecordIdentity.reference(
+                    dispatch.goalId(), dispatch.agentRunId()));
+        }
+
+        void spoolResult(String reference) {
+            MessageEnvelope work = dispatch.workItem().workMessage();
+            MessageEnvelope result = new MessageEnvelope(
+                    UUID.randomUUID().toString(),
+                    work.correlationId(),
+                    Optional.of(work.messageId()),
+                    work.logicalRunId(),
+                    "isolated-worker",
+                    Instant.parse("2026-09-03T12:13:15Z"),
+                    new ResultPayload(
+                            dispatch.workItem().taskRevision().taskId(),
+                            reference,
+                            VerificationStatus.VERIFIED));
+            spool(
+                    cycleRoot.resolve(IsolatedWorkerMain.RESULT_SPOOL),
+                    new TransportMessage(
+                            DeliveryDestination.queue(
+                                    IsolatedWorkerMain.RESULT_DESTINATION),
+                            result),
+                    1);
+        }
+
+        void persistTimeout() throws IOException {
+            WorkItem work = dispatch.workItem();
+            timeoutStore().persist(ProcessTimeoutFact.create(
+                    Instant.parse("2026-09-03T12:14:00Z"),
+                    new RuntimeEventBinding(
+                            dispatch.goalId(),
+                            work.workItemId(),
+                            work.taskRevision(),
+                            work.snapshotId(),
+                            work.logicalRunId(),
+                            work.workMessage().correlationId()),
+                    dispatch.agentRunId(),
+                    GENEROUS,
+                    "destroyed"));
+        }
+
+        void persistLegacyAtDeterministicIdentity() throws IOException {
+            recordStore.persist(
+                    AgentRunRecordIdentity.recordId(
+                            dispatch.goalId(), dispatch.agentRunId()),
+                    prepared.resolved().record().lifecycleRecord());
+        }
+
+        void corruptRecord() throws IOException {
+            String recordId = AgentRunRecordIdentity.recordId(
+                    dispatch.goalId(), dispatch.agentRunId());
+            Files.writeString(
+                    root.resolve("run-records").resolve(recordId + ".run-record"),
+                    "corrupt");
+        }
+
+        ProcessTimeoutFactStore timeoutStore() {
+            return new FileSystemProcessTimeoutFactStore(
+                    root.resolve("invocations").resolve(".process-timeouts"));
+        }
     }
 
     /** One dispatched cycle with real filesystem stores and a real target to read. */

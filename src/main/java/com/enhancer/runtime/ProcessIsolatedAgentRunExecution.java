@@ -11,8 +11,10 @@ import com.enhancer.bus.MessageEnvelope;
 import com.enhancer.bus.TransportMessage;
 import com.enhancer.bus.TransportOutcome;
 import com.enhancer.run.MissingRunRecordException;
+import com.enhancer.run.ModelRunRecordStore;
 import com.enhancer.run.RunRecord;
 import com.enhancer.run.RunRecordStore;
+import com.enhancer.tool.EvidenceStore;
 import java.io.IOException;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileVisitResult;
@@ -29,7 +31,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Runs one dispatched WorkItem in a child process and returns the persisted RunRecord reference.
+ * Validates or runs one dispatched WorkItem and returns its persisted record reference.
  *
  * <p>Work travels out through a spool and the result travels back through a second one, both
  * under an invocation root private to this Goal and AgentRun. The spool adapter deliberately
@@ -39,15 +41,16 @@ import java.util.Optional;
  *
  * <p>The returned result is a claim, never authority. Before a reference is returned this class
  * checks that the result envelope correlates to the work that was dispatched, that its payload is
- * exactly a {@link ResultPayload}, that the reference resolves in the same shared
- * {@link RunRecordStore} the finalizer uses, that the resolved record binds to the dispatched
- * task, source, and execution input, and that the status the child claimed equals the resolved
- * record's own status. {@code DurableAgentRunFinalizer} remains the final authority and still
- * derives the runtime terminal state and queue disposition from the record.
+ * exactly a {@link ResultPayload}, that the reference resolves through the payload-kind-specific
+ * narrow store, that the resolved record binds to the complete dispatched input, and that the
+ * status the child claimed equals the resolved record's own status. The durable finalizer remains
+ * the later state-transition authority.
  *
  * <p>On re-entry an already-published valid result is returned without launching a second child.
  * If publication was lost after persistence, the deterministic AgentRun-bound reference is
- * point-resolved and validated through the same binding checks before execution is skipped.
+ * point-resolved and validated through the same binding checks before execution is skipped. Typed
+ * work can use only these read paths until every durable v2 consumer is installed; its missing-
+ * record child branch remains explicitly disconnected.
  */
 public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution {
     private static final String EVENT_PRODUCER_ID =
@@ -63,6 +66,7 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
     private final ProcessTimeoutFactStore timeoutStore;
     private final Clock clock;
     private final Optional<RuntimeEventRecorder> eventRecorder;
+    private final Optional<ModelValidationContext> modelValidationContext;
 
     public ProcessIsolatedAgentRunExecution(
             Path invocationRoot,
@@ -84,6 +88,7 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
                         absolute(invocationRoot, "invocationRoot")
                                 .resolve(".process-timeouts")),
                 Clock.systemUTC(),
+                Optional.empty(),
                 Optional.empty());
     }
 
@@ -109,7 +114,8 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
                                 .resolve(".process-timeouts")),
                 Clock.systemUTC(),
                 Optional.of(Objects.requireNonNull(
-                        eventRecorder, "eventRecorder must not be null")));
+                        eventRecorder, "eventRecorder must not be null")),
+                Optional.empty());
     }
 
     ProcessIsolatedAgentRunExecution(
@@ -132,6 +138,7 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
                 timeout,
                 timeoutStore,
                 clock,
+                Optional.empty(),
                 Optional.empty());
     }
 
@@ -157,7 +164,38 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
                 timeoutStore,
                 clock,
                 Optional.of(Objects.requireNonNull(
-                        eventRecorder, "eventRecorder must not be null")));
+                        eventRecorder, "eventRecorder must not be null")),
+                Optional.empty());
+    }
+
+    ProcessIsolatedAgentRunExecution(
+            Path invocationRoot,
+            Path projectRoot,
+            Path evidenceRoot,
+            Path runRecordRoot,
+            RunRecordStore runRecordStore,
+            ModelRunRecordStore modelRunRecordStore,
+            EvidenceStore evidenceStore,
+            ModelProcessExecutionConfiguration modelConfiguration,
+            WorkerProcessLauncher launcher,
+            Duration timeout,
+            ProcessTimeoutFactStore timeoutStore,
+            Clock clock) {
+        this(
+                invocationRoot,
+                projectRoot,
+                evidenceRoot,
+                runRecordRoot,
+                runRecordStore,
+                launcher,
+                timeout,
+                timeoutStore,
+                clock,
+                Optional.empty(),
+                Optional.of(new ModelValidationContext(
+                        modelRunRecordStore,
+                        new ModelRunRecordBindingValidator(evidenceStore),
+                        modelConfiguration)));
     }
 
     private ProcessIsolatedAgentRunExecution(
@@ -170,7 +208,8 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
             Duration timeout,
             ProcessTimeoutFactStore timeoutStore,
             Clock clock,
-            Optional<RuntimeEventRecorder> eventRecorder) {
+            Optional<RuntimeEventRecorder> eventRecorder,
+            Optional<ModelValidationContext> modelValidationContext) {
         this.invocationRoot = absolute(invocationRoot, "invocationRoot");
         this.projectRoot = absolute(projectRoot, "projectRoot");
         this.evidenceRoot = absolute(evidenceRoot, "evidenceRoot");
@@ -184,12 +223,17 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
         this.clock = Objects.requireNonNull(clock, "clock must not be null");
         this.eventRecorder = Objects.requireNonNull(
                 eventRecorder, "eventRecorder must not be null");
+        this.modelValidationContext = Objects.requireNonNull(
+                modelValidationContext, "modelValidationContext must not be null");
     }
 
     @Override
     public String execute(AgentRunDispatch dispatch) throws IOException {
         Objects.requireNonNull(dispatch, "dispatch must not be null");
         WorkItem workItem = dispatch.workItem();
+        if (workItem.isModelWork()) {
+            return executeModel(dispatch);
+        }
         AgentLoopAgentRunExecution.requireLegacyExecutableWork(workItem);
         Path cycleRoot = cycleRoot(dispatch);
 
@@ -202,7 +246,7 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
             throw timeoutFailure(resolved.fact());
         }
 
-        Optional<String> recovered = publishedResult(cycleRoot, workItem);
+        Optional<String> recovered = publishedResult(cycleRoot, dispatch);
         if (recovered.isPresent()) {
             return recovered.orElseThrow();
         }
@@ -245,8 +289,38 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
             throw new IOException(
                     "the isolated worker exited " + exitCode + " without publishing a result");
         }
-        return publishedResult(cycleRoot, workItem).orElseThrow(() -> new IOException(
+        return publishedResult(cycleRoot, dispatch).orElseThrow(() -> new IOException(
                 "the isolated worker reported success but published no valid result"));
+    }
+
+    private String executeModel(AgentRunDispatch dispatch) throws IOException {
+        if (modelValidationContext.isEmpty()) {
+            AgentLoopAgentRunExecution.requireLegacyExecutableWork(dispatch.workItem());
+            throw new IllegalStateException("legacy guard did not reject ModelWork");
+        }
+        ModelValidationContext context = modelValidationContext.orElseThrow();
+        Path cycleRoot = cycleRoot(dispatch);
+
+        Optional<String> published = publishedResult(cycleRoot, dispatch);
+        if (published.isPresent()) {
+            return published.orElseThrow();
+        }
+        Optional<String> recovered = pointRecoveredResult(
+                dispatch, dispatch.workItem());
+        if (recovered.isPresent()) {
+            return recovered.orElseThrow();
+        }
+
+        Optional<ResolvedProcessTimeoutFact> recoveredTimeout = timeoutStore.find(
+                dispatch.goalId(), dispatch.agentRunId());
+        if (recoveredTimeout.isPresent()) {
+            ResolvedProcessTimeoutFact resolved = recoveredTimeout.orElseThrow();
+            requireTimeoutBinding(resolved.fact(), dispatch);
+            recordTimeoutEvent(resolved, dispatch);
+            throw timeoutFailure(resolved.fact());
+        }
+        throw new IllegalArgumentException(
+                "typed ModelWork execution remains intentionally disconnected");
     }
 
     private void recordTimeoutEvent(
@@ -399,18 +473,34 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
      * <p>A result that exists but fails any check is not "not published" — it is a corrupt or
      * mismatched cycle, and it fails closed rather than being silently retried.
      */
-    private Optional<String> publishedResult(Path cycleRoot, WorkItem workItem)
+    private Optional<String> publishedResult(
+            Path cycleRoot, AgentRunDispatch dispatch)
             throws IOException {
         Optional<Path> spooled = soleSpooledMessage(
                 cycleRoot.resolve(IsolatedWorkerMain.RESULT_SPOOL), "result");
         if (spooled.isEmpty()) {
             return Optional.empty();
         }
+        WorkItem workItem = dispatch.workItem();
+        requireSpooledWork(cycleRoot, workItem);
         TransportMessage message = FileSpoolMessageTransport.read(spooled.orElseThrow());
         DeliveryDestination destination =
                 DeliveryDestination.queue(IsolatedWorkerMain.RESULT_DESTINATION);
-        IsolatedResultMessageHandler handler =
-                new IsolatedResultMessageHandler(workItem, runRecordStore);
+        IsolatedResultMessageHandler handler;
+        if (workItem.isModelWork()) {
+            ModelValidationContext context = modelValidationContext.orElseThrow(() ->
+                    new IOException("typed ModelWork result validation is unavailable"));
+            handler = new IsolatedResultMessageHandler(
+                    workItem,
+                    dispatch.goalId(),
+                    dispatch.agentRunId(),
+                    context.modelRunRecordStore(),
+                    context.validator(),
+                    projectRoot,
+                    context.configuration());
+        } else {
+            handler = new IsolatedResultMessageHandler(workItem, runRecordStore);
+        }
         InProcessMessageBus bus = new InProcessMessageBus();
         bus.subscribe(destination, "isolated-result-validator", handler);
         List<DeliveryOutcome> outcomes =
@@ -436,6 +526,22 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
             WorkItem workItem) throws IOException {
         String reference = AgentRunRecordIdentity.reference(
                 dispatch.goalId(), dispatch.agentRunId());
+        if (workItem.isModelWork()) {
+            ModelValidationContext context = modelValidationContext.orElseThrow(() ->
+                    new IOException("typed ModelWork point recovery is unavailable"));
+            try {
+                context.validator().requireBinding(
+                        context.modelRunRecordStore().resolveModel(reference),
+                        dispatch.goalId(),
+                        dispatch.agentRunId(),
+                        workItem,
+                        projectRoot,
+                        context.configuration());
+            } catch (MissingRunRecordException missing) {
+                return Optional.empty();
+            }
+            return Optional.of(reference);
+        }
         RunRecord record;
         try {
             record = runRecordStore.resolve(reference).record();
@@ -446,23 +552,50 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
         return Optional.of(reference);
     }
 
+    private void requireSpooledWork(Path cycleRoot, WorkItem workItem)
+            throws IOException {
+        Optional<Path> spooled = soleSpooledMessage(
+                cycleRoot.resolve(IsolatedWorkerMain.WORK_SPOOL), "work");
+        if (spooled.isEmpty()) {
+            throw new IOException("a result exists without its required work point");
+        }
+        TransportMessage actual = FileSpoolMessageTransport.read(spooled.orElseThrow());
+        DeliveryDestination expectedDestination =
+                DeliveryDestination.queue(IsolatedWorkerMain.WORK_SPOOL);
+        if (!actual.destination().equals(expectedDestination)) {
+            throw new IOException("the existing work message has the wrong destination");
+        }
+        if (!actual.envelope().equals(workItem.workMessage())) {
+            throw new IOException(
+                    "the existing work message does not equal the dispatched work");
+        }
+    }
+
     private static Optional<Path> soleSpooledMessage(Path spoolRoot, String direction)
             throws IOException {
+        if (Files.isSymbolicLink(spoolRoot)) {
+            throw new IOException(
+                    "the " + direction + " spool must not be a symbolic link");
+        }
         if (!Files.isDirectory(spoolRoot, LinkOption.NOFOLLOW_LINKS)) {
             return Optional.empty();
         }
         try (var paths = Files.list(spoolRoot)) {
-            List<Path> spooled = paths
+            List<Path> candidates = paths
                     .filter(path -> path.getFileName().toString()
                             .endsWith(FileSpoolMessageTransport.FILE_SUFFIX))
-                    .filter(path -> Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS))
                     .sorted(Comparator.comparing(Path::getFileName))
                     .toList();
-            if (spooled.size() > 1) {
+            if (candidates.stream().anyMatch(path ->
+                    !Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS))) {
+                throw new IOException(
+                        "the " + direction + " spool contains a non-regular message point");
+            }
+            if (candidates.size() > 1) {
                 throw new IOException(
                         "the " + direction + " spool holds several messages");
             }
-            return spooled.stream().findFirst();
+            return candidates.stream().findFirst();
         }
     }
 
@@ -470,6 +603,18 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
         return Objects.requireNonNull(path, name + " must not be null")
                 .toAbsolutePath()
                 .normalize();
+    }
+
+    private record ModelValidationContext(
+            ModelRunRecordStore modelRunRecordStore,
+            ModelRunRecordBindingValidator validator,
+            ModelProcessExecutionConfiguration configuration) {
+        private ModelValidationContext {
+            Objects.requireNonNull(
+                    modelRunRecordStore, "modelRunRecordStore must not be null");
+            Objects.requireNonNull(validator, "validator must not be null");
+            Objects.requireNonNull(configuration, "configuration must not be null");
+        }
     }
 
 }

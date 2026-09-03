@@ -8,9 +8,11 @@ import com.enhancer.bus.DeliveryStatus;
 import com.enhancer.bus.FileSpoolMessageTransport;
 import com.enhancer.bus.InProcessMessageBus;
 import com.enhancer.bus.MessageEnvelope;
+import com.enhancer.bus.ModelWorkPayload;
 import com.enhancer.bus.ResultPayload;
 import com.enhancer.bus.TransportMessage;
 import com.enhancer.bus.TransportOutcome;
+import com.enhancer.bus.WorkPayload;
 import com.enhancer.kernel.VerificationStatus;
 import com.enhancer.run.FileSystemRunRecordStore;
 import com.enhancer.run.RunRecordStore;
@@ -29,11 +31,11 @@ import java.util.UUID;
 /**
  * Child-process entry point for {@link IsolatedWorkerLauncher}.
  *
- * <p>It reads the one work message its parent spooled, runs the Gate 1-4 pipeline through the
- * same {@link AgentLoopAgentRunExecution} the in-process worker uses, persists a RunRecord, and
- * publishes a matching {@link ResultPayload} to the result spool. The exit code says only whether
- * that sequence completed; the result reference travels through the spool, and the parent treats
- * it as a claim to validate against the resolved RunRecord rather than as authority.
+ * <p>It reads the one work message its parent spooled. Legacy work runs the Gate 1-4 pipeline
+ * through the same {@link AgentLoopAgentRunExecution} the in-process worker uses, persists a
+ * RunRecord, and publishes a matching {@link ResultPayload}. Typed work remains explicitly
+ * disconnected before execution or persistence until every v2 consumer is installed. A result
+ * reference is only a claim for the parent to validate against the resolved record.
  *
  * <p>Every input is an explicit argument. Store roots in particular are parent configuration and
  * never payload data, because a payload that crossed a process boundary is untrusted input and
@@ -57,6 +59,9 @@ public final class IsolatedWorkerMain {
 
     /** The pipeline could not run to a persisted RunRecord. */
     public static final int EXIT_EXECUTION_FAILED = 30;
+
+    /** Typed ModelWork reached the child while its writer remains disconnected. */
+    public static final int EXIT_MODEL_EXECUTION_NOT_CONNECTED = 31;
 
     /** A RunRecord exists but the result could not be published for the parent to read. */
     public static final int EXIT_RESULT_NOT_PUBLISHED = 40;
@@ -93,9 +98,8 @@ public final class IsolatedWorkerMain {
                 return EXIT_WORK_ABSENT;
             }
             work = FileSpoolMessageTransport.read(spooled.orElseThrow());
-            if (work.envelope().payload()
-                    instanceof com.enhancer.bus.ModelWorkPayload) {
-                return EXIT_EXECUTION_FAILED;
+            if (work.envelope().payload() instanceof ModelWorkPayload) {
+                return EXIT_MODEL_EXECUTION_NOT_CONNECTED;
             }
         } catch (CorruptedSpooledMessageException corrupt) {
             return EXIT_WORK_CORRUPT;
@@ -171,8 +175,7 @@ public final class IsolatedWorkerMain {
                 "isolated-worker",
                 Clock.systemUTC().instant(),
                 new ResultPayload(
-                        ((com.enhancer.bus.WorkPayload) work.envelope().payload())
-                                .taskRevision().taskId(),
+                        taskId(work.envelope()),
                         reference,
                         status));
         TransportOutcome outcome = new FileSpoolMessageTransport(
@@ -182,19 +185,35 @@ public final class IsolatedWorkerMain {
         return outcome.status().isAccepted();
     }
 
+    static String taskId(MessageEnvelope work) {
+        if (work.payload() instanceof WorkPayload payload) {
+            return payload.taskRevision().taskId();
+        }
+        if (work.payload() instanceof ModelWorkPayload payload) {
+            return payload.taskRevision().taskId();
+        }
+        throw new IllegalArgumentException(
+                "isolated work must carry WorkPayload or ModelWorkPayload");
+    }
+
     /** Returns the single spooled message, or empty when there is none or more than one. */
     static Optional<Path> soleSpooledMessage(Path spoolRoot) throws IOException {
         if (!Files.isDirectory(spoolRoot, LinkOption.NOFOLLOW_LINKS)) {
             return Optional.empty();
         }
         try (var paths = Files.list(spoolRoot)) {
-            List<Path> spooled = paths
+            List<Path> candidates = paths
                     .filter(path -> path.getFileName().toString()
                             .endsWith(FileSpoolMessageTransport.FILE_SUFFIX))
-                    .filter(path -> Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS))
                     .sorted(Comparator.comparing(Path::getFileName))
                     .toList();
-            return spooled.size() == 1 ? Optional.of(spooled.get(0)) : Optional.empty();
+            if (candidates.stream().anyMatch(path ->
+                    !Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS))) {
+                throw new IOException("the work spool contains a non-regular message point");
+            }
+            return candidates.size() == 1
+                    ? Optional.of(candidates.get(0))
+                    : Optional.empty();
         }
     }
 

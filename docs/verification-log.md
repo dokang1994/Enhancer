@@ -6935,3 +6935,54 @@ Outcome:
   from the exact `ModelRunRecord` supplied to the v2 store boundary; a separate fixed-
   clock successful-path test proved filesystem v2 resolution and exact replay. No
   earlier evidence entry was revised or deleted.
+
+## 2026-09-03 - Typed ModelWork Process Validation
+
+- The first aligned RED failed at `compileTestJava` with nine missing-symbol errors
+  limited to the new model process configuration and v2 binding validator. Later RED
+  phases were limited respectively to the absent model-aware process constructor,
+  absent child kind/exit selectors, ignored non-regular Work points, and a forged
+  completed record whose explicit configuration denied `model-invoke`. Each failure
+  matched RFC-0023 before the minimum production change was made.
+- `ModelRunRecordBindingValidator` now requires deterministic Goal/AgentRun metadata,
+  exact WorkItem identity, independent capability and complete typed envelope, the
+  derived evidence correlation, configured request limits, exact policy scalars, one
+  canonical returned-outcome lifecycle, and fresh independent verification. Long
+  evidence must resolve inside the exact derived evidence-run namespace; changed
+  evidence and raw/noncanonical failure diagnostics fail closed.
+- `ProcessIsolatedAgentRunExecution` retains the legacy timeout/result/v1-point order
+  and adds an internal read-only typed composition. A Result requires one exact regular
+  non-symbolic Work point before route/envelope/v2 validation. With no Result, only the
+  deterministic v2 reference is point-resolved. Valid v2 precedes timeout; missing alone
+  permits timeout, while v1-at-v2, corruption, foreign/change binding, several points,
+  and non-regular points are not hidden by timeout or retried through launch.
+- `IsolatedWorkMessageHandler` and `IsolatedWorkerMain` select typed payloads explicitly
+  but stop at a dedicated disconnected boundary before legacy execution, evidence,
+  RunRecord, or Result publication. Result task projection handles both payload kinds,
+  and child Work enumeration rejects non-regular points. A source guard found no
+  `persistModel`, `ModelRunRecordFinalizer`, or standalone pipeline call in any process
+  handler or child.
+- Fresh expanded Java 17 verification used the README-owned Gradle launcher and
+  completed with `BUILD SUCCESSFUL` in 51 seconds. JUnit XML aggregation found 16
+  suites and 90 tests: all 90 passed with zero skipped, failed, or errored. The
+  selection covered isolated parent/child/launcher behavior, v1 filesystem worker
+  integrations, v2 store/identity/value contracts, locality/runtime architecture, and
+  Markdown governance. A subsequent fresh seven-test validator run covered canonical
+  failed evidence and long-evidence namespace/corruption handling and also passed.
+- `git diff --check` passed. No durable finalizer/worker/status/recovery behavior,
+  v2 writer reachability, producer/receiver, supported entry point, schema migration,
+  provider/network, credential, spend, push, merge, release, deployment, permission
+  change, destructive cleanup, or external effect was added or performed. Fresh
+  post-synchronization Markdown-sensitive verification and the local GREEN commit
+  follow this entry.
+
+## 2026-09-03 - Typed ModelWork Process Validation Post-Synchronization
+
+- Fresh post-synchronization Java 17 verification completed with `BUILD SUCCESSFUL`
+  in 35 seconds. JUnit XML aggregation found 16 suites and 91 tests: all 91 passed
+  with zero skipped, failed, or errored. The added case exercised long-evidence
+  namespace resolution and corruption in the parent validator.
+- `git diff --check` passed. `ROADMAP.md` remains unchanged because no milestone state
+  changed, and `SESSION_HANDOFF.md` remains unchanged because no new host-only fact was
+  introduced. Final Markdown governance, diff review, and the local GREEN commit
+  follow this entry.

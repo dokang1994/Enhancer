@@ -2,6 +2,7 @@ package com.enhancer.runtime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.enhancer.bus.BackpressurePolicy;
 import com.enhancer.bus.DeliveryDestination;
@@ -28,6 +29,55 @@ import org.junit.jupiter.api.io.TempDir;
 class IsolatedWorkerMainTest {
     @TempDir
     Path temporaryRoot;
+
+    @Test
+    void typedWorkStopsAtTheExplicitDisconnectedChildBoundary()
+            throws IOException {
+        Path cycleRoot = temporaryRoot.resolve("model-cycle");
+        Path projectRoot = temporaryRoot.resolve("model-project");
+        Path evidenceRoot = temporaryRoot.resolve("model-evidence");
+        Path runRecordRoot = temporaryRoot.resolve("model-run-records");
+        Files.createDirectories(projectRoot);
+        WorkItem workItem = ModelWorkFixtures.workItem();
+        new FileSpoolMessageTransport(
+                        cycleRoot.resolve(IsolatedWorkerMain.WORK_SPOOL),
+                        BackpressurePolicy.of(1))
+                .send(new TransportMessage(
+                        DeliveryDestination.queue(IsolatedWorkerMain.WORK_SPOOL),
+                        workItem.workMessage()));
+
+        int exitCode = IsolatedWorkerMain.run(new String[] {
+            cycleRoot.toString(),
+            projectRoot.toString(),
+            evidenceRoot.toString(),
+            runRecordRoot.toString(),
+            workItem.workItemId(),
+            workItem.requiredCapability(),
+            ModelAttemptTestFixture.GOAL_ID,
+            ModelAttemptTestFixture.AGENT_RUN_ID
+        });
+
+        assertEquals(IsolatedWorkerMain.EXIT_MODEL_EXECUTION_NOT_CONNECTED, exitCode);
+        assertFalse(Files.exists(evidenceRoot));
+        assertFalse(Files.exists(runRecordRoot));
+        assertFalse(Files.exists(cycleRoot.resolve(IsolatedWorkerMain.RESULT_SPOOL)));
+        assertEquals(
+                workItem.taskRevision().taskId(),
+                IsolatedWorkerMain.taskId(workItem.workMessage()));
+    }
+
+    @Test
+    void rejectsANonRegularExtraWorkPointInsteadOfIgnoringIt()
+            throws IOException {
+        Path workSpool = Files.createDirectories(
+                temporaryRoot.resolve("non-regular-work"));
+        Files.writeString(workSpool.resolve("work.transport"), "unread payload");
+        Files.createDirectory(workSpool.resolve("foreign.transport"));
+
+        assertThrows(
+                IOException.class,
+                () -> IsolatedWorkerMain.soleSpooledMessage(workSpool));
+    }
 
     @Test
     void refusesForeignWorkDestinationThroughTheMessageBusBeforeExecution()

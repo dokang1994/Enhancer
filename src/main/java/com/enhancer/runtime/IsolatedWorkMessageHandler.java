@@ -9,8 +9,8 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Executes one isolated-worker Work delivery through the unchanged Gate 1-4 boundary.
- * It creates no message route, persistence policy, retry policy, or execution authority.
+ * Selects one isolated-worker Work delivery by payload kind. Legacy work enters the unchanged
+ * Gate 1-4 boundary; typed work remains explicitly disconnected and creates no evidence or record.
  */
 final class IsolatedWorkMessageHandler implements MessageHandler {
     private final String workItemId;
@@ -50,6 +50,10 @@ final class IsolatedWorkMessageHandler implements MessageHandler {
         try {
             WorkItem workItem = new WorkItem(
                     workItemId, requiredCapability, work);
+            if (workItem.isModelWork()) {
+                throw new IllegalArgumentException(
+                        "typed ModelWork execution remains intentionally disconnected");
+            }
             String reference = execution.executeWork(
                     workItem,
                     goalId,

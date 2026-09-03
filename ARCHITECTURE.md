@@ -686,13 +686,21 @@ The authority is bounded to the JVM already running. The executable is resolved 
 
 The child is bounded like the Git adapter: output is discarded by the operating system rather than read, so a chatty child can neither block on a full pipe nor grow the parent's memory and nothing it prints can be mistaken for a result; the environment is stripped of `JAVA_TOOL_OPTIONS`, `_JAVA_OPTIONS`, and `JDK_JAVA_OPTIONS`, which would otherwise let an inherited setting inject JVM arguments; and a watchdog forcibly destroys a child that overruns its timeout, which is itself capped so a caller cannot disable it.
 
-`IsolatedWorkerMain` is the child entry point. It reads one work message from a spool through the adapter above, runs the same Gate 1-4 pipeline as the in-process execution port, persists the RunRecord, publishes a correlated `ResultPayload` to a separate result spool, and exits with a stable code. The exit code reports lifecycle completion only; the RunRecord reference returns in the result envelope.
+`IsolatedWorkerMain` is the child entry point. It reads one regular non-symbolic work
+message from a spool through the adapter above. Legacy Work runs the same Gate 1-4
+pipeline as the in-process execution port, persists RunRecord v1, publishes a correlated
+`ResultPayload` to a separate result spool, and exits with a stable code. Typed
+ModelWork returns the dedicated disconnected exit before execution, evidence, record,
+or Result publication until the remaining v2 consumers are installed. The Result task
+selector understands both payload kinds without projecting typed work through the
+legacy payload.
 
 The child Work-ingress connection inserts one fresh
 `InProcessMessageBus` queue between transport decode and that unchanged execution port.
 `IsolatedWorkMessageHandler` constructs the same WorkItem from the unchanged envelope and
-parent-supplied identity/capability, executes it, resolves its persisted RunRecord status,
-and exposes reference/status only after handler success. The child publishes to the
+parent-supplied identity/capability, selects by payload kind, and permits only legacy
+execution at this boundary. It resolves the persisted v1 status and exposes reference/
+status only after handler success. The child publishes to the
 decoded transport message's own destination and proceeds only after exactly one
 `DELIVERED` result, so a foreign route becomes `UNROUTED` before execution or Result
 publication. This adds no retry/dead-letter policy, cancellation, topic, durable journal,
@@ -704,9 +712,23 @@ The adapter promises no ordering across separately spooled messages: the contrac
 
 #### Process-Isolated Execution
 
-`ProcessIsolatedAgentRunExecution` is the second production `AgentRunExecution`. Before launch it accepts a pre-existing work entry only after decoding the sole message and matching both `queue("work")` and the complete dispatched envelope; foreign work and several work or result messages fail closed without starting a child. Re-entry checks the result spool first, so an already-published valid result returns without another execution.
+`ProcessIsolatedAgentRunExecution` is the second production `AgentRunExecution`. Before
+legacy launch it accepts a pre-existing work entry only after decoding the sole regular
+non-symbolic message and matching both `queue("work")` and the complete dispatched
+envelope; foreign, symbolic, non-regular, or several work/result points fail closed.
+Any published Result requires that exact Work point first. Legacy re-entry retains its
+timeout-before-result-before-v1-point order.
 
-A returned envelope is a claim, never authority. Its destination must be exactly `queue("isolated-worker-result")`; correlation, logical-run, causation, payload kind, and task identity must bind to the dispatched work; the reference must resolve in the shared store; and the RunRecord must match the work's task, source document, read-file target, verification-bearing expected digest, and claimed status. `DurableAgentRunFinalizer` remains the final authority and reuses the same task/source binding. Store roots are launcher configuration, not payload data.
+A returned envelope is a claim, never authority. Its destination must be exactly
+`queue("isolated-worker-result")`; correlation, logical-run, causation, payload kind,
+and task identity bind to the dispatched work. Legacy Work resolves only through
+`RunRecordStore`. The internal typed reader requires the deterministic Goal/AgentRun
+reference and resolves only through `ModelRunRecordStore`; it validates metadata,
+complete WorkItem/envelope/profile, capability, request/evidence correlation and
+limits, policy scalars, returned-outcome evidence/lifecycle, fresh independent
+verification, and claimed status. `DurableAgentRunFinalizer` remains the legacy final
+authority until its v2-aware branch is added. Store roots are launcher configuration,
+not payload data.
 
 Per-cycle work/result spools remain until `DurableAgentRunWorker` has persisted the returned RunRecord reference in its cycle-intent checkpoint. The worker then invokes the execution port's idempotent post-checkpoint cleanup before execution acknowledgement. Process-isolated cleanup deletes only the exact Goal/AgentRun invocation tree and an empty Goal parent, never the invocation root, Evidence, or RunRecords. Cleanup failure leaves the checkpoint intact; restart retries cleanup without child re-execution. Failed, corrupt, timed-out, or incomplete execution retains its current spool for recovery or diagnosis, and no time-based cleanup scheduler exists.
 
@@ -715,10 +737,13 @@ domain-separated RunRecord UUID derived from the already-checkpointed canonical 
 AgentRun identities. `FileSystemRunRecordStore` point-persists that identity, returns an
 exact existing record without rewriting it, and rejects changed-content reuse. Before
 launch, an absent result spool causes the parent to resolve only that deterministic
-reference; a matching record passes the same task/source/target/digest binding checks and
-is returned without another child execution. Missing remains ordinary first execution,
-while corrupt or foreign identity reuse fails closed. No store scan, second sidecar,
-schema migration, cleanup policy, or universal exactly-once claim is added.
+reference through the payload-kind-specific port. A matching record passes the full
+binding checks and is returned without another child execution. For typed work, a valid
+v2 point or exact Work/Result closure outranks a persisted process-timeout fact; only a
+missing v2 permits timeout, while corrupt, cross-kind, changed, or foreign content fails
+closed. Missing typed work without timeout stops at the explicit disconnected guard
+before spool creation or child launch. No store scan, second sidecar, schema migration,
+cleanup policy, or universal exactly-once claim is added.
 
 ### Gate 7 Runtime Integration Preparation
 
@@ -1805,20 +1830,27 @@ Model RunRecord v2 at the deterministic Goal/AgentRun identity. The isolated-chi
 Result and deterministic durable-runtime Result remain distinct claims.
 
 Before any v2 writer is reachable, the process parent, child handlers, worker,
-finalizer, and Scheduler status/recovery readers must dispatch explicitly by record
-kind and preserve the v1 type boundary. The parent validates the complete Work,
-Result, record, capability, profile, request, policy, evidence, and status closure,
-checkpoints the reference before cleanup or acknowledgement, and never re-invokes
-after a valid complete v2 exists. A complete record outranks a process-timeout fact;
-missing alone permits the no-reference failure/re-entry path, while corrupt, foreign,
-cross-kind, or changed content fails closed. Existing durable schemas suffice for the
-minimum returned-outcome path, but durable pre-call refusal or additional candidate,
-count, Ready, response-usage, or refusal provenance requires a later compatibility
-decision. The pure evidence-run boundary, one package-private standalone attempt
-pipeline, returned-outcome Tool, and v2-only lifecycle finalizer now implement this
-child-local portion. Their exact fake call and temporary filesystem effects are
-exercised only by tests; no process handler, durable consumer, supported entry point,
-producer/receiver, provider, network, credential, or spend path reaches them yet.
+finalizer, and Scheduler status/recovery readers dispatch explicitly by record kind
+and preserve the v1 type boundary. The process-consumer portion is now installed:
+`ModelProcessExecutionConfiguration` snapshots the explicit request/policy scalars,
+and `ModelRunRecordBindingValidator` checks deterministic Goal/AgentRun metadata,
+complete WorkItem/envelope/profile/capability, exact request/evidence correlation and
+limits, policy values, returned-outcome evidence/lifecycle, and independent
+verification. `ProcessIsolatedAgentRunExecution` accepts only an exact Work-before-
+Result closure or deterministic v2 point recovery; a valid complete v2 outranks a
+process-timeout fact, missing alone permits timeout, and corrupt, foreign, cross-kind,
+changed, symbolic, non-regular, or partial points fail closed. Its legacy v1 ordering
+remains unchanged. Child payload-kind selection returns a dedicated disconnected
+outcome before model execution, and source guards prohibit a v2 writer or standalone
+pipeline call from process handlers.
+
+The durable worker, finalizer, and Scheduler status/recovery readers still require
+their v2 branches before the writer may become reachable. Existing durable schemas
+suffice for the minimum returned-outcome path, but durable pre-call refusal or
+additional candidate, count, Ready, response-usage, or refusal provenance requires a
+later compatibility decision. The exact fake call and temporary filesystem effects
+remain test-only; no supported entry point, producer/receiver, provider, network,
+credential, or spend path reaches them.
 
 ## Agent Orchestration Contract
 
