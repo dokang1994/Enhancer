@@ -8,9 +8,15 @@ import com.enhancer.bus.BackpressurePolicy;
 import com.enhancer.bus.DeliveryDestination;
 import com.enhancer.bus.FileSpoolMessageTransport;
 import com.enhancer.bus.MessageEnvelope;
+import com.enhancer.bus.ModelWorkPayload;
+import com.enhancer.bus.ResultPayload;
 import com.enhancer.bus.TransportMessage;
 import com.enhancer.bus.TransportStatus;
 import com.enhancer.bus.WorkPayload;
+import com.enhancer.context.RequiredProjectDocument;
+import com.enhancer.kernel.VerificationStatus;
+import com.enhancer.model.DeterministicFakeModelGateway;
+import com.enhancer.run.FileSystemRunRecordStore;
 import com.enhancer.workspace.ApprovedTaskRevision;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -31,14 +37,63 @@ class IsolatedWorkerMainTest {
     Path temporaryRoot;
 
     @Test
-    void typedWorkStopsAtTheExplicitDisconnectedChildBoundary()
-            throws IOException {
+    void typedWorkExecutesTheChildLocalPipelineAndPublishesV2()
+            throws Exception {
         Path cycleRoot = temporaryRoot.resolve("model-cycle");
         Path projectRoot = temporaryRoot.resolve("model-project");
         Path evidenceRoot = temporaryRoot.resolve("model-evidence");
         Path runRecordRoot = temporaryRoot.resolve("model-run-records");
         Files.createDirectories(projectRoot);
-        WorkItem workItem = ModelWorkFixtures.workItem();
+        String currentTask = "# Current Task\n\n"
+                + "## Status\n\nIn Progress\n\n"
+                + "## Task\n\nExecute one typed deterministic model attempt.\n\n"
+                + "## Task ID\n\n" + ModelAttemptTestFixture.TASK_ID + "\n\n"
+                + "## Approval\n\nApproved by the test task.\n\n"
+                + "## Allowed Tools\n\n- model-invoke\n";
+        for (RequiredProjectDocument document : RequiredProjectDocument.values()) {
+            Path path = projectRoot.resolve(document.path());
+            if (path.getParent() != null) {
+                Files.createDirectories(path.getParent());
+            }
+            Files.writeString(
+                    path,
+                    document == RequiredProjectDocument.CURRENT_TASK
+                            ? currentTask
+                            : "content for " + document.path(),
+                    StandardCharsets.UTF_8);
+        }
+        String prompt = "child local typed model prompt";
+        Path promptPath = projectRoot.resolve(ModelAttemptTestFixture.TARGET_PATH);
+        Files.createDirectories(promptPath.getParent());
+        Files.writeString(promptPath, prompt, StandardCharsets.UTF_8);
+        WorkItem template = ModelAttemptTestFixture.admitted(
+                projectRoot,
+                prompt,
+                ModelAttemptTestFixture.sha256(
+                        ModelAttemptTestFixture.deterministicResponse(prompt)),
+                new DeterministicFakeModelGateway()).workItem();
+        ModelWorkPayload templatePayload =
+                (ModelWorkPayload) template.workMessage().payload();
+        ModelWorkPayload payload = new ModelWorkPayload(
+                new ApprovedTaskRevision(
+                        ModelAttemptTestFixture.TASK_ID,
+                        "CURRENT_TASK.md",
+                        sha256(currentTask)),
+                templatePayload.snapshotId(),
+                templatePayload.allowedTools(),
+                templatePayload.executionInput());
+        MessageEnvelope templateEnvelope = template.workMessage();
+        WorkItem workItem = new WorkItem(
+                template.workItemId(),
+                template.requiredCapability(),
+                new MessageEnvelope(
+                        templateEnvelope.messageId(),
+                        templateEnvelope.correlationId(),
+                        templateEnvelope.causationId(),
+                        templateEnvelope.logicalRunId(),
+                        templateEnvelope.producer(),
+                        templateEnvelope.occurredAt(),
+                        payload));
         new FileSpoolMessageTransport(
                         cycleRoot.resolve(IsolatedWorkerMain.WORK_SPOOL),
                         BackpressurePolicy.of(1))
@@ -54,13 +109,34 @@ class IsolatedWorkerMainTest {
             workItem.workItemId(),
             workItem.requiredCapability(),
             ModelAttemptTestFixture.GOAL_ID,
-            ModelAttemptTestFixture.AGENT_RUN_ID
+            ModelAttemptTestFixture.AGENT_RUN_ID,
+            "1000",
+            "20000",
+            "65536",
+            "2000",
+            "0"
         });
 
-        assertEquals(IsolatedWorkerMain.EXIT_MODEL_EXECUTION_NOT_CONNECTED, exitCode);
-        assertFalse(Files.exists(evidenceRoot));
-        assertFalse(Files.exists(runRecordRoot));
-        assertFalse(Files.exists(cycleRoot.resolve(IsolatedWorkerMain.RESULT_SPOOL)));
+        assertEquals(IsolatedWorkerMain.EXIT_RESULT_PUBLISHED, exitCode);
+        String reference = AgentRunRecordIdentity.reference(
+                ModelAttemptTestFixture.GOAL_ID,
+                ModelAttemptTestFixture.AGENT_RUN_ID);
+        assertEquals(
+                VerificationStatus.VERIFIED,
+                new FileSystemRunRecordStore(runRecordRoot)
+                        .resolveModel(reference)
+                        .record()
+                        .lifecycleRecord()
+                        .verification()
+                        .status());
+        TransportMessage published = FileSpoolMessageTransport.read(
+                IsolatedWorkerMain.soleSpooledMessage(
+                                cycleRoot.resolve(IsolatedWorkerMain.RESULT_SPOOL))
+                        .orElseThrow());
+        assertEquals(
+                reference,
+                ((ResultPayload) published.envelope().payload())
+                        .runRecordReference());
         assertEquals(
                 workItem.taskRevision().taskId(),
                 IsolatedWorkerMain.taskId(workItem.workMessage()));
@@ -134,6 +210,15 @@ class IsolatedWorkerMainTest {
         try {
             return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
                     .digest(Files.readAllBytes(file)));
+        } catch (NoSuchAlgorithmException unavailable) {
+            throw new IllegalStateException(unavailable);
+        }
+    }
+
+    private static String sha256(String content) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                    .digest(content.getBytes(StandardCharsets.UTF_8)));
         } catch (NoSuchAlgorithmException unavailable) {
             throw new IllegalStateException(unavailable);
         }

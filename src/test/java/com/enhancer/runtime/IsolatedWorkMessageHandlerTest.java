@@ -26,7 +26,7 @@ class IsolatedWorkMessageHandlerTest {
                 IllegalArgumentException.class,
                 () -> handler.handle(workItem.workMessage()));
 
-        assertTrue(failure.getMessage().contains("intentionally disconnected"));
+        assertTrue(failure.getMessage().contains("configuration is unavailable"));
         verifyNoInteractions(execution, recordStore);
         assertTrue(handler.acceptedResult().isEmpty());
     }

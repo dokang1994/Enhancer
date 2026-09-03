@@ -10,7 +10,7 @@
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
 - Production source: 465 Java files.
-- Test source: 206 Java files.
+- Test source: 207 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -19,50 +19,6 @@ it does not restate which commit published which increment.
 ## Capability Maturity
 
 ### Contract Verified
-
-- RFC-0023 durable consumers are Contract Verified. `AgentRunRecordResolver` selects
-  the narrow v1 or v2
-  store from the retained WorkItem kind, requires the deterministic Goal/AgentRun
-  reference for typed work, and reuses the complete parent v2 validator before exposing
-  only the nested lifecycle. Durable finalization, Scheduler recovery status, and
-  invocation-spool recovery use this boundary without projecting typed work through
-  `RunRecordStore`; the latter also refuses non-regular transport candidates. The
-  internal durable-worker v2 composition exact-replays a checkpointed typed reference
-  across expired-lease recovery without launching a child. Verified and non-verified
-  lifecycle states continue through the existing completion/retry and queue semantics,
-  all durable bytes and v1 behavior are unchanged, and the typed child writer remains
-  unreachable until Increment 5.
-
-- RFC-0023 process validation is Contract Verified while typed execution remains
-  disconnected. `ProcessIsolatedAgentRunExecution` preserves the legacy v1 order and
-  gains a narrow internal model-validation composition that accepts only an exact
-  Work-before-Result closure or deterministic v2 point recovery. It binds Goal/
-  AgentRun record identity, complete WorkItem/envelope/profile, independent capability,
-  prepared request limits and evidence correlation, exact policy scalars, canonical
-  returned-outcome evidence/lifecycle, independent verification, and claimed status.
-  A valid complete v2 outranks a process-timeout fact; missing alone permits timeout,
-  while cross-kind, corrupt, foreign, changed, multiple, symbolic, or non-regular
-  points fail closed. Child handling now selects payload kind explicitly but returns a
-  dedicated disconnected outcome before legacy execution, evidence, record, Result,
-  or launch-side model activity. Process handlers and launchers still contain no v2
-  writer or model-attempt-pipeline call. All durable finalizer, worker, and Scheduler
-  recovery/status consumers now have read-only v2 branches for the next connection
-  increment.
-
-- The standalone RFC-0023 deterministic-fake model-attempt pipeline is Contract
-  Verified and remains package-private with no process-handler or other production
-  caller. It derives the exact evidence correlation, preserves the Scheduler-prepared
-  task/request/policy/admission object chain through candidate suitability, exact-
-  request readiness and one invocation, and stops every pre-call refusal without Tool,
-  evidence, or record activity. Only returned outcomes enter a one-shot result Tool;
-  it never invokes a gateway or rereads the prompt, checks response model/UTF-16/usage
-  structure before evidence, lazily persists long output, and maps every gateway or
-  executor failure to closed code-only evidence. Successful Tool output is independently
-  verified before `ModelRunRecordFinalizer` builds one millisecond-precision lifecycle
-  and point-persists only Model RunRecord v2 at the deterministic AgentRun identity.
-  Verified, Rejected, Unverified, and Not Performed/failed lifecycle mappings and exact
-  v2 replay are covered. Process readers and all named durable consumers are now v2-
-  aware, while the writer remains guarded for the next connection increment.
 
 - The first RFC-0023 implementation prerequisite is Contract Verified without a
   production caller. `AgentRunEvidenceIdentity` derives one canonical, versioned,
@@ -73,8 +29,8 @@ it does not restate which commit published which increment.
   filesystem activity and creates or exact-replays only the contained direct run
   directory without replacing files, symbolic paths, or Windows junctions. Existing
   evidence envelope/reference bytes and short-inline no-write behavior remain
-  unchanged. The standalone attempt pipeline is now the only intentional production
-  consumer of this boundary; no process handler or supported entry point reaches it.
+  unchanged. The child-local attempt pipeline remains its only production consumer;
+  the internal process path now reaches it, while no supported entry point does.
 
 - The RFC-0022 standalone exact-request preparation and invocation boundary under
   `com.enhancer.model` is Contract Verified. Field-free
@@ -463,6 +419,21 @@ it does not restate which commit published which increment.
 - Backoff or delayed retry, pause/resume, run-scoped or causation-graph cancellation, priority ordering, competing queue consumers, threading, journal persistence, remote IPC adapters, and any ModelWork submission, receive, Scheduler execution, admission, gateway, or provider integration remain outside these verified contracts.
 
 ### Integrated
+
+- RFC-0023 typed ModelWork process execution is Integrated at its internal test-owned
+  deterministic-fake boundary. The parent sends only exact bounded scalar configuration;
+  the child freshly resolves task authority and prompt content, preserves one policy/
+  admission/candidate/suitability/Ready identity chain, invokes once, materializes only
+  returned outcomes through Tool/evidence, independently verifies, and publishes only
+  deterministic Model RunRecord v2. Parent, finalizer, durable worker, retry, Scheduler
+  recovery/status, and invocation-spool consumers select by payload kind without typed-
+  to-v1 projection. Real JVM/filesystem integration proves verified completion, an
+  interrupted pre-reference attempt, bounded rejected-result retry with two distinct
+  AgentRun evidence/record identities, and terminal queue disposition. Complete v2
+  points suppress reinvocation and outrank timeout; corrupt, cross-kind, foreign,
+  changed, symbolic, non-regular, or partial prefixes fail closed. No typed producer,
+  receiver, supported entry point, schema change, provider, network, credential, or
+  spend path exists.
 
 - Delivery Gate 8 Result-side Scheduler runtime-event publication: the optional
   recorder already shared by `scheduler-cycle`, `scheduler-drain`, and

@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-09-03 - Connect Internal Typed ModelWork Process Execution
+
+- Connected the deterministic-fake typed attempt pipeline only inside the isolated
+  child. The parent appends bounded gateway, response, read, Tool-timeout, and counted
+  denied-Tool scalars to the unchanged legacy arguments; no policy or authority object
+  crosses the process boundary.
+- Made the child reconstruct fresh repository task/prompt/admission state, preserve the
+  exact local candidate and request chain, invoke once, independently verify returned
+  output, persist only deterministic Model RunRecord v2, and publish a correlated
+  Result claim for complete parent validation.
+- Added real-JVM/filesystem integration for interrupted pre-reference recovery and
+  verified completion, plus rejected-result retry through a distinct replacement
+  AgentRun and evidence/record identity to terminal failure. Existing checkpointed v2
+  replay continues to suppress child launch.
+- Fresh expanded Java 17 verification passed 172 of 173 tests across 20 suites with one
+  existing privilege-dependent skip and zero failures or errors; `git diff --check`
+  passed before final Markdown governance.
+- No typed producer, receiver, supported entry point, schema migration, provider,
+  network, credential, spend, push, merge, release, or deployment was added or
+  performed.
+
 ## 2026-09-03 - Add V2-Aware Typed ModelWork Durable Consumers
 
 - Added one shared read-only payload-kind resolver for durable finalization and

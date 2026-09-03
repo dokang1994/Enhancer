@@ -928,10 +928,10 @@ Scope:
   boundary before any actual-request budget or invocation seam;
 - an accepted closed deterministic-fake exact-request budget and same-request/same-
   policy/same-candidate-gateway invocation contract before any production caller;
-- an accepted deterministic-fake typed ModelWork process-execution contract covering
-  same-policy Tool/evidence, independent response verification, v2-only publication,
-  complete parent binding, finalization, retry, and crash recovery before any writer
-  or production entry point becomes reachable;
+- an internally Integrated deterministic-fake typed ModelWork process-execution path
+  covering same-policy Tool/evidence, independent response verification, v2-only
+  publication, complete parent binding, finalization, bounded replacement retry, and
+  crash recovery without any producer, receiver, or supported entry point;
 - Model Router with deterministic fake plus explicitly selected provider adapters;
 - timeout, cancellation, token, context, cost, redaction, and response-validation budgets;
 - versioned per-model quality evaluation, policy-scoped fallback and response caching, prompt-injection resistance, source attribution, and visible uncertainty;

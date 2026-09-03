@@ -33,6 +33,9 @@ class ModelCandidateLocalityBoundaryTest {
             "DeterministicFakeReturnedOutcomeTool.java",
             "ModelRunRecordFinalizer.java",
             "DeterministicFakeModelAttemptPipeline.java");
+    private static final Set<String> INTENTIONAL_CONNECTION_FILES = Set.of(
+            "IsolatedWorkerMain.java",
+            "IsolatedWorkMessageHandler.java");
 
     @Test
     void candidateBoundaryHasNoIoExecutionOrGenericGatewayDependencies() throws IOException {
@@ -115,7 +118,7 @@ class ModelCandidateLocalityBoundaryTest {
     }
 
     @Test
-    void onlyTheStandaloneUncalledPipelineMayConsumeTheExactFakeBoundary()
+    void onlyTheChildLocalPipelineAndItsTwoConnectionPointsConsumeTheExactFakeBoundary()
             throws IOException {
         for (String fileName : INTENTIONAL_PIPELINE_FILES) {
             Path source = findProductionSource(fileName);
@@ -133,14 +136,16 @@ class ModelCandidateLocalityBoundaryTest {
             files.filter(path -> path.toString().endsWith(".java"))
                     .filter(path -> !INTENTIONAL_PIPELINE_FILES.contains(
                             path.getFileName().toString()))
+                    .filter(path -> !INTENTIONAL_CONNECTION_FILES.contains(
+                            path.getFileName().toString()))
                     .forEach(path -> assertFalse(
                             read(path).contains("DeterministicFakeModelAttemptPipeline"),
-                            () -> path + " must not make the typed pipeline reachable yet"));
+                            () -> path + " must not widen typed-pipeline reachability"));
         }
     }
 
     @Test
-    void processConsumersRemainReadOnlyUntilEveryV2ReaderIsInstalled()
+    void processConnectionReachesTheWriterOnlyThroughTheChildLocalPipeline()
             throws IOException {
         for (String fileName : List.of(
                 "ProcessIsolatedAgentRunExecution.java",
@@ -149,11 +154,19 @@ class ModelCandidateLocalityBoundaryTest {
                 "IsolatedWorkerMain.java")) {
             String source = read(findProductionSource(fileName));
             assertFalse(source.contains("persistModel("),
-                    fileName + " must not publish Model RunRecord v2 yet");
+                    fileName + " must not publish Model RunRecord v2 directly");
             assertFalse(source.contains("ModelRunRecordFinalizer"),
-                    fileName + " must not reach the model writer yet");
-            assertFalse(source.contains("DeterministicFakeModelAttemptPipeline"),
-                    fileName + " must not reach the typed pipeline yet");
+                    fileName + " must not reach the model writer directly");
+        }
+        assertFalse(read(findProductionSource(
+                        "ProcessIsolatedAgentRunExecution.java"))
+                        .contains("DeterministicFakeModelAttemptPipeline"));
+        assertFalse(read(findProductionSource("IsolatedResultMessageHandler.java"))
+                        .contains("DeterministicFakeModelAttemptPipeline"));
+        for (String fileName : INTENTIONAL_CONNECTION_FILES) {
+            assertTrue(read(findProductionSource(fileName))
+                            .contains("DeterministicFakeModelAttemptPipeline"),
+                    fileName + " must retain the explicit child-local connection");
         }
     }
 

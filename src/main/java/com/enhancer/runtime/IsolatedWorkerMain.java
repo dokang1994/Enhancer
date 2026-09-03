@@ -13,9 +13,13 @@ import com.enhancer.bus.ResultPayload;
 import com.enhancer.bus.TransportMessage;
 import com.enhancer.bus.TransportOutcome;
 import com.enhancer.bus.WorkPayload;
+import com.enhancer.context.ProjectContextReader;
 import com.enhancer.kernel.VerificationStatus;
+import com.enhancer.loop.ApprovedTaskReader;
+import com.enhancer.model.DeterministicFakeModelGateway;
+import com.enhancer.model.GovernedModelPromptReader;
+import com.enhancer.model.ModelInvocationAdmission;
 import com.enhancer.run.FileSystemRunRecordStore;
-import com.enhancer.run.RunRecordStore;
 import com.enhancer.tool.EvidenceStoragePolicy;
 import com.enhancer.tool.FileSystemEvidenceStore;
 import java.io.IOException;
@@ -33,9 +37,10 @@ import java.util.UUID;
  *
  * <p>It reads the one work message its parent spooled. Legacy work runs the Gate 1-4 pipeline
  * through the same {@link AgentLoopAgentRunExecution} the in-process worker uses, persists a
- * RunRecord, and publishes a matching {@link ResultPayload}. Typed work remains explicitly
- * disconnected before execution or persistence until every v2 consumer is installed. A result
- * reference is only a claim for the parent to validate against the resolved record.
+ * RunRecord, and publishes a matching {@link ResultPayload}. Typed work composes the child-local
+ * deterministic-fake pipeline from parent-supplied scalar configuration and publishes only Model
+ * RunRecord v2. A result reference is only a claim for the parent to validate against the
+ * resolved record.
  *
  * <p>Every input is an explicit argument. Store roots in particular are parent configuration and
  * never payload data, because a payload that crossed a process boundary is untrusted input and
@@ -60,7 +65,7 @@ public final class IsolatedWorkerMain {
     /** The pipeline could not run to a persisted RunRecord. */
     public static final int EXIT_EXECUTION_FAILED = 30;
 
-    /** Typed ModelWork reached the child while its writer remains disconnected. */
+    /** Reserved historical exit for a typed writer that is not connected. */
     public static final int EXIT_MODEL_EXECUTION_NOT_CONNECTED = 31;
 
     /** A RunRecord exists but the result could not be published for the parent to read. */
@@ -70,8 +75,6 @@ public final class IsolatedWorkerMain {
     static final String RESULT_SPOOL = "result";
     static final String RESULT_DESTINATION = "isolated-worker-result";
 
-    private static final int ARGUMENT_COUNT = 8;
-
     private IsolatedWorkerMain() {
     }
 
@@ -80,7 +83,7 @@ public final class IsolatedWorkerMain {
     }
 
     static int run(String[] arguments) {
-        if (arguments == null || arguments.length != ARGUMENT_COUNT) {
+        if (arguments == null) {
             return EXIT_USAGE;
         }
         Invocation invocation;
@@ -98,34 +101,63 @@ public final class IsolatedWorkerMain {
                 return EXIT_WORK_ABSENT;
             }
             work = FileSpoolMessageTransport.read(spooled.orElseThrow());
-            if (work.envelope().payload() instanceof ModelWorkPayload) {
-                return EXIT_MODEL_EXECUTION_NOT_CONNECTED;
-            }
         } catch (CorruptedSpooledMessageException corrupt) {
             return EXIT_WORK_CORRUPT;
         } catch (IOException unreadable) {
             return EXIT_WORK_UNREADABLE;
         }
+        boolean modelWork = work.envelope().payload() instanceof ModelWorkPayload;
+        if (modelWork != invocation.modelConfiguration().isPresent()) {
+            return EXIT_USAGE;
+        }
 
         IsolatedWorkMessageHandler.Result result;
         try {
-            RunRecordStore runRecordStore =
+            FileSystemRunRecordStore runRecordStore =
                     new FileSystemRunRecordStore(invocation.runRecordRoot());
-            AgentLoopAgentRunExecution execution = new AgentLoopAgentRunExecution(
-                    invocation.projectRoot(),
-                    new FileSystemEvidenceStore(
-                            invocation.evidenceRoot(),
-                            new EvidenceStoragePolicy(
-                                    EvidenceStoragePolicy.MAX_SUPPORTED_CONTENT_BYTES)),
-                    runRecordStore,
-                    Clock.systemUTC());
-            IsolatedWorkMessageHandler handler = new IsolatedWorkMessageHandler(
-                    invocation.workItemId(),
-                    invocation.requiredCapability(),
-                    invocation.goalId(),
-                    invocation.agentRunId(),
-                    execution,
-                    runRecordStore);
+            FileSystemEvidenceStore evidenceStore = new FileSystemEvidenceStore(
+                    invocation.evidenceRoot(),
+                    new EvidenceStoragePolicy(
+                            EvidenceStoragePolicy.MAX_SUPPORTED_CONTENT_BYTES));
+            Clock clock = Clock.systemUTC();
+            IsolatedWorkMessageHandler handler;
+            if (modelWork) {
+                SchedulerModelInvocationPreparer preparer =
+                        new SchedulerModelInvocationPreparer(
+                                new ExactActiveTaskResolver(
+                                        new ProjectContextReader(),
+                                        new ApprovedTaskReader()),
+                                new GovernedModelPromptReader(),
+                                new ModelInvocationAdmission());
+                DeterministicFakeModelAttemptPipeline pipeline =
+                        new DeterministicFakeModelAttemptPipeline(
+                                preparer,
+                                new DeterministicFakeModelGateway(),
+                                evidenceStore,
+                                runRecordStore,
+                                clock);
+                handler = new IsolatedWorkMessageHandler(
+                        invocation.workItemId(),
+                        invocation.requiredCapability(),
+                        invocation.goalId(),
+                        invocation.agentRunId(),
+                        invocation.projectRoot(),
+                        pipeline,
+                        invocation.modelConfiguration().orElseThrow());
+            } else {
+                AgentLoopAgentRunExecution execution = new AgentLoopAgentRunExecution(
+                        invocation.projectRoot(),
+                        evidenceStore,
+                        runRecordStore,
+                        clock);
+                handler = new IsolatedWorkMessageHandler(
+                        invocation.workItemId(),
+                        invocation.requiredCapability(),
+                        invocation.goalId(),
+                        invocation.agentRunId(),
+                        execution,
+                        runRecordStore);
+            }
             InProcessMessageBus bus = new InProcessMessageBus();
             bus.subscribe(
                     DeliveryDestination.queue(WORK_SPOOL),
@@ -226,9 +258,12 @@ public final class IsolatedWorkerMain {
             String workItemId,
             String requiredCapability,
             String goalId,
-            String agentRunId) {
+            String agentRunId,
+            Optional<ModelProcessExecutionConfiguration> modelConfiguration) {
 
         static Invocation of(String[] arguments) {
+            Optional<ModelProcessExecutionConfiguration> configuration =
+                    ModelProcessExecutionConfiguration.fromInvocationArguments(arguments);
             return new Invocation(
                     absolute(arguments[0]),
                     absolute(arguments[1]),
@@ -237,7 +272,8 @@ public final class IsolatedWorkerMain {
                     arguments[4],
                     arguments[5],
                     arguments[6],
-                    arguments[7]);
+                    arguments[7],
+                    configuration);
         }
 
         private static Path absolute(String value) {

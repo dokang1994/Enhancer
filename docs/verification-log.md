@@ -7022,3 +7022,32 @@ Outcome:
   producer/receiver, supported entry point, schema migration, provider/network,
   credential, spend, push, merge, release, deployment, permission change, destructive
   cleanup, or external effect was added or performed.
+
+## 2026-09-03 - Connect Internal Typed ModelWork Process Execution
+
+- The aligned child-connection RED expected a published typed result but received the
+  prior usage/disconnected exit. The implementation retains eight legacy child
+  arguments and appends five bounded scalar fields plus a counted, sorted denied-Tool
+  suffix only for typed work. Incomplete, duplicate, count-mismatched, or payload-kind-
+  mismatched configuration fails before execution.
+- `IsolatedWorkerMain` now composes the real task resolver, governed prompt reader,
+  admission evaluator, exact deterministic-fake child-local pipeline, filesystem
+  evidence store, and v2 store. `IsolatedWorkMessageHandler` accepts only the matching
+  legacy or typed execution context; typed pre-call refusal publishes no fabricated
+  result, while a complete returned outcome publishes its deterministic v2 reference
+  and verification status.
+- A direct child test proved verified v2/Result publication. A separate real-JVM and
+  filesystem integration proved an interrupted no-reference attempt is re-driven to
+  verified terminal disposition, and a digest-rejected result receives exactly one
+  fresh replacement AgentRun whose distinct evidence correlation and deterministic v2
+  record are retained before bounded terminal failure. The Increment 4 checkpointed-
+  reference test continues to prove post-reference no-child replay.
+- Fresh expanded Java 17 verification ran 173 tests across 20 pipeline, Tool/evidence,
+  v2 store/binding, child/parent, durable finalizer/worker/retry, Scheduler recovery,
+  integration, and locality suites: 172 passed, one existing privilege-dependent
+  symbolic-link test skipped, and zero failed or errored. `git diff --check` passed.
+- Increment 5 is complete and the internal sub-path is Integrated. No typed producer,
+  receiver, supported entry point, schema migration, provider/network, credential,
+  spend, push, merge, release, deployment, permission change, destructive cleanup, or
+  external effect was added or performed. Final Markdown-sensitive governance follows
+  this entry.

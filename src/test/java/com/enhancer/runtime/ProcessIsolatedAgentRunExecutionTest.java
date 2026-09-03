@@ -35,6 +35,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -166,16 +167,29 @@ class ProcessIsolatedAgentRunExecutionTest {
     }
 
     @Test
-    void missingModelRecordWithoutTimeoutStopsBeforeSpoolOrLaunch()
+    void missingModelRecordLaunchesTheTypedChildWithScalarConfiguration()
             throws Exception {
         ModelFixture fixture = ModelFixture.create(temporaryRoot, false);
+        AtomicReference<List<String>> launchedArguments = new AtomicReference<>();
+        WorkerProcessLauncher launcher = (entryPoint, arguments, timeout) -> {
+            launchedArguments.set(arguments);
+            return IsolatedWorkerOutcome.completed(
+                    IsolatedWorkerMain.EXIT_EXECUTION_FAILED);
+        };
 
-        IllegalArgumentException failure = assertThrows(
-                IllegalArgumentException.class,
-                () -> fixture.execution(failIfLaunched()).execute(fixture.dispatch()));
+        IOException failure = assertThrows(
+                IOException.class,
+                () -> fixture.execution(launcher).execute(fixture.dispatch()));
 
-        assertTrue(failure.getMessage().contains("intentionally disconnected"));
-        assertTrue(Files.notExists(fixture.cycleRoot()));
+        assertTrue(failure.getMessage().contains("exited 30"));
+        assertEquals(13, launchedArguments.get().size());
+        assertEquals("1000", launchedArguments.get().get(8));
+        assertEquals("20000", launchedArguments.get().get(9));
+        assertEquals("65536", launchedArguments.get().get(10));
+        assertEquals("2000", launchedArguments.get().get(11));
+        assertEquals("0", launchedArguments.get().get(12));
+        assertTrue(Files.exists(
+                fixture.cycleRoot().resolve(IsolatedWorkerMain.WORK_SPOOL)));
     }
 
     @Test

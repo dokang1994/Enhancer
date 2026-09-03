@@ -256,41 +256,7 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
         }
 
         spoolWork(cycleRoot, workItem);
-        IsolatedWorkerOutcome outcome = launcher.run(
-                IsolatedWorkerMain.class,
-                List.of(
-                        cycleRoot.toString(),
-                        projectRoot.toString(),
-                        evidenceRoot.toString(),
-                        runRecordRoot.toString(),
-                        workItem.workItemId(),
-                        workItem.requiredCapability(),
-                        dispatch.goalId(),
-                        dispatch.agentRunId()),
-                timeout);
-
-        if (outcome.status() == IsolatedWorkerStatus.TIMED_OUT) {
-            ProcessTimeoutFact fact = ProcessTimeoutFact.create(
-                    clock.instant(),
-                    eventBinding(dispatch),
-                    dispatch.agentRunId(),
-                    timeout,
-                    outcome.reason().orElseThrow());
-            ResolvedProcessTimeoutFact persisted = timeoutStore.persist(fact);
-            recordTimeoutEvent(persisted, dispatch);
-            throw timeoutFailure(persisted.fact());
-        }
-        if (outcome.status() != IsolatedWorkerStatus.COMPLETED) {
-            throw new IOException("the isolated worker did not complete: "
-                    + outcome.status() + " (" + outcome.reason().orElse("no reason") + ")");
-        }
-        int exitCode = outcome.exitCode().orElseThrow();
-        if (exitCode != IsolatedWorkerMain.EXIT_RESULT_PUBLISHED) {
-            throw new IOException(
-                    "the isolated worker exited " + exitCode + " without publishing a result");
-        }
-        return publishedResult(cycleRoot, dispatch).orElseThrow(() -> new IOException(
-                "the isolated worker reported success but published no valid result"));
+        return launchAndResolve(cycleRoot, dispatch, invocationArguments(dispatch));
     }
 
     private String executeModel(AgentRunDispatch dispatch) throws IOException {
@@ -319,8 +285,55 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
             recordTimeoutEvent(resolved, dispatch);
             throw timeoutFailure(resolved.fact());
         }
-        throw new IllegalArgumentException(
-                "typed ModelWork execution remains intentionally disconnected");
+        spoolWork(cycleRoot, dispatch.workItem());
+        return launchAndResolve(
+                cycleRoot,
+                dispatch,
+                context.configuration().appendInvocationArguments(
+                        invocationArguments(dispatch)));
+    }
+
+    private List<String> invocationArguments(AgentRunDispatch dispatch) {
+        WorkItem workItem = dispatch.workItem();
+        return List.of(
+                cycleRoot(dispatch).toString(),
+                projectRoot.toString(),
+                evidenceRoot.toString(),
+                runRecordRoot.toString(),
+                workItem.workItemId(),
+                workItem.requiredCapability(),
+                dispatch.goalId(),
+                dispatch.agentRunId());
+    }
+
+    private String launchAndResolve(
+            Path cycleRoot,
+            AgentRunDispatch dispatch,
+            List<String> arguments) throws IOException {
+        IsolatedWorkerOutcome outcome = launcher.run(
+                IsolatedWorkerMain.class, arguments, timeout);
+        if (outcome.status() == IsolatedWorkerStatus.TIMED_OUT) {
+            ProcessTimeoutFact fact = ProcessTimeoutFact.create(
+                    clock.instant(),
+                    eventBinding(dispatch),
+                    dispatch.agentRunId(),
+                    timeout,
+                    outcome.reason().orElseThrow());
+            ResolvedProcessTimeoutFact persisted = timeoutStore.persist(fact);
+            recordTimeoutEvent(persisted, dispatch);
+            throw timeoutFailure(persisted.fact());
+        }
+        if (outcome.status() != IsolatedWorkerStatus.COMPLETED) {
+            throw new IOException("the isolated worker did not complete: "
+                    + outcome.status() + " (" + outcome.reason().orElse("no reason") + ")");
+        }
+        int exitCode = outcome.exitCode().orElseThrow();
+        if (exitCode != IsolatedWorkerMain.EXIT_RESULT_PUBLISHED) {
+            throw new IOException(
+                    "the isolated worker exited " + exitCode + " without publishing a result");
+        }
+        return publishedResult(cycleRoot, dispatch).orElseThrow(() -> new IOException(
+                "the isolated worker reported success but published no valid result"));
     }
 
     private void recordTimeoutEvent(

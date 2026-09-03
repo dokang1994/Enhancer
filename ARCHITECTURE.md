@@ -688,19 +688,19 @@ The child is bounded like the Git adapter: output is discarded by the operating 
 
 `IsolatedWorkerMain` is the child entry point. It reads one regular non-symbolic work
 message from a spool through the adapter above. Legacy Work runs the same Gate 1-4
-pipeline as the in-process execution port, persists RunRecord v1, publishes a correlated
-`ResultPayload` to a separate result spool, and exits with a stable code. Typed
-ModelWork returns the dedicated disconnected exit before execution, evidence, record,
-or Result publication until the remaining v2 consumers are installed. The Result task
-selector understands both payload kinds without projecting typed work through the
-legacy payload.
+pipeline as the in-process execution port and persists RunRecord v1. Typed ModelWork
+requires the exact parent-supplied scalar limits and denied-Tool names, freshly composes
+the real task/prompt/admission plus deterministic-fake child-local pipeline, and persists
+only Model RunRecord v2. Both kinds publish a correlated `ResultPayload` to a separate
+result spool and exit with stable codes; payload/configuration mismatch is usage failure.
 
 The child Work-ingress connection inserts one fresh
 `InProcessMessageBus` queue between transport decode and that unchanged execution port.
 `IsolatedWorkMessageHandler` constructs the same WorkItem from the unchanged envelope and
-parent-supplied identity/capability, selects by payload kind, and permits only legacy
-execution at this boundary. It resolves the persisted v1 status and exposes reference/
-status only after handler success. The child publishes to the
+parent-supplied identity/capability, selects by payload kind, and requires the matching
+legacy or typed execution context. It resolves persisted v1 status or accepts only the
+typed pipeline's complete published v2 result, then exposes reference/status after
+handler success. The child publishes to the
 decoded transport message's own destination and proceeds only after exactly one
 `DELIVERED` result, so a foreign route becomes `UNROUTED` before execution or Result
 publication. This adds no retry/dead-letter policy, cancellation, topic, durable journal,
@@ -727,8 +727,8 @@ reference and resolves only through `ModelRunRecordStore`; it validates metadata
 complete WorkItem/envelope/profile, capability, request/evidence correlation and
 limits, policy scalars, returned-outcome evidence/lifecycle, fresh independent
 verification, and claimed status. `DurableAgentRunFinalizer` remains the legacy final
-authority until its v2-aware branch is added. Store roots are launcher configuration,
-not payload data.
+authority for legacy work and uses the same complete typed validator for ModelWork.
+Store roots are launcher configuration, not payload data.
 
 Per-cycle work/result spools remain until `DurableAgentRunWorker` has persisted the returned RunRecord reference in its cycle-intent checkpoint. The worker then invokes the execution port's idempotent post-checkpoint cleanup before execution acknowledgement. Process-isolated cleanup deletes only the exact Goal/AgentRun invocation tree and an empty Goal parent, never the invocation root, Evidence, or RunRecords. Cleanup failure leaves the checkpoint intact; restart retries cleanup without child re-execution. Failed, corrupt, timed-out, or incomplete execution retains its current spool for recovery or diagnosis, and no time-based cleanup scheduler exists.
 
@@ -741,8 +741,10 @@ reference through the payload-kind-specific port. A matching record passes the f
 binding checks and is returned without another child execution. For typed work, a valid
 v2 point or exact Work/Result closure outranks a persisted process-timeout fact; only a
 missing v2 permits timeout, while corrupt, cross-kind, changed, or foreign content fails
-closed. Missing typed work without timeout stops at the explicit disconnected guard
-before spool creation or child launch. No store scan, second sidecar, schema migration,
+closed. Missing typed work without timeout spools the exact Work and launches the child
+with only the retained scalar configuration; pre-reference interruption therefore may
+repeat the deterministic fake attempt, while a complete point suppresses reinvocation.
+No store scan, second sidecar, schema migration,
 cleanup policy, or universal exactly-once claim is added.
 
 ### Gate 7 Runtime Integration Preparation
@@ -1811,8 +1813,8 @@ verification, RunRecord, retry, runtime, or production-caller authority; later t
 ModelWork process integration must prove the exact Scheduler policy identity and own
 those effects.
 
-RFC-0023 specifies the first deterministic-fake-only typed ModelWork process
-connection without enabling it. A record-missing child freshly reconstructs the exact
+RFC-0023 defines the first deterministic-fake-only typed ModelWork process
+connection. A record-missing child freshly reconstructs the exact
 WorkItem, derives a pure Goal/AgentRun-bound request/evidence correlation, and performs
 one identity-preserving RFC-0019 preparation -> RFC-0020/0021 candidate suitability ->
 RFC-0022 budget and invocation chain. The parent passes only explicit scalar process
@@ -1829,20 +1831,19 @@ digest verification precede a model-specific lifecycle builder that publishes on
 Model RunRecord v2 at the deterministic Goal/AgentRun identity. The isolated-child
 Result and deterministic durable-runtime Result remain distinct claims.
 
-Before any v2 writer is reachable, the process parent, child handlers, worker,
-finalizer, and Scheduler status/recovery readers dispatch explicitly by record kind
-and preserve the v1 type boundary. The process-consumer portion is now installed:
+The process parent, child handlers, worker, finalizer, and Scheduler status/recovery
+readers dispatch explicitly by record kind and preserve the v1 type boundary.
 `ModelProcessExecutionConfiguration` snapshots the explicit request/policy scalars,
-and `ModelRunRecordBindingValidator` checks deterministic Goal/AgentRun metadata,
+serializes them after the unchanged eight legacy child arguments with an exact denied-
+Tool count, and reconstructs only the same bounded values in the child.
+`ModelRunRecordBindingValidator` checks deterministic Goal/AgentRun metadata,
 complete WorkItem/envelope/profile/capability, exact request/evidence correlation and
 limits, policy values, returned-outcome evidence/lifecycle, and independent
 verification. `ProcessIsolatedAgentRunExecution` accepts only an exact Work-before-
 Result closure or deterministic v2 point recovery; a valid complete v2 outranks a
 process-timeout fact, missing alone permits timeout, and corrupt, foreign, cross-kind,
 changed, symbolic, non-regular, or partial points fail closed. Its legacy v1 ordering
-remains unchanged. Child payload-kind selection returns a dedicated disconnected
-outcome before model execution, and source guards prohibit a v2 writer or standalone
-pipeline call from process handlers.
+remains unchanged.
 
 `AgentRunRecordResolver` is the shared read-only durable boundary: legacy work resolves
 and binds v1, while typed work requires the deterministic reference, calls only
@@ -1852,14 +1853,16 @@ boundary, so verified/non-verified v2 lifecycle state drives the unchanged compl
 retry, recovery-phase, and invocation-prefix projections without v1 projection. The
 internal `DurableAgentRunWorker` v2 composition supplies the same typed context to the
 process reader and finalizer; a checkpointed v2 reference therefore survives lease
-recovery and exact-replays without launching the disconnected child branch. Invocation
+recovery and exact-replays without launching a child. Invocation
 spool inspection also rejects symbolic or non-regular transport candidates. All named
-v2 consumers are now installed, but the child writer remains unreachable until the
-next increment deliberately connects it. Existing durable schemas
+v2 consumers precede the now-connected child-local writer. Real-JVM integration proves
+verified completion, rejected-result retry with a fresh AgentRun identity/preparation,
+pre-reference re-execution, and post-reference no-invocation replay. Existing durable schemas
 suffice for the minimum returned-outcome path, but durable pre-call refusal or
 additional candidate, count, Ready, response-usage, or refusal provenance requires a
 later compatibility decision. The exact fake call and temporary filesystem effects
-remain test-only; no supported entry point, producer/receiver, provider, network,
+remain confined to the internal test-owned connection; no supported entry point,
+producer/receiver, provider, network,
 credential, or spend path reaches them.
 
 ## Agent Orchestration Contract

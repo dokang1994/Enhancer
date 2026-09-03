@@ -179,7 +179,7 @@ Next Action: Commit the GREEN durable-consumer increment and select Increment 5.
 
 ### Increment 5 - connect-internal-typed-process-branch
 
-State: In Progress
+State: Completed
 Depends On: add-v2-aware-durable-consumers
 Scope: Remove only the internal typed process guard and connect the tested child
 pipeline through the now-v2-aware consumers in temporary integration fixtures without
@@ -193,7 +193,7 @@ Next Action: Commit the GREEN internal integration and select Increment 6.
 
 ### Increment 6 - verify-and-close-rfc-0023-implementation
 
-State: Pending
+State: In Progress
 Depends On: connect-internal-typed-process-branch
 Scope: Run the full Markdown-sensitive Java 17 regression, read results, synchronize
 implementation maturity and canonical documents, close the task/handoff, and commit the
@@ -207,7 +207,7 @@ receiver, or the next Roadmap-selected Gate 9 boundary.
 
 ## Next
 
-Commit Increment 4, then implement Increment 5 RED-first: connect only the internal
-typed child process branch through the now-complete v2 consumer chain and prove verified
-completion, retry/replacement, and pre-/post-reference recovery without adding a
-producer, receiver, or supported entry point.
+Commit Increment 5, then execute Increment 6: run the full README-owned Java 17
+regression, synchronize final RFC-0023 maturity and handoff state, commit the verified
+closure, and clear the stable checkpoint. No producer, receiver, or supported typed
+entry point is added.
