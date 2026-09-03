@@ -7051,3 +7051,25 @@ Outcome:
   spend, push, merge, release, deployment, permission change, destructive cleanup, or
   external effect was added or performed. Final Markdown-sensitive governance follows
   this entry.
+
+## 2026-09-03 - RFC-0023 Implementation Closure
+
+- Increment 5 was committed locally as `7b6d97d` (`Connect typed model process
+  execution`) after its 20-suite expanded run and 12-suite post-document governance
+  run passed. Increment 4 was committed locally as `77d19f4` (`Add typed model durable
+  consumers`). No push or merge occurred.
+- Fresh full verification used the README-owned `./scripts/gradle.ps1 test` command
+  with the repository Java 17 toolchain and completed with `BUILD SUCCESSFUL` in 1
+  minute 25 seconds. The generated JUnit XML contained 202 suites and 1,118 tests:
+  1,105 passed, 13 existing conditional tests skipped, and zero failed or errored.
+- The full regression includes the internal real-JVM typed ModelWork integration,
+  legacy process/worker behavior, v1/v2 persistence and recovery, Markdown architecture
+  and document ownership, and the repository governance suite. Increment 6 and the
+  parent Active Task are complete; final post-closure governance, diff inspection, the
+  ordinary local closure commit, and stable checkpoint clearing follow this entry.
+- `ROADMAP.md` and `PROJECT_STATE.md` already own the Integrated internal sub-path.
+  `SESSION_HANDOFF.md` remains unchanged because the repository-local Java 17 and
+  checkpoint invocation facts are still current and no new host-only fact was created.
+  No producer/receiver, supported entry point, schema migration, provider/network,
+  credential, spend, push, merge, release, deployment, permission change, destructive
+  cleanup, or external effect was added or performed.

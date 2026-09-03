@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -193,7 +193,7 @@ Next Action: Commit the GREEN internal integration and select Increment 6.
 
 ### Increment 6 - verify-and-close-rfc-0023-implementation
 
-State: In Progress
+State: Completed
 Depends On: connect-internal-typed-process-branch
 Scope: Run the full Markdown-sensitive Java 17 regression, read results, synchronize
 implementation maturity and canonical documents, close the task/handoff, and commit the
@@ -207,7 +207,6 @@ receiver, or the next Roadmap-selected Gate 9 boundary.
 
 ## Next
 
-Commit Increment 5, then execute Increment 6: run the full README-owned Java 17
-regression, synchronize final RFC-0023 maturity and handoff state, commit the verified
-closure, and clear the stable checkpoint. No producer, receiver, or supported typed
-entry point is added.
+Await separate user authority for a governed typed ModelWork producer or receiver, or
+the next Roadmap-selected Gate 9 boundary. RFC-0023 is internally Integrated, but no
+supported typed entry point is implied.

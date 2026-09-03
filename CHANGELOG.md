@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-09-03 - Complete RFC-0023 Typed ModelWork Process Execution
+
+- Completed all six governed implementation increments: lazy evidence identity,
+  standalone child-local attempt pipeline, parent process validation, durable v2
+  consumers, the internal real-JVM connection, and final verification/document closure.
+- The final README-owned Java 17 regression completed with `BUILD SUCCESSFUL` in 1
+  minute 25 seconds. XML aggregation found 1,118 tests across 202 suites: 1,105 passed,
+  13 existing conditional tests skipped, and zero failed or errored.
+- RFC-0023 remains an internally Integrated deterministic-fake path only. No typed
+  producer, receiver, supported entry point, schema migration, provider/network,
+  credential, spend, push, merge, release, or deployment was added or performed.
+
 ## 2026-09-03 - Connect Internal Typed ModelWork Process Execution
 
 - Connected the deterministic-fake typed attempt pipeline only inside the isolated
