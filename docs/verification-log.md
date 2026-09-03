@@ -6881,3 +6881,57 @@ Outcome:
   attempt pipeline, process handler, v2 writer, producer/receiver, supported entry
   point, provider/network, credential, spend, push, merge, release, deployment,
   permission change, destructive cleanup, or external effect was added or performed.
+
+## 2026-09-03 - Standalone Typed ModelWork Attempt Pipeline
+
+- After correcting two test-only import defects, the aligned RED failed at
+  `compileTestJava` with 49 missing-symbol errors limited to the approved
+  `DeterministicFakeReturnedOutcomeTool`, `ModelRunRecordFinalizer`, and
+  `DeterministicFakeModelAttemptPipeline` types. Existing production compiled.
+- The package-private pipeline derives the pure Goal/AgentRun evidence correlation,
+  calls the exact Scheduler preparer once, retains the admitted request and policy by
+  identity through one candidate/suitability/Ready/invoker chain, and returns a closed
+  nonpersistent stage/reason for every pre-call refusal. Tests prove those refusals and
+  preparation I/O touch neither evidence nor record storage and expose no diagnostic.
+- The one-shot returned-outcome Tool requires the exact ToolRequest and policy objects,
+  invokes no gateway, maps all four `ModelFailureCode` values, validates response model
+  class, UTF-16 length, and generic character usage before capture, leaves short output
+  inline, and lazily creates/persists long evidence. Every `ToolExecutor` failure code
+  is rebuilt with only `tool-failure-code=<ENUM>` before lifecycle publication; an
+  injected evidence-path exception was absent from the resolved v2 record.
+- The model-specific finalizer invokes the existing deterministic verifier only for a
+  successful Tool result, maps Verified/Rejected/Unverified and failed/Not Performed
+  lifecycles exactly, uses the work logical-run identity and millisecond timestamp, and
+  calls only `persistModel` at `AgentRunRecordIdentity.recordId`. A fixed-clock real-
+  filesystem replay preserved identical Model RunRecord v2 metadata, bytes, and mtime.
+- Fresh hardened focused Java 17 verification completed with `BUILD SUCCESSFUL` in
+  6 seconds and passed all 20 tests across 4 suites. Fresh expanded verification
+  completed with `BUILD SUCCESSFUL` in 10 seconds; JUnit XML aggregation found 24
+  suites and 115 tests: 114 passed, one existing privilege-dependent symbolic-link
+  case was skipped, and zero failed or errored. `git diff --check` passed.
+- The architecture source guard permits only the three standalone definition files to
+  consume the RFC-0020-through-RFC-0022 types and confirms no other production source
+  calls the pipeline. No process handler, durable finalizer/worker/status/recovery
+  consumer, producer/receiver, supported entry point, schema migration,
+  provider/network, credential, spend, push, merge, release, deployment, permission
+  change, destructive cleanup, or external effect was added or performed.
+
+## 2026-09-03 - Standalone Model Attempt Post-Synchronization Ordering Verification
+
+- One additional long-response regression recorded the exact observable event order:
+  lazy namespace ensure, complete evidence persistence, independent verifier
+  resolution, and only then Model RunRecord v2 publication.
+- Fresh post-synchronization Java 17 verification completed with `BUILD SUCCESSFUL` in
+  5 seconds. JUnit XML aggregation found 24 suites and 116 tests: 115 passed, the same
+  privilege-dependent symbolic-link case was skipped, and zero failed or errored.
+- `git diff --check` passed. The production call graph still contains only the
+  package-private pipeline definition; no process handler or supported entry point
+  references it. Final Markdown-sensitive governance and commit inspection follow.
+
+## 2026-09-03 - Standalone Model Attempt Evidence Wording Correction
+
+- In the preceding standalone-pipeline entry, “absent from the resolved v2 record”
+  overstates the evidence-I/O-failure test. The sentinel diagnostic was proven absent
+  from the exact `ModelRunRecord` supplied to the v2 store boundary; a separate fixed-
+  clock successful-path test proved filesystem v2 resolution and exact replay. No
+  earlier evidence entry was revised or deleted.

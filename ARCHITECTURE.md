@@ -1814,8 +1814,11 @@ missing alone permits the no-reference failure/re-entry path, while corrupt, for
 cross-kind, or changed content fails closed. Existing durable schemas suffice for the
 minimum returned-outcome path, but durable pre-call refusal or additional candidate,
 count, Ready, response-usage, or refusal provenance requires a later compatibility
-decision. This accepted specification adds no implementation, caller, entry point,
-producer/receiver, provider, network, credential, spend, or maturity claim.
+decision. The pure evidence-run boundary, one package-private standalone attempt
+pipeline, returned-outcome Tool, and v2-only lifecycle finalizer now implement this
+child-local portion. Their exact fake call and temporary filesystem effects are
+exercised only by tests; no process handler, durable consumer, supported entry point,
+producer/receiver, provider, network, credential, or spend path reaches them yet.
 
 ## Agent Orchestration Contract
 

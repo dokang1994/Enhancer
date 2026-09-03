@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-09-03 - Add Standalone Typed ModelWork Attempt Pipeline
+
+- Added one package-private child-local deterministic-fake pipeline that preserves the
+  exact Scheduler preparation, policy, request, admission, candidate, suitability,
+  Ready, and returned-invocation chain without a process-handler caller.
+- Added a one-shot returned-outcome Tool that never invokes a gateway or rereads the
+  prompt, validates model/UTF-16/usage response structure before evidence activity,
+  lazily persists long output, and reduces every gateway or executor failure to its
+  stable `ToolFailureCode` without raw diagnostics.
+- Added a v2-only model lifecycle finalizer that independently verifies successful
+  evidence, maps all four lifecycle states, uses the work logical run and millisecond
+  time, and exact-replays the deterministic AgentRun-bound Model RunRecord without v1
+  projection or overwrite.
+- The corrected aligned RED contained 49 missing-symbol errors for the three approved
+  types. Focused Java 17 verification passed 20 tests across 4 suites; expanded
+  RFC-0019-through-RFC-0023/evidence/verifier/model-store/governance verification
+  passed 114 of 115 tests across 24 suites with one existing privilege-dependent skip
+  and zero failures or errors. `git diff --check` passed.
+- A final ordering regression directly proved namespace ensure, evidence persistence,
+  verifier resolution, then v2 publication. The post-synchronization expanded run
+  passed 115 of 116 tests across the same 24 suites with the same one conditional skip
+  and zero failures or errors.
+- No process handler, durable finalizer/worker/status/recovery consumer, producer,
+  receiver, supported entry point, schema migration, provider/network, credential,
+  spend, push, merge, release, or deployment was added or performed.
+
 ## 2026-09-03 - Add Lazy Typed ModelWork Evidence Namespaces
 
 - Added a fixed versioned, domain-separated canonical evidence run identity derived

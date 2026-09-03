@@ -133,7 +133,7 @@ Next Action: Commit the GREEN evidence-run increment and select Increment 2.
 
 ### Increment 2 - add-standalone-model-attempt-pipeline
 
-State: In Progress
+State: Completed
 Depends On: add-lazy-evidence-run-boundary
 Scope: Add the uncalled child-local exact composition, one-shot returned-outcome Tool,
 response structure validation, code-only sanitization, independent verification, and
@@ -149,7 +149,7 @@ Next Action: Commit the GREEN standalone pipeline and select Increment 3.
 
 ### Increment 3 - add-v2-aware-process-validation
 
-State: Pending
+State: In Progress
 Depends On: add-standalone-model-attempt-pipeline
 Scope: Add payload-kind-aware child handling, parent exact v2 validation, point
 recovery, Result/Work prefix checks, and timeout precedence while retaining a guard that
@@ -207,5 +207,6 @@ receiver, or the next Roadmap-selected Gate 9 boundary.
 
 ## Next
 
-Implement Increment 2 RED-first: the uncalled child-local model-attempt pipeline and
-v2 publisher with no process-handler or production reachability change.
+Implement Increment 3 RED-first: payload-kind-aware child/parent v2 validation, point
+recovery, Work/Result prefix checks, and timeout precedence while the writer remains
+unreachable from process handlers.

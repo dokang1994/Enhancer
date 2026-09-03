@@ -29,6 +29,10 @@ class ModelCandidateLocalityBoundaryTest {
             "DeterministicFakeExactRequestInvoker.java",
             "DeterministicFakeExactRequestInvocationResult.java",
             "DeterministicFakeExactRequestInvocationRejectionReason.java");
+    private static final Set<String> INTENTIONAL_PIPELINE_FILES = Set.of(
+            "DeterministicFakeReturnedOutcomeTool.java",
+            "ModelRunRecordFinalizer.java",
+            "DeterministicFakeModelAttemptPipeline.java");
 
     @Test
     void candidateBoundaryHasNoIoExecutionOrGenericGatewayDependencies() throws IOException {
@@ -79,6 +83,8 @@ class ModelCandidateLocalityBoundaryTest {
         try (Stream<Path> files = Files.walk(PRODUCTION_ROOT)) {
             files.filter(path -> path.toString().endsWith(".java"))
                     .filter(path -> !DEFINITION_FILES.contains(path.getFileName().toString()))
+                    .filter(path -> !INTENTIONAL_PIPELINE_FILES.contains(
+                            path.getFileName().toString()))
                     .forEach(path -> {
                         String source = read(path);
                         assertFalse(source.contains("DeterministicFakeModelCandidate"),
@@ -109,6 +115,31 @@ class ModelCandidateLocalityBoundaryTest {
     }
 
     @Test
+    void onlyTheStandaloneUncalledPipelineMayConsumeTheExactFakeBoundary()
+            throws IOException {
+        for (String fileName : INTENTIONAL_PIPELINE_FILES) {
+            Path source = findProductionSource(fileName);
+            assertTrue(Files.isRegularFile(source), fileName + " must exist");
+            String content = read(source);
+            assertFalse(content.contains("ModelInvokeTool("),
+                    fileName + " must not reconstruct the legacy model Tool");
+            assertFalse(content.contains("import com.enhancer.run.RunRecordStore;"),
+                    fileName + " must not project or persist RunRecord v1");
+            assertFalse(content.contains("java.net"),
+                    fileName + " must not add network reachability");
+        }
+
+        try (Stream<Path> files = Files.walk(PRODUCTION_ROOT)) {
+            files.filter(path -> path.toString().endsWith(".java"))
+                    .filter(path -> !INTENTIONAL_PIPELINE_FILES.contains(
+                            path.getFileName().toString()))
+                    .forEach(path -> assertFalse(
+                            read(path).contains("DeterministicFakeModelAttemptPipeline"),
+                            () -> path + " must not make the typed pipeline reachable yet"));
+        }
+    }
+
+    @Test
     void exactFakeGatewayRenderingAndGenericUsageRemainUnchanged() throws IOException {
         String source = readModelSource("DeterministicFakeModelGateway.java");
         assertFalse(source.contains("DeterministicFakeTokenCounter"));
@@ -131,6 +162,14 @@ class ModelCandidateLocalityBoundaryTest {
         return Files.readString(
                 PRODUCTION_ROOT.resolve("com/enhancer/model").resolve(fileName),
                 StandardCharsets.UTF_8);
+    }
+
+    private static Path findProductionSource(String fileName) throws IOException {
+        try (Stream<Path> files = Files.walk(PRODUCTION_ROOT)) {
+            return files.filter(path -> path.getFileName().toString().equals(fileName))
+                    .findFirst()
+                    .orElse(PRODUCTION_ROOT.resolve("missing-" + fileName));
+        }
     }
 
     private static String read(Path path) {

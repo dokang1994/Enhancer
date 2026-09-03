@@ -9,8 +9,8 @@
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 457 Java files.
-- Test source: 197 Java files.
+- Production source: 462 Java files.
+- Test source: 203 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -19,6 +19,21 @@ it does not restate which commit published which increment.
 ## Capability Maturity
 
 ### Contract Verified
+
+- The standalone RFC-0023 deterministic-fake model-attempt pipeline is Contract
+  Verified and remains package-private with no process-handler or other production
+  caller. It derives the exact evidence correlation, preserves the Scheduler-prepared
+  task/request/policy/admission object chain through candidate suitability, exact-
+  request readiness and one invocation, and stops every pre-call refusal without Tool,
+  evidence, or record activity. Only returned outcomes enter a one-shot result Tool;
+  it never invokes a gateway or rereads the prompt, checks response model/UTF-16/usage
+  structure before evidence, lazily persists long output, and maps every gateway or
+  executor failure to closed code-only evidence. Successful Tool output is independently
+  verified before `ModelRunRecordFinalizer` builds one millisecond-precision lifecycle
+  and point-persists only Model RunRecord v2 at the deterministic AgentRun identity.
+  Verified, Rejected, Unverified, and Not Performed/failed lifecycle mappings and exact
+  v2 replay are covered. Existing process handlers, durable finalizer/worker, and
+  Scheduler recovery/status readers remain v1-only and guarded for Increment 3/4.
 
 - The first RFC-0023 implementation prerequisite is Contract Verified without a
   production caller. `AgentRunEvidenceIdentity` derives one canonical, versioned,
@@ -29,8 +44,8 @@ it does not restate which commit published which increment.
   filesystem activity and creates or exact-replays only the contained direct run
   directory without replacing files, symbolic paths, or Windows junctions. Existing
   evidence envelope/reference bytes and short-inline no-write behavior remain
-  unchanged. No model-attempt pipeline, process handler, v2 writer, or production
-  reference to either new boundary exists yet.
+  unchanged. The standalone attempt pipeline is now the only intentional production
+  consumer of this boundary; no process handler or supported entry point reaches it.
 
 - The RFC-0022 standalone exact-request preparation and invocation boundary under
   `com.enhancer.model` is Contract Verified. Field-free
