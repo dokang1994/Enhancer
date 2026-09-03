@@ -20,6 +20,18 @@ it does not restate which commit published which increment.
 
 ### Contract Verified
 
+- The first RFC-0023 implementation prerequisite is Contract Verified without a
+  production caller. `AgentRunEvidenceIdentity` derives one canonical, versioned,
+  domain-separated evidence run UUID from the exact Goal and AgentRun identities,
+  with a fixed derivation vector distinct from the RunRecord identity domain.
+  Additive `EvidenceRunNamespaceStore` keeps the existing `EvidenceStore` contract
+  unchanged, while `FileSystemEvidenceStore.ensureRun` validates identity before
+  filesystem activity and creates or exact-replays only the contained direct run
+  directory without replacing files, symbolic paths, or Windows junctions. Existing
+  evidence envelope/reference bytes and short-inline no-write behavior remain
+  unchanged. No model-attempt pipeline, process handler, v2 writer, or production
+  reference to either new boundary exists yet.
+
 - The RFC-0022 standalone exact-request preparation and invocation boundary under
   `com.enhancer.model` is Contract Verified. Field-free
   `DeterministicFakeExactRequestPreparation` accepts exact `Suitable` plus exact

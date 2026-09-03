@@ -24,7 +24,7 @@ import java.util.HexFormat;
 import java.util.Objects;
 import java.util.UUID;
 
-public final class FileSystemEvidenceStore implements EvidenceStore {
+public final class FileSystemEvidenceStore implements EvidenceRunNamespaceStore {
     private static final int ENVELOPE_MAGIC = 0x454E4832;
     private static final int DIGEST_BYTES = 32;
     private static final int HEADER_BYTES = Integer.BYTES + Long.BYTES + Long.BYTES + DIGEST_BYTES;
@@ -61,6 +61,23 @@ public final class FileSystemEvidenceStore implements EvidenceStore {
             }
         }
         throw new IOException("could not allocate a unique evidence run identity");
+    }
+
+    @Override
+    public void ensureRun(String runId) throws IOException {
+        StoredEvidence.requireCanonicalUuid(runId, "runId");
+        requireOrCreateExactStorageRoot();
+
+        Path runDirectory = runDirectory(runId);
+        try {
+            Files.createDirectory(runDirectory);
+        } catch (java.nio.file.FileAlreadyExistsException ignored) {
+            // Exact replay and a concurrent creator both require the same validation.
+        }
+        requireExactDirectory(
+                runDirectory,
+                storageRoot,
+                "evidence run namespace must be an exact contained directory");
     }
 
     @Override
@@ -217,6 +234,43 @@ public final class FileSystemEvidenceStore implements EvidenceStore {
             throw new IllegalArgumentException("run identity resolves outside evidence storage");
         }
         return runDirectory;
+    }
+
+    private void requireOrCreateExactStorageRoot() throws IOException {
+        Path parent = storageRoot.getParent();
+        if (parent == null) {
+            throw new IOException("evidence storage root must have a parent directory");
+        }
+        requireExactDirectory(
+                parent,
+                parent.getParent(),
+                "evidence storage parent must be an exact directory");
+        try {
+            Files.createDirectory(storageRoot);
+        } catch (java.nio.file.FileAlreadyExistsException ignored) {
+            // Existing roots are accepted only after exact no-follow validation below.
+        }
+        requireExactDirectory(
+                storageRoot,
+                parent,
+                "evidence storage root must be an exact directory");
+    }
+
+    private void requireExactDirectory(
+            Path directory,
+            Path expectedParent,
+            String message) throws IOException {
+        if (!Files.isDirectory(directory, LinkOption.NOFOLLOW_LINKS)) {
+            throw new IOException(message);
+        }
+        Path realDirectory = directory.toRealPath();
+        if (!realDirectory.equals(directory)) {
+            throw new IOException(message);
+        }
+        if (expectedParent != null
+                && !realDirectory.getParent().equals(expectedParent.toRealPath())) {
+            throw new IOException(message);
+        }
     }
 
     private Path artifactPath(String runId, String evidenceId) {

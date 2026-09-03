@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-09-03 - Add Lazy Typed ModelWork Evidence Namespaces
+
+- Added a fixed versioned, domain-separated canonical evidence run identity derived
+  from exact Goal and AgentRun identities, distinct from deterministic RunRecord
+  identity.
+- Added an optional lazy evidence-run namespace contract and filesystem implementation
+  with identity-first validation, contained direct-directory creation, exact replay,
+  and fail-closed file, symbolic-path, and Windows-junction handling.
+- Preserved existing evidence artifact/reference bytes, long-output persistence, and
+  short-inline zero-write behavior. No production caller, process handler, model
+  attempt, or Model RunRecord v2 writer became reachable.
+- The aligned RED was limited to 14 missing-symbol compilation errors. Fresh focused
+  Java 17 verification passed 40 of 41 tests across 12 suites; the Windows junction
+  containment test passed and one privilege-dependent symbolic-link test was skipped,
+  with zero failures or errors. `git diff --check` passed.
+
 ## 2026-09-03 - Specify Typed ModelWork Process Execution
 
 - Accepted RFC-0023 for one deterministic-fake-only child-local identity chain from

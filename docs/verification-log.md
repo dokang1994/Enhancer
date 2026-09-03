@@ -6856,3 +6856,28 @@ Outcome:
   `CHANGELOG.md`, and append-only verification evidence. One final focused run over
   this complete Markdown state follows before the local closure commit and stable
   checkpoint clear.
+
+## 2026-09-03 - Lazy Typed ModelWork Evidence-Run Boundary
+
+- The RED-first test contract failed at `compileTestJava` with exactly 14 missing-
+  symbol errors for `AgentRunEvidenceIdentity` and `EvidenceRunNamespaceStore`; no
+  existing production source failed to compile, so the RED matched Increment 1.
+- `AgentRunEvidenceIdentity` now derives a canonical version-8 UUID through fixed
+  version/domain framing plus exact Goal and AgentRun UUID bits. A fixed vector guards
+  the derivation, and tests prove canonical validation, stability, tuple ordering, and
+  domain separation from `AgentRunRecordIdentity`.
+- Additive `EvidenceRunNamespaceStore` avoids widening the existing `EvidenceStore`
+  implementor contract. `FileSystemEvidenceStore.ensureRun` validates before storage
+  access, creates or exact-replays only a direct contained directory, preserves child
+  bytes and timestamps, and refuses root/run files and escaping Windows junctions
+  without replacement or outside writes. Existing long-output persistence and
+  short-inline zero-write behavior remain unchanged.
+- Fresh focused Java 17 verification completed with `BUILD SUCCESSFUL` in 4 seconds.
+  JUnit XML aggregation found 12 suites and 41 tests: 40 passed, one symbolic-link
+  case was skipped because this Windows host lacks link privilege, and zero failed or
+  errored. The separate Windows junction containment regression passed.
+- `git diff --check` passed. Production source search found no caller of the new
+  identity or namespace operation outside their definitions/implementation. No model-
+  attempt pipeline, process handler, v2 writer, producer/receiver, supported entry
+  point, provider/network, credential, spend, push, merge, release, deployment,
+  permission change, destructive cleanup, or external effect was added or performed.
