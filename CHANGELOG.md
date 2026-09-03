@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-09-03 - Implement Exact-Request Model Budget Preparation
+
+- Added the field-free RFC-0022 exact-request preparation with closed ordered
+  malformed/input/response-length/output/defensive-total budget refusal.
+- Added opaque private-construction `Ready` and `Refused` variants that retain exact
+  `Suitable` and policy identities, successful scalar/response/total counts, or one
+  closed reason without revealing prompt, correlation, or project-root data.
+- Added RED-first behavior, reflection, source-order, total-invariant, Unicode,
+  maximum-bound, and no-production-caller guards. Focused Java 17 verification passed
+  70 tests across 14 suites with zero skips, failures, or errors.
+- No gateway call, invoker, production caller, Tool/evidence/RunRecord/schema/runtime/
+  retry/recovery/provider/network/credential/spend path, push, merge, release, or
+  deployment was added or performed.
+
 ## 2026-09-02 - Specify Exact-Request Model Budget And Invocation Seam
 
 - Accepted RFC-0022 for a closed deterministic-fake actual-request preparation that

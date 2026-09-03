@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-09-03 into RFC-0022 exact-request seam implementation
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-09-03-implement-deterministic-fake-exact-request-invocation-seam.md)
+
 ### User continuation request on 2026-09-02 into exact-request model budget and invocation seam specification
 
 Status: Accepted Decision

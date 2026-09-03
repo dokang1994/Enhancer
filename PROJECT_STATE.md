@@ -9,8 +9,8 @@
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 451 Java files.
-- Test source: 195 Java files.
+- Production source: 454 Java files.
+- Test source: 196 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -19,6 +19,20 @@ it does not restate which commit published which increment.
 ## Capability Maturity
 
 ### Contract Verified
+
+- The RFC-0022 sequence-1 exact-request preparation boundary under
+  `com.enhancer.model` is Contract Verified. Field-free
+  `DeterministicFakeExactRequestPreparation` accepts exact `Suitable` plus exact
+  `ExecutionPolicy`, reads the retained prompt once, counts its well-formed Unicode
+  scalars once, and applies malformed/input/response-length/output/checked-total
+  checks in the accepted first-match order. Its sealed opaque private-construction
+  `Ready` and `Refused` variants retain exact input identities, complete successful
+  counts, or one closed reason with non-revealing rendering. Focused behavior,
+  reflection, source-order, total-invariant, and locality guards cover equality/one-
+  over boundaries, supplementary input, malformed positions, the tight fake maximum,
+  and zero gateway/Tool/evidence/RunRecord/runtime/caller activity. The invoker,
+  production caller, schema/runtime integration, provider/network, credential, and
+  spend authority remain absent.
 
 - The RFC-0020/RFC-0021 standalone local-candidate boundary under
   `com.enhancer.model` is Contract Verified. Field-free
@@ -32,9 +46,8 @@ it does not restate which commit published which increment.
   retain exact inputs in ephemeral `Suitable`. Reflection and source guards prove the
   five definition types have no generic gateway, I/O, Tool, provider, credential,
   evidence, RunRecord, process, runtime, persistence, or production-caller wiring.
-  Gateway rendering and generic `ModelUsage` remain character-based; no actual-request
-  budget seam, invocation, schema, runtime, network, credential, or spend authority
-  was added.
+  Gateway rendering and generic `ModelUsage` remain character-based; no exact-request
+  invoker, schema, runtime, network, credential, or spend authority exists.
 
 - The RFC-0019 Scheduler model request/policy/admission preparation boundary under
   `com.enhancer.runtime` is Contract Verified. Immutable

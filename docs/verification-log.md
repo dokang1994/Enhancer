@@ -6719,3 +6719,25 @@ Outcome:
 - `git diff --check` passed and the closure diff was reviewed. A final focused run over
   this complete append-only Markdown state follows before the closure commit and stable
   checkpoint clear.
+
+## 2026-09-03 - Exact-Request Budget Preparation Contract
+
+- The primary Agent wrote the exact-request preparation behavior and boundary tests
+  first. The initial focused run failed at `compileTestJava` with 37 missing-symbol
+  errors limited to the absent RFC-0022 preparation, decision, and rejection-reason
+  types; this was the expected task-aligned RED.
+- The minimum implementation added those three model-package definition types only:
+  field-free preparation, a sealed opaque decision with private variant constructors,
+  and the five closed rejection reasons. No gateway or production caller was added.
+- Fresh focused Java 17 verification completed with `BUILD SUCCESSFUL` in 32 seconds.
+  JUnit XML aggregation found 14 suites and 70 tests: all 70 passed with zero skipped,
+  failed, or errored. Coverage included exact identity and count retention, ASCII and
+  supplementary Unicode, malformed-surrogate positions, reachable equality/one-over
+  and first-match boundaries, the 261,986-unit tight maximum, valid-budget total
+  theorem, private/field-free reflection shape, non-revealing rendering, source order,
+  candidate locality/non-caller constraints, existing model contracts, and task/
+  decision/document governance.
+- `git diff --check` passed. Two bounded read-only contract reviews informed the API
+  and security test matrix but were not treated as verification evidence. Final
+  focused verification over the synchronized Increment 1 state follows before its
+  local GREEN commit.

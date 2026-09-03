@@ -1767,8 +1767,8 @@ candidate, and gateway identities. The gateway's `deterministic-fake-v1` renderi
 generic character-based `ModelUsage`, `ModelInvokeTool`, Scheduler preparation,
 schemas, execution guards, runtime, and recovery remain unchanged.
 
-RFC-0022 specifies that seam without implementing it. A future field-free
-`DeterministicFakeExactRequestPreparation` accepts only exact `Suitable` plus the
+RFC-0022's first standalone sequence defines a field-free
+`DeterministicFakeExactRequestPreparation` that accepts only exact `Suitable` plus the
 RFC-0019 policy instance, counts the retained request prompt once, and applies
 malformed-input, actual-input, predicted response UTF-16 length, predicted output, and
 checked-total comparisons in order. Only its private-construction opaque `Ready`
@@ -1777,9 +1777,10 @@ derived through that retained identity chain rather than supplied again.
 
 The total-budget reason stays as a defensive stable branch even though RFC-0014's
 `maxInput + maxOutput <= maxTotal` invariant makes it unreachable after both
-individual checks for every valid current profile. The future invoker rechecks the
-retained policy allowlist, strict timeout relationship, and current cancellation before
-one exact candidate-bound gateway call. Its opaque result distinguishes returned
+individual checks for every valid current profile. The still-unimplemented invoker
+must recheck the retained policy allowlist, strict timeout relationship, and current
+cancellation before one exact candidate-bound gateway call. Its opaque result
+distinguishes returned
 untrusted response, pre-call refusal, and unchanged `ModelFailureCode` without raw
 exception text. This standalone seam supplies no ToolExecutor isolation, evidence,
 verification, RunRecord, retry, runtime, or production-caller authority; later typed

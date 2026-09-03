@@ -22,7 +22,10 @@ class ModelCandidateLocalityBoundaryTest {
             "DeterministicFakeModelCandidate.java",
             "ModelCandidateSuitability.java",
             "ModelCandidateSuitabilityDecision.java",
-            "ModelCandidateSuitabilityRejectionReason.java");
+            "ModelCandidateSuitabilityRejectionReason.java",
+            "DeterministicFakeExactRequestPreparation.java",
+            "DeterministicFakeExactRequestDecision.java",
+            "DeterministicFakeExactRequestRejectionReason.java");
 
     @Test
     void candidateBoundaryHasNoIoExecutionOrGenericGatewayDependencies() throws IOException {
@@ -85,6 +88,12 @@ class ModelCandidateLocalityBoundaryTest {
                                 () -> path + " must not consume the candidate identity yet");
                         assertFalse(source.contains("deterministic-unicode-scalar-v1"),
                                 () -> path + " must not consume token semantics yet");
+                        assertFalse(source.contains("DeterministicFakeExactRequestPreparation"),
+                                () -> path + " must not prepare exact model requests yet");
+                        assertFalse(source.contains("DeterministicFakeExactRequestDecision"),
+                                () -> path + " must not consume exact request decisions yet");
+                        assertFalse(source.contains("DeterministicFakeExactRequestRejectionReason"),
+                                () -> path + " must not consume exact request reasons yet");
                     });
         }
     }
