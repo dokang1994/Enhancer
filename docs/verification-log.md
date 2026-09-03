@@ -6822,3 +6822,37 @@ Outcome:
   gateway or Tool call, evidence or record write, schema migration, provider/network,
   credential, spend, push, merge, release, or deployment occurred. The fresh full
   README-owned regression follows in Increment 2.
+
+## 2026-09-03 - Typed ModelWork Process-Execution Specification Closure
+
+- The verified RFC/decision/architecture/Roadmap/task/evidence increment was committed
+  locally as `8dfa9b8` (`Specify typed ModelWork process execution`).
+- Fresh full Java 17 verification used the README-owned
+  `.\scripts\gradle.ps1 test` command and completed with `BUILD SUCCESSFUL` in
+  2 minutes 6 seconds.
+- JUnit XML aggregation found 194 suites and 1,062 tests: 1,050 passed, 12 existing
+  environment- or privilege-dependent cases were skipped, and zero failed or errored.
+- The regression left the tracked worktree clean. `PROJECT_STATE.md` remains unchanged
+  because an accepted specification does not promote capability maturity;
+  `SESSION_HANDOFF.md` remains unchanged because it already contains the only current
+  host-specific facts. Increment 2 and the Active Task are now closed.
+- No Java/test implementation, production caller, supported entry point,
+  producer/receiver, actual gateway or Tool call, evidence or record write, schema
+  migration, provider/network, credential, spend, push, merge, release, deployment,
+  permission change, destructive cleanup, or external effect occurred.
+- Fresh focused governance, `git diff --check`, closure diff review, the local closure
+  commit, and stable checkpoint reconciliation follow this append-only entry.
+
+## 2026-09-03 - Typed ModelWork Specification Post-Closure Governance
+
+- After task/increment completion, next-action, Changelog, and full-regression evidence
+  synchronization, fresh focused Java 17 governance completed with
+  `BUILD SUCCESSFUL` in 4 seconds.
+- JUnit XML aggregation found 8 suites and 27 tests: all 27 passed with zero skipped,
+  failed, or errored. The selection covered decision indexing, document ownership,
+  dynamic workflow, model-candidate locality, task justification, approved-task
+  reading/revision, and repository-task planning.
+- `git diff --check` passed and the closure diff was limited to `CURRENT_TASK.md`,
+  `CHANGELOG.md`, and append-only verification evidence. One final focused run over
+  this complete Markdown state follows before the local closure commit and stable
+  checkpoint clear.

@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -133,7 +133,7 @@ regression.
 
 ### Increment 2 - verify-and-close-typed-model-work-execution-specification
 
-State: In Progress
+State: Completed
 Depends On: specify-typed-model-work-execution-contract
 Scope: Run the full Markdown-sensitive Java 17 regression, record fresh evidence,
 close the task/handoff, and commit the verified specification closure.
@@ -146,4 +146,5 @@ execution connection RED-first.
 
 ## Next
 
-Run the fresh full README-owned regression and close the RFC-0023 specification task.
+Await separate user authority to implement RFC-0023 RED-first without adding a typed
+ModelWork producer, receiver, or supported entry point.

@@ -15,6 +15,9 @@
   decision.
 - Fresh focused Java 17 governance passed 27 tests across 8 suites with zero skips,
   failures, or errors, and `git diff --check` passed.
+- The verified specification increment was committed locally as `8dfa9b8`. The fresh
+  full README-owned Java 17 regression then passed 1,062 tests across 194 suites with
+  1,050 passed, 12 existing conditional skips, and zero failures or errors.
 - No Java, test source, caller, supported entry point, producer/receiver, actual model
   or Tool call, schema migration, provider/network, credential, spend, push, merge,
   release, or deployment was added or performed.
