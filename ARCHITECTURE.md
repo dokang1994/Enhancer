@@ -1844,8 +1844,18 @@ remains unchanged. Child payload-kind selection returns a dedicated disconnected
 outcome before model execution, and source guards prohibit a v2 writer or standalone
 pipeline call from process handlers.
 
-The durable worker, finalizer, and Scheduler status/recovery readers still require
-their v2 branches before the writer may become reachable. Existing durable schemas
+`AgentRunRecordResolver` is the shared read-only durable boundary: legacy work resolves
+and binds v1, while typed work requires the deterministic reference, calls only
+`resolveModel`, and applies the same exact v2 validator. `DurableAgentRunFinalizer`,
+`SchedulerRecoveryStatusReader`, and `SchedulerInvocationRecoveryStatusReader` use that
+boundary, so verified/non-verified v2 lifecycle state drives the unchanged completion,
+retry, recovery-phase, and invocation-prefix projections without v1 projection. The
+internal `DurableAgentRunWorker` v2 composition supplies the same typed context to the
+process reader and finalizer; a checkpointed v2 reference therefore survives lease
+recovery and exact-replays without launching the disconnected child branch. Invocation
+spool inspection also rejects symbolic or non-regular transport candidates. All named
+v2 consumers are now installed, but the child writer remains unreachable until the
+next increment deliberately connects it. Existing durable schemas
 suffice for the minimum returned-outcome path, but durable pre-call refusal or
 additional candidate, count, Ready, response-usage, or refusal provenance requires a
 later compatibility decision. The exact fake call and temporary filesystem effects

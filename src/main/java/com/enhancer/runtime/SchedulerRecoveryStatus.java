@@ -59,6 +59,20 @@ public final class SchedulerRecoveryStatus {
             Optional<PendingFinalization> pending,
             Optional<AgentRuntimeState> runtimeState,
             Optional<ResolvedRunRecord> runRecord) {
+        Objects.requireNonNull(runRecord, "runRecord must not be null");
+        return projectResolved(
+                queueState,
+                pending,
+                runtimeState,
+                runRecord.map(value -> new AgentRunRecordResolver.Resolved(
+                        value.metadata(), value.record())));
+    }
+
+    static SchedulerRecoveryStatus projectResolved(
+            SchedulerQueueState queueState,
+            Optional<PendingFinalization> pending,
+            Optional<AgentRuntimeState> runtimeState,
+            Optional<AgentRunRecordResolver.Resolved> runRecord) {
         Objects.requireNonNull(queueState, "queueState must not be null");
         Objects.requireNonNull(pending, "pending must not be null");
         Objects.requireNonNull(runtimeState, "runtimeState must not be null");
@@ -205,11 +219,11 @@ public final class SchedulerRecoveryStatus {
     private static void validateRunRecord(
             PendingFinalization checkpoint,
             AgentRuntimeState runtime,
-            Optional<ResolvedRunRecord> runRecord) {
+            Optional<AgentRunRecordResolver.Resolved> runRecord) {
         if (runRecord.isEmpty()) {
             return;
         }
-        ResolvedRunRecord resolved = runRecord.orElseThrow();
+        AgentRunRecordResolver.Resolved resolved = runRecord.orElseThrow();
         String reference =
                 checkpoint.runRecordReference().orElseThrow();
         if (!resolved.metadata().reference().equals(reference)) {

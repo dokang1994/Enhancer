@@ -5,12 +5,14 @@ import com.enhancer.bus.ResultPayload;
 import com.enhancer.kernel.VerificationStatus;
 import com.enhancer.loop.AgentLoop;
 import com.enhancer.loop.AgentLoopStopReason;
-import com.enhancer.run.ResolvedRunRecord;
 import com.enhancer.run.RunRecord;
 import com.enhancer.run.RunRecordStore;
+import com.enhancer.run.ModelRunRecordStore;
+import com.enhancer.tool.EvidenceStore;
 import com.enhancer.tool.ToolFailureCode;
 import com.enhancer.workspace.ApprovedTaskRevision;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.util.List;
@@ -28,7 +30,7 @@ public final class DurableAgentRunFinalizer {
 
     private final DurableSingleWorkerSchedulerQueue queue;
     private final AgentRuntimeStateStore runtimeStore;
-    private final RunRecordStore runRecordStore;
+    private final AgentRunRecordResolver recordResolver;
     private final Clock clock;
     private final Optional<RuntimeEventRecorder> eventRecorder;
 
@@ -37,7 +39,12 @@ public final class DurableAgentRunFinalizer {
             AgentRuntimeStateStore runtimeStore,
             RunRecordStore runRecordStore,
             Clock clock) {
-        this(queue, runtimeStore, runRecordStore, clock, Optional.empty());
+        this(
+                queue,
+                runtimeStore,
+                new AgentRunRecordResolver(runRecordStore),
+                clock,
+                Optional.empty());
     }
 
     public DurableAgentRunFinalizer(
@@ -49,23 +56,45 @@ public final class DurableAgentRunFinalizer {
         this(
                 queue,
                 runtimeStore,
-                runRecordStore,
+                new AgentRunRecordResolver(runRecordStore),
                 clock,
                 Optional.of(Objects.requireNonNull(
                         eventRecorder, "eventRecorder must not be null")));
     }
 
-    private DurableAgentRunFinalizer(
+    DurableAgentRunFinalizer(
             DurableSingleWorkerSchedulerQueue queue,
             AgentRuntimeStateStore runtimeStore,
             RunRecordStore runRecordStore,
+            ModelRunRecordStore modelRunRecordStore,
+            EvidenceStore evidenceStore,
+            Path projectRoot,
+            ModelProcessExecutionConfiguration configuration,
+            Clock clock) {
+        this(
+                queue,
+                runtimeStore,
+                new AgentRunRecordResolver(
+                        runRecordStore,
+                        modelRunRecordStore,
+                        evidenceStore,
+                        projectRoot,
+                        configuration),
+                clock,
+                Optional.empty());
+    }
+
+    private DurableAgentRunFinalizer(
+            DurableSingleWorkerSchedulerQueue queue,
+            AgentRuntimeStateStore runtimeStore,
+            AgentRunRecordResolver recordResolver,
             Clock clock,
             Optional<RuntimeEventRecorder> eventRecorder) {
         this.queue = Objects.requireNonNull(queue, "queue must not be null");
         this.runtimeStore =
                 Objects.requireNonNull(runtimeStore, "runtimeStore must not be null");
-        this.runRecordStore =
-                Objects.requireNonNull(runRecordStore, "runRecordStore must not be null");
+        this.recordResolver = Objects.requireNonNull(
+                recordResolver, "recordResolver must not be null");
         this.clock = Objects.requireNonNull(clock, "clock must not be null");
         this.eventRecorder = Objects.requireNonNull(
                 eventRecorder, "eventRecorder must not be null");
@@ -97,9 +126,11 @@ public final class DurableAgentRunFinalizer {
 
         switch (run.status()) {
             case AWAITING_VERIFICATION -> {
-                ResolvedRunRecord resolved =
-                        runRecordStore.resolve(runRecordReference);
-                requireBinding(resolved.record(), workItem);
+                AgentRunRecordResolver.Resolved resolved = recordResolver.resolve(
+                        goalId,
+                        canonicalAgentRunId,
+                        workItem,
+                        runRecordReference);
                 eventSource = Optional.of(resolved.record());
                 VerificationStatus status = resolved.record().verification().status();
                 MessageEnvelope result = buildResultEnvelope(
@@ -109,9 +140,11 @@ public final class DurableAgentRunFinalizer {
             case COMPLETED, FAILED -> {
                 assertStoredResultReference(run, runRecordReference);
                 if (eventRecorder.isPresent()) {
-                    ResolvedRunRecord resolved =
-                            runRecordStore.resolve(runRecordReference);
-                    requireBinding(resolved.record(), workItem);
+                    AgentRunRecordResolver.Resolved resolved = recordResolver.resolve(
+                            goalId,
+                            canonicalAgentRunId,
+                            workItem,
+                            runRecordReference);
                     eventSource = Optional.of(resolved.record());
                 }
             }

@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-09-03 - Add V2-Aware Typed ModelWork Durable Consumers
+
+- Added one shared read-only payload-kind resolver for durable finalization and
+  Scheduler recovery/status inspection. Typed work requires the deterministic Goal/
+  AgentRun reference and complete v2 binding; it is never projected through the v1
+  store.
+- Added v2-aware Scheduler recovery and invocation-spool projections, preserving every
+  existing recovery phase while rejecting symbolic or non-regular transport candidates.
+- Added an internal durable-worker v2 composition that exact-replays a checkpointed
+  typed record through expired-lease recovery and existing terminal queue disposition
+  without launching the still-disconnected child branch.
+- The aligned REDs covered the missing finalizer, Scheduler reader, and worker
+  composition contracts. Fresh expanded Java 17 verification passed all 177 tests
+  across 16 suites with zero failures, errors, or skips; final Markdown-sensitive
+  governance and `git diff --check` followed.
+- No typed writer connection, producer, receiver, supported entry point, durable schema
+  change, provider/network, credential, spend, push, merge, release, or deployment was
+  added or performed.
+
 ## 2026-09-03 - Add Typed ModelWork Process Validation
 
 - Added an internal parent-side v2 validator that binds the deterministic Goal/

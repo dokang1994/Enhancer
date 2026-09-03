@@ -9,7 +9,7 @@
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 464 Java files.
+- Production source: 465 Java files.
 - Test source: 206 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
@@ -19,6 +19,19 @@ it does not restate which commit published which increment.
 ## Capability Maturity
 
 ### Contract Verified
+
+- RFC-0023 durable consumers are Contract Verified. `AgentRunRecordResolver` selects
+  the narrow v1 or v2
+  store from the retained WorkItem kind, requires the deterministic Goal/AgentRun
+  reference for typed work, and reuses the complete parent v2 validator before exposing
+  only the nested lifecycle. Durable finalization, Scheduler recovery status, and
+  invocation-spool recovery use this boundary without projecting typed work through
+  `RunRecordStore`; the latter also refuses non-regular transport candidates. The
+  internal durable-worker v2 composition exact-replays a checkpointed typed reference
+  across expired-lease recovery without launching a child. Verified and non-verified
+  lifecycle states continue through the existing completion/retry and queue semantics,
+  all durable bytes and v1 behavior are unchanged, and the typed child writer remains
+  unreachable until Increment 5.
 
 - RFC-0023 process validation is Contract Verified while typed execution remains
   disconnected. `ProcessIsolatedAgentRunExecution` preserves the legacy v1 order and
@@ -32,8 +45,9 @@ it does not restate which commit published which increment.
   points fail closed. Child handling now selects payload kind explicitly but returns a
   dedicated disconnected outcome before legacy execution, evidence, record, Result,
   or launch-side model activity. Process handlers and launchers still contain no v2
-  writer or model-attempt-pipeline call. Durable finalizer/worker and Scheduler
-  recovery/status readers remain v1-only for Increment 4.
+  writer or model-attempt-pipeline call. All durable finalizer, worker, and Scheduler
+  recovery/status consumers now have read-only v2 branches for the next connection
+  increment.
 
 - The standalone RFC-0023 deterministic-fake model-attempt pipeline is Contract
   Verified and remains package-private with no process-handler or other production
@@ -47,9 +61,8 @@ it does not restate which commit published which increment.
   verified before `ModelRunRecordFinalizer` builds one millisecond-precision lifecycle
   and point-persists only Model RunRecord v2 at the deterministic AgentRun identity.
   Verified, Rejected, Unverified, and Not Performed/failed lifecycle mappings and exact
-  v2 replay are covered. The process readers are now v2-aware, while the durable
-  finalizer/worker and Scheduler recovery/status readers remain v1-only and guarded
-  for Increment 4.
+  v2 replay are covered. Process readers and all named durable consumers are now v2-
+  aware, while the writer remains guarded for the next connection increment.
 
 - The first RFC-0023 implementation prerequisite is Contract Verified without a
   production caller. `AgentRunEvidenceIdentity` derives one canonical, versioned,

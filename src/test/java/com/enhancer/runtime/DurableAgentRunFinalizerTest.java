@@ -53,6 +53,65 @@ class DurableAgentRunFinalizerTest {
     Path tempDir;
 
     @Test
+    void verifiedTypedModelRecordCompletesThroughTheV2Port() throws Exception {
+        Path projectRoot = tempDir.resolve("model-project");
+        java.nio.file.Files.createDirectories(projectRoot);
+        ModelProcessValidationTestFixture.Prepared prepared =
+                ModelProcessValidationTestFixture.valid(projectRoot);
+        FileSystemSchedulerQueueStore queueStore =
+                new FileSystemSchedulerQueueStore(tempDir.resolve("model-queue"));
+        FileSystemAgentRuntimeStateStore runtimeStore =
+                new FileSystemAgentRuntimeStateStore(tempDir.resolve("model-runtime"));
+        FileSystemRunRecordStore recordStore =
+                new FileSystemRunRecordStore(tempDir.resolve("model-records"));
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.create(QUEUE_ID, 8, queueStore);
+        queue.enqueue(new QueuedWork(prepared.workItem(), List.of()));
+        AgentRunDispatch dispatch = new DurableAgentRunDispatcher(
+                queue, runtimeStore, CLOCK)
+                .claimAndLease(
+                        ModelAttemptTestFixture.GOAL_ID,
+                        ModelAttemptTestFixture.AGENT_RUN_ID,
+                        OWNER_ID,
+                        Duration.ofMinutes(5))
+                .orElseThrow();
+        DurableAgentRuntime.recover(
+                        ModelAttemptTestFixture.GOAL_ID, runtimeStore, CLOCK)
+                .completeExecution(
+                        ModelAttemptTestFixture.AGENT_RUN_ID,
+                        OWNER_ID,
+                        dispatch.lease().fenceToken());
+        String recordId = AgentRunRecordIdentity.recordId(
+                ModelAttemptTestFixture.GOAL_ID,
+                ModelAttemptTestFixture.AGENT_RUN_ID);
+        String reference = recordStore.persistModel(
+                recordId, prepared.resolved().record()).reference();
+        DurableAgentRunFinalizer finalizer = new DurableAgentRunFinalizer(
+                DurableSingleWorkerSchedulerQueue.recover(QUEUE_ID, queueStore),
+                runtimeStore,
+                recordStore,
+                recordStore,
+                prepared.evidenceStore(),
+                projectRoot,
+                prepared.configuration(),
+                CLOCK);
+
+        assertEquals(
+                WorkItemDisposition.VERIFIED_COMPLETED,
+                finalizer.finalizeAgentRun(
+                        ModelAttemptTestFixture.GOAL_ID,
+                        ModelAttemptTestFixture.AGENT_RUN_ID,
+                        reference));
+        assertEquals(
+                RuntimeAgentRunStatus.COMPLETED,
+                DurableAgentRuntime.recover(
+                                ModelAttemptTestFixture.GOAL_ID,
+                                runtimeStore,
+                                CLOCK)
+                        .agentRun().orElseThrow().status());
+    }
+
+    @Test
     void verifiedOutcomeCompletesRuntimeAndReleasesDependent() throws Exception {
         Setup s = awaitingVerification(true);
         String reference = persistRunRecord(s, true);

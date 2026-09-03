@@ -1,6 +1,8 @@
 package com.enhancer.runtime;
 
+import com.enhancer.run.ModelRunRecordStore;
 import com.enhancer.run.RunRecordStore;
+import com.enhancer.tool.EvidenceStore;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Clock;
@@ -131,6 +133,7 @@ public final class DurableAgentRunWorker {
                 clock,
                 processTimeout,
                 retryPolicy,
+                Optional.empty(),
                 Optional.empty());
     }
 
@@ -164,8 +167,48 @@ public final class DurableAgentRunWorker {
                 clock,
                 processTimeout,
                 retryPolicy,
+                Optional.empty(),
                 Optional.of(Objects.requireNonNull(
                         eventRecorder, "eventRecorder must not be null")));
+    }
+
+    /** Internal v2-aware composition; typed execution remains guarded until writer connection. */
+    static DurableAgentRunWorker processIsolated(
+            DurableSingleWorkerSchedulerQueue queue,
+            AgentRuntimeStateStore runtimeStore,
+            ExternalEffectLedgerStore effectStore,
+            PendingFinalizationStore checkpoint,
+            Path projectRoot,
+            Path evidenceRoot,
+            Path runRecordRoot,
+            Path invocationRoot,
+            RunRecordStore runRecordStore,
+            ModelRunRecordStore modelRunRecordStore,
+            EvidenceStore evidenceStore,
+            ModelProcessExecutionConfiguration modelConfiguration,
+            String ownerId,
+            Clock clock,
+            Duration processTimeout,
+            AgentRunRetryPolicy retryPolicy) {
+        return composeProcessIsolated(
+                queue,
+                runtimeStore,
+                effectStore,
+                checkpoint,
+                projectRoot,
+                evidenceRoot,
+                runRecordRoot,
+                invocationRoot,
+                runRecordStore,
+                ownerId,
+                clock,
+                processTimeout,
+                retryPolicy,
+                Optional.of(new ModelConsumerContext(
+                        modelRunRecordStore,
+                        evidenceStore,
+                        modelConfiguration)),
+                Optional.empty());
     }
 
     private static DurableAgentRunWorker composeProcessIsolated(
@@ -182,6 +225,7 @@ public final class DurableAgentRunWorker {
             Clock clock,
             Duration processTimeout,
             AgentRunRetryPolicy retryPolicy,
+            Optional<ModelConsumerContext> modelContext,
             Optional<RuntimeEventRecorder> eventRecorder) {
         Objects.requireNonNull(queue, "queue must not be null");
         Objects.requireNonNull(runtimeStore, "runtimeStore must not be null");
@@ -189,35 +233,67 @@ public final class DurableAgentRunWorker {
         Objects.requireNonNull(checkpoint, "checkpoint must not be null");
         Objects.requireNonNull(runRecordStore, "runRecordStore must not be null");
         Objects.requireNonNull(clock, "clock must not be null");
-        AgentRunExecution isolatedExecution = eventRecorder
-                .<AgentRunExecution>map(recorder ->
+        Objects.requireNonNull(modelContext, "modelContext must not be null");
+        AgentRunExecution isolatedExecution = modelContext
+                .<AgentRunExecution>map(context ->
                         new ProcessIsolatedAgentRunExecution(
                                 invocationRoot,
                                 projectRoot,
                                 evidenceRoot,
                                 runRecordRoot,
                                 runRecordStore,
+                                context.modelRunRecordStore(),
+                                context.evidenceStore(),
+                                context.configuration(),
                                 new IsolatedWorkerLauncher(),
                                 processTimeout,
-                                recorder))
-                .orElseGet(() -> new ProcessIsolatedAgentRunExecution(
+                                new FileSystemProcessTimeoutFactStore(
+                                        invocationRoot.toAbsolutePath().normalize()
+                                                .resolve(".process-timeouts")),
+                                clock))
+                .orElseGet(() -> eventRecorder
+                        .<AgentRunExecution>map(recorder ->
+                                new ProcessIsolatedAgentRunExecution(
+                                        invocationRoot,
+                                        projectRoot,
+                                        evidenceRoot,
+                                        runRecordRoot,
+                                        runRecordStore,
+                                        new IsolatedWorkerLauncher(),
+                                        processTimeout,
+                                        recorder))
+                        .orElseGet(() -> new ProcessIsolatedAgentRunExecution(
                         invocationRoot,
                         projectRoot,
                         evidenceRoot,
                         runRecordRoot,
                         runRecordStore,
                         new IsolatedWorkerLauncher(),
-                        processTimeout));
+                        processTimeout)));
         DurableAgentRunDispatcher dispatcher = eventRecorder
                 .map(recorder -> new DurableAgentRunDispatcher(
                         queue, runtimeStore, clock, recorder))
                 .orElseGet(() -> new DurableAgentRunDispatcher(
                         queue, runtimeStore, clock));
-        DurableAgentRunFinalizer finalizer = eventRecorder
-                .map(recorder -> new DurableAgentRunFinalizer(
-                        queue, runtimeStore, runRecordStore, clock, recorder))
-                .orElseGet(() -> new DurableAgentRunFinalizer(
-                        queue, runtimeStore, runRecordStore, clock));
+        DurableAgentRunFinalizer finalizer = modelContext
+                .map(context -> new DurableAgentRunFinalizer(
+                        queue,
+                        runtimeStore,
+                        runRecordStore,
+                        context.modelRunRecordStore(),
+                        context.evidenceStore(),
+                        projectRoot,
+                        context.configuration(),
+                        clock))
+                .orElseGet(() -> eventRecorder
+                        .map(recorder -> new DurableAgentRunFinalizer(
+                                queue,
+                                runtimeStore,
+                                runRecordStore,
+                                clock,
+                                recorder))
+                        .orElseGet(() -> new DurableAgentRunFinalizer(
+                                queue, runtimeStore, runRecordStore, clock)));
         return new DurableAgentRunWorker(
                 dispatcher,
                 isolatedExecution,
@@ -229,6 +305,18 @@ public final class DurableAgentRunWorker {
                 ownerId,
                 clock,
                 eventRecorder);
+    }
+
+    private record ModelConsumerContext(
+            ModelRunRecordStore modelRunRecordStore,
+            EvidenceStore evidenceStore,
+            ModelProcessExecutionConfiguration configuration) {
+        private ModelConsumerContext {
+            Objects.requireNonNull(
+                    modelRunRecordStore, "modelRunRecordStore must not be null");
+            Objects.requireNonNull(evidenceStore, "evidenceStore must not be null");
+            Objects.requireNonNull(configuration, "configuration must not be null");
+        }
     }
 
     public Optional<WorkItemDisposition> runOneCycle(Duration leaseDuration)

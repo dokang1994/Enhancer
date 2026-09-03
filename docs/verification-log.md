@@ -6986,3 +6986,39 @@ Outcome:
   changed, and `SESSION_HANDOFF.md` remains unchanged because no new host-only fact was
   introduced. Final Markdown governance, diff review, and the local GREEN commit
   follow this entry.
+
+## 2026-09-03 - Add V2-Aware Durable Consumers
+
+- Increment 3 was committed locally as `5b9f6d1` (`Add typed model process
+  validation`). The worktree was clean and `main` was 12 commits ahead of
+  `origin/main` before Increment 4 began; no push or merge occurred.
+- The Increment 4 RED failed only because `DurableAgentRunFinalizer` lacked the
+  additive v2-aware constructor. `AgentRunRecordResolver` now selects v1 or v2 from
+  the exact WorkItem kind, requires the deterministic typed reference, and applies the
+  complete v2 validator before returning the nested lifecycle. The finalizer uses this
+  read-only boundary without changing its runtime, retry-pending, queue, or event
+  transition logic.
+- Fresh Java 17 verification reran all 23 `DurableAgentRunFinalizerTest` cases with
+  `BUILD SUCCESSFUL` in 34 seconds: all passed with zero skips, failures, or errors.
+  The new real-filesystem case point-persisted v2, resolved it only through the model
+  port, and completed the existing Verified runtime/queue transition. `git diff
+  --check` passed.
+- Further aligned REDs failed only for the missing v2 Scheduler reader constructors and
+  missing internal worker composition. `SchedulerRecoveryStatusReader` and
+  `SchedulerInvocationRecoveryStatusReader` now use the shared payload-kind resolver;
+  the pure projection accepts either resolved representation, invocation validation
+  delegates typed closure to the complete v2 validator, and non-regular transport
+  candidates fail closed.
+- The internal v2-aware durable-worker composition supplies the same model store,
+  evidence store, project root, and execution configuration to process validation and
+  finalization. A real-filesystem test recovered an expired lease and exact-replayed a
+  checkpointed verified v2 record through terminal queue disposition without creating
+  an invocation root or launching the still-disconnected child branch.
+- Fresh expanded Java 17 verification passed all 177 tests across 16 durable worker,
+  finalizer, retry, runtime, Scheduler recovery/status, queue/checkpoint, process, and
+  writer-locality suites with zero skips, failures, or errors. Final Markdown-sensitive
+  governance and `git diff --check` follow this entry.
+- Increment 4 is complete. The typed process writer remains unreachable, and no
+  producer/receiver, supported entry point, schema migration, provider/network,
+  credential, spend, push, merge, release, deployment, permission change, destructive
+  cleanup, or external effect was added or performed.

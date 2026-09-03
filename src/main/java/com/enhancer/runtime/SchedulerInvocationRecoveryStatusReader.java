@@ -7,9 +7,11 @@ import com.enhancer.bus.MessagePayload;
 import com.enhancer.bus.ResultPayload;
 import com.enhancer.bus.TransportMessage;
 import com.enhancer.kernel.VerificationStatus;
+import com.enhancer.run.ModelRunRecordStore;
 import com.enhancer.run.RunRecord;
 import com.enhancer.run.RunRecordStore;
 import com.enhancer.model.ModelInvokeTool;
+import com.enhancer.tool.EvidenceStore;
 import com.enhancer.tool.ReadFileTool;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -26,7 +28,7 @@ import java.util.Optional;
 public final class SchedulerInvocationRecoveryStatusReader {
     private final SchedulerRecoveryStatusReader schedulerReader;
     private final AgentRuntimeStateStore runtimeStore;
-    private final RunRecordStore runRecordStore;
+    private final AgentRunRecordResolver runRecordResolver;
     private final Path invocationRoot;
 
     public SchedulerInvocationRecoveryStatusReader(
@@ -34,12 +36,45 @@ public final class SchedulerInvocationRecoveryStatusReader {
             AgentRuntimeStateStore runtimeStore,
             RunRecordStore runRecordStore,
             Path invocationRoot) {
+        this(
+                schedulerReader,
+                runtimeStore,
+                new AgentRunRecordResolver(runRecordStore),
+                invocationRoot);
+    }
+
+    SchedulerInvocationRecoveryStatusReader(
+            SchedulerRecoveryStatusReader schedulerReader,
+            AgentRuntimeStateStore runtimeStore,
+            RunRecordStore runRecordStore,
+            ModelRunRecordStore modelRunRecordStore,
+            EvidenceStore evidenceStore,
+            Path projectRoot,
+            ModelProcessExecutionConfiguration configuration,
+            Path invocationRoot) {
+        this(
+                schedulerReader,
+                runtimeStore,
+                new AgentRunRecordResolver(
+                        runRecordStore,
+                        modelRunRecordStore,
+                        evidenceStore,
+                        projectRoot,
+                        configuration),
+                invocationRoot);
+    }
+
+    private SchedulerInvocationRecoveryStatusReader(
+            SchedulerRecoveryStatusReader schedulerReader,
+            AgentRuntimeStateStore runtimeStore,
+            AgentRunRecordResolver runRecordResolver,
+            Path invocationRoot) {
         this.schedulerReader = Objects.requireNonNull(
                 schedulerReader, "schedulerReader must not be null");
         this.runtimeStore = Objects.requireNonNull(
                 runtimeStore, "runtimeStore must not be null");
-        this.runRecordStore = Objects.requireNonNull(
-                runRecordStore, "runRecordStore must not be null");
+        this.runRecordResolver = Objects.requireNonNull(
+                runRecordResolver, "runRecordResolver must not be null");
         this.invocationRoot = Objects.requireNonNull(
                 invocationRoot, "invocationRoot must not be null")
                 .toAbsolutePath()
@@ -115,7 +150,9 @@ public final class SchedulerInvocationRecoveryStatusReader {
             validateResult(
                     resultMessage.orElseThrow(),
                     workMessage.orElseThrow(),
-                    work);
+                    work,
+                    goalId,
+                    agentRunId);
         }
         return Optional.of(new SpoolSample(
                 new SchedulerInvocationRecoveryStatus.InvocationSpoolState(
@@ -134,6 +171,7 @@ public final class SchedulerInvocationRecoveryStatusReader {
 
     private static Optional<TransportMessage> soleMessage(Path root, String direction)
             throws IOException {
+        rejectSymbolic(root, direction + " spool");
         if (!Files.isDirectory(root, LinkOption.NOFOLLOW_LINKS)) {
             return Optional.empty();
         }
@@ -141,9 +179,13 @@ public final class SchedulerInvocationRecoveryStatusReader {
             List<Path> messages = entries
                     .filter(path -> path.getFileName().toString().endsWith(
                             FileSpoolMessageTransport.FILE_SUFFIX))
-                    .filter(path -> Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS))
                     .sorted(Comparator.comparing(Path::getFileName))
                     .toList();
+            if (messages.stream().anyMatch(path ->
+                    !Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS))) {
+                throw new IOException(
+                        "the " + direction + " spool candidate must be a regular file");
+            }
             if (messages.size() > 1) {
                 throw new IOException("the " + direction + " spool holds several messages");
             }
@@ -167,7 +209,9 @@ public final class SchedulerInvocationRecoveryStatusReader {
     private void validateResult(
             TransportMessage resultMessage,
             TransportMessage workMessage,
-            WorkItem work) throws IOException {
+            WorkItem work,
+            String goalId,
+            String agentRunId) throws IOException {
         if (!resultMessage.destination().equals(
                 DeliveryDestination.queue(IsolatedWorkerMain.RESULT_DESTINATION))) {
             throw new IOException("the invocation result message has the wrong destination");
@@ -184,34 +228,38 @@ public final class SchedulerInvocationRecoveryStatusReader {
             throw new IOException("the invocation result does not carry a ResultPayload");
         }
         requireEqual(work.taskRevision().taskId(), resultPayload.taskId(), "task identity");
-        RunRecord record = runRecordStore.resolve(
+        RunRecord record = runRecordResolver.resolve(
+                goalId,
+                agentRunId,
+                work,
                 resultPayload.runRecordReference()).record();
-        try {
-            DurableAgentRunFinalizer.requireBinding(record, work);
-        } catch (IllegalArgumentException mismatch) {
-            throw new IOException(mismatch.getMessage(), mismatch);
-        }
-        boolean readFileScoped = work.allowedTools().contains(ReadFileTool.NAME);
-        String expectedToolName = readFileScoped
-                ? ReadFileTool.NAME
-                : ModelInvokeTool.NAME;
-        String pathArgument = readFileScoped
-                ? ReadFileTool.PATH_ARGUMENT
-                : ModelInvokeTool.PROMPT_PATH_ARGUMENT;
-        if (!record.toolRequest().toolName().equals(expectedToolName)) {
-            throw new IOException("the RunRecord Tool request does not match isolated execution");
-        }
-        String target = record.toolRequest().arguments().get(pathArgument);
-        String expectedTarget = work.executionInput()
-                .map(input -> input.targetPath())
-                .orElse(work.taskRevision().sourceDocument());
-        String expectedDigest = work.executionInput()
-                .map(input -> input.expectedContentSha256())
-                .orElse(work.taskRevision().sourceSha256());
-        if (!expectedTarget.equals(target)
-                || (record.verification().status() != VerificationStatus.NOT_PERFORMED
-                && !record.expectedContentSha256().equals(Optional.of(expectedDigest)))) {
-            throw new IOException("the RunRecord execution input does not match the runtime WorkItem");
+        if (!work.isModelWork()) {
+            boolean readFileScoped = work.allowedTools().contains(ReadFileTool.NAME);
+            String expectedToolName = readFileScoped
+                    ? ReadFileTool.NAME
+                    : ModelInvokeTool.NAME;
+            String pathArgument = readFileScoped
+                    ? ReadFileTool.PATH_ARGUMENT
+                    : ModelInvokeTool.PROMPT_PATH_ARGUMENT;
+            if (!record.toolRequest().toolName().equals(expectedToolName)) {
+                throw new IOException(
+                        "the RunRecord Tool request does not match isolated execution");
+            }
+            String target = record.toolRequest().arguments().get(pathArgument);
+            String expectedTarget = work.executionInput()
+                    .map(input -> input.targetPath())
+                    .orElse(work.taskRevision().sourceDocument());
+            String expectedDigest = work.executionInput()
+                    .map(input -> input.expectedContentSha256())
+                    .orElse(work.taskRevision().sourceSha256());
+            if (!expectedTarget.equals(target)
+                    || (record.verification().status()
+                                    != VerificationStatus.NOT_PERFORMED
+                            && !record.expectedContentSha256()
+                                    .equals(Optional.of(expectedDigest)))) {
+                throw new IOException(
+                        "the RunRecord execution input does not match the runtime WorkItem");
+            }
         }
         if (record.verification().status() != resultPayload.verificationStatus()) {
             throw new IOException("the invocation result verification status does not match its RunRecord");

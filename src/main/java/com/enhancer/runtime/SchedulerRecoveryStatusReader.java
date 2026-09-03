@@ -1,8 +1,10 @@
 package com.enhancer.runtime;
 
-import com.enhancer.run.ResolvedRunRecord;
+import com.enhancer.run.ModelRunRecordStore;
 import com.enhancer.run.RunRecordStore;
+import com.enhancer.tool.EvidenceStore;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -13,21 +15,54 @@ public final class SchedulerRecoveryStatusReader {
     private final SchedulerQueueStore queueStore;
     private final AgentRuntimeStateStore runtimeStore;
     private final PendingFinalizationStore checkpointStore;
-    private final RunRecordStore runRecordStore;
+    private final AgentRunRecordResolver runRecordResolver;
 
     public SchedulerRecoveryStatusReader(
             SchedulerQueueStore queueStore,
             AgentRuntimeStateStore runtimeStore,
             PendingFinalizationStore checkpointStore,
             RunRecordStore runRecordStore) {
+        this(
+                queueStore,
+                runtimeStore,
+                checkpointStore,
+                new AgentRunRecordResolver(runRecordStore));
+    }
+
+    SchedulerRecoveryStatusReader(
+            SchedulerQueueStore queueStore,
+            AgentRuntimeStateStore runtimeStore,
+            PendingFinalizationStore checkpointStore,
+            RunRecordStore runRecordStore,
+            ModelRunRecordStore modelRunRecordStore,
+            EvidenceStore evidenceStore,
+            Path projectRoot,
+            ModelProcessExecutionConfiguration configuration) {
+        this(
+                queueStore,
+                runtimeStore,
+                checkpointStore,
+                new AgentRunRecordResolver(
+                        runRecordStore,
+                        modelRunRecordStore,
+                        evidenceStore,
+                        projectRoot,
+                        configuration));
+    }
+
+    private SchedulerRecoveryStatusReader(
+            SchedulerQueueStore queueStore,
+            AgentRuntimeStateStore runtimeStore,
+            PendingFinalizationStore checkpointStore,
+            AgentRunRecordResolver runRecordResolver) {
         this.queueStore = Objects.requireNonNull(
                 queueStore, "queueStore must not be null");
         this.runtimeStore = Objects.requireNonNull(
                 runtimeStore, "runtimeStore must not be null");
         this.checkpointStore = Objects.requireNonNull(
                 checkpointStore, "checkpointStore must not be null");
-        this.runRecordStore = Objects.requireNonNull(
-                runRecordStore, "runRecordStore must not be null");
+        this.runRecordResolver = Objects.requireNonNull(
+                runRecordResolver, "runRecordResolver must not be null");
     }
 
     public SchedulerRecoveryStatus read(String queueId)
@@ -38,8 +73,8 @@ public final class SchedulerRecoveryStatusReader {
                 checkpointStore.findPending();
         Optional<AgentRuntimeState> firstRuntime =
                 resolveRuntime(firstCheckpoint);
-        Optional<ResolvedRunRecord> runRecord =
-                resolveRunRecord(firstCheckpoint);
+        Optional<AgentRunRecordResolver.Resolved> runRecord =
+                resolveRunRecord(firstCheckpoint, firstRuntime);
 
         SchedulerQueueState secondQueue =
                 queueStore.resolve(queueId);
@@ -53,7 +88,7 @@ public final class SchedulerRecoveryStatusReader {
                 resolveRuntime(secondCheckpoint);
         requireStableRuntime(firstRuntime, secondRuntime);
 
-        return SchedulerRecoveryStatus.project(
+        return SchedulerRecoveryStatus.projectResolved(
                 firstQueue,
                 firstCheckpoint,
                 firstRuntime,
@@ -74,17 +109,22 @@ public final class SchedulerRecoveryStatusReader {
         }
     }
 
-    private Optional<ResolvedRunRecord> resolveRunRecord(
-            Optional<PendingFinalization> checkpoint)
+    private Optional<AgentRunRecordResolver.Resolved> resolveRunRecord(
+            Optional<PendingFinalization> checkpoint,
+            Optional<AgentRuntimeState> runtime)
             throws IOException {
         if (checkpoint.isEmpty()
+                || runtime.isEmpty()
                 || checkpoint.orElseThrow()
                         .runRecordReference().isEmpty()) {
             return Optional.empty();
         }
-        return Optional.of(runRecordStore.resolve(
-                checkpoint.orElseThrow()
-                        .runRecordReference().orElseThrow()));
+        PendingFinalization pending = checkpoint.orElseThrow();
+        return Optional.of(runRecordResolver.resolve(
+                pending.goalId(),
+                pending.agentRunId(),
+                runtime.orElseThrow().goal().workItem(),
+                pending.runRecordReference().orElseThrow()));
     }
 
     private void requireStableQueue(

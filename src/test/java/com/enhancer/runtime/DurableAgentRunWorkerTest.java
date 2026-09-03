@@ -595,6 +595,79 @@ class DurableAgentRunWorkerTest {
     }
 
     @Test
+    void replaysCheckpointedTypedModelReferenceWithoutLaunchingAChild()
+            throws Exception {
+        Path base = tempDir.resolve("typed-worker");
+        Path projectRoot = base.resolve("project");
+        Path evidenceRoot = base.resolve("evidence");
+        Path recordRoot = base.resolve("records");
+        Path invocationRoot = base.resolve("invocations");
+        ModelProcessValidationTestFixture.Prepared prepared =
+                ModelProcessValidationTestFixture.valid(projectRoot);
+        String goalId = ModelAttemptTestFixture.GOAL_ID;
+        String agentRunId = ModelAttemptTestFixture.AGENT_RUN_ID;
+        FileSystemSchedulerQueueStore queueStore =
+                new FileSystemSchedulerQueueStore(base.resolve("queue"));
+        FileSystemAgentRuntimeStateStore runtimeStore =
+                new FileSystemAgentRuntimeStateStore(base.resolve("runtime"));
+        FileSystemRunRecordStore records =
+                new FileSystemRunRecordStore(recordRoot);
+        FileSystemPendingFinalizationStore checkpoint =
+                new FileSystemPendingFinalizationStore(base.resolve("checkpoint"));
+        FileSystemExternalEffectLedgerStore effects =
+                new FileSystemExternalEffectLedgerStore(base.resolve("effects"));
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.create(
+                        QUEUE_ID, 8, queueStore);
+        queue.enqueue(new QueuedWork(prepared.workItem(), List.of()));
+        String reference = records.persistModel(
+                AgentRunRecordIdentity.recordId(goalId, agentRunId),
+                prepared.resolved().record()).reference();
+        checkpoint.record(new PendingFinalization(
+                goalId, agentRunId, Optional.of(reference)));
+        MutableClock clock = new MutableClock(
+                Instant.parse("2026-09-03T13:00:00Z"));
+        new DurableAgentRunDispatcher(queue, runtimeStore, clock)
+                .claimAndLease(
+                        goalId,
+                        agentRunId,
+                        OWNER_ID,
+                        Duration.ofMinutes(1))
+                .orElseThrow();
+        clock.advance(Duration.ofMinutes(2));
+        DurableAgentRunWorker worker = DurableAgentRunWorker.processIsolated(
+                queue,
+                runtimeStore,
+                effects,
+                checkpoint,
+                projectRoot,
+                evidenceRoot,
+                recordRoot,
+                invocationRoot,
+                records,
+                records,
+                prepared.evidenceStore(),
+                prepared.configuration(),
+                OWNER_ID,
+                clock,
+                Duration.ofSeconds(10),
+                AgentRunRetryPolicy.of(2));
+
+        Optional<WorkItemDisposition> disposition =
+                worker.runOneCycle(LEASE);
+
+        assertEquals(
+                Optional.of(WorkItemDisposition.VERIFIED_COMPLETED),
+                disposition);
+        assertEquals(
+                RuntimeGoalStatus.COMPLETED,
+                DurableAgentRuntime.recover(goalId, runtimeStore, clock)
+                        .goal().status());
+        assertTrue(checkpoint.findPending().isEmpty());
+        assertTrue(Files.notExists(invocationRoot));
+    }
+
+    @Test
     void recoversTerminalDispositionAfterCheckpointClearFailsWithoutRepeatingWork()
             throws Exception {
         Stores s = stores();

@@ -5,20 +5,28 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.enhancer.bus.MessageEnvelope;
 import com.enhancer.bus.WorkPayload;
+import com.enhancer.kernel.VerificationStatus;
+import com.enhancer.run.ModelRunRecord;
+import com.enhancer.run.ModelRunRecordStore;
 import com.enhancer.run.ResolvedRunRecord;
 import com.enhancer.run.RunRecord;
 import com.enhancer.run.RunRecordStore;
 import com.enhancer.run.StoredRunRecord;
 import java.io.IOException;
 import java.time.Instant;
+import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import com.enhancer.workspace.ApprovedTaskRevision;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class SchedulerRecoveryStatusReaderTest {
+    @TempDir
+    Path tempDir;
+
     private static final String QUEUE_ID =
             "00000000-0000-0000-0000-000000000961";
     private static final String WORK_ITEM_ID =
@@ -106,6 +114,51 @@ class SchedulerRecoveryStatusReaderTest {
                 () -> reader.read(QUEUE_ID));
     }
 
+    @Test
+    void resolvesTypedModelRecordThroughTheV2Port() throws Exception {
+        Path projectRoot = tempDir.resolve("project");
+        ModelProcessValidationTestFixture.Prepared prepared =
+                ModelProcessValidationTestFixture.valid(projectRoot);
+        WorkItem workItem = prepared.workItem();
+        String goalId = ModelAttemptTestFixture.GOAL_ID;
+        String agentRunId = ModelAttemptTestFixture.AGENT_RUN_ID;
+        String reference = prepared.resolved().metadata().reference();
+        PendingFinalization pending = new PendingFinalization(
+                goalId, agentRunId, Optional.of(reference));
+        AgentRuntimeState runtime = AgentRuntimeState.initial(goalId, workItem)
+                .beginAgentRun(agentRunId)
+                .markReady(agentRunId)
+                .acquireLease(
+                        agentRunId,
+                        "owner",
+                        Instant.parse("2026-09-03T12:13:14Z"),
+                        java.time.Duration.ofMinutes(5));
+        CountingRunRecordStore legacyStore = new CountingRunRecordStore();
+        SchedulerQueueState queue = queueWith(workItem);
+        SchedulerRecoveryStatusReader reader =
+                new SchedulerRecoveryStatusReader(
+                        queueStore(queue, queue),
+                        runtimeStore(runtime, runtime),
+                        checkpointStore(
+                                Optional.of(pending),
+                                Optional.of(pending)),
+                        legacyStore,
+                        modelStore(prepared.resolved()),
+                        prepared.evidenceStore(),
+                        projectRoot,
+                        prepared.configuration());
+
+        SchedulerRecoveryStatus status = reader.read(QUEUE_ID);
+
+        assertEquals(
+                SchedulerRecoveryStatus.RecoveryPhase.RUN_RECORD_RECORDED,
+                status.phase());
+        assertEquals(
+                Optional.of(VerificationStatus.VERIFIED),
+                status.runRecordVerificationStatus());
+        assertEquals(0, legacyStore.resolutions);
+    }
+
     private SchedulerQueueState empty(long revision) {
         return new SchedulerQueueState(
                 SchedulerQueueState.CURRENT_SCHEMA_VERSION,
@@ -190,6 +243,28 @@ class SchedulerRecoveryStatusReaderTest {
             public void clear() {
                 throw new AssertionError(
                         "read must not clear a checkpoint");
+            }
+        };
+    }
+
+    private ModelRunRecordStore modelStore(
+            com.enhancer.run.ResolvedModelRunRecord resolved) {
+        return new ModelRunRecordStore() {
+            @Override
+            public StoredRunRecord persistModel(ModelRunRecord record) {
+                throw new AssertionError("read must not persist a model RunRecord");
+            }
+
+            @Override
+            public StoredRunRecord persistModel(String recordId, ModelRunRecord record) {
+                throw new AssertionError("read must not persist a model RunRecord");
+            }
+
+            @Override
+            public com.enhancer.run.ResolvedModelRunRecord resolveModel(
+                    String reference) {
+                assertEquals(resolved.metadata().reference(), reference);
+                return resolved;
             }
         };
     }

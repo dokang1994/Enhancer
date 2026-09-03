@@ -171,6 +171,19 @@ class SchedulerInvocationRecoveryStatusReaderTest {
     }
 
     @Test
+    void rejectsANonRegularTransportCandidate() throws Exception {
+        ReaderFixture fixture = fixture("nonregular");
+        Files.createDirectories(
+                fixture.workSpool().resolve("directory.transport"));
+
+        IOException refused = assertThrows(
+                IOException.class,
+                () -> fixture.reader().read(QUEUE_ID));
+
+        assertTrue(refused.getMessage().contains("regular file"));
+    }
+
+    @Test
     void rejectsAWorkSpoolThatChangesBetweenSamples() throws Exception {
         ReaderFixture fixture = fixture("drift");
         spoolWork(fixture, 1);
@@ -266,6 +279,101 @@ class SchedulerInvocationRecoveryStatusReaderTest {
 
         SchedulerInvocationRecoveryStatus status =
                 fixture.reader().read(QUEUE_ID);
+
+        assertEquals(
+                SchedulerInvocationRecoveryStatus.RecoveryPhase
+                        .RESULT_MESSAGE_PUBLISHED,
+                status.phase());
+        assertTrue(status.resultMessagePresent());
+    }
+
+    @Test
+    void validatesPublishedTypedModelResultThroughTheV2Port() throws Exception {
+        Path base = temporaryRoot.resolve("typed-result");
+        Path projectRoot = base.resolve("project");
+        ModelProcessValidationTestFixture.Prepared prepared =
+                ModelProcessValidationTestFixture.valid(projectRoot);
+        WorkItem work = prepared.workItem();
+        String goalId = ModelAttemptTestFixture.GOAL_ID;
+        String agentRunId = ModelAttemptTestFixture.AGENT_RUN_ID;
+        Path queueRoot = base.resolve("queue");
+        Path runtimeRoot = base.resolve("runtime");
+        Path checkpointRoot = base.resolve("checkpoint");
+        Path recordRoot = base.resolve("records");
+        Path invocationRoot = base.resolve("invocations");
+        FileSystemRunRecordStore records =
+                new FileSystemRunRecordStore(recordRoot);
+        String reference = records.persistModel(
+                AgentRunRecordIdentity.recordId(goalId, agentRunId),
+                prepared.resolved().record()).reference();
+        DurableSingleWorkerSchedulerQueue queue =
+                DurableSingleWorkerSchedulerQueue.create(
+                        QUEUE_ID,
+                        16,
+                        new FileSystemSchedulerQueueStore(queueRoot));
+        queue.enqueue(new QueuedWork(work, List.of()));
+        DurableAgentRuntime runtime = DurableAgentRuntime.create(
+                goalId,
+                work,
+                new FileSystemAgentRuntimeStateStore(runtimeRoot),
+                Clock.fixed(NOW, ZoneOffset.UTC));
+        runtime.beginAgentRun(agentRunId);
+        new FileSystemPendingFinalizationStore(checkpointRoot).record(
+                new PendingFinalization(goalId, agentRunId, Optional.empty()));
+        Path cycleRoot = invocationRoot.resolve(goalId).resolve(agentRunId);
+        assertTrue(new FileSpoolMessageTransport(
+                cycleRoot.resolve(IsolatedWorkerMain.WORK_SPOOL),
+                BackpressurePolicy.of(1))
+                .send(new TransportMessage(
+                        DeliveryDestination.queue(IsolatedWorkerMain.WORK_SPOOL),
+                        work.workMessage()))
+                .status()
+                .isAccepted());
+        VerificationStatus recorded = prepared.resolved().record()
+                .lifecycleRecord().verification().status();
+        MessageEnvelope result = new MessageEnvelope(
+                UUID.randomUUID().toString(),
+                work.workMessage().correlationId(),
+                Optional.of(work.workMessage().messageId()),
+                work.workMessage().logicalRunId(),
+                "isolated-worker",
+                NOW,
+                new ResultPayload(
+                        work.taskRevision().taskId(),
+                        reference,
+                        recorded));
+        assertTrue(new FileSpoolMessageTransport(
+                cycleRoot.resolve(IsolatedWorkerMain.RESULT_SPOOL),
+                BackpressurePolicy.of(1))
+                .send(new TransportMessage(
+                        DeliveryDestination.queue(IsolatedWorkerMain.RESULT_DESTINATION),
+                        result))
+                .status()
+                .isAccepted());
+        AgentRuntimeStateStore runtimeStore =
+                new FileSystemAgentRuntimeStateStore(runtimeRoot);
+        SchedulerRecoveryStatusReader schedulerReader =
+                new SchedulerRecoveryStatusReader(
+                        new FileSystemSchedulerQueueStore(queueRoot),
+                        runtimeStore,
+                        new FileSystemPendingFinalizationStore(checkpointRoot),
+                        records,
+                        records,
+                        prepared.evidenceStore(),
+                        projectRoot,
+                        prepared.configuration());
+        SchedulerInvocationRecoveryStatusReader reader =
+                new SchedulerInvocationRecoveryStatusReader(
+                        schedulerReader,
+                        runtimeStore,
+                        records,
+                        records,
+                        prepared.evidenceStore(),
+                        projectRoot,
+                        prepared.configuration(),
+                        invocationRoot);
+
+        SchedulerInvocationRecoveryStatus status = reader.read(QUEUE_ID);
 
         assertEquals(
                 SchedulerInvocationRecoveryStatus.RecoveryPhase
