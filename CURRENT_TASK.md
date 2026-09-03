@@ -2,88 +2,94 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Implement RFC-0022 sequences 1 and 2 RED-first: the standalone deterministic-fake
-exact-request budget preparation and the same-request/same-policy/same-candidate-
-gateway invoker, without adding a production caller.
+Specify RFC-0023: the typed ModelWork process-execution, ToolResult/evidence,
+response-validation, Model RunRecord v2 finalization, retry, and recovery connection
+that consumes the exact RFC-0022 deterministic-fake boundary.
 
 ## Task ID
 
-implement-deterministic-fake-exact-request-invocation-seam
+specify-typed-model-work-process-execution
 
 ## Context
 
-RFC-0020/RFC-0021 provide the Contract Verified closed fake candidate, Unicode-scalar
-counter, fixed capacities, and standalone suitability. RFC-0022 now specifies the
-missing actual-request budget decision and exact-identity invocation seam. The
-completed specification task names RED-first implementation of sequences 1 and 2 as
-the sole next action, and the user requested continuation on 2026-09-03.
+RFC-0018 retains the exact typed ModelWork profile through the durable transport,
+submission, queue, and runtime family. RFC-0019 provides Model RunRecord v2, exact
+active-task resolution, and fresh Scheduler request/policy/admission preparation.
+RFC-0020 through RFC-0022 provide the closed deterministic-fake candidate,
+Unicode-scalar semantics, suitability, actual-request budget decision, and exact
+same-request/same-policy/same-candidate-gateway invocation seam. Those contracts remain
+standalone and every current typed ModelWork execution guard still fails closed.
+RFC-0022 requires a separately accepted connection contract before production process
+execution, evidence, result validation, v2 finalization, retry, or recovery may be
+implemented. The completed task names that specification as the next work, and the user
+requested continuation on 2026-09-03.
 
 ## Justified By
 
+- User continuation request on 2026-09-03 into typed ModelWork process-execution specification
 - User continuation request on 2026-09-03 into RFC-0022 exact-request seam implementation
 - User continuation request on 2026-09-02 into exact-request model budget and invocation seam specification
 
 ## Approval
 
-The user's 2026-09-03 continuation authorizes RFC-0022 sequences 1 and 2 as a
-standalone RED-first Java/test implementation plus the minimal architecture, state,
-task, verification, handoff, and Changelog synchronization and ordinary local GREEN
-commits. It authorizes focused execution of the deterministic fake in tests only. It
-authorizes no production caller or supported entry point, Scheduler/process execution,
-ToolResult/evidence/verification/Model RunRecord writing, schema/runtime/finalizer/
-retry/recovery wiring, typed ModelWork producer or receiver, provider/router/network,
-credential or spend work, push, merge, release, deployment, permission change,
-destructive cleanup, or external effect.
+The user's 2026-09-03 continuation authorizes a documentation-only RFC and accepted
+decision defining the typed ModelWork process-execution connection from exact Scheduler
+preparation through deterministic-fake suitability and exact-request invocation,
+ToolResult/evidence and response validation, Model RunRecord v2 publication and result
+binding, finalization, pre-reference retry, and post-reference recovery. It authorizes
+the minimal architecture, compact mirror, Roadmap, RFC index, task, decision/index,
+verification, handoff, and Changelog synchronization plus ordinary local GREEN commits.
+It authorizes no Java or test-source change, model or Tool invocation now, production
+caller or supported entry point, typed ModelWork producer/receiver, schema migration,
+provider/router/network, credential or spend work, push, merge, release, deployment,
+permission change, destructive cleanup, or external effect.
 
 ## Acceptance Criteria
 
-- A field-free `DeterministicFakeExactRequestPreparation` accepts only exact
-  `ModelCandidateSuitabilityDecision.Suitable` plus exact `ExecutionPolicy`, counts
-  the retained prompt once, and applies RFC-0022's closed malformed/input/response-
-  length/output/checked-total first-match order.
-- A sealed opaque `DeterministicFakeExactRequestDecision` exposes private-construction
-  final `Ready` and `Refused` variants with exact identity retention, complete derived
-  counts where applicable, closed reasons, and non-revealing rendering.
-- Reachable equality/one-over budget boundaries, combined precedence, supplementary
-  Unicode, malformed-surrogate positions, checked arithmetic, the valid-budget total
-  theorem, and zero gateway/Tool/evidence/runtime activity are covered RED-first.
-- A field-free `DeterministicFakeExactRequestInvoker` accepts only evaluator-created
-  `Ready`, rechecks the retained policy allowlist, strict timeout, and current
-  cancellation in order, and invokes the exact candidate-bound gateway with the exact
-  admitted request at most once.
-- A sealed opaque invocation result retains exact identities and distinguishes
-  untrusted success, closed pre-call refusal, and one-to-one `ModelFailureCode`
-  failure without raw exception text or broad exception mapping.
-- Reflection and source guards prove private construction, field-free services,
-  non-revealing rendering, exact dependency and call shapes, unchanged fake rendering
-  and generic `ModelUsage`, and zero production references outside the new definition
-  types and focused tests.
-- No production caller, Tool/evidence/RunRecord/schema/runtime/retry/recovery/provider/
-  network/credential/spend path is added, and capability maturity advances only to the
-  level supported by fresh evidence.
-- Each sequential increment passes its declared focused tests and `git diff --check`,
-  the full README-owned Java 17 regression passes before completion, canonical
-  documents are synchronized, and every verified GREEN increment has a local commit.
+- The RFC names the exact existing upstream and downstream production boundaries and
+  one identity-preserving call chain from typed `WorkItem` and fresh RFC-0019
+  preparation through RFC-0020/RFC-0021 suitability and RFC-0022 invocation.
+- The contract proves the exact `SchedulerModelInvocationPreparation.executionPolicy()`
+  instance reaches admission, suitability, budget preparation, invocation, and the
+  process-isolation control envelope without request, prompt, policy, candidate, or
+  gateway reconstruction.
+- Closed pre-call refusal, gateway failure, untrusted response, ToolResult/evidence,
+  expected-response validation, lifecycle status, and queue-disposition ownership are
+  ordered without treating model output or a gateway return as verification authority.
+- Model RunRecord v2 construction, persistence, Result-message binding, parent-side
+  validation, reference checkpointing, and finalization define exact identities and
+  persist-before-exposure boundaries without weakening the v1 type boundary.
+- Crash points distinguish pre-reference at-least-once re-execution from post-reference
+  no-invocation recovery, including deterministic AgentRun-bound identity, exact record
+  replay, source drift, corrupt/foreign records, and partial spool/result prefixes.
+- The RFC states whether the current v2 record and existing envelope/result/checkpoint
+  schemas are sufficient; any required provenance or schema change is separated behind
+  a later explicit compatibility and migration task rather than implied.
+- The implementation sequence is RED-first and bounded, with named focused and
+  integration evidence, while producer/receiver, provider/router/network, credentials,
+  spend, MCP, and broader runtime changes remain excluded.
+- RFC/decision indexes, Architecture and compact mirror, Roadmap, task cursor,
+  Changelog, handoff, and append-only verification evidence are synchronized according
+  to document ownership without changing capability maturity.
+- Focused Markdown-sensitive governance, `git diff --check`, and the full
+  README-owned Java 17 regression pass freshly before completion.
 
 ## Out Of Scope
 
-Production caller or supported entry point; Scheduler/process execution; ToolRequest,
-ToolExecutor, ToolResult, evidence, response verification, Model RunRecord writing,
-schema/runtime/finalizer/retry/recovery integration; typed ModelWork producer,
-submission, receiver, or CLI; provider selection, router, endpoint, remote
-transmission, network, credentials, pricing or spend; fake gateway rendering or generic
-`ModelUsage` change; push, merge, release, deployment, permissions, destructive
-cleanup, and external effects.
+Java or test-source implementation; actual gateway or Tool execution; production
+caller or supported entry point; typed ModelWork producer, submission, receiver, CLI,
+or runtime-event ingress; existing read-file execution behavior change; provider
+selection, router, endpoint, remote transmission, network, credentials, pricing or
+spend; MCP; schema/codec migration implementation; push, merge, release, deployment,
+permissions, destructive cleanup, and external effects.
 
 ## Allowed Tools
 
 - read-file
-- write-code
-- write-tests
 - write-docs
 - build-output
 - verify
@@ -94,67 +100,50 @@ cleanup, and external effects.
 
 ## Verification
 
-Observable behavior is RED-first. Evidence is appended once per completed increment to
-`docs/verification-log.md`. Subagent reports are recommendations, never verification.
-Every GREEN claim requires the primary Agent to read the fresh focused result and
-reconcile boundary/source/reflection tests plus `git diff --check`.
+Evidence is appended once per completed increment to `docs/verification-log.md`.
+Documentation verification must cover RFC indexing, architecture/document ownership,
+dynamic workflow, accepted-task justification, and canonical task planning. Subagent
+recommendations are not verification evidence.
 
 ## Dynamic Workflow
 
-Workflow ID: implement-deterministic-fake-exact-request-invocation-seam
+Workflow ID: specify-typed-model-work-process-execution
 Mode: Sequential
-Increment Limit: 3
+Increment Limit: 2
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
-Stop Conditions: Stop on contract conflict, unclassified RED, identity ambiguity,
-unclosed refusal or exception behavior, production-caller or lifecycle leakage,
-unreachable-test fabrication, failed verification, checkpoint drift, new authority,
-exhausted bounds, or unsafe recovery.
+Stop Conditions: Stop on contract conflict, identity or ownership ambiguity, implicit
+execution or verification authority, unclosed refusal/crash/recovery behavior, silent
+schema widening, failed verification, checkpoint drift, new authority, exhausted
+bounds, or unsafe recovery.
 
-### Increment 1 - implement-exact-request-preparation
+### Increment 1 - specify-typed-model-work-execution-contract
 
 State: Completed
 Depends On: none
-Scope: Add RED-first exact-request preparation, opaque decision/reasons, exact identity
-and count retention, ordered budget refusal, total-invariant proof, redacted rendering,
-and preparation-specific boundary guards without any gateway call or caller.
-Exit Criteria: All preparation behavior and structural constraints in RFC-0022 are
-freshly GREEN, the focused diff is reviewed, evidence is appended, and the increment
-is committed locally.
-Verification: New preparation tests, existing token/candidate/profile/admission tests,
-candidate locality/source guards, Markdown-sensitive task governance, and
-`git diff --check`.
-Next Action: Select Increment 2 and establish the invoker RED tests.
+Scope: Review the existing typed ModelWork, process-isolated execution, Tool/evidence,
+verification, Model RunRecord v2, finalization, retry, and recovery boundaries and
+accept one RFC defining their exact connection without implementation or caller.
+Exit Criteria: The RFC, accepted decision, indexes, architecture mirrors, Roadmap,
+task cursor, Changelog, and focused evidence are synchronized and focused governance
+passes.
+Verification: RFC/decision/architecture/index/ownership/dynamic-workflow/approved-task/
+task-justification/planner tests plus `git diff --check`.
+Next Action: Commit the verified documentation increment and run the fresh full
+regression.
 
-### Increment 2 - implement-exact-request-invoker
+### Increment 2 - verify-and-close-typed-model-work-execution-specification
 
-State: Completed
-Depends On: implement-exact-request-preparation
-Scope: Add RED-first field-free invoker and opaque invocation result/reasons with
-ordered pre-call policy refusal, exact at-most-once fake invocation, untrusted success,
-and code-only gateway failure, without a production caller.
-Exit Criteria: All invoker behavior and structural constraints in RFC-0022 are freshly
-GREEN, the focused diff is reviewed, evidence is appended, and the increment is
-committed locally.
-Verification: New invoker tests, preparation regression, fake gateway/candidate tests,
-candidate locality/source guards, Markdown-sensitive task governance, and
-`git diff --check`.
-Next Action: Select Increment 3 and run the full regression.
-
-### Increment 3 - verify-and-close-exact-request-implementation
-
-State: Completed
-Depends On: implement-exact-request-invoker
+State: In Progress
+Depends On: specify-typed-model-work-execution-contract
 Scope: Run the full Markdown-sensitive Java 17 regression, record fresh evidence,
-synchronize implementation maturity and canonical documents, close the task/handoff,
-and commit the verified closure.
+close the task/handoff, and commit the verified specification closure.
 Exit Criteria: The full regression passes with results read, canonical documents are
 current, the intended local commits are clean, and the checkpoint is stable and clear.
 Verification: Full `.\scripts\gradle.ps1 test`, focused final governance,
 diff/commit/status inspection, and checkpoint reconciliation.
-Next Action: Await separate user authority for typed ModelWork process integration,
-Tool/evidence/response validation, Model RunRecord v2 finalization, and recovery.
+Next Action: Await separate authority to implement the accepted typed ModelWork
+execution connection RED-first.
 
 ## Next
 
-Await separate user authority for typed ModelWork process integration, Tool/evidence/
-response validation, Model RunRecord v2 finalization, and recovery.
+Run the fresh full README-owned regression and close the RFC-0023 specification task.

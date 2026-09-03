@@ -1786,6 +1786,37 @@ verification, RunRecord, retry, runtime, or production-caller authority; later t
 ModelWork process integration must prove the exact Scheduler policy identity and own
 those effects.
 
+RFC-0023 specifies the first deterministic-fake-only typed ModelWork process
+connection without enabling it. A record-missing child freshly reconstructs the exact
+WorkItem, derives a pure Goal/AgentRun-bound request/evidence correlation, and performs
+one identity-preserving RFC-0019 preparation -> RFC-0020/0021 candidate suitability ->
+RFC-0022 budget and invocation chain. The parent passes only explicit scalar process
+configuration; the single `ExecutionPolicy` object remains child-local and reaches
+admission, the retained suitability chain, exact-request preparation/invocation, and
+the later Tool control call by reference.
+
+Admission, suitability, budget, and invoker pre-call refusal remain zero-ToolResult,
+zero-evidence-write, zero-record outcomes. Only a returned response or gateway failure
+enters a one-shot result-materialization Tool under the same policy; it does not reuse
+`ModelInvokeTool`, reread the prompt, reconstruct the request, or invoke a gateway.
+Closed code-only failure evidence, fake response structure checks, and independent
+digest verification precede a model-specific lifecycle builder that publishes only
+Model RunRecord v2 at the deterministic Goal/AgentRun identity. The isolated-child
+Result and deterministic durable-runtime Result remain distinct claims.
+
+Before any v2 writer is reachable, the process parent, child handlers, worker,
+finalizer, and Scheduler status/recovery readers must dispatch explicitly by record
+kind and preserve the v1 type boundary. The parent validates the complete Work,
+Result, record, capability, profile, request, policy, evidence, and status closure,
+checkpoints the reference before cleanup or acknowledgement, and never re-invokes
+after a valid complete v2 exists. A complete record outranks a process-timeout fact;
+missing alone permits the no-reference failure/re-entry path, while corrupt, foreign,
+cross-kind, or changed content fails closed. Existing durable schemas suffice for the
+minimum returned-outcome path, but durable pre-call refusal or additional candidate,
+count, Ready, response-usage, or refusal provenance requires a later compatibility
+decision. This accepted specification adds no implementation, caller, entry point,
+producer/receiver, provider, network, credential, spend, or maturity claim.
+
 ## Agent Orchestration Contract
 
 ### Development-Time Adaptive Subagent Delegation
@@ -1973,6 +2004,7 @@ Major design areas are tracked in `docs/rfcs/`.
 - `RFC-0020`: Deterministic Local Model Candidate Suitability
 - `RFC-0021`: Deterministic Fake Token Semantics And Capacity
 - `RFC-0022`: Deterministic Fake Exact-Request Budget And Invocation Seam
+- `RFC-0023`: Typed ModelWork Process Execution And Model RunRecord V2 Finalization
 
 ## First Architecture Slice
 
@@ -2272,7 +2304,7 @@ Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts bel
 ## Open Architecture Questions
 
 - Provider and general model context/token strategies are not selected; RFC-0021
-  implements fake-only Unicode-scalar semantics and fixed capacities, while RFC-0022
-  implements only the standalone exact-request and exact-fake invocation seam without
-  a production caller or runtime integration.
+  implements fake-only Unicode-scalar semantics and fixed capacities, RFC-0022
+  implements the standalone exact-request and exact-fake invocation seam, and
+  RFC-0023 specifies but does not implement its process/runtime integration.
 - Future LLM-backed Planner input/output schema is not selected yet.

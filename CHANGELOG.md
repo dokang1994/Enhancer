@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-09-03 - Specify Typed ModelWork Process Execution
+
+- Accepted RFC-0023 for one deterministic-fake-only child-local identity chain from
+  exact Scheduler preparation through suitability, exact-request invocation,
+  Tool/evidence materialization, independent response verification, and v2-only
+  lifecycle publication.
+- Preserved zero-write pre-call refusal, one invocation per AgentRun, deterministic
+  reference checkpoint-before-cleanup, complete parent binding, valid-record-over-
+  timeout precedence, and replacement-AgentRun durable retry.
+- Confirmed existing durable formats are sufficient for returned invocation outcomes;
+  every v1-only consumer and the pure/lazy evidence-run API must be updated before a
+  v2 writer becomes reachable, while omitted provenance remains a later compatibility
+  decision.
+- Fresh focused Java 17 governance passed 27 tests across 8 suites with zero skips,
+  failures, or errors, and `git diff --check` passed.
+- No Java, test source, caller, supported entry point, producer/receiver, actual model
+  or Tool call, schema migration, provider/network, credential, spend, push, merge,
+  release, or deployment was added or performed.
+
 ## 2026-09-03 - Implement Exact-Request Model Budget And Invocation Seam
 
 - Added the field-free RFC-0022 exact-request preparation with closed ordered

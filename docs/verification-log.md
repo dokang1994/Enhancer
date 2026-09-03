@@ -6793,3 +6793,32 @@ Outcome:
   Active Task, document ownership rules, and the full-regression evidence above.
 - Final focused verification after this append-only evidence entry follows before the
   local closure commit.
+
+## 2026-09-03 - Typed ModelWork Process-Execution Specification
+
+- Two bounded read-only reviews inspected the existing process child/parent,
+  Tool/evidence, Model RunRecord v2, finalizer, retry, and recovery surfaces. Their
+  recommendations were reconciled by the primary Agent against RFC-0018 through
+  RFC-0022 and were not treated as verification evidence.
+- RFC-0023 accepts one deterministic-fake-only child-local identity chain, preserves
+  zero-write pre-call refusal, separates returned-outcome Tool/evidence materialization
+  from the exact gateway call, requires independent structure/digest validation, and
+  publishes only a complete deterministic Model RunRecord v2 before Result exposure.
+- The specification requires complete parent Work/Result/record binding, reference
+  checkpointing before cleanup, valid-record precedence over process timeout, one
+  invocation per AgentRun, replacement-AgentRun durable retry, and explicit v2 paths
+  in every current v1-only finalizer/status/recovery consumer before writer
+  reachability.
+- Existing durable record, message, Result, checkpoint, runtime, queue, and manifest
+  formats are sufficient for returned outcomes. A pure/lazy evidence-run identity API
+  is additive; persisted candidate/count/Ready/response-usage/refusal provenance or
+  durable pre-call disposition remains a separately accepted compatibility task.
+- Fresh focused Java 17 governance used the README-owned Gradle launcher and completed
+  with `BUILD SUCCESSFUL` in 6 seconds. JUnit XML aggregation found 8 suites and 27
+  tests: all 27 passed with zero skipped, failed, or errored. The selection covered
+  decision indexing, document ownership, dynamic workflow, model-candidate locality,
+  task justification, approved-task reading/revision, and repository-task planning.
+- `git diff --check` passed. No Java/test implementation, caller, entry point, actual
+  gateway or Tool call, evidence or record write, schema migration, provider/network,
+  credential, spend, push, merge, release, or deployment occurred. The fresh full
+  README-owned regression follows in Increment 2.
