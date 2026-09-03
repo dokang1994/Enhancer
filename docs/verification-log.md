@@ -6763,3 +6763,33 @@ Outcome:
   production non-caller/locality guards.
 - `git diff --check` passed. Final focused verification over the synchronized
   Increment 2 state follows before its local GREEN commit.
+
+## 2026-09-03 - Exact-Request Budget And Invocation Full Regression And Closure
+
+- The verified preparation increment was committed locally as `4270091`
+  (`Implement exact-request budget preparation`), and the verified invoker increment
+  was committed locally as `22c44af` (`Implement exact-request model invoker`).
+- Fresh full Java 17 verification used the README-owned
+  `.\scripts\gradle.ps1 test` command and completed with `BUILD SUCCESSFUL` in
+  2 minutes 10 seconds.
+- JUnit XML aggregation found 194 suites and 1,062 tests: 1,050 passed, 12 existing
+  environment- or privilege-dependent cases were skipped, and zero failed or errored.
+- The full regression left the worktree clean. Increment 3 and the Active Task are now
+  closed; the next action requires separate user authority for typed ModelWork process
+  execution, Tool/evidence/response validation, Model RunRecord v2 finalization, and
+  recovery integration.
+- No production caller or supported entry point, ToolExecutor/evidence/verification/
+  Model RunRecord writer, schema/runtime/finalizer/retry/recovery integration,
+  provider/router/network, credential, spend, push, merge, release, deployment,
+  permission change, destructive cleanup, or external effect was added or performed.
+
+## 2026-09-03 - Exact-Request Implementation Post-Closure Governance
+
+- Fresh focused Java 17 verification over the completed task documents, exact-request
+  preparation and invoker contracts, neighboring deterministic fake model contracts,
+  and applicable architecture/governance readers passed 97 tests across 17 suites with
+  zero skipped, failed, or errored tests.
+- `git diff --check` passed, and the four-file closure diff was reviewed against the
+  Active Task, document ownership rules, and the full-regression evidence above.
+- Final focused verification after this append-only evidence entry follows before the
+  local closure commit.

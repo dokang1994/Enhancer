@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -142,7 +142,7 @@ Next Action: Select Increment 3 and run the full regression.
 
 ### Increment 3 - verify-and-close-exact-request-implementation
 
-State: In Progress
+State: Completed
 Depends On: implement-exact-request-invoker
 Scope: Run the full Markdown-sensitive Java 17 regression, record fresh evidence,
 synchronize implementation maturity and canonical documents, close the task/handoff,
@@ -156,4 +156,5 @@ Tool/evidence/response validation, Model RunRecord v2 finalization, and recovery
 
 ## Next
 
-Run the full README-owned regression, read the fresh results, and close Increment 3.
+Await separate user authority for typed ModelWork process integration, Tool/evidence/
+response validation, Model RunRecord v2 finalization, and recovery.

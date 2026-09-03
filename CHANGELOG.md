@@ -19,6 +19,9 @@
 - No production caller, ToolExecutor/evidence/verification/RunRecord/schema/runtime/
   finalizer/retry/recovery/provider/network/credential/spend path, push, merge,
   release, or deployment was added or performed.
+- The preparation and invoker increments were committed locally as `4270091` and
+  `22c44af`. The fresh full README-owned regression then passed 1,062 tests across 194
+  suites with 1,050 passed, 12 skipped, and zero failures or errors.
 
 ## 2026-09-02 - Specify Exact-Request Model Budget And Invocation Seam
 
