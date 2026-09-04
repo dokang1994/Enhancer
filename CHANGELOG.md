@@ -14,6 +14,9 @@
   network, credentials, spend, and durable schema changes remain separately authorized.
 - Corrected stale architecture and Project State wording to reflect the already
   Integrated RFC-0023 internal path without changing capability maturity.
+- The final README-owned Java 17 regression completed with `BUILD SUCCESSFUL` in 7
+  minutes 53 seconds. XML aggregation found 1,118 tests across 202 suites: 1,105
+  passed, 13 existing conditional tests skipped, and zero failed or errored.
 
 ## 2026-09-03 - Complete RFC-0023 Typed ModelWork Process Execution
 

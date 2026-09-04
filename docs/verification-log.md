@@ -7097,3 +7097,24 @@ Outcome:
   entry point, receiver, schema migration, provider/network, credential, spend, push,
   merge, release, deployment, permission change, destructive cleanup, or external
   effect was added or performed.
+
+## 2026-09-04 - RFC-0024 Specification Closure
+
+- Increment 1 was committed locally as `125c6a4` (`Specify governed ModelWork
+  submission`) after both the initial and post-evidence focused governance runs passed
+  all 23 tests across seven suites. No push or merge occurred.
+- Fresh full verification used the README-owned `./scripts/gradle.ps1 test` command
+  with the repository Java 17 toolchain and completed with `BUILD SUCCESSFUL` in 7
+  minutes 53 seconds. The generated JUnit XML contained 202 suites and 1,118 tests:
+  1,105 passed, 13 existing conditional tests skipped, and zero failed or errored.
+- The full regression includes code, durable-format and legacy behavior, the internal
+  RFC-0023 typed integration, and every Markdown-sensitive architecture and governance
+  check. `git diff --check` passed before closure. Both workflow increments and the
+  parent Active Task are complete; final post-closure governance, diff inspection, the
+  ordinary local closure commit, and stable checkpoint clearing follow this entry.
+- `SESSION_HANDOFF.md` remains unchanged because its Java 17 and checkpoint invocation
+  facts are still current and no new host-only fact was introduced. No Java/test
+  implementation, actual typed submission or execution, supported entry point,
+  receiver, schema migration, provider/network, credential, spend, push, merge,
+  release, deployment, permission change, destructive cleanup, or external effect was
+  added or performed.

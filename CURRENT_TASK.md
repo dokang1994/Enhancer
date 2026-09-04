@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -140,7 +140,7 @@ Next Action: Commit the verified documentation increment and select Increment 2.
 
 ### Increment 2 - verify-and-close-governed-model-work-submission-specification
 
-State: In Progress
+State: Completed
 Depends On: specify-governed-model-work-submission-contract
 Scope: Run the full Markdown-sensitive Java 17 regression, record fresh evidence,
 close the task/handoff, and commit the verified specification closure.
@@ -152,5 +152,6 @@ Next Action: Await separate authority to implement RFC-0024 RED-first.
 
 ## Next
 
-Specify and verify RFC-0024, then await separate authority for its RED-first
-implementation.
+Await separate user authority to implement RFC-0024 RED-first. The accepted contract
+does not authorize Java/test implementation, a supported typed entry point, or a
+receiver.
