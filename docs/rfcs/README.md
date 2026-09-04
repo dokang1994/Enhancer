@@ -29,6 +29,7 @@ RFCs preserve long-term architecture intent and make references stable across Ch
 - `RFC-0021`: Deterministic Fake Token Semantics And Capacity
 - `RFC-0022`: Deterministic Fake Exact-Request Budget And Invocation Seam
 - `RFC-0023`: Typed ModelWork Process Execution And Model RunRecord V2 Finalization
+- `RFC-0024`: Governed Deterministic ModelWork Submission
 
 ## Status Values
 

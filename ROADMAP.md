@@ -932,6 +932,10 @@ Scope:
   covering same-policy Tool/evidence, independent response verification, v2-only
   publication, complete parent binding, finalization, bounded replacement retry, and
   crash recovery without any producer, receiver, or supported entry point;
+- an accepted governed deterministic-fake typed submission contract with one complete
+  profile, an independent closed repository-owned `deterministic-echo` capability
+  source, manifest-first exact replay, and only the internal test-owned process path as
+  its first consumer; implementation and supported ingress remain later work;
 - Model Router with deterministic fake plus explicitly selected provider adapters;
 - timeout, cancellation, token, context, cost, redaction, and response-validation budgets;
 - versioned per-model quality evaluation, policy-scoped fallback and response caching, prompt-injection resistance, source attribution, and visible uncertainty;
@@ -1243,6 +1247,7 @@ Status: Accepted
 - RFC-0021: Deterministic Fake Token Semantics And Capacity
 - RFC-0022: Deterministic Fake Exact-Request Budget And Invocation Seam
 - RFC-0023: Typed ModelWork Process Execution And Model RunRecord V2 Finalization
+- RFC-0024: Governed Deterministic ModelWork Submission
 
 RFC acceptance does not imply Contract Verified, Integrated, Operational, or Released capability maturity.
 

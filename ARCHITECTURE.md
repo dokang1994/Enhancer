@@ -208,7 +208,10 @@ The Gate 7 envelope contract carries references and bounded requirement data onl
 
 Together with the per-name ceiling, the explicit allowed-tool cardinality ceiling gives both Tool-scope-bearing payloads a finite aggregate tool-name ceiling of 65,536 characters. The model-work target, digest, nested token/cost/time budgets, and profile labels reuse their existing bounded constructors, so payload data remains bounded or represented by evidence references.
 
-The contract is consumed by both the deterministic in-process topic and queue delivery surface and the transport-neutral IPC boundary below. ModelWork production and durable-runtime integration remains deferred.
+The contract is consumed by both the deterministic in-process topic and queue delivery
+surface and the transport-neutral IPC boundary below. ModelWork production and
+supported ingress remain deferred; the internal test-owned durable process path is
+Integrated under RFC-0023.
 
 ## Gate 7 In-Process Delivery
 
@@ -915,7 +918,7 @@ automatic execution.
 
 ### Gate 8 Durable Goal And AgentRun Lifecycle
 
-The runtime state is one immutable schema-v5 `AgentRuntimeState` containing exactly one `RuntimeGoal`, the Goal's exact existing `WorkItem`, an ordered immutable list of at most 16 `RuntimeAgentRun` attempts, an ordered retry-decision history, at most 256 exact lease-timeout records, and at most one authorization-bound cancellation application. Goal, AgentRun, WorkItem, and message identities are distinct canonical UUIDs, including across attempts. `agentRun()` is only the latest-attempt projection; earlier attempts remain exact. The retained WorkItem remains the sole source of approved task revision, Workspace snapshot, logical run, required capability, and allowed-Tool provenance; lifecycle state cannot add or widen authority. It may retain legacy Work or typed ModelWork, but the latter is rejected before every current RunRecord-v1 execution or child-launch path.
+The runtime state is one immutable schema-v5 `AgentRuntimeState` containing exactly one `RuntimeGoal`, the Goal's exact existing `WorkItem`, an ordered immutable list of at most 16 `RuntimeAgentRun` attempts, an ordered retry-decision history, at most 256 exact lease-timeout records, and at most one authorization-bound cancellation application. Goal, AgentRun, WorkItem, and message identities are distinct canonical UUIDs, including across attempts. `agentRun()` is only the latest-attempt projection; earlier attempts remain exact. The retained WorkItem remains the sole source of approved task revision, Workspace snapshot, logical run, required capability, and allowed-Tool provenance; lifecycle state cannot add or widen authority. It may retain legacy Work or typed ModelWork. Every RunRecord-v1 path still rejects typed work, while the separate internal RFC-0023 model-aware child path accepts it only with complete v2 configuration and validation.
 
 The Goal advances through `ACCEPTED -> ACTIVE -> COMPLETED`, `ACTIVE -> RETRY_PENDING -> ACTIVE|FAILED`, or an authorization-bound `ACTIVE|RETRY_PENDING -> CANCELLED`. Each AgentRun advances through `PLANNING -> READY -> EXECUTING -> AWAITING_VERIFICATION -> COMPLETED|FAILED`; authenticated Goal cancellation may instead move the current non-terminal attempt to `CANCELLED`, while cancellation from retry-pending preserves its already failed attempt. Skipped, reversed, repeated, mismatched, and post-terminal transitions fail. Result transition requires one exact `ResultPayload` envelope whose logical run, correlation, task, and causation match the retained work message. Only `VERIFIED` completes the Goal. A non-Verified result terminates the current attempt as `FAILED` and parks the Goal at durable non-terminal `RETRY_PENDING`; an admitted persisted decision permits one distinct replacement attempt, while a refused persisted decision permits terminal Goal abandonment.
 
@@ -1865,6 +1868,26 @@ remain confined to the internal test-owned connection; no supported entry point,
 producer/receiver, provider, network,
 credential, or spend path reaches them.
 
+RFC-0024 defines the first producer for that internal typed path without making it a
+supported entry point. Its closed request retains one canonical submission UUID, task,
+producer, target, expected-response digest, complete profile, capacity, and priority,
+but no capability field. The producer supplies `deterministic-echo` from a separately
+named repository-owned fixed source that cannot be selected or inferred from the
+request, profile, candidate, envelope, manifest, queue, CLI, environment, repository
+content, or ambient configuration. The profile remains untrusted requirements data;
+capability disagreement is preserved for fresh RFC-0016 admission rather than repaired.
+
+First use derives the existing generated-submission identities, resolves the manifest,
+then reads governed context and the exact active task, requires `model-invoke`, captures
+one occurrence time and repository-memory snapshot, constructs one complete ModelWork
+envelope, persists exact manifest intent, and admits through the unchanged durable
+submission service. Replay resolves the manifest before clock or repository reads,
+compares every caller-owned input and the fixed capability, and changes no manifest or
+queue revision. The first implementation may connect only to the existing internal
+model-aware worker in test-owned storage. Supported model-aware Scheduler composition,
+an interface-owned complete-profile format, typed submission or spool publication, and
+any manifest-authorized receiver remain separate work. No durable schema changes.
+
 ## Agent Orchestration Contract
 
 ### Development-Time Adaptive Subagent Delegation
@@ -2053,6 +2076,7 @@ Major design areas are tracked in `docs/rfcs/`.
 - `RFC-0021`: Deterministic Fake Token Semantics And Capacity
 - `RFC-0022`: Deterministic Fake Exact-Request Budget And Invocation Seam
 - `RFC-0023`: Typed ModelWork Process Execution And Model RunRecord V2 Finalization
+- `RFC-0024`: Governed Deterministic ModelWork Submission
 
 ## First Architecture Slice
 
@@ -2354,5 +2378,8 @@ Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts bel
 - Provider and general model context/token strategies are not selected; RFC-0021
   implements fake-only Unicode-scalar semantics and fixed capacities, RFC-0022
   implements the standalone exact-request and exact-fake invocation seam, and
-  RFC-0023 specifies but does not implement its process/runtime integration.
+  RFC-0023 internally implements its deterministic-fake process/runtime integration.
+  RFC-0024 specifies but does not implement its governed internal typed submission
+  source; supported typed ingress, Scheduler composition, and provider routing remain
+  unselected.
 - Future LLM-backed Planner input/output schema is not selected yet.

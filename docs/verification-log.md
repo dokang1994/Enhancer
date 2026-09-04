@@ -7073,3 +7073,27 @@ Outcome:
   No producer/receiver, supported entry point, schema migration, provider/network,
   credential, spend, push, merge, release, deployment, permission change, destructive
   cleanup, or external effect was added or performed.
+
+## 2026-09-04 - Governed Deterministic ModelWork Submission Specification
+
+- Accepted RFC-0024 and its exact-indexed decision for a future internal
+  deterministic-fake typed producer. The request contains one complete profile but no
+  capability field; a closed repository-owned source supplies only
+  `deterministic-echo`, while capability/profile disagreement remains observable at
+  RFC-0016 admission.
+- The contract preserves first-use task, `model-invoke`, snapshot, envelope, manifest,
+  and queue-admission ordering and resolves the exact manifest before clock or
+  repository context on replay. Only the existing test-owned RFC-0023 model-aware
+  worker is named as the first consumer; supported ingress remains separate.
+- Fresh focused Java 17 verification used the README-owned Gradle launcher and
+  completed with `BUILD SUCCESSFUL` in 24 seconds. JUnit XML inspection found 23 tests
+  across seven decision-index, document-ownership, dynamic-workflow, approved-task,
+  justification, planner, and task-revision suites: all 23 passed with zero skipped,
+  failed, or errored. `git diff --check` passed.
+- Stale Architecture, compact mirror, and Project State wording was corrected to
+  reflect the already Integrated internal RFC-0023 path. Capability maturity did not
+  change. `SESSION_HANDOFF.md` remains unchanged because no new host-only fact was
+  introduced. No Java/test implementation, actual submission or execution, supported
+  entry point, receiver, schema migration, provider/network, credential, spend, push,
+  merge, release, deployment, permission change, destructive cleanup, or external
+  effect was added or performed.

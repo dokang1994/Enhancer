@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-09-04 into governed deterministic ModelWork submission specification
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-09-04-specify-governed-deterministic-model-work-submission.md)
+
 ### User continuation request on 2026-09-03 into RFC-0023 typed ModelWork process-execution implementation
 
 Status: Accepted Decision

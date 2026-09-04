@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-09-04 - Specify Governed Deterministic ModelWork Submission
+
+- Accepted RFC-0024 for one future internal deterministic-fake typed producer whose
+  request carries a complete profile but no capability field. A closed repository-owned
+  source supplies only `deterministic-echo`, independently of request, profile,
+  candidate, manifest, CLI, repository content, or ambient state.
+- Defined first-use task/Tool/snapshot construction, manifest-before-queue ordering,
+  and manifest-first replay that compares every caller-owned input before consulting
+  clock or repository context and never rewrites exact durable intent.
+- Named only the test-owned internal RFC-0023 model-aware worker as the first consumer.
+  Supported Scheduler composition, profile input, typed publication/receive, providers,
+  network, credentials, spend, and durable schema changes remain separately authorized.
+- Corrected stale architecture and Project State wording to reflect the already
+  Integrated RFC-0023 internal path without changing capability maturity.
+
 ## 2026-09-03 - Complete RFC-0023 Typed ModelWork Process Execution
 
 - Completed all six governed implementation increments: lazy evidence identity,
