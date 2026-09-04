@@ -2,98 +2,74 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Specify RFC-0024: the smallest governed deterministic-fake typed ModelWork submission
-source that can feed the completed internal RFC-0023 process path without enabling a
-receiver, supported command, or external model boundary.
+Commit, push, and merge the accumulated verified Gate 9 work already present on local
+`main` into `origin/main` through a non-force linear delivery, then record and publish
+the bounded delivery evidence.
 
 ## Task ID
 
-specify-governed-deterministic-model-work-submission
+deliver-accumulated-gate-9-work-to-main-2026-09-04
 
 ## Context
 
-RFC-0023 is internally Integrated for test-owned typed ModelWork, including fresh
-child-local preparation, one deterministic-fake invocation per AgentRun, Model
-RunRecord v2 finalization, retry, and recovery. No production source constructs a
-typed ModelWork envelope, and no supported command can supply the internal model-aware
-Scheduler execution configuration. RFC-0017 through RFC-0019 require a separately
-accepted caller-specific complete-profile source and an independent governed
-capability projection before typed submission or receive. The completed task names a
-governed producer or receiver as the next possible boundary, and the user requested
-continuation on 2026-09-04.
+The RFC-0024 specification task is Completed and the worktree is clean. Local `main`
+currently contains seventeen verified commits after the tracked `origin/main`, ending
+at `40e5e36`. The completed implementation and specification tasks explicitly excluded
+remote delivery. The user separately requested commit, push, and merge on 2026-09-04.
+
+Because the completed work is already committed directly on `main`, an exact non-force
+fast-forward `main:main` push is the requested merge if a fresh fetch proves the tracked
+remote is still an ancestor. No temporary branch or synthetic merge commit is needed.
 
 ## Justified By
 
+- User request on 2026-09-04 to commit, push, and merge accumulated Gate 9 work to main
 - User continuation request on 2026-09-04 into governed deterministic ModelWork submission specification
-- User continuation request on 2026-09-03 into RFC-0023 typed ModelWork process-execution implementation
-- User continuation request on 2026-09-03 into typed ModelWork process-execution specification
 
 ## Approval
 
-The user's 2026-09-04 continuation authorizes a documentation-only RFC and accepted
-decision defining one internal deterministic-fake typed ModelWork submission source.
-The contract may define exact task, snapshot, complete-profile, independent capability,
-identity, manifest, queue-admission, replay, refusal, and later-consumer relationships,
-plus a bounded RED-first implementation sequence. It authorizes the minimal
-Architecture, compact mirror, Project State consistency correction, Roadmap, RFC index,
-task, decision/index, verification, handoff, and Changelog synchronization and ordinary
-local GREEN commits.
+The user's 2026-09-04 request authorizes the smallest bounded delivery task: record the
+accepted delivery decision and cursor, run fresh local verification, commit the delivery
+authority, fetch `origin`, require a linear fast-forward relationship, push the explicit
+non-force `main:main` refspec, verify fetched and advertised remote refs, observe the
+push-triggered GitHub Actions verification, append delivery evidence once, commit the
+closure, and push that follow-up commit under the same non-force ancestry checks.
 
-It authorizes no Java or test-source change, actual submission or model execution now,
-typed spool publisher or receiver, supported CLI/API/editor/Desktop entry point,
-general model router or provider, endpoint, remote transmission, network, credentials,
-pricing or spend, MCP, durable schema version or migration, runtime-event ingress,
-push, merge, release, deployment, permission change, destructive cleanup, or external
+It authorizes no force push, rebase, reset, amend, squash, cherry-pick, synthetic merge
+commit, tag, release, deployment, branch deletion, permission or credential change,
+destructive cleanup, product implementation, schema change, or unrelated external
 effect.
 
 ## Acceptance Criteria
 
-- The RFC names the exact existing RFC-0017 through RFC-0023 inputs and the durable
-  manifest/queue consumer, and defines one caller-specific typed submission boundary
-  without adding a supported entry point in this task.
-- One complete `ModelExecutionProfile` remains indivisible untrusted requirement data;
-  no field is defaulted, repaired, inferred, flattened into Tool arguments, or used as
-  capability authority.
-- The independent `WorkItem.requiredCapability` source is repository-owned,
-  deterministic-fake-specific, explicitly named, and fixed independently of the
-  profile, request, candidate instance, envelope, manifest, queue, CLI text, or ambient
-  state. Capability/profile mismatch remains observable at RFC-0016 admission.
-- First use resolves the exact active task, requires `model-invoke`, captures one
-  repository-memory Workspace snapshot, derives stable submission identities, creates
-  one complete ModelWork envelope, persists manifest intent before queue creation, and
-  admits only through the existing durable service.
-- Replay resolves the manifest before clock or repository context, exact-validates all
-  caller-owned intent and the fixed capability source, changes no manifest or queue
-  revision, and fails closed on task, producer, target, digest, profile, capacity, or
-  priority drift.
-- The contract distinguishes an internal producer from execution authority and names
-  the existing internal v2 process composition as its test-owned next consumer. A
-  supported Scheduler composition, typed transport publisher/receiver, and interface
-  profile format remain separately authorized work.
-- Existing message/spool v2, manifest v3, queue v4, runtime v5, pending-finalization v2,
-  Model RunRecord v2, and legacy v1 bytes remain sufficient and unchanged; any new
-  provenance or durable refusal requires a separate compatibility decision.
-- Stale architecture/state wording discovered during recovery is corrected without
-  changing capability maturity or claiming supported typed ingress.
-- RFC/decision indexes, Architecture and compact mirror, Project State, Roadmap, task
-  cursor, Changelog, and append-only verification evidence are synchronized according
-  to document ownership.
-- Focused Markdown-sensitive governance, `git diff --check`, and the full
-  README-owned Java 17 regression pass freshly before completion.
+- A matching accepted decision and index entry define the exact delivery authority and
+  exclusions before any fetch or push.
+- Fresh focused governance and the full README-owned Java 17 regression pass before the
+  first remote mutation.
+- A fresh fetch proves the fetched `origin/main` is an ancestor of local `main`; any
+  divergence or non-fast-forward condition stops delivery.
+- `git push origin main:main` uses no force option and advances only the named remote
+  branch through the already reviewed linear commits.
+- Local `HEAD`, fetched `origin/main`, and advertised `refs/heads/main` match after each
+  delivery push.
+- The push-triggered GitHub Actions `verify` workflow is observed to a successful
+  terminal conclusion before delivery evidence is claimed.
+- Delivery evidence is appended once to `docs/verification-log.md`; current task and
+  Changelog state are synchronized without changing capability maturity or Architecture.
+- The verified evidence closure is committed locally and pushed with the same non-force
+  ancestry and exact-ref checks. Final Git state is clean and the checkpoint is stable
+  and cleared.
 
 ## Out Of Scope
 
-Java or test-source implementation; actual typed submission, queue admission, gateway
-or Tool execution; supported Scheduler composition or command; typed spool publisher
-or receiver; existing legacy command widening; provider selection, router, registry,
-endpoint, remote transmission, network, credentials, pricing or spend; MCP; new durable
-schema or migration; runtime-event ingress; candidate/count/Ready/usage/refusal
-provenance changes to Model RunRecord v2; durable terminal pre-call refusal; push,
-merge, release, deployment, permissions, destructive cleanup, and external effects.
+Java or test-source implementation; Architecture, Roadmap, RFC, schema, capability
+maturity, or product-runtime changes; force push; rebase, reset, amend, squash,
+cherry-pick, synthetic merge commit, tag, release, deployment, branch deletion,
+permission or credential changes, destructive cleanup, and unrelated external effects.
 
 ## Allowed Tools
 
@@ -105,53 +81,66 @@ merge, release, deployment, permissions, destructive cleanup, and external effec
 - git-inspect
 - git-stage
 - git-commit
+- git-fetch
+- git-push
+- github-actions-read
 
 ## Verification
 
-Evidence is appended once per completed increment to `docs/verification-log.md`.
-Documentation verification must cover RFC indexing, architecture/document ownership,
-dynamic workflow, approved-task justification, and canonical task planning. Subagent
-recommendations are not verification evidence.
+Fresh local results and exact Git/GitHub observations are required. Checkpoint metadata
+is recovery state, never delivery evidence. Append the verified delivery facts once to
+`docs/verification-log.md`; do not promote capability maturity.
 
 ## Dynamic Workflow
 
-Workflow ID: specify-governed-deterministic-model-work-submission
+Workflow ID: deliver-accumulated-gate-9-work-to-main-2026-09-04
 Mode: Sequential
-Increment Limit: 2
+Increment Limit: 3
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
-Stop Conditions: Stop on authority-source ambiguity, profile/capability conflation,
-implicit supported-entry-point or execution authority, unclosed replay/refusal behavior,
-silent schema widening, failed verification, checkpoint drift, new authority,
-exhausted bounds, or unsafe recovery.
+Stop Conditions: Stop on dirty or drifted Git state, failed verification, remote
+divergence, non-fast-forward refusal, unexpected advertised ref, failed or unavailable
+required CI, checkpoint drift, new authority, exhausted bounds, or unsafe recovery.
 
-### Increment 1 - specify-governed-model-work-submission-contract
+### Increment 1 - authorize-and-verify-delivery
 
 State: Completed
 Depends On: none
-Scope: Review the existing typed ModelWork, submission, authority, identity, replay,
-and internal process boundaries and accept one RFC defining the smallest governed
-deterministic-fake submission source without implementation or supported caller.
-Exit Criteria: The RFC, accepted decision, indexes, architecture/state corrections,
-Roadmap, task cursor, Changelog, and focused evidence are synchronized and focused
-governance passes.
-Verification: RFC/decision/architecture/index/ownership/dynamic-workflow/approved-task/
-task-justification/planner tests plus `git diff --check`.
-Next Action: Commit the verified documentation increment and select Increment 2.
+Scope: Record the accepted delivery decision/task/index/Changelog cursor, run focused
+governance and the full local regression, and commit the verified authority increment.
+Exit Criteria: Delivery authority is exact-indexed, local verification passes, the
+worktree is clean after the local commit, and no remote mutation has occurred.
+Verification: Focused decision/task/document governance, full
+`.\scripts\gradle.ps1 test`, `git diff --check`, and commit/status inspection.
+Next Action: Select Increment 2 and fetch `origin`.
 
-### Increment 2 - verify-and-close-governed-model-work-submission-specification
+### Increment 2 - fast-forward-main-and-observe-ci
 
-State: Completed
-Depends On: specify-governed-model-work-submission-contract
-Scope: Run the full Markdown-sensitive Java 17 regression, record fresh evidence,
-close the task/handoff, and commit the verified specification closure.
-Exit Criteria: The full regression passes with results read, canonical documents are
-current, the intended local commits are clean, and the checkpoint is stable and clear.
-Verification: Full `.\scripts\gradle.ps1 test`, focused final governance,
-diff/commit/status inspection, and checkpoint reconciliation.
-Next Action: Await separate authority to implement RFC-0024 RED-first.
+State: In Progress
+Depends On: authorize-and-verify-delivery
+Scope: Fetch remote state, prove ancestry, push explicit non-force `main:main`, verify
+local/fetched/advertised refs, observe the push-triggered `verify` workflow, and append
+the exact delivery evidence.
+Exit Criteria: The remote main ref equals the pushed local commit, required CI succeeds,
+and delivery evidence plus the closure cursor are ready for a verified local commit.
+Verification: Merge-base/ancestor/divergence checks, push output, fetch and `ls-remote`
+ref equality, GitHub Actions terminal conclusion, focused governance, and diff checks.
+Next Action: Commit the evidence closure and select Increment 3.
+
+### Increment 3 - publish-and-close-delivery-evidence
+
+State: Pending
+Depends On: fast-forward-main-and-observe-ci
+Scope: Commit the verified evidence closure, re-fetch and prove fast-forward ancestry,
+push the explicit non-force `main:main` refspec, verify final refs and Git status, then
+stabilize and clear the checkpoint.
+Exit Criteria: Local, fetched, and advertised main refs match the closure commit, the
+worktree is clean, the task is Completed, no forbidden operation occurred, and the
+checkpoint is empty.
+Verification: Final focused governance, commit inspection, fresh fetch, ancestry and
+ref equality, clean status, and checkpoint reconciliation.
+Next Action: Await the next separately authorized task.
 
 ## Next
 
-Await separate user authority to implement RFC-0024 RED-first. The accepted contract
-does not authorize Java/test implementation, a supported typed entry point, or a
-receiver.
+Verify and deliver the accumulated linear Gate 9 commits to `origin/main`, then close
+the delivery evidence without beginning RFC-0024 implementation.

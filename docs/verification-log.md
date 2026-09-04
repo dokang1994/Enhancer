@@ -7118,3 +7118,22 @@ Outcome:
   receiver, schema migration, provider/network, credential, spend, push, merge,
   release, deployment, permission change, destructive cleanup, or external effect was
   added or performed.
+
+## 2026-09-04 - Accumulated Gate 9 Main Delivery Preflight
+
+- The user separately authorized commit, push, and merge. Recovery began from an empty
+  checkpoint, a clean worktree, and local `main` at `40e5e36`, seventeen commits ahead
+  of the then-tracked `origin/main` at `d6ca380`; no remote mutation occurred during
+  this preflight.
+- The accepted delivery decision defines an explicit non-force `main:main` fast-forward
+  as the requested merge because the completed work already lies directly on local
+  `main`. Force push, history rewrite, synthetic merge, tag, release, deployment,
+  branch deletion, permissions, credentials, and unrelated effects remain excluded.
+- Fresh focused Java 17 governance completed with `BUILD SUCCESSFUL` in 48 seconds.
+  JUnit XML inspection found 23 tests across seven decision-index, document-ownership,
+  dynamic-workflow, approved-task, justification, planner, and task-revision suites;
+  all passed with zero skipped, failed, or errored. `git diff --check` passed.
+- Fresh full verification used the README-owned `./scripts/gradle.ps1 test` command and
+  completed with `BUILD SUCCESSFUL` in 7 minutes 39 seconds. The generated JUnit XML
+  contained 202 suites and 1,118 tests: 1,105 passed, 13 existing conditional tests
+  skipped, and zero failed or errored. Capability maturity did not change.

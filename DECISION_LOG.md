@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User request on 2026-09-04 to commit, push, and merge accumulated Gate 9 work to main
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-09-04-deliver-accumulated-gate-9-work-to-main.md)
+
 ### User continuation request on 2026-09-04 into governed deterministic ModelWork submission specification
 
 Status: Accepted Decision

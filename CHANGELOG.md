@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-09-04 - Authorize Accumulated Gate 9 Main Delivery
+
+- Accepted the user's bounded request to commit, push, and merge the seventeen verified
+  commits currently ahead of tracked `origin/main`.
+- Because the work is already directly on local `main`, the requested merge is an
+  explicit non-force `main:main` fast-forward after fresh fetch, ancestry, local
+  regression, remote-ref, and GitHub Actions verification.
+- Pre-delivery focused governance passed 23 tests across seven suites. The fresh full
+  README-owned Java 17 regression completed with `BUILD SUCCESSFUL` in 7 minutes 39
+  seconds: 1,105 of 1,118 tests passed, 13 existing conditional tests skipped, and
+  zero failed or errored.
+- Force push, history rewrite, synthetic merge, tag, release, deployment, branch
+  deletion, permission/credential change, product implementation, schema change, and
+  capability promotion remain unauthorized.
+
 ## 2026-09-04 - Specify Governed Deterministic ModelWork Submission
 
 - Accepted RFC-0024 for one future internal deterministic-fake typed producer whose
