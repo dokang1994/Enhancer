@@ -190,12 +190,12 @@ class ModelCandidateLocalityBoundaryTest {
     }
 
     @Test
-    void deterministicFakeSubmissionValuesHaveNoCallerOrExternalReachabilityYet()
+    void deterministicFakeSubmissionBoundaryHasOnlyTheClosedInternalServiceCaller()
             throws IOException {
-        Set<String> definitions = Set.of(
+        Set<String> valueDefinitions = Set.of(
                 "DeterministicFakeModelSubmissionRequest.java",
                 "DeterministicFakeModelSubmissionCapabilitySource.java");
-        for (String fileName : definitions) {
+        for (String fileName : valueDefinitions) {
             Path source = findProductionSource(fileName);
             assertTrue(Files.isRegularFile(source), fileName + " must exist");
             String content = read(source);
@@ -230,9 +230,44 @@ class ModelCandidateLocalityBoundaryTest {
         assertFalse(request.contains("DeterministicFakeModelSubmissionCapabilitySource"));
         assertFalse(request.contains("DeterministicFakeModelCandidate"));
 
+        String serviceFile = "DeterministicFakeModelSubmissionService.java";
+        String service = read(findProductionSource(serviceFile));
+        assertTrue(service.contains("DeterministicFakeModelSubmissionRequest"));
+        assertTrue(service.contains("DeterministicFakeModelSubmissionCapabilitySource"));
+        assertFalse(service.contains("\"deterministic-echo\""));
+        assertFalse(service.contains("DeterministicFakeModelCandidate"));
+        assertFalse(service.contains("executionProfile().requiredCapability()"));
+        for (String forbidden : List.of(
+                "com.enhancer.cli",
+                "EnhancerCli",
+                "FileSpool",
+                "MessageTransport",
+                "DurableWorkMessageReceiver",
+                "GeneratedInputSubmissionService",
+                "GeneratedSubmissionRequest",
+                "import com.enhancer.bus.WorkPayload",
+                "AgentLoopAgentRunExecution",
+                "DurableAgentRunWorker",
+                "DeterministicFakeModelAttemptPipeline",
+                "ModelGateway",
+                "ModelCredentialSupplier",
+                "HttpMessageApiModelProviderAdapter",
+                "java.net",
+                "ProcessBuilder",
+                "System.getenv",
+                "System.getProperty")) {
+            assertFalse(
+                    service.contains(forbidden),
+                    () -> serviceFile + " must not reference " + forbidden);
+        }
+
+        Set<String> boundaryFiles = Set.of(
+                "DeterministicFakeModelSubmissionRequest.java",
+                "DeterministicFakeModelSubmissionCapabilitySource.java",
+                serviceFile);
         try (Stream<Path> files = Files.walk(PRODUCTION_ROOT)) {
             files.filter(path -> path.toString().endsWith(".java"))
-                    .filter(path -> !definitions.contains(path.getFileName().toString()))
+                    .filter(path -> !boundaryFiles.contains(path.getFileName().toString()))
                     .forEach(path -> {
                         String content = read(path);
                         assertFalse(

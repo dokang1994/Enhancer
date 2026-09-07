@@ -416,7 +416,13 @@ it does not restate which commit published which increment.
 - Delivery Gate 7 deterministic pending-queue backpressure: immutable `BackpressurePolicy` bounds waiting publications from 1 through 4096 with a finite default; capacity exhaustion reports scope-level `BACKPRESSURED` without blocking, journaling, handler invocation, idempotency consumption, dead-letter creation, or cancellation mutation; accepted work remains FIFO and replay delivers the prefix that fits while reporting the refused suffix without growing the live journal.
 - Delivery Gate 7 transport-neutral IPC boundary: immutable `TransportMessage` carries one existing destination and envelope unchanged through provider-neutral `MessageTransport`; `TransportOutcome` distinguishes hop-level `ACCEPTED`, `BACKPRESSURED`, and `UNAVAILABLE` from Message Bus delivery and bounds refusal reasons without consuming bus state.
 - Delivery Gate 7 is Contract Verified after fresh reassessment: `WorkPayload.allowedTools` bounds both each name and collection cardinality, and all six scope items plus all four exit criteria remain supported by focused contract evidence.
-- Backoff or delayed retry, pause/resume, run-scoped or causation-graph cancellation, priority ordering, competing queue consumers, threading, journal persistence, remote IPC adapters, and any ModelWork submission, receive, Scheduler execution, admission, gateway, or provider integration remain outside these verified contracts.
+- RFC-0024 deterministic-fake typed submission is Contract Verified through its closed
+  request, independent fixed `deterministic-echo` source, and package-local manifest-
+  first service. Real-filesystem tests prove exact first use, replay without repository/
+  clock recapture or durable rewrite, caller/derived/fixed-capability drift refusal, and
+  recovery from manifest-only and empty-queue prefixes. It is not yet connected to the
+  internal worker and exposes no supported ingress.
+- Backoff or delayed retry, pause/resume, run-scoped or causation-graph cancellation, priority ordering, competing queue consumers, threading, journal persistence, remote IPC adapters, and any supported ModelWork submission or receive, supported Scheduler execution, gateway, or provider integration remain outside these verified contracts.
 
 ### Integrated
 
@@ -431,9 +437,9 @@ it does not restate which commit published which increment.
   interrupted pre-reference attempt, bounded rejected-result retry with two distinct
   AgentRun evidence/record identities, and terminal queue disposition. Complete v2
   points suppress reinvocation and outrank timeout; corrupt, cross-kind, foreign,
-  changed, symbolic, non-regular, or partial prefixes fail closed. No typed producer,
-  receiver, supported entry point, schema change, provider, network, credential, or
-  spend path exists.
+  changed, symbolic, non-regular, or partial prefixes fail closed. The separate
+  RFC-0024 producer is not yet connected to this worker; no receiver, supported entry
+  point, schema change, provider, network, credential, or spend path exists.
 
 - Delivery Gate 8 Result-side Scheduler runtime-event publication: the optional
   recorder already shared by `scheduler-cycle`, `scheduler-drain`, and

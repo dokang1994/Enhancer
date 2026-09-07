@@ -7172,3 +7172,24 @@ Outcome:
   passed its two tests with zero failures or errors.
 - `git diff --check` passed. No supported caller, typed spool ingress, legacy path,
   provider/network/credential boundary, durable schema, or external effect was added.
+
+## 2026-09-07 - Manifest-First ModelWork Submission Service
+
+- Increment 2 began with a fresh Java 17 RED containing exactly two missing-symbol
+  errors for the deliberately absent `DeterministicFakeModelSubmissionService`; no
+  existing production or test contract failed.
+- The minimum package-local service resolves the exact manifest before repository or
+  clock access, uses one governed context/task/clock/snapshot chain only on first use,
+  obtains `deterministic-echo` only from the closed source, and delegates through the
+  unchanged `DurableWorkSubmissionService`.
+- Fresh focused verification passed 19 tests across five request/source/service and
+  architecture suites. Fresh expanded durable regression passed 107 tests across 17
+  suites covering generated submission, manifest persistence/migration, envelope/model
+  payload codecs, queue v4, runtime v5, pending-finalization v2, Model RunRecord v2,
+  recovery prefixes, and architecture boundaries; zero tests failed or were skipped.
+- Real-filesystem evidence includes exact first use, repository/clock-free replay with
+  byte-identical manifest and queue artifacts, all caller-owned and stored derived/
+  capability/payload drift refusals, invalid task/Tool/containment prefixes, ordinary
+  manifest I/O propagation, and manifest-only/empty-queue recovery. `git diff --check`
+  passed; no supported caller, worker connection, receiver, provider/network/credential
+  path, schema change, or external effect was added.

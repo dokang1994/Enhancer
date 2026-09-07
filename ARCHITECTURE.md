@@ -1864,12 +1864,13 @@ pre-reference re-execution, and post-reference no-invocation replay. Existing du
 suffice for the minimum returned-outcome path, but durable pre-call refusal or
 additional candidate, count, Ready, response-usage, or refusal provenance requires a
 later compatibility decision. The exact fake call and temporary filesystem effects
-remain confined to the internal test-owned connection; no supported entry point,
-producer/receiver, provider, network,
+remain confined to the internal test-owned connection; no connected producer,
+receiver, supported entry point, provider, network,
 credential, or spend path reaches them.
 
-RFC-0024 defines the first producer for that internal typed path without making it a
-supported entry point. Its closed request retains one canonical submission UUID, task,
+RFC-0024's implemented package-local boundary is the first production source of exact
+typed submission intent without being a supported entry point or connected worker.
+Its closed request retains one canonical submission UUID, task,
 producer, target, expected-response digest, complete profile, capacity, and priority,
 but no capability field. The producer supplies `deterministic-echo` from a separately
 named repository-owned fixed source that cannot be selected or inferred from the
@@ -1877,7 +1878,7 @@ request, profile, candidate, envelope, manifest, queue, CLI, environment, reposi
 content, or ambient configuration. The profile remains untrusted requirements data;
 capability disagreement is preserved for fresh RFC-0016 admission rather than repaired.
 
-First use derives the existing generated-submission identities, resolves the manifest,
+The service's first-use path derives the existing generated-submission identities, resolves the manifest,
 then reads governed context and the exact active task, requires `model-invoke`, captures
 one occurrence time and repository-memory snapshot, constructs one complete ModelWork
 envelope, persists exact manifest intent, and admits through the unchanged durable
@@ -2379,7 +2380,8 @@ Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts bel
   implements fake-only Unicode-scalar semantics and fixed capacities, RFC-0022
   implements the standalone exact-request and exact-fake invocation seam, and
   RFC-0023 internally implements its deterministic-fake process/runtime integration.
-  RFC-0024 specifies but does not implement its governed internal typed submission
-  source; supported typed ingress, Scheduler composition, and provider routing remain
-  unselected.
+  RFC-0024 now implements its governed request, fixed capability source, and manifest-
+  first durable submission service, but has not yet connected that producer to the
+  internal worker; supported typed ingress, Scheduler composition, and provider routing
+  remain unselected.
 - Future LLM-backed Planner input/output schema is not selected yet.

@@ -133,7 +133,7 @@ Next Action: Commit the GREEN value/source increment and select Increment 2.
 
 ### Increment 2 - add-manifest-first-model-submission-service
 
-State: In Progress
+State: Completed
 Depends On: add-closed-model-submission-request-and-capability-source
 Scope: Add RED-first first-use construction and exact replay through the unchanged
 durable submission service without connecting execution or a supported caller.
@@ -146,7 +146,7 @@ Next Action: Commit the GREEN service increment and select Increment 3.
 
 ### Increment 3 - connect-test-owned-model-submission-to-internal-worker
 
-State: Pending
+State: In Progress
 Depends On: add-manifest-first-model-submission-service
 Scope: Connect one temporary test-owned producer/manifest/queue path to the existing
 internal model-aware worker, with no production or interface caller.
@@ -170,5 +170,5 @@ Next Action: Await separate authority for supported model-aware Scheduler compos
 
 ## Next
 
-Implement and verify Increment 2 RED-first, then continue sequentially within this
+Implement and verify Increment 3 RED-first, then continue sequentially within this
 approved RFC-0024 task.

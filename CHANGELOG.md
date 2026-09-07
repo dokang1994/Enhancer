@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-09-07 - Add Manifest-First ModelWork Submission Service
+
+- Added the package-local deterministic-fake submission service. It resolves the
+  submission manifest first, constructs first-use task/snapshot/envelope intent from
+  one governed context and clock value, and delegates through the unchanged durable
+  submission service.
+- Exact replay checks every caller-owned field, versioned derived identity, absent
+  causation, fixed `deterministic-echo` capability, and typed payload before durable
+  delegation; it performs no current context/task/snapshot/clock recapture and changes
+  neither manifest bytes nor queue revision.
+- Added real-filesystem tests for first use, every request drift, stored identity/
+  capability/payload drift, invalid authority and containment, ordinary manifest I/O,
+  and recovery after manifest-only and empty-queue prefixes. No supported caller or
+  worker connection exists yet.
+
 ## 2026-09-07 - Add Closed ModelWork Submission Values
 
 - Added the package-local immutable deterministic-fake submission request with its
