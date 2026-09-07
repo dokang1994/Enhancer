@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-09-07 - Add Closed ModelWork Submission Values
+
+- Added the package-local immutable deterministic-fake submission request with its
+  exact caller-owned fields, canonical UUID, bounded task/producer/capacity/priority,
+  relative target, lowercase digest, and complete retained execution profile.
+- Added an independently closed repository-owned capability source that yields only
+  `deterministic-echo`; the request has no capability or execution-authority field and
+  retains profile disagreement for later RFC-0016 admission.
+- Added reflection, validation, mismatch-retention, and source-locality guards proving
+  that neither value has a production caller or supported/external reachability yet.
+
+## 2026-09-07 - Begin RFC-0024 Governed ModelWork Submission Implementation
+
+- Accepted the RED-first implementation task for a closed typed submission request,
+  independent repository-owned `deterministic-echo` capability source, manifest-first
+  producer service, and test-owned connection to the existing internal worker.
+- Supported interfaces, typed spool receive/publication, legacy path widening,
+  providers, network, credentials, spend, schema changes, and remote delivery remain
+  excluded.
+
 ## 2026-09-04 - Deliver Accumulated Gate 9 Work To Main
 
 - Accepted the user's bounded request to commit, push, and merge the seventeen verified

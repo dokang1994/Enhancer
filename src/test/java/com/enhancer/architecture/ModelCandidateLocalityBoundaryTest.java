@@ -189,6 +189,63 @@ class ModelCandidateLocalityBoundaryTest {
                 "bind(DeterministicFakeModelGateway gateway)"));
     }
 
+    @Test
+    void deterministicFakeSubmissionValuesHaveNoCallerOrExternalReachabilityYet()
+            throws IOException {
+        Set<String> definitions = Set.of(
+                "DeterministicFakeModelSubmissionRequest.java",
+                "DeterministicFakeModelSubmissionCapabilitySource.java");
+        for (String fileName : definitions) {
+            Path source = findProductionSource(fileName);
+            assertTrue(Files.isRegularFile(source), fileName + " must exist");
+            String content = read(source);
+            for (String forbidden : List.of(
+                    "com.enhancer.cli",
+                    "FileSpool",
+                    "MessageTransport",
+                    "DurableWorkMessageReceiver",
+                    "GeneratedInputSubmissionService",
+                    "GeneratedSubmissionRequest",
+                    "import com.enhancer.bus.WorkPayload",
+                    "AgentLoopAgentRunExecution",
+                    "DurableWorkSubmissionService",
+                    "DurableSubmissionManifest",
+                    "ModelGateway",
+                    "ModelCredentialSupplier",
+                    "HttpMessageApiModelProviderAdapter",
+                    "java.net",
+                    "ProcessBuilder",
+                    "System.getenv",
+                    "System.getProperty")) {
+                assertFalse(
+                        content.contains(forbidden),
+                        () -> fileName + " must not reference " + forbidden);
+            }
+        }
+
+        String request = read(findProductionSource(
+                "DeterministicFakeModelSubmissionRequest.java"));
+        assertFalse(request.contains("requiredCapability"));
+        assertFalse(request.contains("deterministic-echo"));
+        assertFalse(request.contains("DeterministicFakeModelSubmissionCapabilitySource"));
+        assertFalse(request.contains("DeterministicFakeModelCandidate"));
+
+        try (Stream<Path> files = Files.walk(PRODUCTION_ROOT)) {
+            files.filter(path -> path.toString().endsWith(".java"))
+                    .filter(path -> !definitions.contains(path.getFileName().toString()))
+                    .forEach(path -> {
+                        String content = read(path);
+                        assertFalse(
+                                content.contains("DeterministicFakeModelSubmissionRequest"),
+                                () -> path + " must not construct model submission intent yet");
+                        assertFalse(
+                                content.contains(
+                                        "DeterministicFakeModelSubmissionCapabilitySource"),
+                                () -> path + " must not source model submission capability yet");
+                    });
+        }
+    }
+
     private static String readModelSource(String fileName) throws IOException {
         return Files.readString(
                 PRODUCTION_ROOT.resolve("com/enhancer/model").resolve(fileName),

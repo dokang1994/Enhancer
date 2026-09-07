@@ -7155,3 +7155,20 @@ Outcome:
 - Push-triggered GitHub Actions workflow `verify` run `33860645237` for that exact
   `headSha` reached terminal `completed` / `success`. The verified evidence closure
   remains to be committed and delivered under the same non-force ancestry checks.
+
+## 2026-09-07 - Closed ModelWork Submission Values
+
+- The initial focused Java 17 RED produced 14 compile errors, all limited to the two
+  deliberately absent RFC-0024 request/source types. This matched Increment 1 and did
+  not expose an unrelated or scope-expanding failure.
+- After the minimum implementation, the first focused run executed 60 tests and found
+  one architecture-test false positive: the forbidden legacy token `WorkPayload` was
+  also a substring of the allowed validation type `ModelWorkPayload`. Narrowing the
+  guard to the exact legacy import preserved the boundary without changing production
+  behavior.
+- The fresh focused rerun passed all 60 tests across request/source, candidate locality,
+  runtime boundary, profile, payload, generated-submission, and Markdown governance
+  suites with zero failures or errors. A corrected separate task-revision invocation
+  passed its two tests with zero failures or errors.
+- `git diff --check` passed. No supported caller, typed spool ingress, legacy path,
+  provider/network/credential boundary, durable schema, or external effect was added.

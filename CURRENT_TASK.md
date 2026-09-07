@@ -2,78 +2,96 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Commit, push, and merge the accumulated verified Gate 9 work already present on local
-`main` into `origin/main` through a non-force linear delivery, then record and publish
-the bounded delivery evidence.
+Implement RFC-0024 RED-first as one internal deterministic-fake typed ModelWork
+submission source, preserving closed capability provenance, manifest-first replay, and
+the absence of any supported typed ingress.
 
 ## Task ID
 
-deliver-accumulated-gate-9-work-to-main-2026-09-04
+implement-governed-deterministic-model-work-submission
 
 ## Context
 
-The RFC-0024 specification task is Completed and the worktree is clean. Local `main`
-currently contains seventeen verified commits after the tracked `origin/main`, ending
-at `40e5e36`. The completed implementation and specification tasks explicitly excluded
-remote delivery. The user separately requested commit, push, and merge on 2026-09-04.
-
-Because the completed work is already committed directly on `main`, an exact non-force
-fast-forward `main:main` push is the requested merge if a fresh fetch proves the tracked
-remote is still an ancestor. No temporary branch or synthetic merge commit is needed.
+RFC-0023 is internally Integrated for test-owned typed ModelWork execution. RFC-0024
+is the accepted producer contract: one complete caller profile remains untrusted data,
+one closed repository-owned source independently supplies `deterministic-echo`, first
+use builds exact typed intent through the existing durable submission service, and
+replay resolves the manifest before clock or repository context. The prior delivery
+task is Completed and local/remote `main` were synchronized before the user requested
+continuation on 2026-09-07.
 
 ## Justified By
 
-- User request on 2026-09-04 to commit, push, and merge accumulated Gate 9 work to main
+- User continuation request on 2026-09-07 into RFC-0024 governed deterministic ModelWork submission implementation
 - User continuation request on 2026-09-04 into governed deterministic ModelWork submission specification
 
 ## Approval
 
-The user's 2026-09-04 request authorizes the smallest bounded delivery task: record the
-accepted delivery decision and cursor, run fresh local verification, commit the delivery
-authority, fetch `origin`, require a linear fast-forward relationship, push the explicit
-non-force `main:main` refspec, verify fetched and advertised remote refs, observe the
-push-triggered GitHub Actions verification, append delivery evidence once, commit the
-closure, and push that follow-up commit under the same non-force ancestry checks.
+The user's 2026-09-07 continuation authorizes the minimum RED-first Java/test
+implementation of RFC-0024: a closed immutable request, an independent fixed
+deterministic capability source, first-use governed task/snapshot/envelope/manifest
+construction, exact manifest-first replay, delegation to the unchanged durable
+submission service, and one test-owned producer-to-existing-internal-worker integration.
+It authorizes architecture, compact mirror, Project State, Roadmap, task,
+decision/index, verification, handoff, and Changelog synchronization and ordinary
+local GREEN commits.
 
-It authorizes no force push, rebase, reset, amend, squash, cherry-pick, synthetic merge
-commit, tag, release, deployment, branch deletion, permission or credential change,
-destructive cleanup, product implementation, schema change, or unrelated external
-effect.
+It authorizes no supported CLI/API/editor/Desktop entry point, typed spool publisher or
+receiver, legacy submission/receiver widening, general model router or provider,
+endpoint, remote model transmission, network, credentials, pricing or spend, MCP,
+durable schema version or migration, runtime-event ingress, push, merge, release,
+deployment, permission change, destructive cleanup, or external effect.
 
 ## Acceptance Criteria
 
-- A matching accepted decision and index entry define the exact delivery authority and
-  exclusions before any fetch or push.
-- Fresh focused governance and the full README-owned Java 17 regression pass before the
-  first remote mutation.
-- A fresh fetch proves the fetched `origin/main` is an ancestor of local `main`; any
-  divergence or non-fast-forward condition stops delivery.
-- `git push origin main:main` uses no force option and advances only the named remote
-  branch through the already reviewed linear commits.
-- Local `HEAD`, fetched `origin/main`, and advertised `refs/heads/main` match after each
-  delivery push.
-- The push-triggered GitHub Actions `verify` workflow is observed to a successful
-  terminal conclusion before delivery evidence is claimed.
-- Delivery evidence is appended once to `docs/verification-log.md`; current task and
-  Changelog state are synchronized without changing capability maturity or Architecture.
-- The verified evidence closure is committed locally and pushed with the same non-force
-  ancestry and exact-ref checks. Final Git state is clean and the checkpoint is stable
-  and cleared.
+- A separate immutable request retains exactly the canonical submission UUID, expected
+  active task ID, bounded producer, relative target, lowercase expected-response digest,
+  exact complete profile, bounded capacity, and `NORMAL`/`EXPEDITED` priority; it has no
+  capability or execution-authority field.
+- A closed repository-owned deterministic-fake capability source supplies exactly
+  `deterministic-echo` independently of the request, profile, target, candidate,
+  envelope, manifest, queue, CLI, environment, repository content, or ambient state.
+- Capability/profile disagreement is persisted unchanged and remains observable only
+  at later RFC-0016 admission; the producer neither repairs nor pre-refuses it.
+- First use derives existing stable identities, point-resolves the manifest, loads
+  governed context and exact active task once, requires `model-invoke`, captures one
+  clock value and repository-memory snapshot, builds one exact ModelWork envelope and
+  manifest, then delegates to unchanged `DurableWorkSubmissionService`.
+- Replay resolves the manifest before clock/context/task/snapshot work, validates all
+  caller intent plus derived identities and the fixed capability, delegates exact
+  replay without manifest rewrite or queue revision, and fails closed on every drift.
+- Failure ordering preserves zero queue/manifest mutation before valid first-use intent
+  and existing manifest-before-queue recovery prefixes without a new store or format.
+- One temporary-filesystem integration connects only this producer to the existing
+  internal model-aware worker and proves verified completion plus one typed pre-call
+  refusal without a supported caller.
+- Source and architecture guards prove that no CLI, spool receiver, provider, network,
+  credential, legacy execution path, or current supported Scheduler composition
+  constructs the producer.
+- Existing envelope/spool v2, manifest v3, queue v4, runtime v5, pending-finalization
+  v2, Model RunRecord v2, and legacy v1 bytes remain unchanged.
+- Each observable increment is RED-first, focused Java 17 verification and
+  `git diff --check` pass, the final README-owned regression passes freshly, documents
+  are synchronized, and every GREEN increment is committed locally.
 
 ## Out Of Scope
 
-Java or test-source implementation; Architecture, Roadmap, RFC, schema, capability
-maturity, or product-runtime changes; force push; rebase, reset, amend, squash,
-cherry-pick, synthetic merge commit, tag, release, deployment, branch deletion,
-permission or credential changes, destructive cleanup, and unrelated external effects.
+Supported CLI/API/editor/Desktop input; typed spool publisher or receiver; legacy
+command or receiver widening; general/provider model selection, router, registry,
+endpoint, remote transmission, network, credentials, pricing or spend; MCP; durable
+schema or migration; runtime-event ingress; current Model RunRecord v2 provenance
+widening; durable terminal pre-call refusal; push, merge, release, deployment,
+permissions, destructive cleanup, and external effects.
 
 ## Allowed Tools
 
 - read-file
+- write-code
+- write-tests
 - write-docs
 - build-output
 - verify
@@ -81,66 +99,76 @@ permission or credential changes, destructive cleanup, and unrelated external ef
 - git-inspect
 - git-stage
 - git-commit
-- git-fetch
-- git-push
-- github-actions-read
 
 ## Verification
 
-Fresh local results and exact Git/GitHub observations are required. Checkpoint metadata
-is recovery state, never delivery evidence. Append the verified delivery facts once to
-`docs/verification-log.md`; do not promote capability maturity.
+Observable behavior is RED-first. Evidence is appended once per completed increment to
+`docs/verification-log.md`. Each RED is classified against RFC-0024, RFC-0017 through
+RFC-0023, existing durable formats, and v1 compatibility before production changes.
+Subagent reports are recommendations, never verification evidence.
 
 ## Dynamic Workflow
 
-Workflow ID: deliver-accumulated-gate-9-work-to-main-2026-09-04
+Workflow ID: implement-governed-deterministic-model-work-submission
 Mode: Sequential
-Increment Limit: 3
+Increment Limit: 4
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
-Stop Conditions: Stop on dirty or drifted Git state, failed verification, remote
-divergence, non-fast-forward refusal, unexpected advertised ref, failed or unavailable
-required CI, checkpoint drift, new authority, exhausted bounds, or unsafe recovery.
+Stop Conditions: Stop on capability-source ambiguity, request authority widening,
+profile repair or defaulting, replay-before-manifest violation, unclassified RED,
+supported-ingress reachability, schema drift, v1 compatibility failure, failed
+verification, checkpoint drift, new authority, exhausted bounds, or unsafe recovery.
 
-### Increment 1 - authorize-and-verify-delivery
+### Increment 1 - add-closed-model-submission-request-and-capability-source
 
 State: Completed
 Depends On: none
-Scope: Record the accepted delivery decision/task/index/Changelog cursor, run focused
-governance and the full local regression, and commit the verified authority increment.
-Exit Criteria: Delivery authority is exact-indexed, local verification passes, the
-worktree is clean after the local commit, and no remote mutation has occurred.
-Verification: Focused decision/task/document governance, full
-`.\scripts\gradle.ps1 test`, `git diff --check`, and commit/status inspection.
-Next Action: Select Increment 2 and fetch `origin`.
+Scope: Add RED-first closed request and repository-owned fixed deterministic capability
+source values without a service caller.
+Exit Criteria: Exact request shape, validation bounds, absence of a capability field,
+fixed source value/closed construction, profile disagreement retention, reflection and
+source guards, and zero production caller are GREEN.
+Verification: New value/source tests, existing profile/payload/candidate locality tests,
+relevant architecture governance, and `git diff --check`.
+Next Action: Commit the GREEN value/source increment and select Increment 2.
 
-### Increment 2 - fast-forward-main-and-observe-ci
+### Increment 2 - add-manifest-first-model-submission-service
 
-State: Completed
-Depends On: authorize-and-verify-delivery
-Scope: Fetch remote state, prove ancestry, push explicit non-force `main:main`, verify
-local/fetched/advertised refs, observe the push-triggered `verify` workflow, and append
-the exact delivery evidence.
-Exit Criteria: The remote main ref equals the pushed local commit, required CI succeeds,
-and delivery evidence plus the closure cursor are ready for a verified local commit.
-Verification: Merge-base/ancestor/divergence checks, push output, fetch and `ls-remote`
-ref equality, GitHub Actions terminal conclusion, focused governance, and diff checks.
-Next Action: Commit the evidence closure and select Increment 3.
+State: In Progress
+Depends On: add-closed-model-submission-request-and-capability-source
+Scope: Add RED-first first-use construction and exact replay through the unchanged
+durable submission service without connecting execution or a supported caller.
+Exit Criteria: Governed context/task/Tool/snapshot/envelope/manifest ordering, fixed
+capability projection, every caller-intent replay comparison, no replay recapture,
+failure prefixes, and unchanged durable schemas are GREEN.
+Verification: New producer service tests plus generated submission, manifest, durable
+submission, queue/runtime format, architecture guard, and `git diff --check` regression.
+Next Action: Commit the GREEN service increment and select Increment 3.
 
-### Increment 3 - publish-and-close-delivery-evidence
+### Increment 3 - connect-test-owned-model-submission-to-internal-worker
 
-State: Completed
-Depends On: fast-forward-main-and-observe-ci
-Scope: Commit the verified evidence closure, re-fetch and prove fast-forward ancestry,
-push the explicit non-force `main:main` refspec, verify final refs and Git status, then
-stabilize and clear the checkpoint.
-Exit Criteria: Local, fetched, and advertised main refs match the closure commit, the
-worktree is clean, the task is Completed, no forbidden operation occurred, and the
-checkpoint is empty.
-Verification: Final focused governance, commit inspection, fresh fetch, ancestry and
-ref equality, clean status, and checkpoint reconciliation.
-Next Action: Await the next separately authorized task.
+State: Pending
+Depends On: add-manifest-first-model-submission-service
+Scope: Connect one temporary test-owned producer/manifest/queue path to the existing
+internal model-aware worker, with no production or interface caller.
+Exit Criteria: Verified completion and one typed pre-call refusal are proven end to end;
+legacy paths and supported interfaces remain unchanged and source guards pass.
+Verification: Producer-to-worker real-filesystem/JVM integration, RFC-0017-through-
+RFC-0024 focused suites, locality/entry-point guards, and `git diff --check`.
+Next Action: Commit the GREEN internal integration and select Increment 4.
+
+### Increment 4 - verify-and-close-rfc-0024-implementation
+
+State: Pending
+Depends On: connect-test-owned-model-submission-to-internal-worker
+Scope: Run the full Markdown-sensitive Java 17 regression, read results, synchronize
+capability state and canonical documents, close the task/handoff, and commit closure.
+Exit Criteria: Full regression passes, documents and commits are current, Git is clean,
+and the stable checkpoint is cleared.
+Verification: Full `.\scripts\gradle.ps1 test`, final focused RFC-0024/governance
+suites, diff/commit/status inspection, and checkpoint reconciliation.
+Next Action: Await separate authority for supported model-aware Scheduler composition.
 
 ## Next
 
-Await the next separately authorized task. RFC-0024 implementation remains unstarted
-and requires separate user authority.
+Implement and verify Increment 2 RED-first, then continue sequentially within this
+approved RFC-0024 task.
