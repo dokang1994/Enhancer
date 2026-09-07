@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -159,7 +159,7 @@ Next Action: Commit the GREEN internal integration and select Increment 4.
 
 ### Increment 4 - verify-and-close-rfc-0024-implementation
 
-State: In Progress
+State: Completed
 Depends On: connect-test-owned-model-submission-to-internal-worker
 Scope: Run the full Markdown-sensitive Java 17 regression, read results, synchronize
 capability state and canonical documents, close the task/handoff, and commit closure.
@@ -171,4 +171,4 @@ Next Action: Await separate authority for supported model-aware Scheduler compos
 
 ## Next
 
-Run the full Increment 4 regression and synchronize the completed RFC-0024 task.
+Await separate authority for supported model-aware Scheduler composition.

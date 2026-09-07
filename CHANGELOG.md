@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-09-07 - Complete Governed ModelWork Submission
+
+- Completed all four RFC-0024 implementation increments: the closed request and fixed
+  capability source, manifest-first submission service, test-owned internal worker
+  integration, and final regression/closure.
+- Fresh README-owned Java 17 verification passed 1,119 of 1,132 tests across 206
+  suites, with 13 existing conditional skips and zero failures or errors.
+- Production reachability remains package-local with no supported Scheduler
+  composition, CLI, receiver, provider, network, credential, or schema change. The
+  verified implementation remains local; no push or merge was performed for this task.
+
 ## 2026-09-07 - Connect Submitted ModelWork To The Internal Worker
 
 - Added a test-owned real-filesystem/JVM composition from the RFC-0024 producer through
