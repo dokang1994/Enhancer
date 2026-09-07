@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-09-07 - Connect Submitted ModelWork To The Internal Worker
+
+- Added a test-owned real-filesystem/JVM composition from the RFC-0024 producer through
+  its exact manifest and durable queue into the existing RFC-0023 model-aware worker.
+- Proved verified completion through one Model RunRecord v2 and terminal queue
+  disposition without constructing or re-enqueuing the submitted WorkItem in the test.
+- Proved that a profile capability mismatch remains durably admitted unchanged and is
+  refused before the fake gateway call, leaving no RunRecord, evidence, Result, retry,
+  or queue disposition while retaining the recoverable active prefix.
+- Production reachability remains limited to the package-local submission service; no
+  CLI, receiver, legacy path, provider, network, credential, or supported composition
+  calls the producer.
+
 ## 2026-09-07 - Add Manifest-First ModelWork Submission Service
 
 - Added the package-local deterministic-fake submission service. It resolves the

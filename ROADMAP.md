@@ -931,11 +931,12 @@ Scope:
 - an internally Integrated deterministic-fake typed ModelWork process-execution path
   covering same-policy Tool/evidence, independent response verification, v2-only
   publication, complete parent binding, finalization, bounded replacement retry, and
-  crash recovery without a connected producer, receiver, or supported entry point;
-- a Contract Verified governed deterministic-fake typed submission source with one
+  crash recovery, now connected only to the test-owned RFC-0024 producer path without a
+  receiver or supported entry point;
+- an internally Integrated governed deterministic-fake typed submission source with one
   complete profile, an independent closed repository-owned `deterministic-echo`
-  capability source, manifest-first exact replay, and durable admission; connection to
-  the internal test-owned process path and all supported ingress remain later work;
+  capability source, manifest-first exact replay, durable admission, verified internal
+  completion, and typed pre-call refusal; all supported ingress remains later work;
 - Model Router with deterministic fake plus explicitly selected provider adapters;
 - timeout, cancellation, token, context, cost, redaction, and response-validation budgets;
 - versioned per-model quality evaluation, policy-scoped fallback and response caching, prompt-injection resistance, source attribution, and visible uncertainty;

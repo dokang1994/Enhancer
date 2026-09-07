@@ -7193,3 +7193,26 @@ Outcome:
   manifest I/O propagation, and manifest-only/empty-queue recovery. `git diff --check`
   passed; no supported caller, worker connection, receiver, provider/network/credential
   path, schema change, or external effect was added.
+
+## 2026-09-07 - Submitted ModelWork Internal Worker Integration
+
+- Increment 3 began with a fresh Java 17 RED containing four missing-symbol errors for
+  the deliberately absent test-owned producer-to-worker composition fixture. No
+  production type or supported caller was missing or changed.
+- The first integration run passed verified completion and failed only its refusal-path
+  queue assertion: calling the queue recovery API during observation correctly
+  requeued active work. The test was corrected to read the durable queue snapshot
+  directly, preserving the active prefix without mutating it.
+- The focused rerun passed nine tests across the new integration and production
+  locality suites. The expanded RFC-0016-through-RFC-0024 and interface-boundary run
+  passed 147 of 148 tests across 23 suites, with one existing conditional skip and zero
+  failures or errors; `git diff --check` passed.
+- The real JVM success path traversed producer, manifest v3, queue v4, internal typed
+  child execution, one verified Model RunRecord v2, runtime v5 completion, and verified
+  queue disposition. The capability-mismatch path persisted the fixed
+  `deterministic-echo` WorkItem beside the unchanged mismatched profile, then produced
+  no RunRecord, evidence, Result, retry decision, or queue disposition and retained one
+  recoverable executing/active prefix.
+- This integration is test-owned only. No production caller, supported CLI or receiver,
+  legacy path, provider/network/credential boundary, schema change, or external effect
+  was added.

@@ -16,12 +16,13 @@ implement-governed-deterministic-model-work-submission
 
 ## Context
 
-RFC-0023 is internally Integrated for test-owned typed ModelWork execution. RFC-0024
-is the accepted producer contract: one complete caller profile remains untrusted data,
+RFC-0023 typed execution and the RFC-0024 producer are now internally Integrated in one
+test-owned real-filesystem/JVM path. One complete caller profile remains untrusted data,
 one closed repository-owned source independently supplies `deterministic-echo`, first
 use builds exact typed intent through the existing durable submission service, and
-replay resolves the manifest before clock or repository context. The prior delivery
-task is Completed and local/remote `main` were synchronized before the user requested
+replay resolves the manifest before clock or repository context. No production
+composition or supported ingress constructs the producer. The prior delivery task was
+Completed and local/remote `main` were synchronized before the user requested
 continuation on 2026-09-07.
 
 ## Justified By
@@ -146,7 +147,7 @@ Next Action: Commit the GREEN service increment and select Increment 3.
 
 ### Increment 3 - connect-test-owned-model-submission-to-internal-worker
 
-State: In Progress
+State: Completed
 Depends On: add-manifest-first-model-submission-service
 Scope: Connect one temporary test-owned producer/manifest/queue path to the existing
 internal model-aware worker, with no production or interface caller.
@@ -158,7 +159,7 @@ Next Action: Commit the GREEN internal integration and select Increment 4.
 
 ### Increment 4 - verify-and-close-rfc-0024-implementation
 
-State: Pending
+State: In Progress
 Depends On: connect-test-owned-model-submission-to-internal-worker
 Scope: Run the full Markdown-sensitive Java 17 regression, read results, synchronize
 capability state and canonical documents, close the task/handoff, and commit closure.
@@ -170,5 +171,4 @@ Next Action: Await separate authority for supported model-aware Scheduler compos
 
 ## Next
 
-Implement and verify Increment 3 RED-first, then continue sequentially within this
-approved RFC-0024 task.
+Run the full Increment 4 regression and synchronize the completed RFC-0024 task.

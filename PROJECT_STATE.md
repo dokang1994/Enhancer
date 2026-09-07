@@ -420,8 +420,8 @@ it does not restate which commit published which increment.
   request, independent fixed `deterministic-echo` source, and package-local manifest-
   first service. Real-filesystem tests prove exact first use, replay without repository/
   clock recapture or durable rewrite, caller/derived/fixed-capability drift refusal, and
-  recovery from manifest-only and empty-queue prefixes. It is not yet connected to the
-  internal worker and exposes no supported ingress.
+  recovery from manifest-only and empty-queue prefixes. Its downstream internal
+  integration is recorded below; it exposes no supported ingress.
 - Backoff or delayed retry, pause/resume, run-scoped or causation-graph cancellation, priority ordering, competing queue consumers, threading, journal persistence, remote IPC adapters, and any supported ModelWork submission or receive, supported Scheduler execution, gateway, or provider integration remain outside these verified contracts.
 
 ### Integrated
@@ -437,9 +437,17 @@ it does not restate which commit published which increment.
   interrupted pre-reference attempt, bounded rejected-result retry with two distinct
   AgentRun evidence/record identities, and terminal queue disposition. Complete v2
   points suppress reinvocation and outrank timeout; corrupt, cross-kind, foreign,
-  changed, symbolic, non-regular, or partial prefixes fail closed. The separate
-  RFC-0024 producer is not yet connected to this worker; no receiver, supported entry
-  point, schema change, provider, network, credential, or spend path exists.
+  changed, symbolic, non-regular, or partial prefixes fail closed. No receiver,
+  supported entry point, schema change, provider, network, credential, or spend path
+  exists.
+
+- RFC-0024 governed deterministic-fake typed submission is Integrated only at the
+  test-owned internal boundary. One real-filesystem/JVM path connects the closed request
+  and fixed capability source through manifest-first durable admission to the existing
+  RFC-0023 worker, proving verified completion. A mismatched profile remains durably
+  unchanged and is refused before the fake call with no RunRecord, evidence, Result,
+  retry decision, or queue disposition while its active prefix stays recoverable. No
+  production composition or supported ingress constructs this producer.
 
 - Delivery Gate 8 Result-side Scheduler runtime-event publication: the optional
   recorder already shared by `scheduler-cycle`, `scheduler-drain`, and

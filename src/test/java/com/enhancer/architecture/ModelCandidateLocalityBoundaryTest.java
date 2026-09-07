@@ -277,6 +277,9 @@ class ModelCandidateLocalityBoundaryTest {
                                 content.contains(
                                         "DeterministicFakeModelSubmissionCapabilitySource"),
                                 () -> path + " must not source model submission capability yet");
+                        assertFalse(
+                                content.contains("DeterministicFakeModelSubmissionService"),
+                                () -> path + " must not call model submission yet");
                     });
         }
     }
