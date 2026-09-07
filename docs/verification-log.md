@@ -7258,3 +7258,26 @@ Outcome:
 - This increment changed documentation only. No Java/test source, actual Scheduler or
   model execution, typed submission/receive, profile input, provider/network/credential
   path, durable schema, event kind, push, merge, or other external effect was added.
+
+## 2026-09-07 - RFC-0025 Specification Closure
+
+- Increment 1 was committed locally as `74d5f4c` (`Specify supported model-aware
+  Scheduler composition`) after both focused governance runs passed all 57 tests across
+  10 suites with zero skips, failures, or errors. No push or merge occurred.
+- Fresh full verification used the README-owned
+  `powershell -ExecutionPolicy Bypass -File .\scripts\gradle.ps1 test` command with the
+  repository Java 17 toolchain and completed with `BUILD SUCCESSFUL` in 1 minute 49
+  seconds. Generated JUnit XML contained 206 suites and 1,132 tests: 1,119 passed, 13
+  existing conditional tests skipped, and zero failed or errored.
+- The full regression includes code, legacy and typed durable formats, RFC-0023/0024
+  internal integration, supported Scheduler behavior, and every Markdown-sensitive
+  architecture and governance check. `git diff --check` passed and the worktree was
+  clean before closure.
+- Both workflow increments and the parent specification task are complete. Final
+  post-closure governance, diff/commit/status inspection, the ordinary local closure
+  commit, and stable checkpoint clearing follow this entry.
+- `SESSION_HANDOFF.md` remains unchanged because its Java 17 and checkpoint invocation
+  facts are still current and no new host-only fact was introduced. No Java/test source,
+  actual execution, typed ingress, provider/network/credential boundary, schema/event
+  change, push, merge, release, deployment, permission change, destructive cleanup, or
+  other external effect was added or performed.

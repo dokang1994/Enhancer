@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-07 - Complete RFC-0025 Scheduler Composition Specification
+
+- Completed both RFC-0025 specification increments and synchronized its accepted
+  decision, architecture, state, roadmap, indexes, task, and verification record.
+- Fresh README-owned Java 17 verification passed 1,119 of 1,132 tests across 206
+  suites, with 13 existing conditional skips and zero failures or errors.
+- The specification is documentation-only. Java implementation, typed ingress,
+  provider/network/credential authority, durable schema changes, push, and merge remain
+  separately authorized.
+
 ## 2026-09-07 - Specify Supported Model-Aware Scheduler Composition
 
 - Accepted RFC-0025 for one optional all-or-none deterministic-fake execution group

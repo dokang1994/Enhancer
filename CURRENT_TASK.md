@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -153,7 +153,7 @@ Next Action: Commit the verified documentation increment and select Increment 2.
 
 ### Increment 2 - verify-and-close-supported-model-aware-scheduler-specification
 
-State: In Progress
+State: Completed
 Depends On: specify-supported-model-aware-scheduler-composition-contract
 Scope: Run the full Markdown-sensitive Java 17 regression, record fresh evidence, close
 the task/handoff, and commit the verified specification closure.
@@ -165,4 +165,4 @@ Next Action: Await separate authority to implement RFC-0025 RED-first.
 
 ## Next
 
-Run the full Increment 2 regression and close the verified RFC-0025 specification.
+Await separate authority to implement RFC-0025 RED-first.
