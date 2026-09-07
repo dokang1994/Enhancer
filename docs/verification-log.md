@@ -7236,3 +7236,25 @@ Outcome:
   ingress, production Scheduler composition, provider/network/credential boundary,
   schema change, push, merge, release, deployment, permission change, destructive
   cleanup, or other external effect was added or performed.
+
+## 2026-09-07 - Supported Model-Aware Scheduler Composition Specification
+
+- Recovery began from an empty checkpoint, a clean worktree, local `main` at
+  `9831e51`, and the completed RFC-0024 task. The user's continuation selected the
+  recorded next boundary; no remote state was read or changed.
+- RFC-0025 and its accepted decision define one optional all-or-none
+  `deterministic-fake-v2` execution group shared by the supported Scheduler cycle,
+  drain, and service commands. Every current process-configuration source is explicit,
+  while profile, target, and capability retain their separate queued/manifest authority.
+- Two bounded read-only development reviews were dispatched for CLI-composition and
+  authority-risk analysis. Neither returned a report within the bounded join period;
+  both were interrupted and no recommendation was treated as evidence. The primary
+  Agent completed and reconciled the source/document analysis directly.
+- Fresh focused Java 17 governance completed with `BUILD SUCCESSFUL` in 4 seconds. JUnit
+  XML contained 10 suites and 57 tests covering decision/document ownership, dynamic
+  workflow, approved task, justification, planner, task revision, CLI arguments, and
+  model/runtime source boundaries; all 57 passed with zero skips, failures, or errors.
+  `git diff --check` passed.
+- This increment changed documentation only. No Java/test source, actual Scheduler or
+  model execution, typed submission/receive, profile input, provider/network/credential
+  path, durable schema, event kind, push, merge, or other external effect was added.

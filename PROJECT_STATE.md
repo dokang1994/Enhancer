@@ -945,6 +945,11 @@ it does not restate which commit published which increment.
 - Project Brain will expose rebuildable Decision, Architecture, Dependency, Task, and Execution graph projections while Git and canonical documents remain authoritative.
 - Agent plugins, Skills, Tools, and workflows are distinct extension types with separate authority and provenance.
 - The Model Router target selects approved local or remote providers using capability, data classification, policy, cost, latency, context, and availability; sensitive code defaults local.
+- RFC-0025 accepts the next deterministic-fake boundary as an explicit optional
+  model-aware composition for the existing foreground Scheduler cycle, drain, and
+  service commands. It fixes every process-configuration source and preserves legacy,
+  recovery, payload-kind, runtime-event, and schema boundaries; it is not implemented,
+  Integrated, Operational, or a typed-ingress grant.
 - Self-hosting development means applying Enhancer's governed workflow to its own repository; local or hybrid model execution is a separate provider-routing capability.
 
 ## Not Yet Integrated Or Operational

@@ -937,6 +937,10 @@ Scope:
   complete profile, an independent closed repository-owned `deterministic-echo`
   capability source, manifest-first exact replay, durable admission, verified internal
   completion, and typed pre-call refusal; all supported ingress remains later work;
+- an accepted but unimplemented optional model-aware composition for the existing
+  foreground Scheduler cycle, drain, and service commands, with a closed fake selector,
+  explicit bounded process configuration, unchanged legacy/payload-kind recovery, and
+  compatible optional runtime-event publication before any supported typed ingress;
 - Model Router with deterministic fake plus explicitly selected provider adapters;
 - timeout, cancellation, token, context, cost, redaction, and response-validation budgets;
 - versioned per-model quality evaluation, policy-scoped fallback and response caching, prompt-injection resistance, source attribution, and visible uncertainty;
@@ -1249,6 +1253,7 @@ Status: Accepted
 - RFC-0022: Deterministic Fake Exact-Request Budget And Invocation Seam
 - RFC-0023: Typed ModelWork Process Execution And Model RunRecord V2 Finalization
 - RFC-0024: Governed Deterministic ModelWork Submission
+- RFC-0025: Supported Deterministic-Fake Model-Aware Scheduler Composition
 
 RFC acceptance does not imply Contract Verified, Integrated, Operational, or Released capability maturity.
 

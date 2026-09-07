@@ -1892,6 +1892,29 @@ pre-call capability refusal. Supported model-aware Scheduler composition,
 an interface-owned complete-profile format, typed submission or spool publication, and
 any manifest-authorized receiver remain separate work. No durable schema changes.
 
+RFC-0025 specifies the first supported deterministic-fake model-aware Scheduler
+composition without adding typed ingress. The existing `scheduler-cycle`,
+`scheduler-drain`, and `scheduler-service` commands retain their legacy branch and gain
+one optional all-or-none execution group: the closed `deterministic-fake-v2` selector,
+bounded gateway timeout, response-character ceiling, prompt-read ceiling, Tool timeout,
+and at most 16 unique bounded denied-Tool values. Partial, unknown, duplicate, or
+out-of-bound model input fails before queue or store access. The Tool timeout strictly
+contains the gateway timeout and the existing process timeout strictly contains the
+Tool timeout.
+
+The selected branch supplies the current package-private model process configuration
+from those explicit policy/resource values while reusing the exact project, queue,
+runtime, effect, checkpoint, evidence, RunRecord, invocation, owner, retry, lease,
+clock, and optional runtime-event sources. One filesystem RunRecord store provides the
+v1/v2 interfaces, and the same evidence root supports model-result validation. Payload
+kind continues to choose legacy RunRecord v1 or typed Model RunRecord v2; profile and
+target remain queued data, required capability remains manifest-retained authority,
+and the fake gateway/candidate/counter chain remains repository-owned. Child-local
+cancellation is explicitly absent until authenticated propagation exists. No schema,
+event kind, profile input, submission, publisher, receiver, provider, network,
+credential, spend, or background authority is added. Implementation and supported CLI
+evidence remain separately authorized work.
+
 ## Agent Orchestration Contract
 
 ### Development-Time Adaptive Subagent Delegation
@@ -2081,6 +2104,7 @@ Major design areas are tracked in `docs/rfcs/`.
 - `RFC-0022`: Deterministic Fake Exact-Request Budget And Invocation Seam
 - `RFC-0023`: Typed ModelWork Process Execution And Model RunRecord V2 Finalization
 - `RFC-0024`: Governed Deterministic ModelWork Submission
+- `RFC-0025`: Supported Deterministic-Fake Model-Aware Scheduler Composition
 
 ## First Architecture Slice
 
@@ -2385,6 +2409,7 @@ Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts bel
   RFC-0023 internally implements its deterministic-fake process/runtime integration.
   RFC-0024 now implements its governed request, fixed capability source, manifest-first
   durable submission service, and test-owned connection to the internal worker for
-  verified completion and pre-call refusal. Supported typed ingress, Scheduler
-  composition, and provider routing remain unselected.
+  verified completion and pre-call refusal. RFC-0025 specifies but does not implement
+  the supported deterministic-fake Scheduler composition. Supported typed ingress and
+  provider routing remain unselected.
 - Future LLM-backed Planner input/output schema is not selected yet.

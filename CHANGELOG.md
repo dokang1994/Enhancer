@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-09-07 - Specify Supported Model-Aware Scheduler Composition
+
+- Accepted RFC-0025 for one optional all-or-none deterministic-fake execution group
+  shared by the supported foreground Scheduler cycle, drain, and service commands.
+- Named every current model process source: explicit bounded execution limits and
+  denied Tools, fixed repository-owned fake components, queued profile and target,
+  manifest-retained capability, fresh task authority, shared v1/v2 RunRecord and
+  evidence stores, and explicit absence of child cancellation propagation.
+- Preserved the legacy branch, payload-kind dispatch, recovery, optional runtime-event
+  publication, and current durable schemas. Implementation, typed submission/receive,
+  profile input, providers, network, credentials, spend, push, and merge remain
+  separately authorized.
+
 ## 2026-09-07 - Complete Governed ModelWork Submission
 
 - Completed all four RFC-0024 implementation increments: the closed request and fixed
