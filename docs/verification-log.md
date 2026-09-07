@@ -7137,3 +7137,21 @@ Outcome:
   completed with `BUILD SUCCESSFUL` in 7 minutes 39 seconds. The generated JUnit XML
   contained 202 suites and 1,118 tests: 1,105 passed, 13 existing conditional tests
   skipped, and zero failed or errored. Capability maturity did not change.
+
+## 2026-09-04 - Accumulated Gate 9 Main Fast-Forward Delivery
+
+- The verified delivery-authority increment was committed locally as
+  `691eebb63d065e7d5c1ef7ff204c487ca5c2bb26` (`Authorize accumulated Gate 9 main
+  delivery`). A fresh `git fetch origin --prune` retained remote main at
+  `d6ca380e0234de3326cc52c4c140cbf5231cb484`.
+- `git merge-base origin/main main` returned that exact remote commit,
+  `git merge-base --is-ancestor origin/main main` exited zero, and divergence was
+  `0 18`. Explicit non-force `git push origin main:main` advanced the named branch
+  through the exact range `d6ca380..691eebb`; no temporary branch or synthetic merge
+  commit was created.
+- After a fresh fetch, local HEAD and fetched `origin/main` both resolved to
+  `691eebb63d065e7d5c1ef7ff204c487ca5c2bb26` with divergence `0 0`. `git ls-remote
+  origin refs/heads/main` advertised the same exact commit.
+- Push-triggered GitHub Actions workflow `verify` run `33860645237` for that exact
+  `headSha` reached terminal `completed` / `success`. The verified evidence closure
+  remains to be committed and delivered under the same non-force ancestry checks.

@@ -1,6 +1,6 @@
 # Changelog
 
-## 2026-09-04 - Authorize Accumulated Gate 9 Main Delivery
+## 2026-09-04 - Deliver Accumulated Gate 9 Work To Main
 
 - Accepted the user's bounded request to commit, push, and merge the seventeen verified
   commits currently ahead of tracked `origin/main`.
@@ -11,6 +11,13 @@
   README-owned Java 17 regression completed with `BUILD SUCCESSFUL` in 7 minutes 39
   seconds: 1,105 of 1,118 tests passed, 13 existing conditional tests skipped, and
   zero failed or errored.
+- Fresh fetch proved `origin/main` at `d6ca380` was the merge base and ancestor of local
+  `main`; explicit non-force `main:main` push advanced remote main through eighteen
+  linear commits to delivery-authority commit `691eebb`. This fast-forward is the
+  requested merge because the work was already directly on `main`.
+- Local HEAD, fetched tracking ref, and advertised remote main matched `691eebb` with
+  divergence `0/0`. Push-triggered GitHub Actions `verify` run `33860645237` completed
+  successfully.
 - Force push, history rewrite, synthetic merge, tag, release, deployment, branch
   deletion, permission/credential change, product implementation, schema change, and
   capability promotion remain unauthorized.
