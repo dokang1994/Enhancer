@@ -198,6 +198,38 @@ public final class ProcessIsolatedAgentRunExecution implements AgentRunExecution
                         modelConfiguration)));
     }
 
+    ProcessIsolatedAgentRunExecution(
+            Path invocationRoot,
+            Path projectRoot,
+            Path evidenceRoot,
+            Path runRecordRoot,
+            RunRecordStore runRecordStore,
+            ModelRunRecordStore modelRunRecordStore,
+            EvidenceStore evidenceStore,
+            ModelProcessExecutionConfiguration modelConfiguration,
+            WorkerProcessLauncher launcher,
+            Duration timeout,
+            ProcessTimeoutFactStore timeoutStore,
+            Clock clock,
+            RuntimeEventRecorder eventRecorder) {
+        this(
+                invocationRoot,
+                projectRoot,
+                evidenceRoot,
+                runRecordRoot,
+                runRecordStore,
+                launcher,
+                timeout,
+                timeoutStore,
+                clock,
+                Optional.of(Objects.requireNonNull(
+                        eventRecorder, "eventRecorder must not be null")),
+                Optional.of(new ModelValidationContext(
+                        modelRunRecordStore,
+                        new ModelRunRecordBindingValidator(evidenceStore),
+                        modelConfiguration)));
+    }
+
     private ProcessIsolatedAgentRunExecution(
             Path invocationRoot,
             Path projectRoot,

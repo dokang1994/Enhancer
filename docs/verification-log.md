@@ -7300,3 +7300,24 @@ Outcome:
   checkpoint, evidence, RunRecord, or invocation directory is created. No worker
   selection, typed ingress, provider/network/credential authority, durable schema,
   output, or external effect changed.
+
+## 2026-09-08 - Closed Model-Aware Scheduler Worker Composition
+
+- Increment 2 began with a fresh Java 17 RED containing nine compile errors for the
+  deliberately absent public runtime configuration, deterministic-fake worker factory,
+  and combined model/event process constructor; no existing production contract failed.
+- One public record exposes only gateway timeout, maximum response characters, maximum
+  prompt-read bytes, Tool timeout, and the immutable sorted denied-Tool set. Its
+  package-private projection creates the existing process configuration, and the public
+  factory independently enforces strict outer timeout nesting before composition.
+- The factory accepts one concrete filesystem RunRecord store for both v1/v2, creates
+  evidence validation from the same root and fixed maximum policy, and passes one
+  caller-owned runtime-event recorder unchanged through dispatcher, typed process,
+  finalizer, retry, and recovery composition. Existing legacy and internal factory
+  signatures remain available.
+- Fresh focused verification passed configuration projection, model worker completion,
+  typed process-timeout event, model finalizer events, and source-locality tests with
+  zero failures or errors. Fresh expanded worker, process, finalizer, binding, typed
+  recovery, retry, event, and legacy regression passed with zero failures or errors;
+  `git diff --check` passed. No supported CLI caller, typed ingress, provider/network/
+  credential authority, durable schema, event kind, or output changed.

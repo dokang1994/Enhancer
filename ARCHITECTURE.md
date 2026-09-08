@@ -2410,6 +2410,7 @@ Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts bel
   RFC-0024 now implements its governed request, fixed capability source, manifest-first
   durable submission service, and test-owned connection to the internal worker for
   verified completion and pre-call refusal. RFC-0025's exact bounded CLI configuration
-  boundary is implemented while its worker composition and supported selection remain
-  open. Supported typed ingress and provider routing remain unselected.
+  and closed public worker-composition boundaries are implemented while supported
+  command selection remains open. Supported typed ingress and provider routing remain
+  unselected.
 - Future LLM-backed Planner input/output schema is not selected yet.

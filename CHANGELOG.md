@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-08 - Expose Closed Model-Aware Scheduler Worker Composition
+
+- Added one public bounded deterministic-fake Scheduler configuration and two explicit
+  model-aware worker factory variants for event-free and event-aware composition.
+- Reused one filesystem RunRecord store for v1/v2, fixed evidence validation to the
+  caller's existing root and maximum bound, preserved legacy factories, and retained
+  the same runtime-event recorder through typed process execution and finalization.
+
 ## 2026-09-08 - Add Model-Aware Scheduler CLI Configuration
 
 - Added the exact optional all-or-none `deterministic-fake-v2` configuration group to

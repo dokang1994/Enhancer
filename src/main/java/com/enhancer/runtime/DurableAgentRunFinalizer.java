@@ -84,6 +84,30 @@ public final class DurableAgentRunFinalizer {
                 Optional.empty());
     }
 
+    DurableAgentRunFinalizer(
+            DurableSingleWorkerSchedulerQueue queue,
+            AgentRuntimeStateStore runtimeStore,
+            RunRecordStore runRecordStore,
+            ModelRunRecordStore modelRunRecordStore,
+            EvidenceStore evidenceStore,
+            Path projectRoot,
+            ModelProcessExecutionConfiguration configuration,
+            Clock clock,
+            RuntimeEventRecorder eventRecorder) {
+        this(
+                queue,
+                runtimeStore,
+                new AgentRunRecordResolver(
+                        runRecordStore,
+                        modelRunRecordStore,
+                        evidenceStore,
+                        projectRoot,
+                        configuration),
+                clock,
+                Optional.of(Objects.requireNonNull(
+                        eventRecorder, "eventRecorder must not be null")));
+    }
+
     private DurableAgentRunFinalizer(
             DurableSingleWorkerSchedulerQueue queue,
             AgentRuntimeStateStore runtimeStore,

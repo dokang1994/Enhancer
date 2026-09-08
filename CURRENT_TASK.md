@@ -146,7 +146,7 @@ Next Action: Commit the GREEN configuration increment and select Increment 2.
 
 ### Increment 2 - expose-bounded-model-aware-worker-composition
 
-State: In Progress
+State: Completed
 Depends On: add-model-scheduler-cli-configuration
 Scope: Add the bounded public runtime configuration/factory and combined model-context/
 runtime-event worker construction without changing supported command selection.
@@ -158,7 +158,7 @@ Next Action: Commit the GREEN runtime composition increment and select Increment
 
 ### Increment 3 - connect-supported-scheduler-command-selection
 
-State: Pending
+State: In Progress
 Depends On: expose-bounded-model-aware-worker-composition
 Scope: Connect the optional configuration to the shared cycle/drain/service production
 composition while preserving legacy selection and exact output.
@@ -207,5 +207,5 @@ supported typed submission or publisher contract.
 
 ## Next
 
-Implement Increment 2 RED-first: the bounded public model-aware worker configuration
-and composition without changing supported command selection.
+Implement Increment 3 RED-first: connect the optional configuration to the shared
+cycle, drain, and service production composition without changing output.

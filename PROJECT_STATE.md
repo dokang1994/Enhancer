@@ -947,10 +947,12 @@ it does not restate which commit published which increment.
 - The Model Router target selects approved local or remote providers using capability, data classification, policy, cost, latency, context, and availability; sensitive code defaults local.
 - RFC-0025 accepts the next deterministic-fake boundary as an explicit optional
   model-aware composition for the existing foreground Scheduler cycle, drain, and
-  service commands. Its exact bounded CLI configuration layer is implemented and
-  verified while worker composition and supported selection remain unimplemented. It
-  preserves legacy, recovery, payload-kind, runtime-event, and schema boundaries and is
-  not Integrated, Operational, or a typed-ingress grant.
+  service commands. Its exact bounded CLI layer and closed public worker composition
+  are implemented and verified while supported command selection remains unimplemented.
+  The composition reuses one v1/v2 RunRecord store, creates evidence validation from
+  the existing root and fixed bound, and retains the same optional runtime-event
+  recorder. It preserves legacy, recovery, payload-kind, runtime-event, and schema
+  boundaries and is not Integrated, Operational, or a typed-ingress grant.
 - Self-hosting development means applying Enhancer's governed workflow to its own repository; local or hybrid model execution is a separate provider-routing capability.
 
 ## Not Yet Integrated Or Operational

@@ -150,6 +150,45 @@ class ModelCandidateLocalityBoundaryTest {
     }
 
     @Test
+    void publicDeterministicFakeSchedulerConfigurationRetainsNoModelAuthority()
+            throws IOException {
+        String fileName = "DeterministicFakeModelSchedulerConfiguration.java";
+        String source = read(findProductionSource(fileName));
+        for (String forbidden : List.of(
+                "ModelExecutionProfile",
+                "requiredCapability",
+                "DeterministicFakeModelCandidate",
+                "DeterministicFakeModelGateway",
+                "ModelCredentialSupplier",
+                "HttpMessageApiModelProviderAdapter",
+                "DurableSubmissionManifest",
+                "FileSpool",
+                "MessageTransport",
+                "RunRecordStore",
+                "EvidenceStore",
+                "CancellationToken",
+                "System.getenv",
+                "System.getProperty",
+                "java.net")) {
+            assertFalse(source.contains(forbidden),
+                    () -> fileName + " must not reference " + forbidden);
+        }
+    }
+
+    @Test
+    void publicDeterministicFakeWorkerFactoryHasNoSupportedCallerYet()
+            throws IOException {
+        String factory = "processIsolatedWithDeterministicFakeModel";
+        try (Stream<Path> files = Files.walk(PRODUCTION_ROOT)) {
+            files.filter(path -> path.toString().endsWith(".java"))
+                    .filter(path -> !path.getFileName().toString()
+                            .equals("DurableAgentRunWorker.java"))
+                    .forEach(path -> assertFalse(read(path).contains(factory),
+                            () -> path + " must not select the model worker yet"));
+        }
+    }
+
+    @Test
     void onlyTheChildLocalPipelineAndItsTwoConnectionPointsConsumeTheExactFakeBoundary()
             throws IOException {
         for (String fileName : INTENTIONAL_PIPELINE_FILES) {

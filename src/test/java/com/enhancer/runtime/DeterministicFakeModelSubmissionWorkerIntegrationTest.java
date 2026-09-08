@@ -10,6 +10,8 @@ import com.enhancer.kernel.VerificationStatus;
 import com.enhancer.run.ResolvedModelRunRecord;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -63,6 +65,34 @@ class DeterministicFakeModelSubmissionWorkerIntegrationTest {
                 environment.queue().completedWorkItemIds());
         assertTrue(environment.queue().failedWorkItemIds().isEmpty());
         assertTrue(environment.checkpointStore().findPending().isEmpty());
+    }
+
+    @Test
+    void publicModelAwareCompositionRetainsExistingRuntimeEvents() throws Exception {
+        SubmittedModelWorkerEnvironment environment =
+                SubmittedModelWorkerEnvironment.verified(
+                        temporaryRoot.resolve("model-with-events"));
+        environment.submit();
+        FileSystemRuntimeEventStore eventStore = new FileSystemRuntimeEventStore(
+                temporaryRoot.resolve("model-with-events/runtime-events"));
+        List<RuntimeEventPublicationReference> publications = new ArrayList<>();
+
+        Optional<WorkItemDisposition> disposition = environment.worker(
+                new RuntimeEventRecorder(eventStore, publications::add))
+                .runOneCycle(LEASE);
+
+        assertEquals(Optional.of(WorkItemDisposition.VERIFIED_COMPLETED), disposition);
+        RuntimeEventStream stream = eventStore.resolve(environment.soleGoalId());
+        assertEquals(
+                List.of(
+                        RuntimeEventKind.VERIFICATION_RECORDED,
+                        RuntimeEventKind.WORK_ITEM_TERMINATED),
+                stream.events().stream().map(RuntimeEvent::kind).toList());
+        assertEquals(
+                stream.events().stream()
+                        .map(RuntimeEventPublicationReference::from)
+                        .toList(),
+                publications);
     }
 
     @Test

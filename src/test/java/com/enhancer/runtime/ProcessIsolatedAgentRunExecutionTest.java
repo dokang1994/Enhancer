@@ -193,6 +193,29 @@ class ProcessIsolatedAgentRunExecutionTest {
     }
 
     @Test
+    void modelValidationAndRuntimeEventsCoexistOnProcessTimeout() throws Exception {
+        ModelFixture fixture = ModelFixture.create(temporaryRoot, false);
+        FileSystemRuntimeEventStore eventStore = new FileSystemRuntimeEventStore(
+                fixture.root().resolve("runtime-events"));
+        List<RuntimeEventPublicationReference> publications = new ArrayList<>();
+
+        assertThrows(IOException.class, () -> fixture.executionWithEvents(
+                timedOutLauncher(),
+                new RuntimeEventRecorder(eventStore, publications::add))
+                .execute(fixture.dispatch()));
+
+        RuntimeEvent event = eventStore.resolve(fixture.dispatch().goalId())
+                .events().get(0);
+        assertEquals(RuntimeEventKind.TIMEOUT_DETECTED, event.kind());
+        assertEquals(
+                new RuntimeEventDetail.TimeoutDetected(RuntimeTimeoutKind.PROCESS),
+                event.detail());
+        assertEquals(
+                List.of(RuntimeEventPublicationReference.from(event)),
+                publications);
+    }
+
+    @Test
     void crossKindDeterministicRecordIsNotHiddenByTimeout()
             throws Exception {
         ModelFixture fixture = ModelFixture.create(temporaryRoot, false);
@@ -840,6 +863,25 @@ class ProcessIsolatedAgentRunExecutionTest {
                     GENEROUS,
                     timeoutStore(),
                     Clock.systemUTC());
+        }
+
+        ProcessIsolatedAgentRunExecution executionWithEvents(
+                WorkerProcessLauncher launcher,
+                RuntimeEventRecorder eventRecorder) {
+            return new ProcessIsolatedAgentRunExecution(
+                    root.resolve("invocations"),
+                    projectRoot,
+                    root.resolve("evidence"),
+                    root.resolve("run-records"),
+                    recordStore,
+                    (ModelRunRecordStore) recordStore,
+                    prepared.evidenceStore(),
+                    prepared.configuration(),
+                    launcher,
+                    GENEROUS,
+                    timeoutStore(),
+                    Clock.systemUTC(),
+                    eventRecorder);
         }
 
         void spoolWork() {

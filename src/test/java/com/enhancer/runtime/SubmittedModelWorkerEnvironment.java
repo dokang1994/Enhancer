@@ -10,8 +10,6 @@ import com.enhancer.model.ModelLocalityRequirement;
 import com.enhancer.model.ModelReasoningRequirement;
 import com.enhancer.model.ModelTokenBudget;
 import com.enhancer.run.FileSystemRunRecordStore;
-import com.enhancer.tool.EvidenceStoragePolicy;
-import com.enhancer.tool.FileSystemEvidenceStore;
 import com.enhancer.workspace.RepositoryMemorySnapshotCollector;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -48,8 +46,7 @@ final class SubmittedModelWorkerEnvironment {
     private final FileSystemPendingFinalizationStore checkpointStore;
     private final FileSystemExternalEffectLedgerStore effectStore;
     private final FileSystemRunRecordStore runRecordStore;
-    private final FileSystemEvidenceStore evidenceStore;
-    private final ModelProcessExecutionConfiguration configuration;
+    private final DeterministicFakeModelSchedulerConfiguration configuration;
     private final DeterministicFakeModelSubmissionRequest request;
 
     private SubmittedModelWorkerEnvironment(
@@ -74,15 +71,12 @@ final class SubmittedModelWorkerEnvironment {
         this.effectStore = new FileSystemExternalEffectLedgerStore(
                 root.resolve("effects"));
         this.runRecordStore = new FileSystemRunRecordStore(recordRoot);
-        this.evidenceStore = new FileSystemEvidenceStore(
-                evidenceRoot,
-                new EvidenceStoragePolicy(
-                        EvidenceStoragePolicy.MAX_SUPPORTED_CONTENT_BYTES));
-        this.configuration = new ModelProcessExecutionConfiguration(
-                ModelProcessValidationTestFixture.LIMITS,
-                Set.of(),
+        this.configuration = new DeterministicFakeModelSchedulerConfiguration(
+                ModelProcessValidationTestFixture.LIMITS.gatewayTimeout(),
+                ModelProcessValidationTestFixture.LIMITS.maximumResponseCharacters(),
                 ModelProcessValidationTestFixture.MAXIMUM_READ_BYTES,
-                ModelProcessValidationTestFixture.TOOL_TIMEOUT);
+                ModelProcessValidationTestFixture.TOOL_TIMEOUT,
+                Set.of());
         this.request = new DeterministicFakeModelSubmissionRequest(
                 SUBMISSION_ID,
                 ModelAttemptTestFixture.TASK_ID,
@@ -132,7 +126,7 @@ final class SubmittedModelWorkerEnvironment {
     }
 
     DurableAgentRunWorker worker() throws IOException {
-        return DurableAgentRunWorker.processIsolated(
+        return DurableAgentRunWorker.processIsolatedWithDeterministicFakeModel(
                 queue(),
                 runtimeStore,
                 effectStore,
@@ -142,13 +136,30 @@ final class SubmittedModelWorkerEnvironment {
                 recordRoot,
                 invocationRoot,
                 runRecordStore,
-                runRecordStore,
-                evidenceStore,
                 configuration,
                 OWNER_ID,
                 WORKER_CLOCK,
                 Duration.ofSeconds(30),
                 AgentRunRetryPolicy.of(2));
+    }
+
+    DurableAgentRunWorker worker(RuntimeEventRecorder eventRecorder) throws IOException {
+        return DurableAgentRunWorker.processIsolatedWithDeterministicFakeModel(
+                queue(),
+                runtimeStore,
+                effectStore,
+                checkpointStore,
+                projectRoot,
+                evidenceRoot,
+                recordRoot,
+                invocationRoot,
+                runRecordStore,
+                configuration,
+                OWNER_ID,
+                WORKER_CLOCK,
+                Duration.ofSeconds(30),
+                AgentRunRetryPolicy.of(2),
+                eventRecorder);
     }
 
     String soleGoalId() throws IOException {
