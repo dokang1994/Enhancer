@@ -176,15 +176,18 @@ class ModelCandidateLocalityBoundaryTest {
     }
 
     @Test
-    void publicDeterministicFakeWorkerFactoryHasNoSupportedCallerYet()
+    void publicDeterministicFakeWorkerFactoryHasOnlyTheSupportedCliCaller()
             throws IOException {
         String factory = "processIsolatedWithDeterministicFakeModel";
+        assertTrue(read(findProductionSource("EnhancerCli.java")).contains(factory));
         try (Stream<Path> files = Files.walk(PRODUCTION_ROOT)) {
             files.filter(path -> path.toString().endsWith(".java"))
-                    .filter(path -> !path.getFileName().toString()
-                            .equals("DurableAgentRunWorker.java"))
+                    .filter(path -> !Set.of(
+                                    "DurableAgentRunWorker.java",
+                                    "EnhancerCli.java")
+                            .contains(path.getFileName().toString()))
                     .forEach(path -> assertFalse(read(path).contains(factory),
-                            () -> path + " must not select the model worker yet"));
+                            () -> path + " must not select the model worker"));
         }
     }
 

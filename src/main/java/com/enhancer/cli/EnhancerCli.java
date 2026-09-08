@@ -54,6 +54,7 @@ import com.enhancer.runtime.DurableSubmissionResult;
 import com.enhancer.runtime.DurableWorkSubmissionService;
 import com.enhancer.runtime.DurableWorkMessageReceiveResult;
 import com.enhancer.runtime.DurableWorkMessageReceiver;
+import com.enhancer.runtime.DeterministicFakeModelSchedulerConfiguration;
 import com.enhancer.runtime.FileSystemAgentRuntimeStateStore;
 import com.enhancer.runtime.FileSystemAuthenticatedCancellationApplication;
 import com.enhancer.runtime.FileSystemCancellationAuthorizationAuditStore;
@@ -1566,9 +1567,13 @@ public final class EnhancerCli {
             String commandName) throws IOException {
         DurableSingleWorkerSchedulerQueue queue;
         DurableAgentRunWorker worker;
-        FileSystemRunRecordStore runRecordStore =
-                new FileSystemRunRecordStore(command.runRecordRoot());
+        FileSystemRunRecordStore runRecordStore;
         try {
+            Optional<DeterministicFakeModelSchedulerConfiguration> modelConfiguration =
+                    command.modelExecution().map(
+                            SchedulerModelExecutionCliConfiguration
+                                    ::toRuntimeConfiguration);
+            runRecordStore = new FileSystemRunRecordStore(command.runRecordRoot());
             queue = DurableSingleWorkerSchedulerQueue.recover(
                     command.queueId(),
                     new FileSystemSchedulerQueueStore(command.queueRoot()));
@@ -1584,6 +1589,7 @@ public final class EnhancerCli {
                     command,
                     queue,
                     runRecordStore,
+                    modelConfiguration,
                     eventRecorder);
         } catch (MissingSchedulerQueueStateException exception) {
             throw new CliUsageException(
@@ -1601,6 +1607,7 @@ public final class EnhancerCli {
             SchedulerExecutionCliCommand command,
             DurableSingleWorkerSchedulerQueue queue,
             FileSystemRunRecordStore runRecordStore,
+            Optional<DeterministicFakeModelSchedulerConfiguration> modelConfiguration,
             Optional<RuntimeEventRecorder> eventRecorder) {
         FileSystemAgentRuntimeStateStore runtimeStore =
                 new FileSystemAgentRuntimeStateStore(command.runtimeRoot());
@@ -1611,6 +1618,45 @@ public final class EnhancerCli {
                         command.cycleCheckpointRoot());
         AgentRunRetryPolicy retryPolicy =
                 AgentRunRetryPolicy.of(command.maxAttempts());
+        Clock workerClock = Clock.systemUTC();
+        if (modelConfiguration.isPresent()) {
+            DeterministicFakeModelSchedulerConfiguration configuration =
+                    modelConfiguration.orElseThrow();
+            if (eventRecorder.isPresent()) {
+                return DurableAgentRunWorker
+                        .processIsolatedWithDeterministicFakeModel(
+                                queue,
+                                runtimeStore,
+                                effectStore,
+                                checkpoint,
+                                command.projectRoot(),
+                                command.evidenceRoot(),
+                                command.runRecordRoot(),
+                                command.invocationRoot(),
+                                runRecordStore,
+                                configuration,
+                                command.ownerId(),
+                                workerClock,
+                                command.processTimeout(),
+                                retryPolicy,
+                                eventRecorder.orElseThrow());
+            }
+            return DurableAgentRunWorker.processIsolatedWithDeterministicFakeModel(
+                    queue,
+                    runtimeStore,
+                    effectStore,
+                    checkpoint,
+                    command.projectRoot(),
+                    command.evidenceRoot(),
+                    command.runRecordRoot(),
+                    command.invocationRoot(),
+                    runRecordStore,
+                    configuration,
+                    command.ownerId(),
+                    workerClock,
+                    command.processTimeout(),
+                    retryPolicy);
+        }
         if (eventRecorder.isPresent()) {
             return DurableAgentRunWorker.processIsolated(
                     queue,
@@ -1623,7 +1669,7 @@ public final class EnhancerCli {
                     command.invocationRoot(),
                     runRecordStore,
                     command.ownerId(),
-                    Clock.systemUTC(),
+                    workerClock,
                     command.processTimeout(),
                     retryPolicy,
                     eventRecorder.orElseThrow());
@@ -1639,7 +1685,7 @@ public final class EnhancerCli {
                 command.invocationRoot(),
                 runRecordStore,
                 command.ownerId(),
-                Clock.systemUTC(),
+                workerClock,
                 command.processTimeout(),
                 retryPolicy);
     }

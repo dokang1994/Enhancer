@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.enhancer.model.ModelRequest;
+import com.enhancer.runtime.DeterministicFakeModelSchedulerConfiguration;
 import com.enhancer.tool.EvidenceStoragePolicy;
 import java.time.Duration;
 import java.util.LinkedHashSet;
@@ -76,6 +77,23 @@ class SchedulerModelExecutionCliConfigurationTest {
         assertEquals(
                 SchedulerModelExecutionCliConfiguration.MAX_DENIED_TOOL_CHARACTERS,
                 configuration.deniedTools().iterator().next().length());
+    }
+
+    @Test
+    void projectsEveryExactValueToThePublicRuntimeConfiguration() {
+        SchedulerModelExecutionCliConfiguration cli = configuration(
+                Set.of("read-file", "model-invoke"));
+
+        DeterministicFakeModelSchedulerConfiguration runtime =
+                cli.toRuntimeConfiguration();
+
+        assertEquals(cli.gatewayTimeout(), runtime.gatewayTimeout());
+        assertEquals(
+                cli.maximumResponseCharacters(),
+                runtime.maximumResponseCharacters());
+        assertEquals(cli.maximumReadBytes(), runtime.maximumReadBytes());
+        assertEquals(cli.toolTimeout(), runtime.toolTimeout());
+        assertEquals(cli.deniedTools(), runtime.deniedTools());
     }
 
     @Test

@@ -7321,3 +7321,22 @@ Outcome:
   recovery, retry, event, and legacy regression passed with zero failures or errors;
   `git diff --check` passed. No supported CLI caller, typed ingress, provider/network/
   credential authority, durable schema, event kind, or output changed.
+
+## 2026-09-08 - Supported Model-Aware Scheduler Selection
+
+- Increment 3 began with a fresh Java 17 RED containing one missing-method compile error
+  for the deliberately absent exact CLI-to-runtime configuration projection; no
+  existing production contract failed.
+- `schedulerExecution` projects and revalidates the optional public runtime value before
+  constructing the RunRecord store or recovering the queue. Its one shared worker
+  helper selects all four model/event combinations while reusing the exact command
+  roots, one v1/v2 store, one recorder, retry policy, process timeout, and one system
+  clock. Cycle, drain, and service output code is unchanged.
+- Fresh focused verification passed CLI/runtime projection, parser/pre-store behavior,
+  all three real empty-queue selection paths, exact legacy/model output equality, and
+  source-locality tests with zero failures or errors. Fresh regression across every
+  `EnhancerCliScheduler*IntegrationTest` passed with zero failures or errors, and
+  `git diff --check` passed.
+- No typed work was seeded or executed in this increment. No submission, receiver,
+  publisher, provider/network/credential authority, durable schema, runtime-event kind,
+  output field, or external effect changed.

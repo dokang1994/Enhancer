@@ -2409,8 +2409,8 @@ Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts bel
   RFC-0023 internally implements its deterministic-fake process/runtime integration.
   RFC-0024 now implements its governed request, fixed capability source, manifest-first
   durable submission service, and test-owned connection to the internal worker for
-  verified completion and pre-call refusal. RFC-0025's exact bounded CLI configuration
-  and closed public worker-composition boundaries are implemented while supported
-  command selection remains open. Supported typed ingress and provider routing remain
-  unselected.
+  verified completion and pre-call refusal. RFC-0025's exact bounded CLI configuration,
+  closed public worker composition, and shared cycle/drain/service selection are
+  implemented; supported typed completion evidence remains open. Supported typed
+  ingress and provider routing remain unselected.
 - Future LLM-backed Planner input/output schema is not selected yet.

@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-08 - Connect Supported Model-Aware Scheduler Selection
+
+- Connected the optional deterministic-fake configuration to the shared Scheduler
+  cycle, drain, and service worker composition with all model/event combinations.
+- Revalidated the public runtime value before queue recovery, reused the exact command
+  roots, store, recorder, clock, and policies, and retained byte-identical legacy idle
+  output. Typed completion proof remains the next increment.
+
 ## 2026-09-08 - Expose Closed Model-Aware Scheduler Worker Composition
 
 - Added one public bounded deterministic-fake Scheduler configuration and two explicit

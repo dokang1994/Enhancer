@@ -1,6 +1,7 @@
 package com.enhancer.cli;
 
 import com.enhancer.model.ModelRequest;
+import com.enhancer.runtime.DeterministicFakeModelSchedulerConfiguration;
 import com.enhancer.tool.EvidenceStoragePolicy;
 import java.time.Duration;
 import java.util.Collections;
@@ -60,5 +61,14 @@ record SchedulerModelExecutionCliConfiguration(
             canonicalDeniedTools.add(deniedTool);
         }
         deniedTools = Collections.unmodifiableSet(canonicalDeniedTools);
+    }
+
+    DeterministicFakeModelSchedulerConfiguration toRuntimeConfiguration() {
+        return new DeterministicFakeModelSchedulerConfiguration(
+                gatewayTimeout,
+                maximumResponseCharacters,
+                maximumReadBytes,
+                toolTimeout,
+                deniedTools);
     }
 }

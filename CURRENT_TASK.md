@@ -158,7 +158,7 @@ Next Action: Commit the GREEN runtime composition increment and select Increment
 
 ### Increment 3 - connect-supported-scheduler-command-selection
 
-State: In Progress
+State: Completed
 Depends On: expose-bounded-model-aware-worker-composition
 Scope: Connect the optional configuration to the shared cycle/drain/service production
 composition while preserving legacy selection and exact output.
@@ -170,7 +170,7 @@ Next Action: Commit the GREEN supported selection increment and select Increment
 
 ### Increment 4 - prove-supported-typed-completion
 
-State: Pending
+State: In Progress
 Depends On: connect-supported-scheduler-command-selection
 Scope: Add test-owned RFC-0024 durable intent and invoke the real supported cycle,
 drain, and service CLI paths through typed verified completion.
@@ -207,5 +207,5 @@ supported typed submission or publisher contract.
 
 ## Next
 
-Implement Increment 3 RED-first: connect the optional configuration to the shared
-cycle, drain, and service production composition without changing output.
+Implement Increment 4 RED-first: prove typed verified completion through each real
+supported Scheduler command from test-seeded RFC-0024 durable intent.
