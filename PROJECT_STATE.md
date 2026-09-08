@@ -951,9 +951,11 @@ it does not restate which commit published which increment.
   are implemented and verified, and all three commands now select the shared model/event
   branch when explicitly configured. The composition reuses one v1/v2 RunRecord store,
   creates evidence validation from the existing root and fixed bound, retains the same
-  optional runtime-event recorder, and preserves exact legacy idle output. Supported
-  typed completion is not yet verified, so the capability is not Integrated,
-  Operational, or a typed-ingress grant.
+  optional runtime-event recorder, and preserves exact legacy idle output. Real
+  filesystem/JVM evidence now proves test-seeded typed verified completion through each
+  supported command with one Model RunRecord v2 and no output disclosure. Supported
+  refusal, recovery, and event hardening remain open, so the capability is not yet
+  Integrated or Operational and grants no typed ingress.
 - Self-hosting development means applying Enhancer's governed workflow to its own repository; local or hybrid model execution is a separate provider-routing capability.
 
 ## Not Yet Integrated Or Operational

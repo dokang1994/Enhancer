@@ -7340,3 +7340,22 @@ Outcome:
 - No typed work was seeded or executed in this increment. No submission, receiver,
   publisher, provider/network/credential authority, durable schema, runtime-event kind,
   output field, or external effect changed.
+
+## 2026-09-08 - Supported Typed Scheduler Completion
+
+- Increment 4 began with a fresh Java 17 RED containing one missing-method compile error
+  for the deliberately absent test-owned supported CLI argument fixture; no production
+  type or existing contract failed.
+- The fixture reuses the package-local RFC-0024 manifest-first producer to seed exact
+  durable intent, then invokes the public `EnhancerCli` cycle, drain, and service paths
+  with the accepted model group. No production submission, publisher, receiver, or
+  typed-ingress path was added.
+- Fresh real-filesystem/JVM verification passed all three commands. Each produced one
+  verified Model RunRecord v2, one completed AgentRun, terminal completed queue
+  disposition, an empty checkpoint, and no failed item. Drain and service performed
+  their required idle continuation without a second model execution.
+- Exact supported output retained its existing status/count fields and disclosed no
+  selector, `model-invoke`, prompt, or profile content. Fresh expanded submission,
+  process, binding, model-record-store, cycle/drain/service, and source-locality
+  regression passed with zero failures or errors; `git diff --check` passed. No
+  provider/network/credential authority, durable schema, or runtime-event kind changed.

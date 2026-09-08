@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-08 - Prove Supported Typed Scheduler Completion
+
+- Added test-owned RFC-0024 durable intent coverage through the real supported Scheduler
+  cycle, drain, and service commands.
+- Proved one verified Model RunRecord v2, completed runtime and queue disposition, no
+  duplicate execution across drain/service idle completion, and no selector, Tool,
+  prompt, or profile disclosure in command output.
+
 ## 2026-09-08 - Connect Supported Model-Aware Scheduler Selection
 
 - Connected the optional deterministic-fake configuration to the shared Scheduler

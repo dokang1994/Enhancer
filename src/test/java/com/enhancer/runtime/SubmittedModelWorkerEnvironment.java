@@ -19,6 +19,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -40,6 +41,9 @@ final class SubmittedModelWorkerEnvironment {
     private final Path recordRoot;
     private final Path invocationRoot;
     private final Path runtimeRoot;
+    private final Path queueRoot;
+    private final Path checkpointRoot;
+    private final Path effectRoot;
     private final FileSystemSubmissionManifestStore manifestStore;
     private final FileSystemSchedulerQueueStore queueStore;
     private final FileSystemAgentRuntimeStateStore runtimeStore;
@@ -57,6 +61,9 @@ final class SubmittedModelWorkerEnvironment {
         this.recordRoot = root.resolve("records");
         this.invocationRoot = root.resolve("invocations");
         this.runtimeRoot = root.resolve("runtime");
+        this.queueRoot = root.resolve("queue");
+        this.checkpointRoot = root.resolve("checkpoint");
+        this.effectRoot = root.resolve("effects");
         writeGovernedProject();
         Path promptPath = projectRoot.resolve(ModelAttemptTestFixture.TARGET_PATH);
         Files.createDirectories(promptPath.getParent());
@@ -64,12 +71,12 @@ final class SubmittedModelWorkerEnvironment {
 
         this.manifestStore = new FileSystemSubmissionManifestStore(
                 root.resolve("submissions"));
-        this.queueStore = new FileSystemSchedulerQueueStore(root.resolve("queue"));
+        this.queueStore = new FileSystemSchedulerQueueStore(queueRoot);
         this.runtimeStore = new FileSystemAgentRuntimeStateStore(runtimeRoot);
         this.checkpointStore = new FileSystemPendingFinalizationStore(
-                root.resolve("checkpoint"));
+                checkpointRoot);
         this.effectStore = new FileSystemExternalEffectLedgerStore(
-                root.resolve("effects"));
+                effectRoot);
         this.runRecordStore = new FileSystemRunRecordStore(recordRoot);
         this.configuration = new DeterministicFakeModelSchedulerConfiguration(
                 ModelProcessValidationTestFixture.LIMITS.gatewayTimeout(),
@@ -160,6 +167,44 @@ final class SubmittedModelWorkerEnvironment {
                 Duration.ofSeconds(30),
                 AgentRunRetryPolicy.of(2),
                 eventRecorder);
+    }
+
+    String[] schedulerArguments(String command) {
+        List<String> arguments = new ArrayList<>(List.of(
+                command,
+                "--project-root", projectRoot.toString(),
+                "--queue-root", queueRoot.toString(),
+                "--queue-id", GeneratedSubmissionIdentities
+                        .derive(SUBMISSION_ID).queueId(),
+                "--runtime-root", runtimeRoot.toString(),
+                "--external-effect-root", effectRoot.toString(),
+                "--cycle-checkpoint-root", checkpointRoot.toString(),
+                "--evidence-root", evidenceRoot.toString(),
+                "--run-record-root", recordRoot.toString(),
+                "--invocation-root", invocationRoot.toString(),
+                "--owner-id", OWNER_ID,
+                "--max-attempts", "2",
+                "--lease-millis", "300000",
+                "--process-timeout-millis", "30000"));
+        if (command.equals("scheduler-drain")) {
+            arguments.addAll(List.of("--max-cycles", "8"));
+        } else if (command.equals("scheduler-service")) {
+            arguments.addAll(List.of(
+                    "--max-cycles", "8",
+                    "--max-consecutive-idle-cycles", "1",
+                    "--idle-wait-millis", "1"));
+        }
+        arguments.addAll(List.of(
+                "--model-execution", "deterministic-fake-v2",
+                "--model-gateway-timeout-millis", Long.toString(
+                        configuration.gatewayTimeout().toMillis()),
+                "--model-maximum-response-characters", Integer.toString(
+                        configuration.maximumResponseCharacters()),
+                "--model-maximum-read-bytes", Long.toString(
+                        configuration.maximumReadBytes()),
+                "--model-tool-timeout-millis", Long.toString(
+                        configuration.toolTimeout().toMillis())));
+        return arguments.toArray(String[]::new);
     }
 
     String soleGoalId() throws IOException {
