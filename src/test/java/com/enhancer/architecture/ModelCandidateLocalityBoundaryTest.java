@@ -36,6 +36,8 @@ class ModelCandidateLocalityBoundaryTest {
     private static final Set<String> INTENTIONAL_CONNECTION_FILES = Set.of(
             "IsolatedWorkerMain.java",
             "IsolatedWorkMessageHandler.java");
+    private static final Set<String> INTENTIONAL_IDENTITY_FILES = Set.of(
+            "SchedulerModelExecutionCliConfiguration.java");
 
     @Test
     void candidateBoundaryHasNoIoExecutionOrGenericGatewayDependencies() throws IOException {
@@ -96,8 +98,12 @@ class ModelCandidateLocalityBoundaryTest {
                                 () -> path + " must not call or persist suitability yet");
                         assertFalse(source.contains("DeterministicFakeTokenCounter"),
                                 () -> path + " must not count fake tokens yet");
-                        assertFalse(source.contains("deterministic-fake-v2"),
-                                () -> path + " must not consume the candidate identity yet");
+                        if (!INTENTIONAL_IDENTITY_FILES.contains(
+                                path.getFileName().toString())) {
+                            assertFalse(source.contains("deterministic-fake-v2"),
+                                    () -> path
+                                            + " must not consume the candidate identity yet");
+                        }
                         assertFalse(source.contains("deterministic-unicode-scalar-v1"),
                                 () -> path + " must not consume token semantics yet");
                         assertFalse(source.contains("DeterministicFakeExactRequestPreparation"),
@@ -114,6 +120,32 @@ class ModelCandidateLocalityBoundaryTest {
                                         "DeterministicFakeExactRequestInvocationRejectionReason"),
                                 () -> path + " must not consume invocation reasons yet");
                     });
+        }
+    }
+
+    @Test
+    void schedulerCliIdentityValueRetainsOnlyBoundedScalarAndSetAuthority()
+            throws IOException {
+        String source = read(findProductionSource(
+                "SchedulerModelExecutionCliConfiguration.java"));
+        assertTrue(source.contains("deterministic-fake-v2"));
+        for (String forbidden : List.of(
+                "DeterministicFakeModelCandidate",
+                "ModelExecutionProfile",
+                "requiredCapability",
+                "ModelProcessExecutionConfiguration",
+                "ModelGateway",
+                "ModelCredentialSupplier",
+                "HttpMessageApiModelProviderAdapter",
+                "FileSpool",
+                "MessageTransport",
+                "RunRecordStore",
+                "EvidenceStore",
+                "System.getenv",
+                "System.getProperty",
+                "java.net")) {
+            assertFalse(source.contains(forbidden),
+                    () -> "Scheduler CLI model value must not reference " + forbidden);
         }
     }
 

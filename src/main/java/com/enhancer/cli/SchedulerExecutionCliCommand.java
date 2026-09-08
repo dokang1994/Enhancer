@@ -33,4 +33,6 @@ interface SchedulerExecutionCliCommand extends CliCommand {
     Duration processTimeout();
 
     Optional<RuntimeEventPublicationCliConfiguration> runtimeEventPublication();
+
+    Optional<SchedulerModelExecutionCliConfiguration> modelExecution();
 }

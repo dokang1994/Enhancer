@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-09-08 - Add Model-Aware Scheduler CLI Configuration
+
+- Added the exact optional all-or-none `deterministic-fake-v2` configuration group to
+  Scheduler cycle, drain, and service parsing without connecting a model-aware worker.
+- Bounded gateway, response, read, Tool-timeout, and denied-Tool inputs; preserved
+  legacy omission and runtime-event compatibility; and proved invalid input fails
+  before store access.
+
+## 2026-09-08 - Begin RFC-0025 Scheduler Composition Implementation
+
+- Accepted the six-increment RED-first implementation task for the bounded
+  deterministic-fake model-aware Scheduler configuration, worker composition,
+  supported cycle/drain/service selection, CLI integration, and recovery/event
+  hardening.
+- Typed ingress, profile input, providers, network, credentials, schema/event changes,
+  background execution, push, and merge remain excluded.
+
 ## 2026-09-07 - Complete RFC-0025 Scheduler Composition Specification
 
 - Completed both RFC-0025 specification increments and synchronized its accepted

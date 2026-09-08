@@ -3,6 +3,7 @@ package com.enhancer.cli;
 import com.enhancer.runtime.AgentRunLease;
 import com.enhancer.bus.BackpressurePolicy;
 import com.enhancer.bus.ControlSignal;
+import com.enhancer.model.ModelRequest;
 import com.enhancer.runtime.AgentRunRetryPolicy;
 import com.enhancer.runtime.IsolatedWorkerLauncher;
 import com.enhancer.runtime.FileSystemRuntimeEventPublisher;
@@ -10,12 +11,14 @@ import com.enhancer.runtime.SchedulerPriority;
 import com.enhancer.runtime.SchedulerServicePolicy;
 import com.enhancer.runtime.SingleWorkerSchedulerQueue;
 import com.enhancer.session.DevelopmentSessionCheckpointState;
+import com.enhancer.tool.EvidenceStoragePolicy;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -154,6 +157,23 @@ final class CliArguments {
             "runtime-event-root",
             "runtime-event-publication-root",
             "max-pending-runtime-event-publications");
+    private static final Set<String> SCHEDULER_WORKER_OPTIONAL_SINGLE_OPTIONS = Set.of(
+            "runtime-event-root",
+            "runtime-event-publication-root",
+            "max-pending-runtime-event-publications",
+            "model-execution",
+            "model-gateway-timeout-millis",
+            "model-maximum-response-characters",
+            "model-maximum-read-bytes",
+            "model-tool-timeout-millis");
+    private static final Set<String> SCHEDULER_MODEL_EXECUTION_SINGLE_OPTIONS = Set.of(
+            "model-execution",
+            "model-gateway-timeout-millis",
+            "model-maximum-response-characters",
+            "model-maximum-read-bytes",
+            "model-tool-timeout-millis");
+    private static final Set<String> SCHEDULER_WORKER_REPEATABLE_OPTIONS =
+            Set.of("model-denied-tool");
     private static final Set<String> SCHEDULER_RECEIVE_WORK_OPTIONS = Set.of(
             "transport-spool-root",
             "message-file",
@@ -320,20 +340,23 @@ final class CliArguments {
             case "scheduler-migrate-durable-closure" ->
                     parseSchedulerMigrateDurableClosure(arguments);
             case "scheduler-cycle" -> parseSchedulerCycle(
-                    parseOptions(
+                    parseRepeatableOptions(
                             arguments,
                             SCHEDULER_CYCLE_OPTIONS,
-                            SCHEDULER_EXECUTION_OPTIONAL_OPTIONS));
+                            SCHEDULER_WORKER_OPTIONAL_SINGLE_OPTIONS,
+                            SCHEDULER_WORKER_REPEATABLE_OPTIONS));
             case "scheduler-drain" -> parseSchedulerDrain(
-                    parseOptions(
+                    parseRepeatableOptions(
                             arguments,
                             SCHEDULER_DRAIN_OPTIONS,
-                            SCHEDULER_EXECUTION_OPTIONAL_OPTIONS));
+                            SCHEDULER_WORKER_OPTIONAL_SINGLE_OPTIONS,
+                            SCHEDULER_WORKER_REPEATABLE_OPTIONS));
             case "scheduler-service" -> parseSchedulerService(
-                    parseOptions(
+                    parseRepeatableOptions(
                             arguments,
                             SCHEDULER_SERVICE_OPTIONS,
-                            SCHEDULER_EXECUTION_OPTIONAL_OPTIONS));
+                            SCHEDULER_WORKER_OPTIONAL_SINGLE_OPTIONS,
+                            SCHEDULER_WORKER_REPEATABLE_OPTIONS));
             case "scheduler-receive-work" -> parseSchedulerReceiveWork(
                     parseOptions(
                             arguments,
@@ -644,7 +667,8 @@ final class CliArguments {
     }
 
     private static SchedulerCycleCliCommand parseSchedulerCycle(
-            Map<String, String> options) {
+            RepeatableOptions parsedOptions) {
+        Map<String, String> options = parsedOptions.single();
         long maxAttempts = positiveLong(options.get("max-attempts"), "max-attempts");
         if (maxAttempts > AgentRunRetryPolicy.MAX_ATTEMPTS) {
             throw new CliUsageException(
@@ -679,14 +703,15 @@ final class CliArguments {
                 (int) maxAttempts,
                 leaseDuration,
                 processTimeout,
-                optionalRuntimeEventPublication(options));
+                optionalRuntimeEventPublication(options),
+                optionalModelExecution(parsedOptions, processTimeout));
     }
 
     private static SchedulerDrainCliCommand parseSchedulerDrain(
-            Map<String, String> options) {
+            RepeatableOptions options) {
         SchedulerCycleCliCommand cycle = parseSchedulerCycle(options);
         long maxCycles = positiveLong(
-                options.get("max-cycles"), "max-cycles");
+                options.single().get("max-cycles"), "max-cycles");
         if (maxCycles > SingleWorkerSchedulerQueue.MAX_WORK_ITEMS) {
             throw new CliUsageException(
                     "max-cycles must not exceed "
@@ -707,19 +732,20 @@ final class CliArguments {
                 cycle.leaseDuration(),
                 cycle.processTimeout(),
                 cycle.runtimeEventPublication(),
+                cycle.modelExecution(),
                 (int) maxCycles);
     }
 
     private static SchedulerServiceCliCommand parseSchedulerService(
-            Map<String, String> options) {
+            RepeatableOptions options) {
         SchedulerCycleCliCommand cycle = parseSchedulerCycle(options);
         long maxCycles = boundedSchedulerServiceValue(
-                options.get("max-cycles"), "max-cycles");
+                options.single().get("max-cycles"), "max-cycles");
         long maxConsecutiveIdleCycles = boundedSchedulerServiceValue(
-                options.get("max-consecutive-idle-cycles"),
+                options.single().get("max-consecutive-idle-cycles"),
                 "max-consecutive-idle-cycles");
         long idleWaitMillis = positiveLong(
-                options.get("idle-wait-millis"), "idle-wait-millis");
+                options.single().get("idle-wait-millis"), "idle-wait-millis");
         if (idleWaitMillis > SchedulerServicePolicy.MAX_IDLE_WAIT.toMillis()) {
             throw new CliUsageException(
                     "idle-wait-millis must not exceed "
@@ -744,6 +770,7 @@ final class CliArguments {
                 cycle.leaseDuration(),
                 cycle.processTimeout(),
                 cycle.runtimeEventPublication(),
+                cycle.modelExecution(),
                 policy);
     }
 
@@ -796,6 +823,91 @@ final class CliArguments {
         return supplied == 0
                 ? Optional.empty()
                 : Optional.of(runtimeEventPublication(options));
+    }
+
+    private static Optional<SchedulerModelExecutionCliConfiguration>
+            optionalModelExecution(
+                    RepeatableOptions options,
+                    Duration processTimeout) {
+        Map<String, String> singles = options.single();
+        List<String> deniedTools = options.repeated()
+                .getOrDefault("model-denied-tool", List.of());
+        long supplied = SCHEDULER_MODEL_EXECUTION_SINGLE_OPTIONS.stream()
+                .filter(singles::containsKey)
+                .count();
+        if (supplied == 0 && deniedTools.isEmpty()) {
+            return Optional.empty();
+        }
+        if (supplied != SCHEDULER_MODEL_EXECUTION_SINGLE_OPTIONS.size()) {
+            throw new CliUsageException(
+                    "model execution options must be supplied together");
+        }
+        if (!SchedulerModelExecutionCliConfiguration.EXECUTION.equals(
+                singles.get("model-execution"))) {
+            throw new CliUsageException(
+                    "model-execution must be "
+                            + SchedulerModelExecutionCliConfiguration.EXECUTION);
+        }
+        Duration gatewayTimeout = boundedDuration(
+                singles.get("model-gateway-timeout-millis"),
+                "model-gateway-timeout-millis",
+                ModelRequest.MAX_TIMEOUT);
+        long maximumResponseCharacters = positiveLong(
+                singles.get("model-maximum-response-characters"),
+                "model-maximum-response-characters");
+        if (maximumResponseCharacters > ModelRequest.MAX_RESPONSE_LENGTH) {
+            throw new CliUsageException(
+                    "model-maximum-response-characters must not exceed "
+                            + ModelRequest.MAX_RESPONSE_LENGTH);
+        }
+        long maximumReadBytes = positiveLong(
+                singles.get("model-maximum-read-bytes"),
+                "model-maximum-read-bytes");
+        if (maximumReadBytes > EvidenceStoragePolicy.MAX_SUPPORTED_CONTENT_BYTES) {
+            throw new CliUsageException(
+                    "model-maximum-read-bytes must not exceed "
+                            + EvidenceStoragePolicy.MAX_SUPPORTED_CONTENT_BYTES);
+        }
+        Duration toolTimeout = Duration.ofMillis(positiveLong(
+                singles.get("model-tool-timeout-millis"),
+                "model-tool-timeout-millis"));
+        if (toolTimeout.compareTo(processTimeout) >= 0) {
+            throw new CliUsageException(
+                    "model-tool-timeout-millis must be less than process-timeout-millis");
+        }
+        if (deniedTools.size()
+                > SchedulerModelExecutionCliConfiguration.MAX_DENIED_TOOLS) {
+            throw new CliUsageException(
+                    "model-denied-tool count must not exceed "
+                            + SchedulerModelExecutionCliConfiguration.MAX_DENIED_TOOLS);
+        }
+        Set<String> uniqueDeniedTools = new LinkedHashSet<>();
+        for (String deniedTool : deniedTools) {
+            if (deniedTool.length()
+                    > SchedulerModelExecutionCliConfiguration.MAX_DENIED_TOOL_CHARACTERS) {
+                throw new CliUsageException(
+                        "model-denied-tool must not exceed "
+                                + SchedulerModelExecutionCliConfiguration
+                                        .MAX_DENIED_TOOL_CHARACTERS
+                                + " characters");
+            }
+            if (!uniqueDeniedTools.add(deniedTool)) {
+                throw new CliUsageException(
+                        "duplicate option value: --model-denied-tool");
+            }
+        }
+        try {
+            return Optional.of(new SchedulerModelExecutionCliConfiguration(
+                    gatewayTimeout,
+                    Math.toIntExact(maximumResponseCharacters),
+                    maximumReadBytes,
+                    toolTimeout,
+                    uniqueDeniedTools));
+        } catch (IllegalArgumentException exception) {
+            throw new CliUsageException(
+                    "invalid model execution configuration: " + exception.getMessage(),
+                    exception);
+        }
     }
 
     private static RuntimeEventPublicationCliConfiguration runtimeEventPublication(
@@ -1001,6 +1113,18 @@ final class CliArguments {
             String[] arguments,
             Set<String> requiredSingles,
             Set<String> repeatable) {
+        return parseRepeatableOptions(
+                arguments,
+                requiredSingles,
+                Set.of(),
+                repeatable);
+    }
+
+    private static RepeatableOptions parseRepeatableOptions(
+            String[] arguments,
+            Set<String> requiredSingles,
+            Set<String> optionalSingles,
+            Set<String> repeatable) {
         if ((arguments.length - 1) % 2 != 0) {
             throw new CliUsageException("every option requires exactly one value");
         }
@@ -1013,7 +1137,7 @@ final class CliArguments {
             }
             String name = token.substring(2);
             String value = nonBlank(arguments[index + 1], name);
-            if (requiredSingles.contains(name)) {
+            if (requiredSingles.contains(name) || optionalSingles.contains(name)) {
                 if (singles.putIfAbsent(name, value) != null) {
                     throw new CliUsageException("duplicate option: --" + name);
                 }

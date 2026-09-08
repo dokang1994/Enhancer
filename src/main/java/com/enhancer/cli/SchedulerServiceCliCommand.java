@@ -20,5 +20,6 @@ record SchedulerServiceCliCommand(
         Duration leaseDuration,
         Duration processTimeout,
         Optional<RuntimeEventPublicationCliConfiguration> runtimeEventPublication,
+        Optional<SchedulerModelExecutionCliConfiguration> modelExecution,
         SchedulerServicePolicy policy) implements SchedulerExecutionCliCommand {
 }

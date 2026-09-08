@@ -2,71 +2,64 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Specify RFC-0025: the smallest supported deterministic-fake model-aware Scheduler
-composition that supplies every existing process-execution configuration source without
-yet exposing typed ModelWork submission, publication, or receive.
+Implement RFC-0025 RED-first as the smallest supported deterministic-fake model-aware
+Scheduler composition while preserving legacy execution and the absence of supported
+typed ModelWork ingress.
 
 ## Task ID
 
-specify-supported-model-aware-scheduler-composition
+implement-supported-model-aware-scheduler-composition
 
 ## Context
 
-RFC-0023 is internally Integrated for typed deterministic-fake process execution and
-RFC-0024 is internally Integrated for governed manifest-first typed submission, with
-their only connection owned by tests. The supported `scheduler-cycle`,
-`scheduler-drain`, and `scheduler-service` commands still construct only the legacy
-process worker and do not supply `ModelProcessExecutionConfiguration`. RFC-0024 orders
-an explicit supported model-aware Scheduler composition before any interface-owned
-complete-profile format or supported typed submission/transport ingress. The completed
-RFC-0024 task named this separately authorized boundary, and the user requested
-continuation on 2026-09-07.
+RFC-0025 is accepted and specifies an optional all-or-none deterministic-fake execution
+group shared by `scheduler-cycle`, `scheduler-drain`, and `scheduler-service`. The
+existing RFC-0023 typed worker and RFC-0024 producer are Integrated only through a
+test-owned path; supported Scheduler commands still construct the legacy-only worker.
+The completed specification task names RED-first implementation as the next separately
+authorized work, and the user requested continuation on 2026-09-08.
 
 ## Justified By
 
+- User continuation request on 2026-09-08 into RFC-0025 supported model-aware Scheduler composition implementation
 - User continuation request on 2026-09-07 into supported model-aware Scheduler composition specification
 - User continuation request on 2026-09-07 into RFC-0024 governed deterministic ModelWork submission implementation
-- User continuation request on 2026-09-04 into governed deterministic ModelWork submission specification
 
 ## Approval
 
-The user's 2026-09-07 continuation authorizes a documentation-only RFC and accepted
-decision defining one supported deterministic-fake model-aware composition for the
-existing foreground Scheduler execution commands. The contract may define the exact
-command-selection signal, complete all-or-none process-configuration inputs, fixed
-repository-owned fake implementation sources, existing filesystem store sources,
-payload-kind dispatch, legacy compatibility, runtime-event compatibility, recovery and
-refusal behavior, output disclosure, and a bounded RED-first implementation sequence.
-It authorizes the minimal Architecture, compact mirror, Project State, Roadmap, RFC
-index, task, decision/index, verification, handoff, and Changelog synchronization and
-ordinary local GREEN commits.
+The user's 2026-09-08 continuation authorizes the minimum RED-first Java/test
+implementation of RFC-0025: the exact optional CLI group, one bounded public
+deterministic-fake Scheduler configuration value, the combined model-context/runtime-
+event worker composition, shared cycle/drain/service selection, and real supported CLI
+integration from test-seeded RFC-0024 durable intent. It authorizes architecture,
+compact mirror, Project State, Roadmap, task, decision/index, verification, handoff, and
+Changelog synchronization and ordinary local GREEN commits.
 
-It authorizes no Java or test-source change, actual Scheduler/model execution now,
-typed submission or spool publication/receive, complete-profile interface format,
-legacy submission/receiver widening, provider/router/registry, endpoint, remote model
-transmission, network, credentials, pricing or spend, MCP, durable schema version or
-migration, new runtime-event kind, push, merge, release, deployment, permission change,
-destructive cleanup, or external effect.
+It authorizes no typed submission or spool publication/receive, complete-profile
+interface format, legacy submission/receiver widening, provider/router/registry,
+endpoint, remote model transmission, network, credentials, pricing or spend, MCP,
+durable schema version or migration, new runtime-event kind, cancellation propagation,
+background service, push, merge, release, deployment, permission change, destructive
+cleanup, or external effect.
 
 ## Acceptance Criteria
 
-- RFC-0025 selects one explicit optional all-or-none deterministic-fake model execution
-  group shared by `scheduler-cycle`, `scheduler-drain`, and `scheduler-service`; omission
-  preserves the exact current legacy-only composition and partial or unknown model
-  configuration fails during CLI validation before queue/store access.
+- `scheduler-cycle`, `scheduler-drain`, and `scheduler-service` accept the exact
+  RFC-0025 optional all-or-none deterministic-fake model execution group; omission
+  preserves the current legacy-only composition, while partial, unknown, duplicate, or
+  invalid input fails during CLI validation before queue/store access.
 - The group names exactly one closed execution selector plus bounded gateway timeout,
   maximum response characters, maximum prompt-read bytes, Tool timeout, and a bounded
   repeatable denied-Tool set. It accepts no capability, profile, task, target, digest,
   candidate, endpoint, provider, credential, price, or network value.
-- The contract names every `ModelProcessExecutionConfiguration` source and keeps them
-  distinct: caller-supplied Scheduler resource/policy limits, repository-owned fixed
-  deterministic gateway/candidate/token semantics, exact queued ModelWork profile,
-  manifest-retained required capability, current task authority, and no-cancellation
-  execution token until separately authenticated propagation exists.
+- One bounded public deterministic-fake Scheduler configuration value exposes only the
+  accepted scalar/set inputs and converts internally to the package-private process
+  configuration without exposing candidate, gateway, policy, cancellation, or store
+  authority.
 - The model-aware composition reuses the command's exact project, queue, runtime,
   external-effect, cycle-checkpoint, evidence, RunRecord, invocation, owner, retry,
   lease, process-timeout, clock, and optional runtime-event sources. The same
@@ -84,14 +77,15 @@ destructive cleanup, or external effect.
 - The existing optional runtime-event publication group remains composable with the
   model-aware worker and retains its exact event authority. RFC-0025 adds no model event
   kind and does not silently disable an already selected recorder.
-- Supported command output adds at most a bounded non-secret execution-mode fact;
-  prompt, response, profile, denied-Tool content, evidence content, and credentials are
-  never printed.
+- Supported command output remains unchanged for both modes; prompt, response, profile,
+  denied-Tool content, evidence content, and credentials are never printed.
 - Existing message/spool v2, manifest v3, queue v4, runtime v5, pending-finalization v2,
   RunRecord v1/Model RunRecord v2, runtime-event, and legacy command bytes remain
   sufficient and unchanged.
-- The RFC explicitly leaves the interface-owned complete-profile format and supported
-  typed submission/publisher/receiver to later separately authorized work.
+- Real filesystem/JVM CLI integration proves verified typed completion through cycle,
+  drain, and service, a denied-`model-invoke` pre-call refusal, model-plus-runtime-event
+  compatibility, legacy behavior, exact recovery, and source locality from test-seeded
+  intent only.
 - RFC/decision indexes, Architecture and compact mirror, Project State, Roadmap, task
   cursor, Changelog, and append-only verification evidence are synchronized according
   to document ownership. Focused Markdown-sensitive governance, `git diff --check`, and
@@ -99,8 +93,7 @@ destructive cleanup, or external effect.
 
 ## Out Of Scope
 
-Java or test-source implementation; actual model invocation or Scheduler mutation;
-typed ModelWork submission, publisher, receiver, Message Bus or runtime-event ingress;
+Typed ModelWork submission, publisher, receiver, Message Bus or runtime-event ingress;
 interface-owned profile file/schema/parser or profile CLI fields; legacy submission or
 receiver widening; provider selection, router, registry, endpoint, remote transmission,
 network, credentials, pricing or spend; MCP; new durable schema, migration, sidecar,
@@ -111,6 +104,8 @@ effects.
 ## Allowed Tools
 
 - read-file
+- write-code
+- write-tests
 - write-docs
 - build-output
 - verify
@@ -121,48 +116,96 @@ effects.
 
 ## Verification
 
-Evidence is appended once per completed increment to `docs/verification-log.md`.
-Documentation verification must cover RFC indexing, decision indexing, architecture and
-document ownership, dynamic workflow, approved-task justification, canonical planning,
-and source-boundary consistency. Subagent recommendations are not verification evidence.
+Observable behavior is RED-first. Evidence is appended once per completed increment to
+`docs/verification-log.md`. Each RED is classified against RFC-0016 through RFC-0025,
+existing supported Scheduler behavior, current durable formats, and v1 compatibility
+before production changes. Subagent recommendations are not verification evidence.
 
 ## Dynamic Workflow
 
-Workflow ID: specify-supported-model-aware-scheduler-composition
+Workflow ID: implement-supported-model-aware-scheduler-composition
 Mode: Sequential
-Increment Limit: 2
+Increment Limit: 6
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
 Stop Conditions: Stop on configuration-source ambiguity, capability/profile/policy
-conflation, implicit typed ingress, legacy behavior drift, runtime-event loss, durable
-schema widening, unsupported provider/network authority, failed verification,
-checkpoint drift, new authority, exhausted bounds, or unsafe recovery.
+conflation, implicit typed ingress, legacy behavior or output drift, runtime-event loss,
+unclassified RED, durable schema widening, provider/network authority, failed
+verification, checkpoint drift, new authority, exhausted bounds, or unsafe recovery.
 
-### Increment 1 - specify-supported-model-aware-scheduler-composition-contract
+### Increment 1 - add-model-scheduler-cli-configuration
 
 State: Completed
 Depends On: none
-Scope: Review the existing supported Scheduler composition and RFC-0016 through
-RFC-0024 boundaries, then accept one RFC defining the smallest explicit model-aware
-execution composition without implementation or typed ingress.
-Exit Criteria: The RFC, accepted decision, indexes, architecture/state/roadmap/task/
-Changelog synchronization, and focused evidence are current and focused governance
-passes.
-Verification: RFC/decision/architecture/index/ownership/dynamic-workflow/approved-task/
-task-justification/planner/source-boundary tests plus `git diff --check`.
-Next Action: Commit the verified documentation increment and select Increment 2.
+Scope: Add RED-first immutable CLI/configuration values and parsing for the exact
+all-or-none deterministic-fake execution group without connecting a worker.
+Exit Criteria: Selector, four numeric values, at most 16 unique 128-character denied
+Tools, strict timeout nesting, optional omission, and pre-store validation are GREEN.
+Verification: New configuration/parser tests, existing Scheduler CLI argument tests,
+architecture/source guards, and `git diff --check`.
+Next Action: Commit the GREEN configuration increment and select Increment 2.
 
-### Increment 2 - verify-and-close-supported-model-aware-scheduler-specification
+### Increment 2 - expose-bounded-model-aware-worker-composition
 
-State: Completed
-Depends On: specify-supported-model-aware-scheduler-composition-contract
-Scope: Run the full Markdown-sensitive Java 17 regression, record fresh evidence, close
-the task/handoff, and commit the verified specification closure.
-Exit Criteria: The full regression passes with results read, canonical documents are
-current, intended local commits are clean, and the checkpoint is stable and clear.
-Verification: Full `.\scripts\gradle.ps1 test`, final focused governance,
-diff/commit/status inspection, and checkpoint reconciliation.
-Next Action: Await separate authority to implement RFC-0025 RED-first.
+State: In Progress
+Depends On: add-model-scheduler-cli-configuration
+Scope: Add the bounded public runtime configuration/factory and combined model-context/
+runtime-event worker construction without changing supported command selection.
+Exit Criteria: Exact source projection, private authority preservation, model-plus-event
+composition, and unchanged legacy overload behavior are GREEN.
+Verification: New runtime composition tests plus RFC-0023 worker/configuration, event,
+source-boundary, and `git diff --check` regression.
+Next Action: Commit the GREEN runtime composition increment and select Increment 3.
+
+### Increment 3 - connect-supported-scheduler-command-selection
+
+State: Pending
+Depends On: expose-bounded-model-aware-worker-composition
+Scope: Connect the optional configuration to the shared cycle/drain/service production
+composition while preserving legacy selection and exact output.
+Exit Criteria: All three commands select one correct branch, reuse exact roots/stores/
+recorder, reject invalid configuration before recovery, and retain legacy output.
+Verification: CLI composition tests, legacy cycle/drain/service suites, parser and event
+regression, source guards, and `git diff --check`.
+Next Action: Commit the GREEN supported selection increment and select Increment 4.
+
+### Increment 4 - prove-supported-typed-completion
+
+State: Pending
+Depends On: connect-supported-scheduler-command-selection
+Scope: Add test-owned RFC-0024 durable intent and invoke the real supported cycle,
+drain, and service CLI paths through typed verified completion.
+Exit Criteria: Each command reaches exact Model RunRecord v2 verified completion and
+queue disposition with no production typed ingress or output disclosure.
+Verification: Real filesystem/JVM CLI integrations, Model RunRecord binding, durable
+format/recovery tests, legacy compatibility, and `git diff --check`.
+Next Action: Commit the GREEN completion integration and select Increment 5.
+
+### Increment 5 - prove-refusal-recovery-and-runtime-events
+
+State: Pending
+Depends On: prove-supported-typed-completion
+Scope: Prove denied-Tool pre-call refusal, exact typed recovery, model-plus-runtime-event
+composition, and locality/interface exclusions.
+Exit Criteria: Refusal makes no fake call/evidence/record/result/disposition, recovery
+does not reinvoke, existing events remain exact, and typed ingress stays unreachable.
+Verification: Refusal/recovery/event real-filesystem tests, RFC-0016-through-RFC-0025
+focused suites, architecture/source guards, and `git diff --check`.
+Next Action: Commit the GREEN hardening integration and select Increment 6.
+
+### Increment 6 - verify-and-close-rfc-0025-implementation
+
+State: Pending
+Depends On: prove-refusal-recovery-and-runtime-events
+Scope: Run the full Markdown-sensitive Java 17 regression, synchronize capability state
+and canonical documents, close the task/handoff, and commit closure.
+Exit Criteria: Full regression passes, documents and commits are current, Git is clean,
+and the stable checkpoint is cleared.
+Verification: Full `.\scripts\gradle.ps1 test`, final focused RFC-0025/governance
+suites, diff/commit/status inspection, and checkpoint reconciliation.
+Next Action: Await separate authority for an interface-owned complete-profile input and
+supported typed submission or publisher contract.
 
 ## Next
 
-Await separate authority to implement RFC-0025 RED-first.
+Implement Increment 2 RED-first: the bounded public model-aware worker configuration
+and composition without changing supported command selection.

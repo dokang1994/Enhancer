@@ -19,5 +19,6 @@ record SchedulerDrainCliCommand(
         Duration leaseDuration,
         Duration processTimeout,
         Optional<RuntimeEventPublicationCliConfiguration> runtimeEventPublication,
+        Optional<SchedulerModelExecutionCliConfiguration> modelExecution,
         int maxCycles) implements SchedulerExecutionCliCommand {
 }

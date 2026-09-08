@@ -10,6 +10,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -407,6 +409,100 @@ class CliArgumentsTest {
     }
 
     @Test
+    void acceptsTheCompleteOptionalModelExecutionGroupForEverySchedulerExecutionCommand() {
+        for (String[] arguments : List.of(
+                schedulerCycleArguments("2", "300000", "20000"),
+                schedulerDrainArguments("8"),
+                schedulerServiceArguments("8", "3", "250"))) {
+            SchedulerExecutionCliCommand command =
+                    (SchedulerExecutionCliCommand) assertDoesNotThrow(() ->
+                            CliArguments.parse(withModelExecution(
+                                    arguments,
+                                    "1000",
+                                    "20000",
+                                    "65536",
+                                    "2000",
+                                    "read-file",
+                                    "model-invoke")));
+            SchedulerModelExecutionCliConfiguration model =
+                    command.modelExecution().orElseThrow();
+            assertEquals(Duration.ofSeconds(1), model.gatewayTimeout());
+            assertEquals(20_000, model.maximumResponseCharacters());
+            assertEquals(65_536, model.maximumReadBytes());
+            assertEquals(Duration.ofSeconds(2), model.toolTimeout());
+            assertEquals(Set.of("read-file", "model-invoke"), model.deniedTools());
+        }
+    }
+
+    @Test
+    void omitsModelExecutionForEveryLegacySchedulerExecutionCommand() {
+        for (String[] arguments : List.of(
+                schedulerCycleArguments("2", "300000", "20000"),
+                schedulerDrainArguments("8"),
+                schedulerServiceArguments("8", "3", "250"))) {
+            SchedulerExecutionCliCommand command =
+                    (SchedulerExecutionCliCommand) CliArguments.parse(arguments);
+            assertEquals(Optional.empty(), command.modelExecution());
+        }
+    }
+
+    @Test
+    void acceptsModelExecutionTogetherWithRuntimeEventPublication() {
+        SchedulerExecutionCliCommand command = (SchedulerExecutionCliCommand)
+                assertDoesNotThrow(() -> CliArguments.parse(withRuntimeEventPublication(
+                        withModelExecution(
+                                schedulerCycleArguments("2", "300000", "20000"),
+                                "1000", "20000", "65536", "2000"),
+                        "8")));
+
+        command.modelExecution().orElseThrow();
+        command.runtimeEventPublication().orElseThrow();
+    }
+
+    @Test
+    void rejectsPartialUnknownAndUnnestedModelExecutionBeforeComposition() {
+        String[] base = schedulerCycleArguments("2", "300000", "20000");
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(
+                appendOptions(base, "--model-execution", "deterministic-fake-v2")));
+
+        String[] unknown = withModelExecution(
+                base, "1000", "20000", "65536", "2000");
+        unknown[base.length + 1] = "other-model";
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(unknown));
+
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(
+                withModelExecution(base, "2000", "20000", "65536", "2000")));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(
+                withModelExecution(base, "1000", "20000", "65536", "20000")));
+    }
+
+    @Test
+    void rejectsOutOfRangeAndUnboundedModelExecutionInputs() {
+        String[] base = schedulerCycleArguments("2", "300000", "20000");
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(
+                withModelExecution(base, "300001", "20000", "65536", "301000")));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(
+                withModelExecution(base, "1000", "262145", "65536", "2000")));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(
+                withModelExecution(base, "1000", "20000", "67108865", "2000")));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(
+                withModelExecution(base, "1000", "20000", "65536", "2000",
+                        "model-invoke", "model-invoke")));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(
+                withModelExecution(base, "1000", "20000", "65536", "2000",
+                        "x".repeat(129))));
+        String[] deniedTools = new String[17];
+        for (int index = 0; index < deniedTools.length; index++) {
+            deniedTools[index] = "tool-" + index;
+        }
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(
+                withModelExecution(
+                        base, "1000", "20000", "65536", "2000", deniedTools)));
+        assertThrows(CliUsageException.class, () -> CliArguments.parse(
+                appendOptions(base, "--model-denied-tool", "model-invoke")));
+    }
+
+    @Test
     void parsesSchedulerDrainAsOneBoundedExtensionOfCycleInputs() {
         SchedulerDrainCliCommand drain =
                 (SchedulerDrainCliCommand) CliArguments.parse(
@@ -738,6 +834,32 @@ class CliArgumentsTest {
                 "--max-pending-runtime-event-publications";
         configured[arguments.length + 5] = maximumPendingPublications;
         return configured;
+    }
+
+    private String[] withModelExecution(
+            String[] arguments,
+            String gatewayTimeoutMillis,
+            String maximumResponseCharacters,
+            String maximumReadBytes,
+            String toolTimeoutMillis,
+            String... deniedTools) {
+        List<String> options = new java.util.ArrayList<>(List.of(
+                "--model-execution", "deterministic-fake-v2",
+                "--model-gateway-timeout-millis", gatewayTimeoutMillis,
+                "--model-maximum-response-characters", maximumResponseCharacters,
+                "--model-maximum-read-bytes", maximumReadBytes,
+                "--model-tool-timeout-millis", toolTimeoutMillis));
+        for (String deniedTool : deniedTools) {
+            options.add("--model-denied-tool");
+            options.add(deniedTool);
+        }
+        return appendOptions(arguments, options.toArray(String[]::new));
+    }
+
+    private String[] appendOptions(String[] arguments, String... options) {
+        String[] result = Arrays.copyOf(arguments, arguments.length + options.length);
+        System.arraycopy(options, 0, result, arguments.length, options.length);
+        return result;
     }
 
     private String[] schedulerExternalEffectStatusArguments(

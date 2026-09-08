@@ -18,6 +18,7 @@ record SchedulerCycleCliCommand(
         int maxAttempts,
         Duration leaseDuration,
         Duration processTimeout,
-        Optional<RuntimeEventPublicationCliConfiguration> runtimeEventPublication)
+        Optional<RuntimeEventPublicationCliConfiguration> runtimeEventPublication,
+        Optional<SchedulerModelExecutionCliConfiguration> modelExecution)
         implements SchedulerExecutionCliCommand {
 }

@@ -7281,3 +7281,22 @@ Outcome:
   actual execution, typed ingress, provider/network/credential boundary, schema/event
   change, push, merge, release, deployment, permission change, destructive cleanup, or
   other external effect was added or performed.
+
+## 2026-09-08 - Model-Aware Scheduler CLI Configuration
+
+- Increment 1 began with a fresh Java 17 RED containing nine missing-symbol errors for
+  the deliberately absent Scheduler model configuration value and command accessor; no
+  existing production contract failed.
+- The minimum package-private CLI value and parser accept the exact optional all-or-none
+  `deterministic-fake-v2` selector, four bounded numeric values, strict gateway/Tool/
+  process timeout nesting, and at most 16 unique naturally sorted denied-Tool names of
+  at most 128 characters. Omission retains the legacy command value, and the existing
+  runtime-event group remains independently composable.
+- Fresh focused verification passed the new value, parser, pre-store integration, and
+  model-candidate locality suites with zero failures or errors. Fresh expanded
+  Scheduler CLI regression passed with zero failures or errors, and `git diff --check`
+  passed.
+- Invalid model configuration is rejected before any project, queue, runtime, effect,
+  checkpoint, evidence, RunRecord, or invocation directory is created. No worker
+  selection, typed ingress, provider/network/credential authority, durable schema,
+  output, or external effect changed.
