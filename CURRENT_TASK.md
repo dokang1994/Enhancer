@@ -182,7 +182,7 @@ Next Action: Commit the GREEN completion integration and select Increment 5.
 
 ### Increment 5 - prove-refusal-recovery-and-runtime-events
 
-State: In Progress
+State: Completed
 Depends On: prove-supported-typed-completion
 Scope: Prove denied-Tool pre-call refusal, exact typed recovery, model-plus-runtime-event
 composition, and locality/interface exclusions.
@@ -194,7 +194,7 @@ Next Action: Commit the GREEN hardening integration and select Increment 6.
 
 ### Increment 6 - verify-and-close-rfc-0025-implementation
 
-State: Pending
+State: In Progress
 Depends On: prove-refusal-recovery-and-runtime-events
 Scope: Run the full Markdown-sensitive Java 17 regression, synchronize capability state
 and canonical documents, close the task/handoff, and commit closure.
@@ -207,5 +207,5 @@ supported typed submission or publisher contract.
 
 ## Next
 
-Implement Increment 5 RED-first: prove supported denied-Tool refusal, exact recovery,
-runtime-event compatibility, and retained typed-ingress locality.
+Implement Increment 6: run the full Markdown-sensitive Java 17 regression, synchronize
+the final capability state and handoff, commit closure, and clear the stable checkpoint.

@@ -1888,9 +1888,10 @@ submission service. Replay resolves the manifest before clock or repository read
 compares every caller-owned input and the fixed capability, and changes no manifest or
 queue revision. The first integration connects only to the existing internal model-
 aware worker in test-owned storage and proves verified completion plus a no-effect
-pre-call capability refusal. Supported model-aware Scheduler composition,
-an interface-owned complete-profile format, typed submission or spool publication, and
-any manifest-authorized receiver remain separate work. No durable schema changes.
+pre-call capability refusal. The supported model-aware Scheduler composition is defined
+below; an interface-owned complete-profile format, typed submission or spool
+publication, and any manifest-authorized receiver remain separate work. No durable
+schema changes.
 
 RFC-0025 specifies the first supported deterministic-fake model-aware Scheduler
 composition without adding typed ingress. The existing `scheduler-cycle`,
@@ -1912,8 +1913,12 @@ target remain queued data, required capability remains manifest-retained authori
 and the fake gateway/candidate/counter chain remains repository-owned. Child-local
 cancellation is explicitly absent until authenticated propagation exists. No schema,
 event kind, profile input, submission, publisher, receiver, provider, network,
-credential, spend, or background authority is added. Implementation and supported CLI
-evidence remain separately authorized work.
+credential, spend, or background authority is added. Supported CLI integration evidence
+uses only test-owned RFC-0024 durable intent. Real-filesystem/JVM coverage proves
+verified completion through cycle, drain, and service; denied-`model-invoke` refusal
+before fake invocation or durable side effects; and exact capacity-one runtime-event
+publication recovery without another model invocation, durable record, Result, runtime,
+queue, or event revision. Supported typed ingress remains absent.
 
 ## Agent Orchestration Contract
 
@@ -2411,7 +2416,8 @@ Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts bel
   durable submission service, and test-owned connection to the internal worker for
   verified completion and pre-call refusal. RFC-0025's exact bounded CLI configuration,
   closed public worker composition, and shared cycle/drain/service selection are
-  implemented. Test-seeded durable intent now proves typed Model RunRecord v2 completion
-  through every supported command; supported refusal, recovery, and runtime-event
-  hardening remain open. Supported typed ingress and provider routing remain unselected.
+  Integrated. Test-seeded durable intent proves typed Model RunRecord v2 completion
+  through every supported command, no-effect denied-Tool refusal, and exact runtime-
+  event publication recovery without reinvocation. Supported typed ingress and provider
+  routing remain unselected.
 - Future LLM-backed Planner input/output schema is not selected yet.

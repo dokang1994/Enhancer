@@ -44,6 +44,8 @@ final class SubmittedModelWorkerEnvironment {
     private final Path queueRoot;
     private final Path checkpointRoot;
     private final Path effectRoot;
+    private final Path eventRoot;
+    private final Path publicationRoot;
     private final FileSystemSubmissionManifestStore manifestStore;
     private final FileSystemSchedulerQueueStore queueStore;
     private final FileSystemAgentRuntimeStateStore runtimeStore;
@@ -55,7 +57,8 @@ final class SubmittedModelWorkerEnvironment {
 
     private SubmittedModelWorkerEnvironment(
             Path root,
-            String profileCapability) throws IOException {
+            String profileCapability,
+            Set<String> deniedTools) throws IOException {
         this.projectRoot = root.resolve("project");
         this.evidenceRoot = root.resolve("evidence");
         this.recordRoot = root.resolve("records");
@@ -64,6 +67,8 @@ final class SubmittedModelWorkerEnvironment {
         this.queueRoot = root.resolve("queue");
         this.checkpointRoot = root.resolve("checkpoint");
         this.effectRoot = root.resolve("effects");
+        this.eventRoot = root.resolve("runtime-events");
+        this.publicationRoot = root.resolve("runtime-event-publications");
         writeGovernedProject();
         Path promptPath = projectRoot.resolve(ModelAttemptTestFixture.TARGET_PATH);
         Files.createDirectories(promptPath.getParent());
@@ -83,7 +88,7 @@ final class SubmittedModelWorkerEnvironment {
                 ModelProcessValidationTestFixture.LIMITS.maximumResponseCharacters(),
                 ModelProcessValidationTestFixture.MAXIMUM_READ_BYTES,
                 ModelProcessValidationTestFixture.TOOL_TIMEOUT,
-                Set.of());
+                deniedTools);
         this.request = new DeterministicFakeModelSubmissionRequest(
                 SUBMISSION_ID,
                 ModelAttemptTestFixture.TASK_ID,
@@ -97,12 +102,20 @@ final class SubmittedModelWorkerEnvironment {
     }
 
     static SubmittedModelWorkerEnvironment verified(Path root) throws IOException {
-        return new SubmittedModelWorkerEnvironment(root, "deterministic-echo");
+        return new SubmittedModelWorkerEnvironment(
+                root, "deterministic-echo", Set.of());
     }
 
     static SubmittedModelWorkerEnvironment capabilityMismatch(Path root)
             throws IOException {
-        return new SubmittedModelWorkerEnvironment(root, "profile-only-capability");
+        return new SubmittedModelWorkerEnvironment(
+                root, "profile-only-capability", Set.of());
+    }
+
+    static SubmittedModelWorkerEnvironment deniedModelInvoke(Path root)
+            throws IOException {
+        return new SubmittedModelWorkerEnvironment(
+                root, "deterministic-echo", Set.of("model-invoke"));
     }
 
     DurableSubmissionResult submit() throws IOException {
@@ -204,6 +217,22 @@ final class SubmittedModelWorkerEnvironment {
                         configuration.maximumReadBytes()),
                 "--model-tool-timeout-millis", Long.toString(
                         configuration.toolTimeout().toMillis())));
+        for (String deniedTool : configuration.deniedTools()) {
+            arguments.add("--model-denied-tool");
+            arguments.add(deniedTool);
+        }
+        return arguments.toArray(String[]::new);
+    }
+
+    String[] schedulerArgumentsWithRuntimeEvents(
+            String command,
+            int maximumPendingPublications) {
+        List<String> arguments = new ArrayList<>(List.of(schedulerArguments(command)));
+        arguments.addAll(List.of(
+                "--runtime-event-root", eventRoot.toString(),
+                "--runtime-event-publication-root", publicationRoot.toString(),
+                "--max-pending-runtime-event-publications",
+                Integer.toString(maximumPendingPublications)));
         return arguments.toArray(String[]::new);
     }
 
@@ -235,6 +264,14 @@ final class SubmittedModelWorkerEnvironment {
 
     FileSystemRunRecordStore runRecordStore() {
         return runRecordStore;
+    }
+
+    Path eventRoot() {
+        return eventRoot;
+    }
+
+    Path publicationRoot() {
+        return publicationRoot;
     }
 
     long evidenceFileCount() throws IOException {

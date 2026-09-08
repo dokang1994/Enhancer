@@ -7359,3 +7359,26 @@ Outcome:
   process, binding, model-record-store, cycle/drain/service, and source-locality
   regression passed with zero failures or errors; `git diff --check` passed. No
   provider/network/credential authority, durable schema, or runtime-event kind changed.
+
+## 2026-09-08 - Supported Model Scheduler Refusal And Recovery Hardening
+
+- Increment 5 began with a fresh Java 17 RED containing 11 missing-symbol errors for
+  deliberately absent test-fixture denial and runtime-event helpers; no production type
+  or existing contract failed.
+- The minimum test-owned fixture extension projects an explicit denied-Tool set into the
+  already-supported model CLI group and supplies the existing runtime-event option group
+  and roots. No production source changed.
+- Fresh focused real-filesystem/JVM verification passed both hardening tests. A supported
+  denied-`model-invoke` cycle fails before the fake call and leaves no evidence,
+  RunRecord, Result point, external effect, retry decision, or queue disposition while
+  retaining the exact recoverable active/executing prefix.
+- A capacity-one event publication failure occurs after durable typed completion and the
+  exact `VERIFICATION_RECORDED -> WORK_ITEM_TERMINATED` stream. After acknowledging the
+  first point, supported command re-entry publishes the retained terminal point and
+  clears the checkpoint without another model invocation, evidence file, Result point,
+  RunRecord, runtime revision, queue revision, event revision, or event-artifact rewrite.
+- Fresh expanded RFC-0016-through-RFC-0025 regression passed 200 of 203 tests across 33
+  suites, with three existing conditional skips and zero failures or errors.
+  Architecture/source locality and `git diff --check` also passed. Supported typed
+  ingress, profile input, provider/network/credential authority, durable schema, event
+  kind, and production behavior remain unchanged.

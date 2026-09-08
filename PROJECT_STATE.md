@@ -422,7 +422,10 @@ it does not restate which commit published which increment.
   clock recapture or durable rewrite, caller/derived/fixed-capability drift refusal, and
   recovery from manifest-only and empty-queue prefixes. Its downstream internal
   integration is recorded below; it exposes no supported ingress.
-- Backoff or delayed retry, pause/resume, run-scoped or causation-graph cancellation, priority ordering, competing queue consumers, threading, journal persistence, remote IPC adapters, and any supported ModelWork submission or receive, supported Scheduler execution, gateway, or provider integration remain outside these verified contracts.
+- Backoff or delayed retry, pause/resume, run-scoped or causation-graph cancellation,
+  priority ordering, competing queue consumers, threading, journal persistence, remote
+  IPC adapters, and any supported ModelWork submission or receive, gateway, or provider
+  integration remain outside these verified contracts.
 
 ### Integrated
 
@@ -448,6 +451,17 @@ it does not restate which commit published which increment.
   unchanged and is refused before the fake call with no RunRecord, evidence, Result,
   retry decision, or queue disposition while its active prefix stays recoverable. No
   production composition or supported ingress constructs this producer.
+
+- RFC-0025 deterministic-fake model-aware Scheduler composition is Integrated at the
+  existing supported cycle, drain, and service boundary. The explicit all-or-none model
+  group selects one closed public worker composition while omission preserves the legacy
+  branch. Real-filesystem/JVM tests prove test-seeded typed verified completion through
+  all three commands, pre-call denied-`model-invoke` refusal without evidence, record,
+  Result, effect, or disposition, and capacity-one runtime-event publication recovery
+  without another model invocation or changes to runtime, queue, event, evidence,
+  Result points, or RunRecords. The composition adds no supported typed ingress,
+  complete-profile input, provider, network, credential, spend, schema, event kind, or
+  background path and is not Operational.
 
 - Delivery Gate 8 Result-side Scheduler runtime-event publication: the optional
   recorder already shared by `scheduler-cycle`, `scheduler-drain`, and
@@ -945,17 +959,9 @@ it does not restate which commit published which increment.
 - Project Brain will expose rebuildable Decision, Architecture, Dependency, Task, and Execution graph projections while Git and canonical documents remain authoritative.
 - Agent plugins, Skills, Tools, and workflows are distinct extension types with separate authority and provenance.
 - The Model Router target selects approved local or remote providers using capability, data classification, policy, cost, latency, context, and availability; sensitive code defaults local.
-- RFC-0025 accepts the next deterministic-fake boundary as an explicit optional
-  model-aware composition for the existing foreground Scheduler cycle, drain, and
-  service commands. Its exact bounded CLI layer and closed public worker composition
-  are implemented and verified, and all three commands now select the shared model/event
-  branch when explicitly configured. The composition reuses one v1/v2 RunRecord store,
-  creates evidence validation from the existing root and fixed bound, retains the same
-  optional runtime-event recorder, and preserves exact legacy idle output. Real
-  filesystem/JVM evidence now proves test-seeded typed verified completion through each
-  supported command with one Model RunRecord v2 and no output disclosure. Supported
-  refusal, recovery, and event hardening remain open, so the capability is not yet
-  Integrated or Operational and grants no typed ingress.
+- The next model boundary must separately define an interface-owned complete-profile
+  input and a supported typed submission or publisher contract before production intent
+  can reach the integrated RFC-0025 composition.
 - Self-hosting development means applying Enhancer's governed workflow to its own repository; local or hybrid model execution is a separate provider-routing capability.
 
 ## Not Yet Integrated Or Operational

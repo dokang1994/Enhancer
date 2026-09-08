@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-08 - Prove Supported Model Scheduler Hardening
+
+- Added real-filesystem supported CLI coverage for pre-call denied-`model-invoke`
+  refusal with no fake call, evidence, RunRecord, Result, effect, or queue disposition.
+- Proved capacity-one runtime-event publication recovery reuses the exact retained
+  verification and terminal events without another model invocation, evidence file,
+  Result point, RunRecord, or runtime/queue/event revision.
+- Kept the new setup test-owned; no typed ingress, provider, network, credential,
+  durable schema, event kind, or production behavior changed.
+
 ## 2026-09-08 - Prove Supported Typed Scheduler Completion
 
 - Added test-owned RFC-0024 durable intent coverage through the real supported Scheduler
