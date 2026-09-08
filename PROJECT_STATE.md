@@ -2,15 +2,15 @@
 
 ## Updated At
 
-2026-09-04
+2026-09-08
 
 ## Repository State
 
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 465 Java files.
-- Test source: 207 Java files.
+- Production source: 470 Java files.
+- Test source: 218 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -440,9 +440,9 @@ it does not restate which commit published which increment.
   interrupted pre-reference attempt, bounded rejected-result retry with two distinct
   AgentRun evidence/record identities, and terminal queue disposition. Complete v2
   points suppress reinvocation and outrank timeout; corrupt, cross-kind, foreign,
-  changed, symbolic, non-regular, or partial prefixes fail closed. No receiver,
-  supported entry point, schema change, provider, network, credential, or spend path
-  exists.
+  changed, symbolic, non-regular, or partial prefixes fail closed. No production typed
+  producer or receiver, supported typed ingress, schema change, provider, network,
+  credential, or spend path exists.
 
 - RFC-0024 governed deterministic-fake typed submission is Integrated only at the
   test-owned internal boundary. One real-filesystem/JVM path connects the closed request

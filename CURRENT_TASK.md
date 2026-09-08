@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -18,10 +18,11 @@ implement-supported-model-aware-scheduler-composition
 
 RFC-0025 is accepted and specifies an optional all-or-none deterministic-fake execution
 group shared by `scheduler-cycle`, `scheduler-drain`, and `scheduler-service`. The
-existing RFC-0023 typed worker and RFC-0024 producer are Integrated only through a
-test-owned path; supported Scheduler commands still construct the legacy-only worker.
-The completed specification task names RED-first implementation as the next separately
-authorized work, and the user requested continuation on 2026-09-08.
+existing RFC-0023 typed worker and RFC-0024 producer supplied the test-owned typed intent
+needed to prove the boundary without adding ingress. At task start, supported Scheduler
+commands still constructed the legacy-only worker. The completed specification task
+named RED-first implementation as separately authorized work, and the user requested
+continuation on 2026-09-08.
 
 ## Justified By
 
@@ -194,7 +195,7 @@ Next Action: Commit the GREEN hardening integration and select Increment 6.
 
 ### Increment 6 - verify-and-close-rfc-0025-implementation
 
-State: In Progress
+State: Completed
 Depends On: prove-refusal-recovery-and-runtime-events
 Scope: Run the full Markdown-sensitive Java 17 regression, synchronize capability state
 and canonical documents, close the task/handoff, and commit closure.
@@ -207,5 +208,5 @@ supported typed submission or publisher contract.
 
 ## Next
 
-Implement Increment 6: run the full Markdown-sensitive Java 17 regression, synchronize
-the final capability state and handoff, commit closure, and clear the stable checkpoint.
+Await separate user authority for an interface-owned complete-profile input and a
+supported typed submission or publisher contract.

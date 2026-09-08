@@ -1630,9 +1630,9 @@ gateway-time-strictly-within-policy relationship. Evaluation is deterministic wi
 closed first-match rejection reason. With no outbound/provider policy, `LOCAL_ONLY`
 may pass as local eligibility while `POLICY_CONSTRAINED` fails closed; an admitted
 decision is not gateway permission, provider suitability, remote authority, or a
-persistable token. The current CLI and Scheduler lack all required explicit sources,
-so runtime wiring, candidate suitability, routing, providers, and transmission remain
-separate contracts.
+persistable token. At RFC-0016 acceptance, the CLI and Scheduler lacked all required
+explicit sources, so runtime wiring, candidate suitability, routing, providers, and
+transmission remained separate contracts.
 
 RFC-0017 defines the minimum caller-side source obligations upstream of that pure
 boundary without adding a new aggregate or port. One future caller must resolve an
@@ -1640,14 +1640,13 @@ exact complete `ModelRequest`, one indivisible already-valid `ModelExecutionProf
 the exact active `ApprovedTask` and `ExecutionPolicy`, and an unchanged authoritative
 required-capability projection from a separately named governed source. Profile data
 cannot self-certify capability authority, and missing or partial input cannot fall back
-to constants, Tool arguments, a registry, ambient lookup, or a legacy path. The current
-direct CLI has neither required source; the current Scheduler can later project the
-active `WorkItem.requiredCapability` but has no complete profile source and must not
-reuse capability as model class. Both remain unchanged and unsupported. Persisting a
-profile through Scheduler work would require a separate versioned message, submission,
-queue, runtime, recovery, and migration contract; RFC-0017 changes no Java or durable
-schema and grants no candidate, gateway, provider, route, network, credential,
-transmission, or spend authority.
+to constants, Tool arguments, a registry, ambient lookup, or a legacy path. The direct
+CLI still has neither required source. RFC-0018 later retained the complete profile in
+typed ModelWork while keeping `WorkItem.requiredCapability` separate, and RFC-0025 now
+connects that retained input to an explicitly configured Scheduler composition without
+adding supported typed ingress. RFC-0017 itself changes no Java or durable schema and
+grants no candidate, gateway, provider, route, network, credential, transmission, or
+spend authority.
 
 RFC-0018 defines the Scheduler-specific durable source as a fifth typed
 `ModelWorkPayload` carrying mandatory target path, expected-response digest, and one

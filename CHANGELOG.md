@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-09-08 - Complete RFC-0025 Scheduler Composition Implementation
+
+- Completed all six RED-first increments for bounded Scheduler configuration, closed
+  worker composition, supported command selection, typed completion, refusal/recovery/
+  event hardening, and final verification.
+- Fresh README-owned Java 17 verification passed 1,147 of 1,160 tests across 212 suites,
+  with 13 existing conditional skips and zero failures or errors.
+- The capability is Integrated but not Operational: typed ingress, complete-profile
+  input, providers, network, credentials, schema/event changes, push, merge, release,
+  and deployment remain separately authorized.
+
 ## 2026-09-08 - Prove Supported Model Scheduler Hardening
 
 - Added real-filesystem supported CLI coverage for pre-call denied-`model-invoke`

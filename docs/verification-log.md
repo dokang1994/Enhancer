@@ -7382,3 +7382,23 @@ Outcome:
   Architecture/source locality and `git diff --check` also passed. Supported typed
   ingress, profile input, provider/network/credential authority, durable schema, event
   kind, and production behavior remain unchanged.
+
+## 2026-09-08 - RFC-0025 Implementation Closure
+
+- Fresh full verification used the README-owned
+  `powershell -ExecutionPolicy Bypass -File .\scripts\gradle.ps1 test` command with the
+  repository Java 17 toolchain and completed with `BUILD SUCCESSFUL` in 1 minute 46
+  seconds. Generated JUnit XML contained 212 suites and 1,160 tests: 1,147 passed, 13
+  existing conditional tests skipped, and zero failed or errored.
+- The full regression covered the bounded CLI configuration, closed worker composition,
+  legacy/model/event branch selection, supported typed completion, denied-Tool refusal,
+  exact event recovery, durable formats, source locality, and every Markdown-sensitive
+  architecture and governance check. `git diff --check` passed before closure.
+- All six workflow increments and the parent RFC-0025 implementation task are complete.
+  Final post-closure governance, diff/commit/status inspection, the ordinary local
+  closure commit, and stable checkpoint clearing follow this entry.
+- `SESSION_HANDOFF.md` remains unchanged because its Java 17 and checkpoint invocation
+  facts are still current and no new host-only fact was introduced. No supported typed
+  ingress, provider/network/credential authority, schema/event change, push, merge,
+  release, deployment, permission change, destructive cleanup, or other external effect
+  was added or performed.
