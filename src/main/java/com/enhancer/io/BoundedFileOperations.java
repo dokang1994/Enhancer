@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -23,6 +24,14 @@ public final class BoundedFileOperations {
             throws IOException {
         Objects.requireNonNull(path, "path must not be null");
         try (InputStream input = Files.newInputStream(path)) {
+            return readAllBytes(input, maximumBytes);
+        }
+    }
+
+    public static byte[] readAllBytesNoFollow(Path path, long maximumBytes)
+            throws IOException {
+        Objects.requireNonNull(path, "path must not be null");
+        try (InputStream input = Files.newInputStream(path, LinkOption.NOFOLLOW_LINKS)) {
             return readAllBytes(input, maximumBytes);
         }
     }

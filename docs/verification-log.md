@@ -7452,3 +7452,25 @@ Outcome:
   actual submission or execution, typed ingress, provider/network/credential boundary,
   schema/event change, push, merge, release, deployment, permission change,
   destructive cleanup, or other external effect was added or performed.
+
+## 2026-09-09 - RFC-0026 Increment 1 Strict Profile Reader
+
+- RED began with three Java compilation errors for the deliberately absent
+  `ModelExecutionProfileFileReader`; no existing production contract failed.
+- The minimum production increment added the exact thirteen-entry reader and a bounded
+  no-follow file open. It rejects traversal, absolute and escaping paths, missing or
+  non-regular files, final symbolic links, escaping Windows junctions, malformed UTF-8,
+  BOM/CR/NUL, noncanonical structure and numbers, overflow, invalid existing value
+  bounds, and content beyond 4,096 bytes.
+- Fresh focused Java 17 verification completed with `BUILD SUCCESSFUL` in 3 seconds.
+  Generated JUnit XML contained 10 suites and 49 tests: 47 passed, two conditional
+  symbolic-link/platform tests skipped, and zero failed or errored. The suites covered
+  the new reader, RFC-0014 values, bounded no-follow I/O, architecture and locality
+  guards, decision/document ownership, dynamic workflow, and active-task governance.
+  `git diff --check` also passed.
+- Two bounded read-only development reviews independently examined the grammar matrix
+  and path/open safety boundary. The primary Agent reconciled them against repository
+  authority and fresh source/tests; the reports were not treated as verification.
+- No store or queue was accessed by the reader tests. No CLI submission, durable format,
+  Scheduler execution, capability comparison, provider/network/credential path, push,
+  merge, release, deployment, or other external effect was added or performed.

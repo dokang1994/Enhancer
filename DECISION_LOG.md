@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-09-09 into RFC-0026 supported typed ModelWork submission implementation
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-09-09-implement-rfc-0026-supported-typed-model-work-submission.md)
+
 ### User continuation request on 2026-09-09 into supported typed ModelWork submission specification
 
 Status: Accepted Decision

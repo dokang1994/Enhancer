@@ -3,12 +3,20 @@ package com.enhancer.io;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class BoundedFileOperationsTest {
+    @TempDir
+    Path temporaryRoot;
+
     @Test
     void readsTheExactBoundaryWithoutAnExtraAllocation() throws Exception {
         CountingInputStream input = new CountingInputStream(8);
@@ -49,6 +57,20 @@ class BoundedFileOperationsTest {
                 BoundedFileOperations.sha256(
                         new CountingInputStream(8),
                         8));
+    }
+
+    @Test
+    void noFollowReadRejectsAFinalSymbolicLink() throws Exception {
+        Path target = Files.write(temporaryRoot.resolve("target"), new byte[] {1});
+        Path link = temporaryRoot.resolve("link");
+        try {
+            Files.createSymbolicLink(link, target.getFileName());
+        } catch (IOException | UnsupportedOperationException | SecurityException exception) {
+            assumeTrue(false, "symbolic-link creation is unavailable: " + exception);
+        }
+
+        assertThrows(IOException.class,
+                () -> BoundedFileOperations.readAllBytesNoFollow(link, 1));
     }
 
     private static final class CountingInputStream extends InputStream {

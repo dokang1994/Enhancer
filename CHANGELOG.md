@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-09-09 - Add Strict Model Execution Profile Reader
+
+- Added a project-contained, final-link-rejecting profile reader for the exact thirteen-
+  line RFC-0026 format with strict UTF-8, canonical decimal syntax, existing RFC-0014
+  value validation, and a 4,096-byte consumption ceiling.
+- Added a reusable bounded no-follow read and focused grammar, value, containment,
+  symlink/junction, malformed encoding, and overflow regression coverage.
+- No submission command, store access, Scheduler execution, durable schema, provider,
+  network, credential, push, or merge behavior was added or performed.
+
+## 2026-09-09 - Begin RFC-0026 Submission Input Implementation
+
+- Accepted the six-increment RED-first implementation task for the strict complete-
+  profile reader, exact typed-submission command, narrow RFC-0024 filesystem facade,
+  durable replay/recovery, and separate RFC-0025 operator-path evidence.
+- Typed spool publication/receive, caller capability, provider/network/credential
+  authority, schema changes, implicit execution, push, and merge remain excluded.
+
 ## 2026-09-09 - Complete RFC-0026 Submission Input Specification
 
 - Completed both RFC-0026 specification increments and synchronized its accepted
