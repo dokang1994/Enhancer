@@ -7498,3 +7498,35 @@ Outcome:
   queue, profile content, Scheduler execution, durable schema, provider/network/
   credential path, push, merge, release, deployment, or other external effect was
   added or performed.
+
+## 2026-09-09 - RFC-0026 Increment 3 Filesystem Facade And CLI Connection
+
+- Facade RED began with seven Java compilation errors for the deliberately absent
+  `FileSystemDeterministicFakeModelSubmission`; no existing production type failed.
+  After the facade turned GREEN, CLI connection RED ran three real-filesystem tests:
+  the expected success and profile-usage outcomes were still internal code `70`, while
+  the durable-I/O code `70` control already passed. This classified the absent dispatch
+  without widening an existing command.
+- The minimum production increment added one public final facade with only three root
+  constructor arguments and eight semantic submit inputs. It internally composes the
+  real manifest/queue stores, system UTC clock, repository readers, and snapshot
+  collector over the unchanged package-local RFC-0024 request/service and delegates
+  once. Capability remains sourced only inside that service.
+- The CLI reads the profile before facade/store construction, maps profile and
+  first-use project-configuration failures to bounded value-redacted code `2`, leaves
+  durable I/O at code `70`, submits once, point-resolves the exact manifest, and emits
+  the RFC-0026 thirteen-field result order without profile, capability, target, digest,
+  Tool scope, or execution configuration.
+- Fresh synchronized Java 17 verification completed with `BUILD SUCCESSFUL` in 4
+  seconds. Generated JUnit XML contained 16 suites and 96 tests: 95 passed, one existing
+  conditional test skipped, and zero failed or errored. It covered the facade, CLI
+  first-use/output/error ordering, strict profile and command parsing, RFC-0024 request/
+  service, legacy explicit/generated submission, and model/runtime locality guards.
+  `git diff --check` also passed.
+- Two bounded read-only development reviews independently checked facade composition,
+  public/package-local boundaries, CLI dispatch, output point resolution, error
+  classification, and legacy risks. The primary Agent reconciled their reports against
+  repository authority and fresh source/tests; the reports were not verification.
+- No replay/recovery claim, Scheduler execution, typed spool publication/receive,
+  durable schema, provider/network/credential path, push, merge, release, deployment,
+  or other external effect was added or performed.

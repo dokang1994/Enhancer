@@ -338,7 +338,27 @@ class ModelCandidateLocalityBoundaryTest {
         Set<String> boundaryFiles = Set.of(
                 "DeterministicFakeModelSubmissionRequest.java",
                 "DeterministicFakeModelSubmissionCapabilitySource.java",
-                serviceFile);
+                serviceFile,
+                "FileSystemDeterministicFakeModelSubmission.java");
+
+        String facadeFile = "FileSystemDeterministicFakeModelSubmission.java";
+        String facade = read(findProductionSource(facadeFile));
+        assertTrue(facade.contains("DeterministicFakeModelSubmissionRequest"));
+        assertTrue(facade.contains("DeterministicFakeModelSubmissionService"));
+        assertTrue(facade.contains("new FileSystemSubmissionManifestStore"));
+        assertTrue(facade.contains("new FileSystemSchedulerQueueStore"));
+        assertTrue(facade.contains("Clock.systemUTC()"));
+        assertTrue(facade.contains("new ProjectContextReader()"));
+        assertTrue(facade.contains("new ApprovedTaskReader()"));
+        assertTrue(facade.contains("new RepositoryMemorySnapshotCollector()"));
+        assertFalse(facade.contains("DeterministicFakeModelSubmissionCapabilitySource"));
+        assertFalse(facade.contains("deterministic-echo"));
+
+        String cli = read(findProductionSource("EnhancerCli.java"));
+        assertTrue(cli.contains("FileSystemDeterministicFakeModelSubmission"));
+        assertFalse(cli.contains("DeterministicFakeModelSubmissionRequest"));
+        assertFalse(cli.contains("DeterministicFakeModelSubmissionService"));
+        assertFalse(cli.contains("DeterministicFakeModelSubmissionCapabilitySource"));
         try (Stream<Path> files = Files.walk(PRODUCTION_ROOT)) {
             files.filter(path -> path.toString().endsWith(".java"))
                     .filter(path -> !boundaryFiles.contains(path.getFileName().toString()))

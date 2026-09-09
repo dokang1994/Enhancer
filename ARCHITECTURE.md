@@ -1867,9 +1867,10 @@ remain confined to the internal test-owned end-to-end connection; no production
 composition, receiver, supported entry point, provider, network,
 credential, or spend path reaches them.
 
-RFC-0024's implemented package-local boundary is the first production source of exact
-typed submission intent without being a supported entry point. A test-owned composition
-now connects it to the internal worker only.
+RFC-0024's implemented package-local boundary remains the sole production source of
+exact typed submission intent. RFC-0026 now reaches it through one public filesystem
+facade while its request, service, and fixed capability source stay package-local; the
+test-owned RFC-0024 composition still connects it to the internal worker only.
 Its closed request retains one canonical submission UUID, task,
 producer, target, expected-response digest, complete profile, capacity, and priority,
 but no capability field. The producer supplies `deterministic-echo` from a separately
@@ -1888,9 +1889,9 @@ compares every caller-owned input and the fixed capability, and changes no manif
 queue revision. The first integration connects only to the existing internal model-
 aware worker in test-owned storage and proves verified completion plus a no-effect
 pre-call capability refusal. The supported model-aware Scheduler composition is defined
-below; an interface-owned complete-profile format, typed submission or spool
-publication, and any manifest-authorized receiver remain separate work. No durable
-schema changes.
+below; RFC-0026 supplies the separate complete-profile direct submission entry point,
+while typed spool publication and any manifest-authorized receiver remain separate
+work. No durable schema changes.
 
 RFC-0025 specifies the first supported deterministic-fake model-aware Scheduler
 composition without adding typed ingress. The existing `scheduler-cycle`,
@@ -1917,10 +1918,11 @@ uses only test-owned RFC-0024 durable intent. Real-filesystem/JVM coverage prove
 verified completion through cycle, drain, and service; denied-`model-invoke` refusal
 before fake invocation or durable side effects; and exact capacity-one runtime-event
 publication recovery without another model invocation, durable record, Result, runtime,
-queue, or event revision. Supported typed ingress remains absent.
+queue, or event revision. RFC-0026 now provides direct typed submission separately;
+these Scheduler execution commands still perform no submission or transport ingress.
 
-RFC-0026 specifies but does not implement the first supported typed ModelWork input.
-The separate `scheduler-submit-deterministic-fake-model-work` command reads one
+RFC-0026 now implements the first supported typed ModelWork input through the separate
+`scheduler-submit-deterministic-fake-model-work` command. The command reads one
 explicitly named, project-contained, no-link, strict-UTF-8 profile file bounded to
 4,096 bytes. Exactly thirteen ordered LF-terminated `key=value` entries map without
 defaults or normalization to all ten RFC-0014 profile components. The transient
@@ -1934,15 +1936,20 @@ endpoint, credential, or Scheduler process configuration. The closed repository-
 `deterministic-echo` capability remains independent and profile disagreement remains
 observable at fresh RFC-0016 admission. A narrow public facade composes the existing
 package-local producer with real filesystem stores, repository readers, snapshot
-collector, and system clock without exposing its injectable sources.
+collector, and system clock without exposing its injectable sources. The CLI validates
+and parses the profile before facade/store construction, delegates once, then derives
+its bounded thirteen-field result from the submission result and exact point-resolved
+manifest. First-use integration proves the independently fixed capability and unchanged
+profile are both retained; replay and interruption recovery are verified in the next
+workflow increment.
 
 Direct submission precedes spool publication because it reaches the existing durable
 admission path without a new transport point, manifest-authorized receiver,
 acknowledgement, or transport recovery contract. Submission and the explicitly model-
 configured RFC-0025 execution commands remain separate operator effects. Current
 message v2, manifest v3, queue v4, runtime v5, checkpoint v2, Model RunRecord v2, and
-runtime-event formats remain unchanged. Implementation, publication/receive, provider,
-network, credential, spend, and execution remain separately authorized.
+runtime-event formats remain unchanged. Publication/receive, provider, network,
+credential, spend, and implicit execution remain separately authorized.
 
 ## Agent Orchestration Contract
 

@@ -163,7 +163,7 @@ Next Action: Commit the GREEN CLI contract increment and select Increment 3.
 
 ### Increment 3 - expose-and-connect-filesystem-submission-facade
 
-State: In Progress
+State: Completed
 Depends On: add-typed-model-submission-cli-contract
 Scope: Add the narrow public filesystem facade over RFC-0024 and connect the new CLI
 execution/output path without changing existing commands.
@@ -176,7 +176,7 @@ Next Action: Commit the GREEN production connection and select Increment 4.
 
 ### Increment 4 - prove-supported-durable-submission-and-replay
 
-State: Pending
+State: In Progress
 Depends On: expose-and-connect-filesystem-submission-facade
 Scope: Exercise first admission, manifest/queue interruption recovery, exact fresh-
 instance replay, caller-intent conflicts, typed profile equality, and redacted errors
@@ -216,5 +216,5 @@ Next Action: Await separate authority for the next Gate 9 or typed spool boundar
 
 ## Next
 
-Complete Increment 3 and commit the verified filesystem submission facade and CLI
-connection increment.
+Complete Increment 4 and commit the verified supported durable submission and replay
+increment.

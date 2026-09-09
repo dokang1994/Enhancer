@@ -19,6 +19,7 @@ import com.enhancer.bus.BackpressurePolicy;
 import com.enhancer.bus.DeliveryDestination;
 import com.enhancer.bus.FileSpoolMessageTransport;
 import com.enhancer.bus.FileSpoolPublicationOutcome;
+import com.enhancer.bus.ModelWorkPayload;
 import com.enhancer.bus.TransportMessage;
 import com.enhancer.bus.WorkPayload;
 import com.enhancer.loop.AgentLoop;
@@ -58,6 +59,7 @@ import com.enhancer.runtime.DeterministicFakeModelSchedulerConfiguration;
 import com.enhancer.runtime.FileSystemAgentRuntimeStateStore;
 import com.enhancer.runtime.FileSystemAuthenticatedCancellationApplication;
 import com.enhancer.runtime.FileSystemCancellationAuthorizationAuditStore;
+import com.enhancer.runtime.FileSystemDeterministicFakeModelSubmission;
 import com.enhancer.runtime.FileSystemExternalEffectLedgerStore;
 import com.enhancer.runtime.FileSystemPendingFinalizationStore;
 import com.enhancer.runtime.FileSystemRuntimeEventPublisher;
@@ -103,6 +105,7 @@ import com.enhancer.tool.EvidenceRecorder;
 import com.enhancer.model.DeterministicFakeModelGateway;
 import com.enhancer.model.DeterministicModelInvokeVerifier;
 import com.enhancer.model.ModelInvokeTool;
+import com.enhancer.model.ModelExecutionProfile;
 import com.enhancer.tool.EvidenceStoragePolicy;
 import com.enhancer.tool.ExecutionPolicy;
 import com.enhancer.tool.FileSystemEvidenceStore;
@@ -272,6 +275,9 @@ public final class EnhancerCli {
             }
             if (command instanceof GeneratedSubmitCliCommand generated) {
                 return executeGeneratedSubmit(generated, stdout);
+            }
+            if (command instanceof DeterministicFakeModelSubmitCliCommand modelSubmit) {
+                return executeDeterministicFakeModelSubmit(modelSubmit, stdout);
             }
             if (command instanceof CheckpointStartCliCommand start) {
                 return executeCheckpointStart(start, stdout);
@@ -1783,6 +1789,64 @@ public final class EnhancerCli {
                 manifestStore.resolve(command.submissionId());
         MessageEnvelope workMessage = storedManifest.workMessage();
         WorkPayload work = (WorkPayload) workMessage.payload();
+        String status = result.workAdmitted() ? "ADMITTED" : "REPLAYED";
+        writeBounded(stdout, String.join("\n",
+                "status=" + status,
+                "exitCode=0",
+                "submissionId=" + result.submissionId(),
+                "queueId=" + result.queueId(),
+                "correlationId=" + workMessage.correlationId(),
+                "logicalRunId=" + workMessage.logicalRunId(),
+                "occurredAt=" + workMessage.occurredAt(),
+                "queueRevision=" + result.queueRevision(),
+                "priority=" + storedManifest.priority().name(),
+                "manifestCreated=" + result.manifestCreated(),
+                "queueCreated=" + result.queueCreated(),
+                "workAdmitted=" + result.workAdmitted(),
+                "workspaceSnapshotId=" + work.snapshotId()) + "\n");
+        return 0;
+    }
+
+    private int executeDeterministicFakeModelSubmit(
+            DeterministicFakeModelSubmitCliCommand command,
+            PrintStream stdout) throws IOException {
+        ModelExecutionProfile executionProfile;
+        try {
+            executionProfile = new ModelExecutionProfileFileReader().read(
+                    command.projectRoot(),
+                    command.modelExecutionProfileFile());
+        } catch (IOException | IllegalArgumentException exception) {
+            throw new CliUsageException(
+                    "deterministic-fake model submission profile input is invalid",
+                    exception);
+        }
+
+        DurableSubmissionResult result;
+        try {
+            result = new FileSystemDeterministicFakeModelSubmission(
+                    command.projectRoot(),
+                    command.submissionRoot(),
+                    command.queueRoot())
+                    .submit(
+                            command.submissionId(),
+                            command.taskId(),
+                            command.producer(),
+                            command.targetPath(),
+                            command.expectedResponseSha256(),
+                            executionProfile,
+                            command.maxWorkItems(),
+                            command.priority());
+        } catch (IllegalArgumentException exception) {
+            throw new CliUsageException(
+                    "deterministic-fake model submission input is invalid",
+                    exception);
+        }
+
+        DurableSubmissionManifest storedManifest =
+                new FileSystemSubmissionManifestStore(command.submissionRoot())
+                        .resolve(command.submissionId());
+        MessageEnvelope workMessage = storedManifest.workMessage();
+        ModelWorkPayload work = (ModelWorkPayload) workMessage.payload();
         String status = result.workAdmitted() ? "ADMITTED" : "REPLAYED";
         writeBounded(stdout, String.join("\n",
                 "status=" + status,

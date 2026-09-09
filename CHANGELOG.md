@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-09-09 - Connect Filesystem Typed ModelWork Submission
+
+- Added the narrow public `FileSystemDeterministicFakeModelSubmission` facade over the
+  package-local RFC-0024 producer with only three public roots and eight semantic submit
+  inputs; capability, time, context, snapshot, sources, and stores remain internal.
+- Connected the new CLI command so profile validation precedes durable access, request
+  validation delegates once, and success prints only the exact retained thirteen-field
+  admission outcome from the result and point-resolved manifest.
+- Added first-use, output/redaction, project-configuration, durable-I/O classification,
+  facade-shape/delegation, and strict locality coverage without changing legacy commands,
+  durable formats, Scheduler execution, provider/network/credential authority, push, or
+  merge behavior.
+
 ## 2026-09-09 - Add Typed ModelWork Submission CLI Contract
 
 - Added the exact all-required

@@ -74,7 +74,13 @@ final class DeterministicFakeModelSubmissionService {
     private DurableSubmissionManifest buildFirstUseManifest(
             DeterministicFakeModelSubmissionRequest request,
             GeneratedSubmissionIdentities identities) throws IOException {
-        ProjectContext context = contextReader.read(projectRoot);
+        ProjectContext context;
+        try {
+            context = contextReader.read(projectRoot);
+        } catch (IOException exception) {
+            throw new InvalidDeterministicFakeModelSubmissionConfigurationException(
+                    exception);
+        }
         ApprovedTask task = taskReader.read(context);
         require(task.taskId().equals(request.taskId()),
                 "active task identity does not match the submission request");
