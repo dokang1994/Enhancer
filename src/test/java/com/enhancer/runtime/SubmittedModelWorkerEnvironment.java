@@ -1,5 +1,6 @@
 package com.enhancer.runtime;
 
+import com.enhancer.cli.EnhancerCli;
 import com.enhancer.context.ProjectContextReader;
 import com.enhancer.context.RequiredProjectDocument;
 import com.enhancer.loop.ApprovedTaskReader;
@@ -11,7 +12,9 @@ import com.enhancer.model.ModelReasoningRequirement;
 import com.enhancer.model.ModelTokenBudget;
 import com.enhancer.run.FileSystemRunRecordStore;
 import com.enhancer.workspace.RepositoryMemorySnapshotCollector;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,6 +40,7 @@ final class SubmittedModelWorkerEnvironment {
             Instant.parse("2026-09-07T07:01:00Z"), ZoneOffset.UTC);
 
     private final Path projectRoot;
+    private final Path submissionRoot;
     private final Path evidenceRoot;
     private final Path recordRoot;
     private final Path invocationRoot;
@@ -60,6 +64,7 @@ final class SubmittedModelWorkerEnvironment {
             String profileCapability,
             Set<String> deniedTools) throws IOException {
         this.projectRoot = root.resolve("project");
+        this.submissionRoot = root.resolve("submissions");
         this.evidenceRoot = root.resolve("evidence");
         this.recordRoot = root.resolve("records");
         this.invocationRoot = root.resolve("invocations");
@@ -73,9 +78,10 @@ final class SubmittedModelWorkerEnvironment {
         Path promptPath = projectRoot.resolve(ModelAttemptTestFixture.TARGET_PATH);
         Files.createDirectories(promptPath.getParent());
         Files.writeString(promptPath, PROMPT, StandardCharsets.UTF_8);
+        writeProfile(profileCapability);
 
         this.manifestStore = new FileSystemSubmissionManifestStore(
-                root.resolve("submissions"));
+                submissionRoot);
         this.queueStore = new FileSystemSchedulerQueueStore(queueRoot);
         this.runtimeStore = new FileSystemAgentRuntimeStateStore(runtimeRoot);
         this.checkpointStore = new FileSystemPendingFinalizationStore(
@@ -128,6 +134,32 @@ final class SubmittedModelWorkerEnvironment {
                 new ApprovedTaskReader(),
                 new RepositoryMemorySnapshotCollector())
                 .submit(request);
+    }
+
+    CliExecution supportedSubmit() {
+        ByteArrayOutputStream standardOutput = new ByteArrayOutputStream();
+        ByteArrayOutputStream standardError = new ByteArrayOutputStream();
+        int exitCode = new EnhancerCli().execute(
+                new String[] {
+                        "scheduler-submit-deterministic-fake-model-work",
+                        "--project-root", projectRoot.toString(),
+                        "--submission-root", submissionRoot.toString(),
+                        "--queue-root", queueRoot.toString(),
+                        "--task-id", request.taskId(),
+                        "--submission-id", request.submissionId(),
+                        "--max-work-items", Integer.toString(request.maxWorkItems()),
+                        "--producer", request.producer(),
+                        "--target-path", request.targetPath(),
+                        "--expected-response-sha256", request.expectedResponseSha256(),
+                        "--model-execution-profile-file", "model-execution.profile",
+                        "--priority", request.priority().name()
+                },
+                new PrintStream(standardOutput, true, StandardCharsets.UTF_8),
+                new PrintStream(standardError, true, StandardCharsets.UTF_8));
+        return new CliExecution(
+                exitCode,
+                standardOutput.toString(StandardCharsets.UTF_8),
+                standardError.toString(StandardCharsets.UTF_8));
     }
 
     DurableSubmissionManifest manifest() throws IOException {
@@ -324,6 +356,25 @@ final class SubmittedModelWorkerEnvironment {
         }
     }
 
+    private void writeProfile(String requiredCapability) throws IOException {
+        Files.writeString(projectRoot.resolve("model-execution.profile"),
+                String.join("\n",
+                        "schemaVersion=model-execution-profile-v1",
+                        "requiredCapability=" + requiredCapability,
+                        "modelClass=deterministic-fake",
+                        "localityRequirement=LOCAL_ONLY",
+                        "reasoningRequirement=MINIMAL",
+                        "minimumContextTokens=40000",
+                        "tokenBudget.maxInputTokens=20000",
+                        "tokenBudget.maxOutputTokens=20000",
+                        "tokenBudget.maxTotalTokens=40000",
+                        "costBudget.currencyCode=USD",
+                        "costBudget.maxMicrounits=0",
+                        "maximumInvocationTimeMillis=1000",
+                        "dataClassification=PUBLIC") + "\n",
+                StandardCharsets.UTF_8);
+    }
+
     private ModelExecutionProfile profile(String requiredCapability) {
         ModelTokenBudget tokenBudget = new ModelTokenBudget(20_000, 20_000, 40_000);
         return new ModelExecutionProfile(
@@ -337,5 +388,8 @@ final class SubmittedModelWorkerEnvironment {
                 new ModelCostBudget("USD", 0),
                 Duration.ofSeconds(1),
                 ModelDataClassification.PUBLIC);
+    }
+
+    record CliExecution(int exitCode, String stdout, String stderr) {
     }
 }

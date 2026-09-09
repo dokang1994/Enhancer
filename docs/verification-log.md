@@ -7554,3 +7554,30 @@ Outcome:
 - No production Java, durable schema, Scheduler execution, typed spool publication/
   receive, provider/network/credential path, push, merge, release, deployment, or other
   external effect was added or performed.
+
+## 2026-09-09 - RFC-0026 Increment 5 Supported ModelWork Operator Path
+
+- RED began with two Java compilation errors for the deliberately absent test-owned
+  `supportedSubmit()` helper and its CLI result value. No production source or existing
+  behavior failed; the minimum change connected the existing real-filesystem/JVM
+  operator integrations to the already implemented supported submission command.
+- Fresh submission followed separately by `scheduler-cycle`, `scheduler-drain`, or
+  `scheduler-service` reached one verified Model RunRecord v2 completion and one terminal
+  queue disposition without output disclosure. Capability/profile disagreement through
+  the same supported boundary remained an active recoverable pre-call refusal with no
+  Result, evidence, RunRecord, retry, disposition, or external effect.
+- The capacity-one runtime-event recovery scenario now begins with supported submission.
+  Re-entry reused the exact completed runtime, queue, RunRecord, Result, evidence, and
+  event stream without another invocation or revision, then republished only the pending
+  exact event point.
+- Fresh Markdown-sensitive focused Java 17 verification completed with `BUILD
+  SUCCESSFUL` in 28 seconds. Generated JUnit XML contained 22 suites and 117 tests: 116
+  passed, one existing conditional test skipped, and zero failed or errored. Coverage
+  included supported submission completion and hardening, RFC-0024 worker/facade/
+  request/service, strict profile input, Scheduler model selection/configuration,
+  process isolation, typed execution, architecture boundaries, document ownership,
+  dynamic workflow, active-task governance, and the actual Roadmap parser. `git diff
+  --check` passed after document synchronization.
+- No production Java, durable schema, wrapper, typed spool publication/receive,
+  provider/network/credential path, push, merge, release, deployment, or other external
+  effect was added or performed.

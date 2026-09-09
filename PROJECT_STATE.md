@@ -971,8 +971,13 @@ it does not restate which commit published which increment.
 - RFC-0026 implements a strict, explicit, project-contained complete-profile file plus
   a separate supported deterministic ModelWork submission command over RFC-0024. Direct
   first use, exact replay, caller-intent refusal, and manifest-only/empty-queue recovery
-  are verified without changing the independent capability source or durable schemas;
-  the separate supported RFC-0025 execution path is the next integration proof.
+  are verified without changing the independent capability source or durable schemas.
+  The separate submission command followed by each supported RFC-0025 cycle, drain, or
+  service command is an Operational deterministic-fake typed-work sub-path: all three
+  reach verified Model RunRecord v2 completion, capability mismatch remains a no-effect
+  recoverable pre-call refusal, and exact event recovery adds no invocation, record,
+  Result, evidence, disposition, runtime, queue, or event revision. Typed spool ingress,
+  providers, network, credentials, spend, and background execution remain absent.
 - Self-hosting development means applying Enhancer's governed workflow to its own repository; local or hybrid model execution is a separate provider-routing capability.
 
 ## Not Yet Integrated Or Operational

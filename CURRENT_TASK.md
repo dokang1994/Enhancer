@@ -190,7 +190,7 @@ Next Action: Commit the GREEN durable integration and select Increment 5.
 
 ### Increment 5 - prove-supported-model-work-operator-path
 
-State: In Progress
+State: Completed
 Depends On: prove-supported-durable-submission-and-replay
 Scope: Invoke the real new submission command followed separately by supported RFC-0025
 cycle, drain, and service execution, including mismatch refusal and exact recovery.
@@ -204,7 +204,7 @@ Next Action: Commit the GREEN operator-path integration and select Increment 6.
 
 ### Increment 6 - verify-and-close-rfc-0026-implementation
 
-State: Pending
+State: In Progress
 Depends On: prove-supported-model-work-operator-path
 Scope: Run the full Markdown-sensitive Java 17 regression, synchronize capability state
 and owned documents, close the task/handoff, and commit closure.
@@ -216,5 +216,5 @@ Next Action: Await separate authority for the next Gate 9 or typed spool boundar
 
 ## Next
 
-Complete Increment 5 and commit the verified supported typed submission-to-Scheduler
-operator-path increment.
+Complete Increment 6 with the full Markdown-sensitive regression, final owned-document
+synchronization, local closure commit, and stable checkpoint reconciliation.

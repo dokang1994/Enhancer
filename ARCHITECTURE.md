@@ -1940,8 +1940,13 @@ collector, and system clock without exposing its injectable sources. The CLI val
 and parses the profile before facade/store construction, delegates once, then derives
 its bounded thirteen-field result from the submission result and exact point-resolved
 manifest. First-use integration proves the independently fixed capability and unchanged
-profile are both retained; replay and interruption recovery are verified in the next
-workflow increment.
+profile are both retained. Fresh-instance exact replay resolves retained manifest intent
+without repository-context recapture or rewrite; manifest-only and empty-queue prefixes
+resume to one admission, and semantic drift fails before durable mutation. A separately
+invoked supported RFC-0025 cycle, drain, or service consumes that admitted work through
+the same model-aware Scheduler composition. Capability mismatch remains a recoverable
+pre-call refusal, and event-finalization replay does not duplicate invocation, evidence,
+RunRecord, Result, disposition, runtime, queue, or event state.
 
 Direct submission precedes spool publication because it reaches the existing durable
 admission path without a new transport point, manifest-authorized receiver,
@@ -2444,13 +2449,12 @@ Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts bel
   implements fake-only Unicode-scalar semantics and fixed capacities, RFC-0022
   implements the standalone exact-request and exact-fake invocation seam, and
   RFC-0023 internally implements its deterministic-fake process/runtime integration.
-  RFC-0024 now implements its governed request, fixed capability source, manifest-first
-  durable submission service, and test-owned connection to the internal worker for
-  verified completion and pre-call refusal. RFC-0025's exact bounded CLI configuration,
-  closed public worker composition, and shared cycle/drain/service selection are
-  Integrated. Test-seeded durable intent proves typed Model RunRecord v2 completion
-  through every supported command, no-effect denied-Tool refusal, and exact runtime-
-  event publication recovery without reinvocation. RFC-0026 now specifies but does not
-  implement the strict complete-profile file and separate supported typed submission
-  command. Typed spool publication/receive and provider routing remain unselected.
+  RFC-0024 defines its governed request, fixed capability source, manifest-first durable
+  submission service, and typed worker connection. RFC-0025 defines exact bounded CLI
+  configuration, closed public worker composition, and shared cycle/drain/service
+  selection. RFC-0026 adds the strict complete-profile file and separate supported typed
+  submission command over RFC-0024; each RFC-0025 command consumes its admitted work
+  only when invoked separately. Capability disagreement still refuses before the model
+  call, and event publication recovery reuses exact durable state without reinvocation.
+  Typed spool publication/receive and provider routing remain unselected.
 - Future LLM-backed Planner input/output schema is not selected yet.

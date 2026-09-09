@@ -30,7 +30,10 @@ class SupportedSchedulerModelHardeningIntegrationTest {
         SubmittedModelWorkerEnvironment environment =
                 SubmittedModelWorkerEnvironment.deniedModelInvoke(
                         temporaryRoot.resolve("denied-model-invoke"));
-        environment.submit();
+        SubmittedModelWorkerEnvironment.CliExecution submission =
+                environment.supportedSubmit();
+        assertEquals(0, submission.exitCode(), submission.stderr());
+        assertTrue(submission.stdout().startsWith("status=ADMITTED\n"));
 
         Execution refusal = execute(
                 environment.schedulerArguments("scheduler-cycle"));
@@ -68,12 +71,59 @@ class SupportedSchedulerModelHardeningIntegrationTest {
     }
 
     @Test
+    void supportedCapabilityMismatchRemainsAPreCallRefusalWithoutEffects()
+            throws Exception {
+        SubmittedModelWorkerEnvironment environment =
+                SubmittedModelWorkerEnvironment.capabilityMismatch(
+                        temporaryRoot.resolve("capability-mismatch"));
+        SubmittedModelWorkerEnvironment.CliExecution submission =
+                environment.supportedSubmit();
+        assertEquals(0, submission.exitCode(), submission.stderr());
+        assertTrue(submission.stdout().startsWith("status=ADMITTED\n"));
+
+        Execution refusal = execute(
+                environment.schedulerArguments("scheduler-cycle"));
+
+        assertNotEquals(0, refusal.exitCode(), refusal.stdout() + refusal.stderr());
+        PendingFinalization pending =
+                environment.checkpointStore().findPending().orElseThrow();
+        assertEquals(Optional.empty(), pending.runRecordReference());
+        assertEquals(Optional.empty(), pending.replacementAgentRunId());
+        AgentRuntimeState runtime = environment.runtimeStore().resolve(pending.goalId());
+        assertEquals(RuntimeGoalStatus.ACTIVE, runtime.goal().status());
+        assertEquals(1, runtime.agentRuns().size());
+        RuntimeAgentRun run = runtime.agentRuns().get(0);
+        assertEquals(RuntimeAgentRunStatus.EXECUTING, run.status());
+        assertTrue(run.lease().isPresent());
+        assertTrue(run.resultMessage().isEmpty());
+        assertEquals(0, runtime.completedAttempts());
+        assertTrue(runtime.retryDecisions().isEmpty());
+        SchedulerQueueState queue = environment.queueState();
+        assertEquals(
+                Optional.of(environment.workItemId()),
+                queue.activeWork().map(queued -> queued.workItem().workItemId()));
+        assertTrue(queue.pendingWork().isEmpty());
+        assertTrue(queue.completedWorkItemIds().isEmpty());
+        assertTrue(queue.failedWorkItemIds().isEmpty());
+        assertTrue(environment.runRecordStore().references().isEmpty());
+        ExternalEffectLedgerState effects =
+                environment.effectStore().resolve(pending.goalId());
+        assertEquals(0L, effects.revision());
+        assertTrue(effects.records().isEmpty());
+        assertEquals(0L, environment.evidenceFileCount());
+        assertEquals(0L, environment.resultPointFileCount());
+    }
+
+    @Test
     void supportedModelRecoveryRepublishesTheExactRuntimeEventWithoutReinvocation()
             throws Exception {
         SubmittedModelWorkerEnvironment environment =
                 SubmittedModelWorkerEnvironment.verified(
                         temporaryRoot.resolve("event-recovery"));
-        environment.submit();
+        SubmittedModelWorkerEnvironment.CliExecution submission =
+                environment.supportedSubmit();
+        assertEquals(0, submission.exitCode(), submission.stderr());
+        assertTrue(submission.stdout().startsWith("status=ADMITTED\n"));
 
         Execution first = execute(environment.schedulerArgumentsWithRuntimeEvents(
                 "scheduler-cycle", 1));

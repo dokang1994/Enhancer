@@ -30,7 +30,10 @@ class SupportedSchedulerModelCompletionIntegrationTest {
         SubmittedModelWorkerEnvironment environment =
                 SubmittedModelWorkerEnvironment.verified(
                         temporaryRoot.resolve(command));
-        environment.submit();
+        SubmittedModelWorkerEnvironment.CliExecution submission =
+                environment.supportedSubmit();
+        assertEquals(0, submission.exitCode(), submission.stderr());
+        assertTrue(submission.stdout().startsWith("status=ADMITTED\n"));
 
         Execution execution = execute(environment.schedulerArguments(command));
 

@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-09-09 - Prove Supported Typed Submission Operator Path
+
+- Rebased the cycle, drain, and service ModelWork completion integrations on the real
+  `scheduler-submit-deterministic-fake-model-work` command; each separately invoked
+  Scheduler command reaches one verified Model RunRecord v2 terminal disposition.
+- Added supported-path capability-mismatch evidence for recoverable pre-call refusal
+  without Result, evidence, RunRecord, retry, disposition, or external effect, and
+  routed exact runtime-event recovery through the supported submission command without
+  duplicate invocation or durable state.
+- Fresh focused Java 17 verification passed 116 of 117 tests across 22 suites with one
+  existing conditional skip and zero failures or errors. Production Java, durable
+  schemas, typed spool ingress, providers, network, credentials, push, and merge remain
+  unchanged.
+
 ## 2026-09-09 - Prove Supported Typed Submission Replay And Recovery
 
 - Added supported CLI evidence for fresh-instance exact replay with repository context
