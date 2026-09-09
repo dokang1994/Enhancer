@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-09-09 - Prove Supported Typed Submission Replay And Recovery
+
+- Added supported CLI evidence for fresh-instance exact replay with repository context
+  removed and an equal profile read from a different contained path; manifest and queue
+  bytes and revisions remain unchanged.
+- Proved task, producer, target, digest, profile, capacity, and priority conflicts fail
+  without durable mutation, and manifest-only plus existing empty-queue prefixes recover
+  to one admission without duplicates.
+- Existing RFC-0024 production behavior satisfied the new tests without Java production
+  changes. Scheduler execution, typed spool ingress, schemas, providers, network,
+  credentials, push, and merge remain unchanged.
+
 ## 2026-09-09 - Connect Filesystem Typed ModelWork Submission
 
 - Added the narrow public `FileSystemDeterministicFakeModelSubmission` facade over the

@@ -421,11 +421,12 @@ it does not restate which commit published which increment.
   first service. Real-filesystem tests prove exact first use, replay without repository/
   clock recapture or durable rewrite, caller/derived/fixed-capability drift refusal, and
   recovery from manifest-only and empty-queue prefixes. Its downstream internal
-  integration is recorded below; it exposes no supported ingress.
+  integration is recorded below; RFC-0026 now reaches it through one supported public
+  filesystem facade while its request, service, and capability source remain closed.
 - Backoff or delayed retry, pause/resume, run-scoped or causation-graph cancellation,
   priority ordering, competing queue consumers, threading, journal persistence, remote
-  IPC adapters, and any supported ModelWork submission or receive, gateway, or provider
-  integration remain outside these verified contracts.
+  IPC adapters, and any additional ModelWork publication or receive, gateway, or
+  provider integration remain outside these verified contracts.
 
 ### Integrated
 
@@ -440,17 +441,25 @@ it does not restate which commit published which increment.
   interrupted pre-reference attempt, bounded rejected-result retry with two distinct
   AgentRun evidence/record identities, and terminal queue disposition. Complete v2
   points suppress reinvocation and outrank timeout; corrupt, cross-kind, foreign,
-  changed, symbolic, non-regular, or partial prefixes fail closed. No production typed
-  producer or receiver, supported typed ingress, schema change, provider, network,
-  credential, or spend path exists.
+  changed, symbolic, non-regular, or partial prefixes fail closed. RFC-0026 now supplies
+  a separate production typed producer; no typed receiver, schema change, provider,
+  network, credential, or spend path exists.
 
-- RFC-0024 governed deterministic-fake typed submission is Integrated only at the
-  test-owned internal boundary. One real-filesystem/JVM path connects the closed request
-  and fixed capability source through manifest-first durable admission to the existing
-  RFC-0023 worker, proving verified completion. A mismatched profile remains durably
-  unchanged and is refused before the fake call with no RunRecord, evidence, Result,
-  retry decision, or queue disposition while its active prefix stays recoverable. No
-  production composition or supported ingress constructs this producer.
+- RFC-0024 governed deterministic-fake typed submission is Integrated behind the
+  RFC-0026 public filesystem facade while its request, service, and fixed capability
+  source remain package-local. Supported real-filesystem CLI evidence proves first
+  admission, exact fresh-instance replay without context/clock recapture or durable
+  rewrite, caller-intent conflict refusal, and convergence from manifest-only and empty-
+  queue prefixes. The earlier internal worker connection still proves verified
+  completion and mismatch refusal without a fake call or durable execution effects.
+
+- RFC-0026 supported typed ModelWork submission input is Integrated at its direct CLI
+  boundary. One all-required command reads a strict contained complete-profile file
+  before store access, delegates exactly once through the public RFC-0024 filesystem
+  facade, and reports only the point-resolved retained admission outcome. Equal typed
+  profiles from different paths replay exactly; semantic drift fails without mutation.
+  Submission remains separate from RFC-0025 execution, so this capability is not yet
+  Operational.
 
 - RFC-0025 deterministic-fake model-aware Scheduler composition is Integrated at the
   existing supported cycle, drain, and service boundary. The explicit all-or-none model
@@ -459,9 +468,9 @@ it does not restate which commit published which increment.
   all three commands, pre-call denied-`model-invoke` refusal without evidence, record,
   Result, effect, or disposition, and capacity-one runtime-event publication recovery
   without another model invocation or changes to runtime, queue, event, evidence,
-  Result points, or RunRecords. The composition adds no supported typed ingress,
-  complete-profile input, provider, network, credential, spend, schema, event kind, or
-  background path and is not Operational.
+  Result points, or RunRecords. RFC-0026 now supplies supported complete-profile direct
+  submission separately; these commands add no submission, provider, network,
+  credential, spend, schema, event kind, or background path and are not Operational.
 
 - Delivery Gate 8 Result-side Scheduler runtime-event publication: the optional
   recorder already shared by `scheduler-cycle`, `scheduler-drain`, and
@@ -959,10 +968,11 @@ it does not restate which commit published which increment.
 - Project Brain will expose rebuildable Decision, Architecture, Dependency, Task, and Execution graph projections while Git and canonical documents remain authoritative.
 - Agent plugins, Skills, Tools, and workflows are distinct extension types with separate authority and provenance.
 - The Model Router target selects approved local or remote providers using capability, data classification, policy, cost, latency, context, and availability; sensitive code defaults local.
-- RFC-0026 accepts the next model boundary as a strict, explicit, project-contained
-  complete-profile file plus a separate supported deterministic ModelWork submission
-  command over RFC-0024. It selects direct admission before spool publication, changes
-  no capability source or durable schema, and remains specified but unimplemented.
+- RFC-0026 implements a strict, explicit, project-contained complete-profile file plus
+  a separate supported deterministic ModelWork submission command over RFC-0024. Direct
+  first use, exact replay, caller-intent refusal, and manifest-only/empty-queue recovery
+  are verified without changing the independent capability source or durable schemas;
+  the separate supported RFC-0025 execution path is the next integration proof.
 - Self-hosting development means applying Enhancer's governed workflow to its own repository; local or hybrid model execution is a separate provider-routing capability.
 
 ## Not Yet Integrated Or Operational

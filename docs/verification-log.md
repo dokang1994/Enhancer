@@ -7530,3 +7530,27 @@ Outcome:
 - No replay/recovery claim, Scheduler execution, typed spool publication/receive,
   durable schema, provider/network/credential path, push, merge, release, deployment,
   or other external effect was added or performed.
+
+## 2026-09-09 - RFC-0026 Increment 4 Supported Durable Replay And Recovery
+
+- The new supported replay/recovery tests started GREEN against the Increment 3 CLI
+  connection and existing RFC-0024 manifest-first producer. This was classified as
+  inherited verified behavior rather than a missing production change, so the increment
+  changed tests and owned documents only.
+- A fresh CLI instance rereads an equal typed profile from a different contained path
+  after all required repository documents are removed, then reuses the exact stored
+  occurrence time, snapshot, derived identities, manifest bytes, and queue revision.
+  The profile locator is therefore transient while typed equality remains replay intent.
+- Changed task, producer, target, expected-response digest, profile, capacity, or
+  priority under the retained submission UUID fails as usage without manifest or queue
+  mutation. Manifest-only recovery creates and admits the missing queue once; recovery
+  from an exact empty queue admits once; a further replay changes no revision or count.
+- Fresh synchronized Java 17 verification completed with `BUILD SUCCESSFUL` in 6
+  seconds. Generated JUnit XML contained 19 suites and 122 tests: 121 passed, one existing
+  conditional test skipped, and zero failed or errored. Coverage included the supported
+  CLI, facade, RFC-0024 request/service, generated submission, manifest v3 and queue v4
+  stores, strict profile/command parsing, legacy explicit/generated commands, and model/
+  runtime locality. `git diff --check` also passed.
+- No production Java, durable schema, Scheduler execution, typed spool publication/
+  receive, provider/network/credential path, push, merge, release, deployment, or other
+  external effect was added or performed.

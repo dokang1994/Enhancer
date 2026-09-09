@@ -1,5 +1,6 @@
 package com.enhancer.cli;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -8,8 +9,10 @@ import com.enhancer.bus.ModelWorkPayload;
 import com.enhancer.context.RequiredProjectDocument;
 import com.enhancer.model.ModelExecutionProfile;
 import com.enhancer.runtime.DurableSubmissionManifest;
+import com.enhancer.runtime.FileSystemSchedulerQueueStore;
 import com.enhancer.runtime.FileSystemSubmissionManifestStore;
 import com.enhancer.runtime.GeneratedSubmissionIdentities;
+import com.enhancer.runtime.SchedulerQueueState;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
@@ -139,10 +142,152 @@ class EnhancerCliDeterministicFakeModelSubmitIntegrationTest {
         assertFalse(Files.exists(layout.queueRoot()));
     }
 
+    @Test
+    void freshCliReplayUsesEqualProfileFromAnotherPathWithoutContextRecapture()
+            throws Exception {
+        Layout layout = layout("replay");
+        prepareGovernedProject(layout.projectRoot());
+        writeProfile(layout.projectRoot(), PROFILE);
+        assertEquals(0, execute(layout).exitCode());
+        byte[] manifestBytes = artifactBytes(
+                layout.submissionRoot(), ".submission-manifest");
+        byte[] queueBytes = artifactBytes(layout.queueRoot(), ".scheduler-queue");
+
+        Path alternate = layout.projectRoot().resolve("alternate/equal.profile");
+        Files.createDirectories(alternate.getParent());
+        Files.writeString(alternate, PROFILE, StandardCharsets.UTF_8);
+        for (RequiredProjectDocument document : RequiredProjectDocument.values()) {
+            Files.delete(layout.projectRoot().resolve(document.path()));
+        }
+
+        Execution replay = execute(replacing(
+                arguments(layout),
+                "--model-execution-profile-file",
+                "alternate/equal.profile"));
+
+        assertEquals(0, replay.exitCode());
+        assertTrue(replay.stdout().startsWith("status=REPLAYED\n"));
+        assertTrue(replay.stdout().contains("manifestCreated=false\n"));
+        assertTrue(replay.stdout().contains("queueCreated=false\n"));
+        assertTrue(replay.stdout().contains("workAdmitted=false\n"));
+        assertFalse(replay.stdout().contains("alternate/equal.profile"));
+        assertArrayEquals(manifestBytes,
+                artifactBytes(layout.submissionRoot(), ".submission-manifest"));
+        assertArrayEquals(queueBytes,
+                artifactBytes(layout.queueRoot(), ".scheduler-queue"));
+
+        for (String[] conflict : List.of(
+                replacing(arguments(layout), "--task-id", "changed-task"),
+                replacing(arguments(layout), "--producer", "changed-producer"),
+                replacing(arguments(layout), "--target-path", "changed.txt"),
+                replacing(arguments(layout), "--expected-response-sha256", "b".repeat(64)),
+                replacing(arguments(layout), "--max-work-items", "9"),
+                replacing(arguments(layout), "--priority", "NORMAL"))) {
+            Execution refused = execute(replacing(
+                    conflict,
+                    "--model-execution-profile-file",
+                    "alternate/equal.profile"));
+            assertEquals(2, refused.exitCode());
+            assertEquals("", refused.stdout());
+            assertArrayEquals(manifestBytes,
+                    artifactBytes(layout.submissionRoot(), ".submission-manifest"));
+            assertArrayEquals(queueBytes,
+                    artifactBytes(layout.queueRoot(), ".scheduler-queue"));
+        }
+
+        Files.writeString(alternate, PROFILE.replace(
+                "requiredCapability=different-requirement",
+                "requiredCapability=changed-requirement"), StandardCharsets.UTF_8);
+        Execution profileConflict = execute(replacing(
+                arguments(layout),
+                "--model-execution-profile-file",
+                "alternate/equal.profile"));
+        assertEquals(2, profileConflict.exitCode());
+        assertArrayEquals(manifestBytes,
+                artifactBytes(layout.submissionRoot(), ".submission-manifest"));
+        assertArrayEquals(queueBytes,
+                artifactBytes(layout.queueRoot(), ".scheduler-queue"));
+    }
+
+    @Test
+    void recoversManifestOnlyPrefixByCreatingAndAdmittingTheMissingQueue()
+            throws Exception {
+        Layout layout = layout("manifest-only");
+        prepareGovernedProject(layout.projectRoot());
+        writeProfile(layout.projectRoot(), PROFILE);
+        Files.createDirectories(layout.queueRoot().getParent());
+        Files.writeString(layout.queueRoot(), "queue-root-obstruction",
+                StandardCharsets.UTF_8);
+
+        assertEquals(70, execute(layout).exitCode());
+        byte[] manifestBytes = artifactBytes(
+                layout.submissionRoot(), ".submission-manifest");
+        Files.delete(layout.queueRoot());
+
+        Execution recovered = execute(layout);
+
+        assertEquals(0, recovered.exitCode());
+        assertTrue(recovered.stdout().startsWith("status=ADMITTED\n"));
+        assertTrue(recovered.stdout().contains("manifestCreated=false\n"));
+        assertTrue(recovered.stdout().contains("queueCreated=true\n"));
+        assertTrue(recovered.stdout().contains("workAdmitted=true\n"));
+        assertArrayEquals(manifestBytes,
+                artifactBytes(layout.submissionRoot(), ".submission-manifest"));
+        SchedulerQueueState queue = new FileSystemSchedulerQueueStore(
+                layout.queueRoot()).resolve(
+                        GeneratedSubmissionIdentities.derive(SUBMISSION_ID).queueId());
+        assertEquals(1, queue.pendingWork().size());
+        assertEquals(1, queue.revision());
+    }
+
+    @Test
+    void recoversManifestAndEmptyQueuePrefixWithoutDuplicateAdmission()
+            throws Exception {
+        Layout layout = layout("empty-queue");
+        prepareGovernedProject(layout.projectRoot());
+        writeProfile(layout.projectRoot(), PROFILE);
+        Files.createDirectories(layout.queueRoot().getParent());
+        Files.writeString(layout.queueRoot(), "queue-root-obstruction",
+                StandardCharsets.UTF_8);
+        assertEquals(70, execute(layout).exitCode());
+        byte[] manifestBytes = artifactBytes(
+                layout.submissionRoot(), ".submission-manifest");
+        Files.delete(layout.queueRoot());
+        String queueId = GeneratedSubmissionIdentities.derive(SUBMISSION_ID).queueId();
+        new FileSystemSchedulerQueueStore(layout.queueRoot()).create(
+                SchedulerQueueState.initial(queueId, 8));
+
+        Execution recovered = execute(layout);
+
+        assertEquals(0, recovered.exitCode());
+        assertTrue(recovered.stdout().startsWith("status=ADMITTED\n"));
+        assertTrue(recovered.stdout().contains("manifestCreated=false\n"));
+        assertTrue(recovered.stdout().contains("queueCreated=false\n"));
+        assertTrue(recovered.stdout().contains("workAdmitted=true\n"));
+        assertArrayEquals(manifestBytes,
+                artifactBytes(layout.submissionRoot(), ".submission-manifest"));
+        SchedulerQueueState queue = new FileSystemSchedulerQueueStore(
+                layout.queueRoot()).resolve(queueId);
+        assertEquals(1, queue.pendingWork().size());
+        assertEquals(1, queue.revision());
+
+        Execution replay = execute(layout);
+        assertEquals(0, replay.exitCode());
+        assertTrue(replay.stdout().startsWith("status=REPLAYED\n"));
+        assertEquals(1, new FileSystemSchedulerQueueStore(
+                layout.queueRoot()).resolve(queueId).pendingWork().size());
+        assertEquals(1, new FileSystemSchedulerQueueStore(
+                layout.queueRoot()).resolve(queueId).revision());
+    }
+
     private Execution execute(Layout layout) {
+        return execute(arguments(layout));
+    }
+
+    private Execution execute(String[] arguments) {
         ByteArrayOutputStream stdout = new ByteArrayOutputStream();
         ByteArrayOutputStream stderr = new ByteArrayOutputStream();
-        int exitCode = new EnhancerCli().execute(arguments(layout),
+        int exitCode = new EnhancerCli().execute(arguments,
                 new PrintStream(stdout, true, StandardCharsets.UTF_8),
                 new PrintStream(stderr, true, StandardCharsets.UTF_8));
         return new Execution(
@@ -166,6 +311,23 @@ class EnhancerCliDeterministicFakeModelSubmitIntegrationTest {
                 "--model-execution-profile-file", "profiles/model.profile",
                 "--priority", "EXPEDITED"
         };
+    }
+
+    private String[] replacing(String[] arguments, String option, String value) {
+        String[] result = arguments.clone();
+        int index = List.of(result).indexOf(option);
+        result[index + 1] = value;
+        return result;
+    }
+
+    private byte[] artifactBytes(Path root, String suffix) throws Exception {
+        try (var files = Files.list(root)) {
+            Path artifact = files.filter(path -> path.getFileName().toString()
+                            .endsWith(suffix))
+                    .findFirst()
+                    .orElseThrow();
+            return Files.readAllBytes(artifact);
+        }
     }
 
     private void prepareGovernedProject(Path projectRoot) throws Exception {

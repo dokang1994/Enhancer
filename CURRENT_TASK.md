@@ -176,7 +176,7 @@ Next Action: Commit the GREEN production connection and select Increment 4.
 
 ### Increment 4 - prove-supported-durable-submission-and-replay
 
-State: In Progress
+State: Completed
 Depends On: expose-and-connect-filesystem-submission-facade
 Scope: Exercise first admission, manifest/queue interruption recovery, exact fresh-
 instance replay, caller-intent conflicts, typed profile equality, and redacted errors
@@ -190,7 +190,7 @@ Next Action: Commit the GREEN durable integration and select Increment 5.
 
 ### Increment 5 - prove-supported-model-work-operator-path
 
-State: Pending
+State: In Progress
 Depends On: prove-supported-durable-submission-and-replay
 Scope: Invoke the real new submission command followed separately by supported RFC-0025
 cycle, drain, and service execution, including mismatch refusal and exact recovery.
@@ -216,5 +216,5 @@ Next Action: Await separate authority for the next Gate 9 or typed spool boundar
 
 ## Next
 
-Complete Increment 4 and commit the verified supported durable submission and replay
-increment.
+Complete Increment 5 and commit the verified supported typed submission-to-Scheduler
+operator-path increment.
