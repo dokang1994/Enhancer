@@ -1919,6 +1919,31 @@ before fake invocation or durable side effects; and exact capacity-one runtime-e
 publication recovery without another model invocation, durable record, Result, runtime,
 queue, or event revision. Supported typed ingress remains absent.
 
+RFC-0026 specifies but does not implement the first supported typed ModelWork input.
+The separate `scheduler-submit-deterministic-fake-model-work` command reads one
+explicitly named, project-contained, no-link, strict-UTF-8 profile file bounded to
+4,096 bytes. Exactly thirteen ordered LF-terminated `key=value` entries map without
+defaults or normalization to all ten RFC-0014 profile components. The transient
+profile path is not persisted; the exact typed value is already retained in the v2
+ModelWork envelope and manifest v3.
+
+The command maps caller-owned submission, task, producer, target, expected-response
+digest, profile, capacity, and explicit priority into the RFC-0024 producer. It accepts
+no capability, queue/correlation/logical-run/time identity, candidate, provider,
+endpoint, credential, or Scheduler process configuration. The closed repository-owned
+`deterministic-echo` capability remains independent and profile disagreement remains
+observable at fresh RFC-0016 admission. A narrow public facade composes the existing
+package-local producer with real filesystem stores, repository readers, snapshot
+collector, and system clock without exposing its injectable sources.
+
+Direct submission precedes spool publication because it reaches the existing durable
+admission path without a new transport point, manifest-authorized receiver,
+acknowledgement, or transport recovery contract. Submission and the explicitly model-
+configured RFC-0025 execution commands remain separate operator effects. Current
+message v2, manifest v3, queue v4, runtime v5, checkpoint v2, Model RunRecord v2, and
+runtime-event formats remain unchanged. Implementation, publication/receive, provider,
+network, credential, spend, and execution remain separately authorized.
+
 ## Agent Orchestration Contract
 
 ### Development-Time Adaptive Subagent Delegation
@@ -2109,6 +2134,7 @@ Major design areas are tracked in `docs/rfcs/`.
 - `RFC-0023`: Typed ModelWork Process Execution And Model RunRecord V2 Finalization
 - `RFC-0024`: Governed Deterministic ModelWork Submission
 - `RFC-0025`: Supported Deterministic-Fake Model-Aware Scheduler Composition
+- `RFC-0026`: Supported Typed ModelWork Submission Input
 
 ## First Architecture Slice
 
@@ -2417,6 +2443,7 @@ Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts bel
   closed public worker composition, and shared cycle/drain/service selection are
   Integrated. Test-seeded durable intent proves typed Model RunRecord v2 completion
   through every supported command, no-effect denied-Tool refusal, and exact runtime-
-  event publication recovery without reinvocation. Supported typed ingress and provider
-  routing remain unselected.
+  event publication recovery without reinvocation. RFC-0026 now specifies but does not
+  implement the strict complete-profile file and separate supported typed submission
+  command. Typed spool publication/receive and provider routing remain unselected.
 - Future LLM-backed Planner input/output schema is not selected yet.

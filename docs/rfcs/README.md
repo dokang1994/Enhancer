@@ -31,6 +31,7 @@ RFCs preserve long-term architecture intent and make references stable across Ch
 - `RFC-0023`: Typed ModelWork Process Execution And Model RunRecord V2 Finalization
 - `RFC-0024`: Governed Deterministic ModelWork Submission
 - `RFC-0025`: Supported Deterministic-Fake Model-Aware Scheduler Composition
+- `RFC-0026`: Supported Typed ModelWork Submission Input
 
 ## Status Values
 

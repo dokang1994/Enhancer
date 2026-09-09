@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-09-09 - Specify Supported Typed ModelWork Submission Input
+
+- Accepted RFC-0026 for one separate
+  `scheduler-submit-deterministic-fake-model-work` command over the existing RFC-0024
+  producer, selecting direct durable admission before spool publication or receive.
+- Defined one explicit project-contained, no-link, strict-UTF-8 profile file bounded to
+  4,096 bytes whose thirteen ordered entries map without defaults to every RFC-0014
+  profile component while capability remains independently repository-owned.
+- Preserved manifest-first replay, separate RFC-0025 execution, legacy commands, and
+  current durable schemas. Implementation, actual submission/execution, typed
+  publication/receive, providers, network, credentials, spend, push, and merge remain
+  separately authorized.
+
 ## 2026-09-08 - Complete RFC-0025 Scheduler Composition Implementation
 
 - Completed all six RED-first increments for bounded Scheduler configuration, closed

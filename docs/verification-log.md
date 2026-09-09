@@ -7402,3 +7402,29 @@ Outcome:
   ingress, provider/network/credential authority, schema/event change, push, merge,
   release, deployment, permission change, destructive cleanup, or other external effect
   was added or performed.
+
+## 2026-09-09 - Supported Typed ModelWork Submission Input Specification
+
+- Recovery began from an empty checkpoint, a clean worktree, local `main` at
+  `fc9f3bb`, and the completed RFC-0025 implementation task. The user's continuation
+  selected the recorded next specification boundary; no remote state was read or
+  changed.
+- RFC-0026 and its accepted decision select one separate
+  `scheduler-submit-deterministic-fake-model-work` command over the existing RFC-0024
+  producer. Its explicit project-contained no-link profile file is bounded to 4,096
+  bytes and maps exactly thirteen ordered LF-terminated entries to every RFC-0014
+  component without defaults, normalization, registry, or ambient lookup.
+- Three bounded read-only development reviews independently covered the complete
+  profile contract, direct-submission surface, and schema/authority compatibility. The
+  primary Agent reconciled their recommendations against the RFCs and source. Their
+  reports were not treated as verification evidence.
+- Fresh focused Java 17 governance completed with `BUILD SUCCESSFUL` in 7 seconds.
+  Generated JUnit XML contained 11 suites and 51 tests: 50 passed, one existing
+  conditional test skipped, and zero failed or errored. The suites covered decision and
+  document ownership, dynamic workflow, Context Reader ordering, approved-task and
+  revision/justification rules, canonical planning, the profile value, model locality,
+  and runtime package boundaries. `git diff --check` passed.
+- This increment changes documentation only. No Java/test source, actual submission or
+  execution, typed spool publication/receive, caller capability, provider/network/
+  credential path, durable schema, runtime event, push, merge, or other external effect
+  was added or performed.

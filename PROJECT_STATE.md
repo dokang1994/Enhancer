@@ -959,9 +959,10 @@ it does not restate which commit published which increment.
 - Project Brain will expose rebuildable Decision, Architecture, Dependency, Task, and Execution graph projections while Git and canonical documents remain authoritative.
 - Agent plugins, Skills, Tools, and workflows are distinct extension types with separate authority and provenance.
 - The Model Router target selects approved local or remote providers using capability, data classification, policy, cost, latency, context, and availability; sensitive code defaults local.
-- The next model boundary must separately define an interface-owned complete-profile
-  input and a supported typed submission or publisher contract before production intent
-  can reach the integrated RFC-0025 composition.
+- RFC-0026 accepts the next model boundary as a strict, explicit, project-contained
+  complete-profile file plus a separate supported deterministic ModelWork submission
+  command over RFC-0024. It selects direct admission before spool publication, changes
+  no capability source or durable schema, and remains specified but unimplemented.
 - Self-hosting development means applying Enhancer's governed workflow to its own repository; local or hybrid model execution is a separate provider-routing capability.
 
 ## Not Yet Integrated Or Operational

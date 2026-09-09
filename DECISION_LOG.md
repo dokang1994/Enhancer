@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-09-09 into supported typed ModelWork submission specification
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-09-09-specify-supported-typed-model-work-submission.md)
+
 ### User continuation request on 2026-09-08 into RFC-0025 supported model-aware Scheduler composition implementation
 
 Status: Accepted Decision

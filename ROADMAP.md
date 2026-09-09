@@ -943,6 +943,10 @@ Scope:
   process configuration, unchanged legacy/payload-kind recovery, denied-Tool pre-call
   refusal, and exact optional runtime-event publication recovery before any supported
   typed ingress;
+- an accepted but unimplemented separate typed submission command whose explicit
+  project-contained strict profile file maps all RFC-0014 components into the existing
+  RFC-0024 producer without caller capability, spool publication/receive, implicit
+  execution, or durable schema change;
 - Model Router with deterministic fake plus explicitly selected provider adapters;
 - timeout, cancellation, token, context, cost, redaction, and response-validation budgets;
 - versioned per-model quality evaluation, policy-scoped fallback and response caching, prompt-injection resistance, source attribution, and visible uncertainty;
@@ -1256,6 +1260,7 @@ Status: Accepted
 - RFC-0023: Typed ModelWork Process Execution And Model RunRecord V2 Finalization
 - RFC-0024: Governed Deterministic ModelWork Submission
 - RFC-0025: Supported Deterministic-Fake Model-Aware Scheduler Composition
+- RFC-0026: Supported Typed ModelWork Submission Input
 
 RFC acceptance does not imply Contract Verified, Integrated, Operational, or Released capability maturity.
 
