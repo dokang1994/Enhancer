@@ -7581,3 +7581,27 @@ Outcome:
 - No production Java, durable schema, wrapper, typed spool publication/receive,
   provider/network/credential path, push, merge, release, deployment, or other external
   effect was added or performed.
+
+## 2026-09-09 - RFC-0026 Increment 6 Full Verification And Closure
+
+- Added README usage and recovery guidance for the exact thirteen-line profile, the
+  all-required supported typed-submission command, its separately invoked model-aware
+  Scheduler configuration, manifest-first replay, incomplete durable-prefix recovery,
+  semantic conflicts, and capability mismatch.
+- Fresh full README-owned Java 17 verification used
+  `powershell -ExecutionPolicy Bypass -File .\scripts\gradle.ps1 test` and completed
+  with `BUILD SUCCESSFUL` in 1 minute 31 seconds. Generated JUnit XML contained 216
+  suites and 1,187 tests: 1,172 passed, 15 existing conditional tests skipped, and zero
+  failed or errored. The run included production/test compilation, every RFC-0026 path,
+  legacy compatibility, all durable formats and recovery paths, and all Markdown-
+  sensitive architecture and governance tests.
+- `PROJECT_STATE.md` already owned the Operational direct typed-submission-to-Scheduler
+  sub-path fact from Increment 5. `ROADMAP.md` now reflects supported direct typed input
+  while retaining typed spool ingress and broader Gate 9 capabilities as future work.
+  `ARCHITECTURE.md`, its compact mirror, and decision indexes required no closure change;
+  `SESSION_HANDOFF.md` remains unchanged because its host-only Java/checkpoint facts are
+  still current and no new session-only fact exists.
+- All six Dynamic Workflow increments and the parent Active Task are completed. No
+  typed spool publication/receive, provider/network/credential path, durable schema,
+  background execution, push, merge, release, deployment, permission change,
+  destructive cleanup, or other external effect was added or performed.

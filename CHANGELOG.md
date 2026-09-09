@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-09-09 - Complete RFC-0026 Submission Input Implementation
+
+- Completed all six RED-first increments for the strict complete-profile reader, exact
+  typed-submission CLI, narrow RFC-0024 filesystem facade, durable replay/recovery, and
+  separate RFC-0025 cycle/drain/service operator path.
+- Added README-owned usage and recovery guidance for the complete profile, explicit
+  submission, separate model-aware execution configuration, exact replay, interrupted
+  durable prefixes, semantic conflicts, and capability mismatch.
+- Fresh full Java 17 verification passed 1,172 of 1,187 tests across 216 suites with 15
+  existing conditional skips and zero failures or errors. Typed spool ingress,
+  providers, network, credentials, schemas, background execution, push, merge, release,
+  and deployment remain separately authorized and were not performed.
+
 ## 2026-09-09 - Prove Supported Typed Submission Operator Path
 
 - Rebased the cycle, drain, and service ModelWork completion integrations on the real

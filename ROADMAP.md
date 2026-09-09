@@ -928,22 +928,23 @@ Scope:
   boundary before any actual-request budget or invocation seam;
 - an accepted closed deterministic-fake exact-request budget and same-request/same-
   policy/same-candidate-gateway invocation contract before any production caller;
-- an internally Integrated deterministic-fake typed ModelWork process-execution path
+- a deterministic-fake typed ModelWork process-execution path
   covering same-policy Tool/evidence, independent response verification, v2-only
   publication, complete parent binding, finalization, bounded replacement retry, and
-  crash recovery, selected by the supported Scheduler model-aware branch but reachable
-  from typed intent only through the test-owned RFC-0024 producer path without a
-  receiver or supported typed ingress;
-- an internally Integrated governed deterministic-fake typed submission source with one
+  crash recovery, selected by the supported Scheduler model-aware branch and reached
+  from the separate supported RFC-0026 direct typed-submission command without a spool
+  receiver or combined submission/execution wrapper;
+- a governed deterministic-fake typed submission source with one
   complete profile, an independent closed repository-owned `deterministic-echo`
-  capability source, manifest-first exact replay, durable admission, verified internal
-  completion, and typed pre-call refusal; all supported ingress remains later work;
-- an Integrated optional model-aware composition for the existing foreground Scheduler
+  capability source, strict supported profile input, manifest-first exact replay,
+  durable admission, verified supported cycle/drain/service completion, and typed
+  pre-call refusal; typed spool ingress remains later work;
+- an optional model-aware composition for the existing foreground Scheduler
   cycle, drain, and service commands, with a closed fake selector, explicit bounded
   process configuration, unchanged legacy/payload-kind recovery, denied-Tool pre-call
-  refusal, and exact optional runtime-event publication recovery before any supported
-  typed ingress;
-- an accepted but unimplemented separate typed submission command whose explicit
+  refusal, and exact optional runtime-event publication recovery after separate direct
+  typed submission;
+- a separate supported typed submission command whose explicit
   project-contained strict profile file maps all RFC-0014 components into the existing
   RFC-0024 producer without caller capability, spool publication/receive, implicit
   execution, or durable schema change;

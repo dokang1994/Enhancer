@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -204,7 +204,7 @@ Next Action: Commit the GREEN operator-path integration and select Increment 6.
 
 ### Increment 6 - verify-and-close-rfc-0026-implementation
 
-State: In Progress
+State: Completed
 Depends On: prove-supported-model-work-operator-path
 Scope: Run the full Markdown-sensitive Java 17 regression, synchronize capability state
 and owned documents, close the task/handoff, and commit closure.
@@ -216,5 +216,5 @@ Next Action: Await separate authority for the next Gate 9 or typed spool boundar
 
 ## Next
 
-Complete Increment 6 with the full Markdown-sensitive regression, final owned-document
-synchronization, local closure commit, and stable checkpoint reconciliation.
+Await separate user authority for the next Gate 9 or typed spool boundary. No further
+implementation, push, merge, release, or deployment is authorized by this completed task.

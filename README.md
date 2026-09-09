@@ -136,6 +136,70 @@ submission. Reusing a message identity with changed content or naming a task tha
 match the active repository task exits `2` without admitting changed work. The command
 does not execute the work; invoke `scheduler-cycle` separately.
 
+## Submit Deterministic-Fake Typed ModelWork
+
+`scheduler-submit-deterministic-fake-model-work` is the supported typed ModelWork input.
+It derives the queue, correlation, and logical-run identities from one retained canonical
+submission UUID, fixes the producer capability independently to `deterministic-echo`, and
+requires an explicit complete execution profile stored below the governed project root.
+For the runnable deterministic-fake reference path, create a no-link UTF-8 file such as
+`profiles/deterministic-fake.profile` with exactly these LF-terminated lines:
+
+```text
+schemaVersion=model-execution-profile-v1
+requiredCapability=deterministic-echo
+modelClass=deterministic-fake
+localityRequirement=LOCAL_ONLY
+reasoningRequirement=MINIMAL
+minimumContextTokens=40000
+tokenBudget.maxInputTokens=20000
+tokenBudget.maxOutputTokens=20000
+tokenBudget.maxTotalTokens=40000
+costBudget.currencyCode=USD
+costBudget.maxMicrounits=0
+maximumInvocationTimeMillis=1000
+dataClassification=PUBLIC
+```
+
+Then invoke the submission command separately from execution:
+
+```powershell
+.\scripts\gradle.ps1 run --args="scheduler-submit-deterministic-fake-model-work --project-root C:\Enhancer --submission-root C:\Enhancer\.enhancer\submissions --queue-root C:\Enhancer\.enhancer\queue --task-id <active-task-id> --submission-id <canonical-submission-uuid> --max-work-items 256 --producer local-operator --target-path prompts/request.txt --expected-response-sha256 <lowercase-deterministic-response-sha256> --model-execution-profile-file profiles/deterministic-fake.profile --priority NORMAL"
+```
+
+Every option is required. The profile locator must be relative, contained by the project,
+and no more than 4,096 bytes when read; malformed UTF-8, different ordering, defaults,
+extra lines, CR line endings, links, traversal, or noncanonical numbers exit `2` before
+submission-store access. The bounded result is `ADMITTED` or `REPLAYED` and prints the
+derived `queueId` plus retained identities, occurrence time, priority, revisions, prefix
+flags, and Workspace snapshot identity. It does not print the profile, capability,
+target, digest, prompt, or response and never executes the work.
+
+Pass the printed `queueId` to a separate `scheduler-cycle`, `scheduler-drain`, or
+`scheduler-service` command using the normal execution roots and append this complete
+model-execution group:
+
+```text
+--model-execution deterministic-fake-v2
+--model-gateway-timeout-millis 1000
+--model-maximum-response-characters 20000
+--model-maximum-read-bytes 65536
+--model-tool-timeout-millis 2000
+```
+
+The existing `--process-timeout-millis` must be greater than the Tool timeout. Preserve
+the submission UUID, semantic inputs, profile value, and submission/queue roots. If the
+submission result is uncertain, reinvoke the exact command: a retained manifest is
+resolved before repository context or the clock, an equivalent profile may come from a
+different contained path, incomplete durable prefixes converge to one admission, and an
+exact completed replay returns `REPLAYED` without changing bytes or queue revision.
+Changed task, producer, target, expected-response digest, profile, capacity, or priority
+under the same submission UUID exits `2` without durable mutation. Preserve every
+execution root and reinvoke the same execution command after an interruption; do not
+resubmit work to repair execution. A profile capability other than
+`deterministic-echo` remains an intentional pre-call refusal rather than being repaired
+from the fixed producer capability.
+
 ## Inspect Durable Scheduler Queue Status
 
 `scheduler-status` reads one persisted queue snapshot without recovering or changing it:
