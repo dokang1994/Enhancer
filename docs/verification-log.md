@@ -7428,3 +7428,27 @@ Outcome:
   execution, typed spool publication/receive, caller capability, provider/network/
   credential path, durable schema, runtime event, push, merge, or other external effect
   was added or performed.
+
+## 2026-09-09 - RFC-0026 Specification Closure
+
+- Increment 1 was committed locally as `47b528a` (`Specify supported typed ModelWork
+  submission`) after fresh focused governance passed 50 of 51 tests across 11 suites,
+  with one existing conditional skip and zero failures or errors. No push or merge
+  occurred.
+- Fresh full verification used the README-owned
+  `powershell -ExecutionPolicy Bypass -File .\scripts\gradle.ps1 test` command with the
+  repository Java 17 toolchain and completed with `BUILD SUCCESSFUL` in 2 minutes 30
+  seconds. Generated JUnit XML contained 212 suites and 1,160 tests: 1,147 passed, 13
+  existing conditional tests skipped, and zero failed or errored.
+- The full regression covered production code, legacy and typed durable formats,
+  RFC-0023 through RFC-0025 integration, the RFC-0026 documentation contract, and every
+  Markdown-sensitive architecture and governance check. `git diff --check` passed and
+  the worktree was clean before closure.
+- Both workflow increments and the parent specification task are ready to close. Final
+  post-closure governance, diff/commit/status inspection, the ordinary local closure
+  commit, and stable checkpoint clearing follow this entry.
+- `SESSION_HANDOFF.md` remains unchanged because its Java 17 and checkpoint invocation
+  facts are still current and no new host-only fact was introduced. No Java/test source,
+  actual submission or execution, typed ingress, provider/network/credential boundary,
+  schema/event change, push, merge, release, deployment, permission change,
+  destructive cleanup, or other external effect was added or performed.

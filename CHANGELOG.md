@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-09-09 - Complete RFC-0026 Submission Input Specification
+
+- Completed both RFC-0026 specification increments and synchronized its accepted
+  decision, strict complete-profile file, direct typed-submission boundary,
+  architecture, state, roadmap, indexes, task, and verification record.
+- Fresh README-owned Java 17 verification passed 1,147 of 1,160 tests across 212 suites,
+  with 13 existing conditional skips and zero failures or errors.
+- The specification is documentation-only. Java implementation, actual typed
+  submission/execution, spool publication/receive, provider/network/credential
+  authority, durable schema changes, push, and merge remain separately authorized.
+
 ## 2026-09-09 - Specify Supported Typed ModelWork Submission Input
 
 - Accepted RFC-0026 for one separate

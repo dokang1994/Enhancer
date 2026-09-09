@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -148,7 +148,7 @@ Next Action: Commit the verified documentation increment and select Increment 2.
 
 ### Increment 2 - verify-and-close-supported-model-work-submission-specification
 
-State: In Progress
+State: Completed
 Depends On: specify-supported-model-work-submission-contract
 Scope: Run the full Markdown-sensitive Java 17 regression, record fresh evidence, close
 the task/handoff, and commit the verified specification closure.
@@ -160,5 +160,4 @@ Next Action: Await separate authority to implement RFC-0026 RED-first.
 
 ## Next
 
-Commit Increment 1, run the full Increment 2 regression, and close the verified
-RFC-0026 specification.
+Await separate user authority to implement RFC-0026 RED-first.
