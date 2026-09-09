@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-09-09 - Add Typed ModelWork Submission CLI Contract
+
+- Added the exact all-required
+  `scheduler-submit-deterministic-fake-model-work` parser contract and immutable CLI
+  value, including explicit priority and the distinct expected-response digest name.
+- Preserved the project-relative profile locator and rejected malformed capacity,
+  identity, digest, priority, rooted/traversing path, duplicate, unknown, derived,
+  capability, provider, credential, network, and other forbidden inputs.
+- Existing submission command option sets, priority defaults, and execution behavior
+  remain unchanged; the new command is not connected to submission until Increment 3.
+
 ## 2026-09-09 - Add Strict Model Execution Profile Reader
 
 - Added a project-contained, final-link-rejecting profile reader for the exact thirteen-

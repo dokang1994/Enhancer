@@ -150,7 +150,7 @@ Next Action: Commit the GREEN reader increment and select Increment 2.
 
 ### Increment 2 - add-typed-model-submission-cli-contract
 
-State: In Progress
+State: Completed
 Depends On: add-strict-model-execution-profile-reader
 Scope: Add RED-first immutable command value and exact parser dispatch/options without
 connecting submission behavior.
@@ -163,7 +163,7 @@ Next Action: Commit the GREEN CLI contract increment and select Increment 3.
 
 ### Increment 3 - expose-and-connect-filesystem-submission-facade
 
-State: Pending
+State: In Progress
 Depends On: add-typed-model-submission-cli-contract
 Scope: Add the narrow public filesystem facade over RFC-0024 and connect the new CLI
 execution/output path without changing existing commands.
@@ -216,4 +216,5 @@ Next Action: Await separate authority for the next Gate 9 or typed spool boundar
 
 ## Next
 
-Complete Increment 2 and commit the verified typed-submission CLI contract increment.
+Complete Increment 3 and commit the verified filesystem submission facade and CLI
+connection increment.

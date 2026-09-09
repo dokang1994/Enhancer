@@ -29,6 +29,8 @@ import java.util.regex.Pattern;
 
 final class CliArguments {
     private static final Pattern SHA_256 = Pattern.compile("[0-9a-f]{64}");
+    private static final Pattern CANONICAL_POSITIVE_DECIMAL =
+            Pattern.compile("[1-9][0-9]*");
     private static final Set<String> RUN_OPTIONS = Set.of(
             "project-root",
             "task-id",
@@ -251,6 +253,19 @@ final class CliArguments {
             "expected-sha256");
     private static final Set<String> SCHEDULER_SUBMIT_GENERATED_OPTIONAL_OPTIONS =
             Set.of("priority");
+    private static final Set<String>
+            SCHEDULER_SUBMIT_DETERMINISTIC_FAKE_MODEL_WORK_OPTIONS = Set.of(
+                    "project-root",
+                    "submission-root",
+                    "queue-root",
+                    "task-id",
+                    "submission-id",
+                    "max-work-items",
+                    "producer",
+                    "target-path",
+                    "expected-response-sha256",
+                    "model-execution-profile-file",
+                    "priority");
     private static final Set<String> CHECKPOINT_START_OPTIONS = Set.of(
             "project-root", "step", "next-action");
     private static final Set<String> CHECKPOINT_RECORD_OPTIONS = Set.of(
@@ -270,6 +285,7 @@ final class CliArguments {
                     "command is required: run, model-invoke, replay, run-record-list, "
                     + "runtime-event-read, runtime-event-acknowledge, scheduler-submit, "
                     + "scheduler-submit-generated, scheduler-status, "
+                            + "scheduler-submit-deterministic-fake-model-work, "
                             + "scheduler-recovery-status, "
                             + "scheduler-external-effect-status, "
                             + "scheduler-invocation-status, scheduler-cycle, "
@@ -386,6 +402,10 @@ final class CliArguments {
                             arguments,
                             SCHEDULER_SUBMIT_GENERATED_OPTIONS,
                             SCHEDULER_SUBMIT_GENERATED_OPTIONAL_OPTIONS));
+            case "scheduler-submit-deterministic-fake-model-work" ->
+                    parseDeterministicFakeModelSubmit(parseOptions(
+                            arguments,
+                            SCHEDULER_SUBMIT_DETERMINISTIC_FAKE_MODEL_WORK_OPTIONS));
             case "checkpoint-start" -> parseCheckpointStart(arguments);
             case "checkpoint-record" -> parseCheckpointRecord(arguments);
             case "checkpoint-show" -> new CheckpointShowCliCommand(
@@ -1073,6 +1093,35 @@ final class CliArguments {
                 priority(options.get("priority")));
     }
 
+    private static DeterministicFakeModelSubmitCliCommand
+            parseDeterministicFakeModelSubmit(Map<String, String> options) {
+        long maxWorkItems = canonicalPositiveLong(
+                options.get("max-work-items"), "max-work-items");
+        if (maxWorkItems > SingleWorkerSchedulerQueue.MAX_WORK_ITEMS) {
+            throw new CliUsageException(
+                    "max-work-items must not exceed "
+                            + SingleWorkerSchedulerQueue.MAX_WORK_ITEMS);
+        }
+        String digest = options.get("expected-response-sha256");
+        if (!SHA_256.matcher(digest).matches()) {
+            throw new CliUsageException(
+                    "expected-response-sha256 must be 64 lowercase hexadecimal characters");
+        }
+        return new DeterministicFakeModelSubmitCliCommand(
+                path(options.get("project-root"), "project-root"),
+                path(options.get("submission-root"), "submission-root"),
+                path(options.get("queue-root"), "queue-root"),
+                nonBlank(options.get("task-id"), "task-id"),
+                canonicalUuid(options.get("submission-id"), "submission-id"),
+                (int) maxWorkItems,
+                nonBlank(options.get("producer"), "producer"),
+                nonBlank(options.get("target-path"), "target-path"),
+                digest,
+                relativePath(options.get("model-execution-profile-file"),
+                        "model-execution-profile-file"),
+                priority(options.get("priority")));
+    }
+
     private static Map<String, String> parseOptions(
             String[] arguments,
             Set<String> expectedOptions) {
@@ -1171,6 +1220,19 @@ final class CliArguments {
         }
     }
 
+    private static long canonicalPositiveLong(String value, String name) {
+        String candidate = nonBlank(value, name);
+        if (!CANONICAL_POSITIVE_DECIMAL.matcher(candidate).matches()) {
+            throw new CliUsageException(name + " must be a canonical positive integer");
+        }
+        try {
+            return Long.parseLong(candidate);
+        } catch (NumberFormatException exception) {
+            throw new CliUsageException(
+                    name + " must be a canonical positive integer", exception);
+        }
+    }
+
     private static Duration boundedDuration(
             String value,
             String name,
@@ -1213,6 +1275,23 @@ final class CliArguments {
     private static Path path(String value, String name) {
         try {
             return Path.of(nonBlank(value, name)).toAbsolutePath().normalize();
+        } catch (InvalidPathException exception) {
+            throw new CliUsageException(name + " is not a valid path", exception);
+        }
+    }
+
+    private static Path relativePath(String value, String name) {
+        try {
+            Path parsed = Path.of(nonBlank(value, name));
+            if (parsed.isAbsolute() || parsed.getRoot() != null) {
+                throw new CliUsageException(name + " must be a relative path");
+            }
+            for (Path element : parsed) {
+                if (element.toString().equals("..")) {
+                    throw new CliUsageException(name + " must not contain traversal");
+                }
+            }
+            return parsed;
         } catch (InvalidPathException exception) {
             throw new CliUsageException(name + " is not a valid path", exception);
         }

@@ -7474,3 +7474,27 @@ Outcome:
 - No store or queue was accessed by the reader tests. No CLI submission, durable format,
   Scheduler execution, capability comparison, provider/network/credential path, push,
   merge, release, deployment, or other external effect was added or performed.
+
+## 2026-09-09 - RFC-0026 Increment 2 Typed Submission CLI Contract
+
+- RED began with eight Java compilation errors for the deliberately absent
+  `DeterministicFakeModelSubmitCliCommand`; no existing CLI command or production type
+  failed.
+- The minimum production increment added the exact eleven-component package-local CLI
+  value and all-required parser branch. Priority cannot default, capability and derived
+  identities have no input, the profile locator stays project-relative, and the new
+  expected-response digest spelling does not widen either legacy submission command.
+- Fresh focused Java 17 verification completed with `BUILD SUCCESSFUL` in 3 seconds.
+  Generated JUnit XML contained 9 suites and 64 tests, all passed with zero skipped,
+  failed, or errored. The suites covered the new command value/parser, existing CLI
+  arguments and legacy priority defaults, model locality/source boundaries, runtime
+  package boundaries, decision/document ownership, dynamic workflow, and active-task
+  governance. `git diff --check` also passed.
+- Two bounded read-only development reviews independently checked the exact field and
+  option surface, profile locator semantics, legacy helper isolation, and Increment 3
+  dispatch risk. The primary Agent reconciled the reports against the RFC and fresh
+  source/tests; the reports were not treated as verification.
+- This increment parses but does not execute the new command. No submission store,
+  queue, profile content, Scheduler execution, durable schema, provider/network/
+  credential path, push, merge, release, deployment, or other external effect was
+  added or performed.

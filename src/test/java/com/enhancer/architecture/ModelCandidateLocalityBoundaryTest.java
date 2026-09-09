@@ -358,6 +358,31 @@ class ModelCandidateLocalityBoundaryTest {
         }
     }
 
+    @Test
+    void deterministicFakeModelSubmitCliValueCarriesNoAuthorityOrRuntimeComposition()
+            throws IOException {
+        String source = read(findProductionSource(
+                "DeterministicFakeModelSubmitCliCommand.java"));
+        assertTrue(source.contains("record DeterministicFakeModelSubmitCliCommand"));
+        for (String forbidden : List.of(
+                "requiredCapability",
+                "deterministic-echo",
+                "ModelExecutionProfile",
+                "DeterministicFakeModelSubmissionRequest",
+                "DeterministicFakeModelSubmissionService",
+                "DeterministicFakeModelSubmissionCapabilitySource",
+                "ModelGateway",
+                "ModelCredentialSupplier",
+                "HttpMessageApiModelProviderAdapter",
+                "java.net",
+                "ProcessBuilder",
+                "System.getenv",
+                "System.getProperty")) {
+            assertFalse(source.contains(forbidden),
+                    () -> "typed submit CLI value must not reference " + forbidden);
+        }
+    }
+
     private static String readModelSource(String fileName) throws IOException {
         return Files.readString(
                 PRODUCTION_ROOT.resolve("com/enhancer/model").resolve(fileName),
