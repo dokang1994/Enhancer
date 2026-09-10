@@ -7666,3 +7666,26 @@ Outcome:
   formats remain unchanged. No Java/test source, actual publication/receive/execution,
   provider/network/credential/spend path, background service, push, merge, release, or
   other external effect was added or performed.
+
+## 2026-09-10 - RFC-0027 Specification Closure
+
+- Increment 1 was committed locally as `c729a24` (`Specify manifest-authorized typed
+  ModelWork spool ingress`) after the synchronized focused verification passed 57
+  tests across 11 suites with two existing conditional skips and zero failures or
+  errors. No push or merge occurred.
+- Fresh full verification used the README-owned `.\scripts\gradle.ps1 test` command
+  with the repository Java 17 toolchain and completed with `BUILD SUCCESSFUL` in
+  1 minute 42 seconds. Generated JUnit XML contained 216 suites and 1,187 tests: 1,172
+  passed, 15 existing conditional tests skipped, and zero failed or errored.
+- The full regression covered production and test compilation, legacy and typed
+  durable formats, RFC-0023 through RFC-0026 integration, the RFC-0027 documentation
+  contract, and every Markdown-sensitive architecture and governance check.
+- Both workflow increments and the parent specification task are complete.
+  `SESSION_HANDOFF.md` remains unchanged because its Java 17 and checkpoint facts are
+  still current and no new host-only fact was introduced. Final post-closure
+  governance, `git diff --check`, local closure commit, status inspection, and stable
+  checkpoint clearing follow this entry.
+- No Java/test source, actual typed spool publication/receive/execution,
+  provider/network/credential/spend path, schema/event change, background service,
+  push, merge, release, deployment, permission change, destructive cleanup, or other
+  external effect was added or performed.

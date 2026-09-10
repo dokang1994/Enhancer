@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-09-10 - Complete RFC-0027 Typed Spool Ingress Specification
+
+- Completed both documentation increments and synchronized the accepted manifest-first
+  publisher, four-locator receiver, bounded at-least-once recovery, current-format
+  sufficiency, architecture, state, Roadmap, task, decision, and RFC indexes.
+- Fresh full Java 17 verification passed 1,172 of 1,187 tests across 216 suites with 15
+  existing conditional skips and zero failures or errors.
+- Java/test implementation, actual publication/receive/execution, providers, network,
+  credentials, background work, push, merge, release, and deployment remain separately
+  authorized and were not performed.
+
 ## 2026-09-10 - Specify Manifest-Authorized Typed ModelWork Spool Ingress
 
 - Accepted RFC-0027 for separate deterministic-fake typed spool publisher and receiver
