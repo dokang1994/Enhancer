@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -105,7 +105,7 @@ Next Action: Complete Increment 1, record delivery evidence, and select Incremen
 
 ### Increment 2 - close-delivery-task
 
-State: In Progress
+State: Completed
 Depends On: deliver-completed-commits
 Scope: Append delivery verification, synchronize task and Changelog state, commit the
 closure, push that ordinary closure commit to `origin/main`, verify exact tip equality,
@@ -119,5 +119,5 @@ work.
 
 ## Next
 
-Verify and commit the delivery record, close this task, push the closure commit without
-force, verify exact local/remote `main` equality, and clear the stable checkpoint.
+Await separate authority for any release, tag, deployment, branch deletion, or new
+product work. The completed delivery task grants no continuing external authority.
