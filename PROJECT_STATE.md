@@ -417,10 +417,12 @@ it does not restate which commit published which increment.
 - Delivery Gate 7 transport-neutral IPC boundary: immutable `TransportMessage` carries one existing destination and envelope unchanged through provider-neutral `MessageTransport`; `TransportOutcome` distinguishes hop-level `ACCEPTED`, `BACKPRESSURED`, and `UNAVAILABLE` from Message Bus delivery and bounds refusal reasons without consuming bus state.
 - Delivery Gate 7 is Contract Verified after fresh reassessment: `WorkPayload.allowedTools` bounds both each name and collection cardinality, and all six scope items plus all four exit criteria remain supported by focused contract evidence.
 - RFC-0024 deterministic-fake typed submission is Contract Verified through its closed
-  request, independent fixed `deterministic-echo` source, and package-local manifest-
-  first service. Real-filesystem tests prove exact first use, replay without repository/
-  clock recapture or durable rewrite, caller/derived/fixed-capability drift refusal, and
-  recovery from manifest-only and empty-queue prefixes. Its downstream internal
+  request, independent fixed `deterministic-echo` source, and shared package-local
+  manifest-preparation boundary. Real-filesystem tests prove exact first use, replay
+  without repository/clock recapture or durable rewrite, caller/derived/fixed-
+  capability drift refusal, and recovery from manifest-only and empty-queue prefixes.
+  Direct submission delegates the already-persisted manifest and its creation status
+  to queue admission without a second manifest-store call. Its downstream internal
   integration is recorded below; RFC-0026 now reaches it through one supported public
   filesystem facade while its request, service, and capability source remain closed.
 - Backoff or delayed retry, pause/resume, run-scoped or causation-graph cancellation,

@@ -25,6 +25,13 @@ public final class DurableWorkSubmissionService {
             throws IOException {
         Objects.requireNonNull(manifest, "manifest must not be null");
         boolean manifestCreated = manifestStore.storeIdempotently(manifest);
+        return submitPersisted(manifest, manifestCreated);
+    }
+
+    DurableSubmissionResult submitPersisted(
+            DurableSubmissionManifest manifest,
+            boolean manifestCreated) throws IOException {
+        Objects.requireNonNull(manifest, "manifest must not be null");
         QueueResolution resolution = resolveOrCreateQueue(manifest);
         DurableSingleWorkerSchedulerQueue queue = resolution.queue();
 

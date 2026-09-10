@@ -7689,3 +7689,27 @@ Outcome:
   provider/network/credential/spend path, schema/event change, background service,
   push, merge, release, deployment, permission change, destructive cleanup, or other
   external effect was added or performed.
+
+## 2026-09-10 - RFC-0027 Implementation Increment 1 Shared Manifest Preparation
+
+- Recovery reconciled the active checkpoint, Active Task, Git status, and working-tree
+  diff before mutation. Two bounded read-only reviews independently checked the
+  extraction seam and direct-submission compatibility; the primary Agent reconciled
+  their recommendations against repository authority, and their reports were not
+  verification evidence.
+- The aligned RED compilation exposed exactly six missing symbols: the shared
+  preparation type, its prepared result, and the already-persisted admission method.
+  The first GREEN attempt then exposed one `-Werror` auxiliary-class warning; separating
+  the package-private result into its own source resolved that build-policy failure
+  without changing the contract.
+- Fresh focused Java 17 verification used the README-owned Gradle wrapper command and
+  completed with `BUILD SUCCESSFUL` in 8 seconds. Generated JUnit XML contained nine
+  suites and 50 tests: all 50 passed with zero skips, failures, or errors. Coverage
+  included manifest-only first use and replay, caller conflict, direct service/facade/
+  CLI compatibility, manifest and queue stores, durable recovery, locality, and
+  governance-sensitive source boundaries.
+- The implementation introduces no typed publisher or receiver and changes no message,
+  spool, manifest, queue, runtime, checkpoint, Model RunRecord, Result, or runtime-event
+  format. No provider/network/credential/spend path, background service, push, merge,
+  release, deployment, permission change, destructive cleanup, or external effect was
+  performed.

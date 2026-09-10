@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-09-10 - Extract RFC-0027 Shared Manifest Preparation
+
+- Extracted RFC-0024 deterministic-fake manifest preparation into one package-local
+  boundary that persists or exact-replays immutable intent before any queue dependency.
+- Preserved direct RFC-0026 first-use, replay, recovery, durable bytes, and output by
+  admitting the already-persisted manifest with its exact created/replayed status and
+  without a second manifest-store operation.
+- Fresh focused Java 17 verification passed 50 tests across nine suites with zero
+  skips, failures, or errors. No typed publisher or receiver, transport publication,
+  schema change, provider/network path, push, merge, release, or deployment was added.
+
+## 2026-09-10 - Begin RFC-0027 Typed Spool Ingress Implementation
+
+- Accepted the six-increment RED-first implementation task for shared manifest
+  preparation, exact typed publication, manifest-authorized receive, bounded
+  acknowledgement recovery, and separate Scheduler operator-path evidence.
+- Direct RFC-0026 submission, legacy Work commands, current durable schemas, capability
+  separation, and bounded at-least-once transport semantics remain fixed.
+- Provider/network/credential/spend authority, background consumption, exactly-once
+  publication, push, merge, release, and deployment remain excluded.
+
 ## 2026-09-10 - Complete RFC-0027 Typed Spool Ingress Specification
 
 - Completed both documentation increments and synchronized the accepted manifest-first

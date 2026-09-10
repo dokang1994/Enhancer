@@ -304,10 +304,47 @@ class ModelCandidateLocalityBoundaryTest {
         assertFalse(request.contains("DeterministicFakeModelSubmissionCapabilitySource"));
         assertFalse(request.contains("DeterministicFakeModelCandidate"));
 
+        String preparerFile =
+                "DeterministicFakeModelSubmissionManifestPreparer.java";
+        String preparer = read(findProductionSource(preparerFile));
+        assertTrue(preparer.contains("final class DeterministicFakeModelSubmissionManifestPreparer"));
+        assertTrue(preparer.contains("DeterministicFakeModelSubmissionRequest"));
+        assertTrue(preparer.contains("DeterministicFakeModelSubmissionCapabilitySource"));
+        assertTrue(preparer.contains("SubmissionManifestStore"));
+        assertFalse(preparer.contains("public final class"));
+        assertFalse(preparer.contains("\"deterministic-echo\""));
+        assertFalse(preparer.contains("DeterministicFakeModelCandidate"));
+        assertFalse(preparer.contains("executionProfile().requiredCapability()"));
+        for (String forbidden : List.of(
+                "com.enhancer.cli",
+                "EnhancerCli",
+                "FileSpool",
+                "MessageTransport",
+                "SchedulerQueueStore",
+                "DurableWorkSubmissionService",
+                "DurableWorkMessageReceiver",
+                "AgentLoopAgentRunExecution",
+                "DurableAgentRunWorker",
+                "ModelGateway",
+                "ModelCredentialSupplier",
+                "HttpMessageApiModelProviderAdapter",
+                "java.net",
+                "ProcessBuilder",
+                "System.getenv",
+                "System.getProperty")) {
+            assertFalse(
+                    preparer.contains(forbidden),
+                    () -> preparerFile + " must not reference " + forbidden);
+        }
+
         String serviceFile = "DeterministicFakeModelSubmissionService.java";
         String service = read(findProductionSource(serviceFile));
         assertTrue(service.contains("DeterministicFakeModelSubmissionRequest"));
-        assertTrue(service.contains("DeterministicFakeModelSubmissionCapabilitySource"));
+        assertTrue(service.contains("DeterministicFakeModelSubmissionManifestPreparer"));
+        assertTrue(service.contains("DurableWorkSubmissionService"));
+        assertFalse(service.contains("DeterministicFakeModelSubmissionCapabilitySource"));
+        assertFalse(service.contains("buildFirstUseManifest"));
+        assertFalse(service.contains("requireConsistent"));
         assertFalse(service.contains("\"deterministic-echo\""));
         assertFalse(service.contains("DeterministicFakeModelCandidate"));
         assertFalse(service.contains("executionProfile().requiredCapability()"));
@@ -338,6 +375,7 @@ class ModelCandidateLocalityBoundaryTest {
         Set<String> boundaryFiles = Set.of(
                 "DeterministicFakeModelSubmissionRequest.java",
                 "DeterministicFakeModelSubmissionCapabilitySource.java",
+                preparerFile,
                 serviceFile,
                 "FileSystemDeterministicFakeModelSubmission.java");
 

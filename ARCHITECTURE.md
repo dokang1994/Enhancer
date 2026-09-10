@@ -1879,14 +1879,17 @@ request, profile, candidate, envelope, manifest, queue, CLI, environment, reposi
 content, or ambient configuration. The profile remains untrusted requirements data;
 capability disagreement is preserved for fresh RFC-0016 admission rather than repaired.
 
-The service's first-use path derives the existing generated-submission identities,
-resolves the manifest, then reads governed context and the exact active task, requires
+One shared package-local manifest preparer now derives the existing generated-
+submission identities and resolves the manifest before any queue dependency. Its
+first-use path then reads governed context and the exact active task, requires
 `model-invoke`, captures
 one occurrence time and repository-memory snapshot, constructs one complete ModelWork
-envelope, persists exact manifest intent, and admits through the unchanged durable
-submission service. Replay resolves the manifest before clock or repository reads,
-compares every caller-owned input and the fixed capability, and changes no manifest or
-queue revision. The first integration connects only to the existing internal model-
+envelope, and persists exact manifest intent. Replay resolves and idempotently confirms
+that exact manifest before clock or repository reads, compares every caller-owned input
+and the fixed capability, and changes no manifest bytes. The direct service delegates
+the prepared manifest and its created/replayed status to the unchanged queue-admission
+logic, so it performs no second manifest store operation and changes no queue behavior
+or durable format. The first integration connects only to the existing internal model-
 aware worker in test-owned storage and proves verified completion plus a no-effect
 pre-call capability refusal. The supported model-aware Scheduler composition is defined
 below; RFC-0026 supplies the separate complete-profile direct submission entry point,
@@ -1956,9 +1959,9 @@ message v2, manifest v3, queue v4, runtime v5, checkpoint v2, Model RunRecord v2
 runtime-event formats remain unchanged. Publication/receive, provider, network,
 credential, spend, and implicit execution remain separately authorized.
 
-RFC-0027 specifies but does not implement the optional local file-spool ingress needed
-when the governed deterministic-fake producer and Scheduler queue writer are separate
-processes. A new typed publisher shares RFC-0024 manifest preparation with direct
+RFC-0027's shared package-local manifest-preparation prerequisite is implemented, but
+its optional local file-spool publisher and receiver are not yet implemented. The
+accepted typed publisher shares RFC-0024 manifest preparation with direct
 submission, persists or exact-replays that manifest before publishing exactly
 `queue(manifest.queueId)` plus `manifest.workMessage`, and never opens or admits the
 queue. It accepts the same complete RFC-0026 profile and caller intent plus a pending-
@@ -1979,7 +1982,8 @@ new random point, while exact receiver replay admits one queue item and acknowle
 each named point independently. The manifest-only, empty-queue, admitted-pending, and
 acknowledged-response-loss prefixes are recoverable without a new binary schema.
 Exactly-once publication, receipts/outboxes, scanning, dead letters, cleanup/retention,
-remote trust, background consumption, implementation, and execution remain separate.
+remote trust, background consumption, typed publication/receive implementation, and
+execution remain separate.
 
 ## Agent Orchestration Contract
 
