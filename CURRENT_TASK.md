@@ -92,7 +92,7 @@ unexpected ref movement, failed verification, checkpoint drift, or new authority
 
 ### Increment 1 - deliver-completed-commits
 
-State: In Progress
+State: Completed
 Depends On: none
 Scope: Verify and commit this delivery task, fetch `origin/main`, prove the completed
 RFC-0026 commits are already ancestors of local `main`, integrate only safe remote
@@ -105,7 +105,7 @@ Next Action: Complete Increment 1, record delivery evidence, and select Incremen
 
 ### Increment 2 - close-delivery-task
 
-State: Pending
+State: In Progress
 Depends On: deliver-completed-commits
 Scope: Append delivery verification, synchronize task and Changelog state, commit the
 closure, push that ordinary closure commit to `origin/main`, verify exact tip equality,
@@ -119,5 +119,5 @@ work.
 
 ## Next
 
-Fetch and reconcile `origin/main`, deliver the already-completed RFC-0026 commits by
-non-force push, verify the remote tip, then close this delivery task.
+Verify and commit the delivery record, close this task, push the closure commit without
+force, verify exact local/remote `main` equality, and clear the stable checkpoint.
