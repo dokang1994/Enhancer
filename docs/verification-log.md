@@ -7634,3 +7634,35 @@ Outcome:
   status, and stable checkpoint reconciliation follow this append-only entry. No product
   code, architecture, capability maturity, Roadmap milestone, decision, or session-only
   host fact changed in this closure increment.
+
+## 2026-09-10 - RFC-0027 Manifest-Authorized Typed Spool Specification
+
+- Recovery began from an empty checkpoint and clean synchronized `main`. The user's
+  continuation selected the previously deferred typed spool boundary; no remote state
+  was read or changed.
+- RFC-0027 and its accepted decision define separate deterministic-fake typed publisher
+  and receiver commands. The publisher durably prepares the exact RFC-0024 manifest
+  before sending its derived route and envelope and never touches a queue. The receiver
+  accepts only four locators/roots, point-resolves the manifest by message identity,
+  derives queue, capacity, capability, and priority only from it, admits through the
+  real Message Bus, and acknowledges afterward.
+- Two bounded read-only development reviews independently examined manifest authority
+  and transport recovery. The primary Agent reconciled their differing publication-
+  identity recommendations against the existing random-point adapter and selected an
+  explicit bounded at-least-once contract. Their reports were not verification evidence.
+- Initial focused governance classified one aligned RED: 10 tests ran with one failure
+  because an Active Task `Justified By` bullet did not exactly match its accepted
+  decision identity. After restoring and restarting the checkpoint around the corrected
+  task contract, the same 10 tests passed.
+- Fresh focused Java 17 verification completed with `BUILD SUCCESSFUL` in 4 seconds.
+  Generated JUnit XML contained 11 suites and 57 tests: 55 passed, two existing
+  conditional tests skipped, and zero failed or errored. The suites covered decision
+  and document ownership, dynamic workflow, Context Reader ordering, accepted-decision
+  projection, approved-task revision and justification, canonical planning, profile
+  values and input, model locality, and runtime package boundaries. `git diff --check`
+  passed.
+- This increment changes documentation only. Existing message/spool v1/v2, manifest
+  v3, queue v4, runtime v5, checkpoint v2, Model RunRecord v2, Result, and runtime-event
+  formats remain unchanged. No Java/test source, actual publication/receive/execution,
+  provider/network/credential/spend path, background service, push, merge, release, or
+  other external effect was added or performed.

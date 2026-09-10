@@ -2,122 +2,164 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Deliver the completed RFC-0026 implementation commits to `origin/main` without history
-rewriting or a redundant merge commit.
+Specify RFC-0027: the smallest manifest-authorized typed `ModelWork` spool publication
+and receive boundary that preserves the existing direct submission path, legacy Work
+receiver, durable authority sources, and recoverable Scheduler admission semantics.
 
 ## Task ID
 
-deliver-rfc-0026-to-origin-main
+specify-manifest-authorized-model-work-spool-ingress
 
 ## Context
 
-RFC-0026 implementation and closure are locally committed and freshly verified. The
-working branch is already `main`, its tip contains the completed work, and it was 20
-commits ahead of the last observed `origin/main`. The user explicitly requested commit,
-push, and merge to `main` on 2026-09-10.
+RFC-0026 completed the first supported direct typed-submission path and deliberately
+left typed spool publication and receive as separate work. RFC-0018 already defines a
+payload-sensitive transport-spool v2 format and forbids `scheduler-receive-work` from
+accepting `ModelWorkPayload`, because its caller-supplied capability can neither
+authenticate first-use authority nor replace a pre-existing exact submission manifest.
+The Gate 9 Roadmap still names typed spool ingress as later work, and the user requested
+continuation on 2026-09-10.
+
+The existing file spool is an at-least-once transport point: publication is not
+Scheduler admission, and acknowledgement follows durable admission. A specification
+must therefore define manifest-before-publication ordering, receiver authorization,
+exact replay and conflict behavior, crash prefixes, acknowledgement and capacity
+release, and legacy compatibility before implementation can safely expose this path.
 
 ## Justified By
 
-- 2026-07-10: Operate Enhancer As A Real Open Source Project
+- User continuation request on 2026-09-09 into supported typed ModelWork submission specification
+- User continuation request on 2026-08-21 into the Scheduler complete-profile transport specification
+- 2026-07-14: Make Enhancer An Event-Driven Interoperable AI Operating Platform
 
 ## Approval
 
-The user's 2026-09-10 request authorizes the minimum delivery workflow: record this
-bounded task, inspect and fetch `origin/main`, verify the completed commits are already
-on local `main`, integrate only by ordinary fast-forward if the remote advanced, push
-local `main` to `origin/main`, verify the remote ref, synchronize this task and delivery
-history, and create the ordinary local commits required for those document boundaries.
+The user's 2026-09-10 continuation authorizes a documentation-only RFC and accepted
+decision for one separate typed spool publisher and one manifest-authorized typed
+receiver. The contract may define exact supported command surfaces, complete profile
+and caller intent sources, immutable manifest creation and point resolution, transport
+publication, destination binding, queue creation/admission, acknowledgement, replay,
+crash recovery, capacity release, refusal classes, bounded output, source/locality
+guards, compatibility, and a RED-first implementation sequence. It authorizes minimal
+Architecture, compact mirror, Project State, Roadmap, RFC index, task, decision/index,
+verification, handoff, and Changelog synchronization plus ordinary local GREEN
+commits.
 
-If the completed commits are already ancestors of local `main`, no redundant merge
-commit is created. This approval does not authorize force push, history rewriting,
-conflict resolution that changes product content, branch deletion, tag or release
-publication, deployment, permission changes, or credential changes.
+It authorizes no Java or test-source change, actual publication or receive, widening of
+`scheduler-spool-work` or `scheduler-receive-work`, capability input or inference,
+profile defaults, provider/router/registry, endpoint, remote transmission, network,
+credentials, pricing or spend, MCP, new durable schema or migration, runtime-event
+change, background service, push, merge, release, deployment, permission change,
+destructive cleanup, or other external effect.
 
 ## Acceptance Criteria
 
-- The worktree is clean and the completed RFC-0026 implementation and closure commits
-  are ancestors of local `main` before external delivery.
-- Fresh `origin/main` state is fetched and reconciled without force, reset, rebase, or
-  history rewriting.
-- If remote work must be integrated, only a conflict-free ordinary fast-forward or
-  fast-forward-preserving merge is used; any conflict or non-fast-forward ambiguity
-  stops the task.
-- Local `main` is pushed to `origin/main` without force and the exact remote ref is
-  queried afterward.
-- The remote `origin/main` tip contains the delivered local commits. A redundant merge
-  commit is not created when the completed work is already on `main`.
-- `CURRENT_TASK.md`, `CHANGELOG.md`, verification evidence, Git status, and the session
-  checkpoint are synchronized before closure.
+- RFC-0027 defines separate typed publisher and receiver commands without changing the
+  existing RFC-0026 direct-submission command or either legacy Work spool command.
+- The publisher obtains one complete strict RFC-0026 profile input and the same
+  caller-owned deterministic submission intent while accepting no capability, queue,
+  correlation, logical-run, occurrence-time, candidate, provider, or execution-policy
+  authority that belongs to another source.
+- A current exact submission manifest is durable before a typed transport point becomes
+  visible. The receiver point-resolves that manifest by the canonical message identity,
+  requires exact destination and envelope equality, and obtains queue identity,
+  capacity, required capability, and priority only from the manifest.
+- Profile capability remains untrusted requirements data. It is never copied,
+  normalized, pre-approved, or accepted from CLI or transport as the authoritative
+  `WorkItem.requiredCapability`.
+- Queue creation, exact durable admission, transport acknowledgement, and capacity
+  release have an explicit fail-closed order. Every pre-manifest, post-manifest,
+  post-publication, post-admission, and post-acknowledgement crash prefix has a bounded
+  replay or operator-recovery outcome without duplicate queue work or false completion.
+- Missing, inactive, mismatched, corrupt, unsupported, outside-root, link/reparse,
+  collision, route, payload-kind, identity, manifest, queue, capacity, and durable
+  content failures are classified before unauthorized mutation; corrupt or conflicting
+  points are never acknowledged as successfully received.
+- Existing message-envelope v1/v2, transport-spool v1/v2, submission manifest v3,
+  Scheduler queue v4, runtime v5, pending-finalization v2, Model RunRecord v2, Result,
+  and runtime-event formats are either proven sufficient unchanged or any required new
+  durable fact is explicitly left blocked for separate compatibility authority.
+- The RFC defines bounded non-secret output, no discovery/ambient fallback, explicit
+  operator recovery, RED-first implementation increments, architecture guards, and
+  real-filesystem/JVM evidence for a later implementation task.
+- RFC/decision indexes, Architecture and compact mirror, Project State, Roadmap, task
+  cursor, Changelog, append-only verification evidence, and handoff are synchronized
+  by ownership. Focused Markdown-sensitive governance, `git diff --check`, and the full
+  README-owned Java 17 regression pass freshly before completion.
 
 ## Out Of Scope
 
-Force push, reset, rebase, history rewriting, conflict-content changes, branch deletion,
-tagging, release or package publication, deployment, permission changes, credential
-changes, product implementation, tests or durable-format changes, and any external
-effect other than the explicitly requested Git fetch, push, and main integration.
+Java or test-source implementation; actual typed spool publication, receive, Scheduler
+execution, provider invocation, or remote transmission; widening legacy commands;
+caller capability input or inference; profile defaults or partial input; combined
+publish/receive/execute wrappers; provider/router/registry, endpoint, network,
+credentials, pricing or spend; MCP; background polling or service operation; new
+durable schema, migration, sidecar, runtime-event kind, RunRecord provenance, or
+cancellation propagation; push, merge, release, deployment, permissions, destructive
+cleanup, and external effects.
 
 ## Allowed Tools
 
 - read-file
 - write-docs
+- build-output
 - verify
 - checkpoint
 - git-inspect
-- git-fetch
 - git-stage
 - git-commit
-- git-merge
-- git-push
 
 ## Verification
 
-This delivery task uses structural document checks, `git diff --check`, fresh branch and
-ancestry inspection, fresh remote fetch/ref queries, non-force push output, and final
-local/remote tip equality. Existing full RFC-0026 Java verification remains the code
-evidence because this task changes no product code.
+Evidence is appended once per completed increment to `docs/verification-log.md`.
+Documentation verification must cover RFC and decision indexing, architecture and
+document ownership, dynamic workflow, approved-task justification, canonical planning,
+typed/legacy command separation, manifest-owned authority, transport recovery, and
+unsupported provider/network boundaries. Subagent recommendations are not verification
+evidence.
 
 ## Dynamic Workflow
 
-Workflow ID: deliver-rfc-0026-to-origin-main
+Workflow ID: specify-manifest-authorized-model-work-spool-ingress
 Mode: Sequential
 Increment Limit: 2
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
-Stop Conditions: Stop on a dirty worktree outside this task, remote divergence,
-non-fast-forward ambiguity, merge conflict, credential failure, rejected push,
-unexpected ref movement, failed verification, checkpoint drift, or new authority.
+Stop Conditions: Stop on manifest/capability/profile conflation, legacy command
+widening, unresolved publication idempotency or acknowledgement semantics, unsafe crash
+recovery, durable schema widening, provider/network authority, failed verification,
+checkpoint drift, new authority, exhausted bounds, or unsafe recovery.
 
-### Increment 1 - deliver-completed-commits
+### Increment 1 - specify-manifest-authorized-typed-spool-contract
 
 State: Completed
 Depends On: none
-Scope: Verify and commit this delivery task, fetch `origin/main`, prove the completed
-RFC-0026 commits are already ancestors of local `main`, integrate only safe remote
-advancement, push without force, and query the exact remote `main` ref.
-Exit Criteria: The remote `main` tip contains the completed RFC-0026 commits and equals
-the intended local `main` tip without history rewriting or a redundant merge commit.
-Verification: Focused governance tests, `git diff --check`, clean worktree inspection,
-fresh fetch, ancestry checks, push output, and fresh remote-ref equality.
-Next Action: Complete Increment 1, record delivery evidence, and select Increment 2.
+Scope: Review RFC-0018 through RFC-0026 and the existing transport, manifest, queue,
+publisher, receiver, CLI, and recovery boundaries, then accept one RFC defining the
+minimum separate typed publisher/receiver contract without implementation or execution.
+Exit Criteria: The RFC, accepted decision, indexes, architecture/state/roadmap/task/
+Changelog synchronization, and focused evidence are current and focused governance
+passes.
+Verification: RFC/decision/architecture/index/ownership/dynamic-workflow/approved-task/
+task-justification/planner/source-boundary tests plus `git diff --check`.
+Next Action: Commit the verified documentation increment and select Increment 2.
 
-### Increment 2 - close-delivery-task
+### Increment 2 - verify-and-close-typed-spool-specification
 
-State: Completed
-Depends On: deliver-completed-commits
-Scope: Append delivery verification, synchronize task and Changelog state, commit the
-closure, push that ordinary closure commit to `origin/main`, verify exact tip equality,
-and clear the stable checkpoint.
-Exit Criteria: Owned documents are current, governance verification passes, the closure
-commit is present on local and remote `main`, Git is clean, and the checkpoint is clear.
-Verification: Focused governance tests, `git diff --check`, commit/status inspection,
-fresh remote-ref equality, and checkpoint reconciliation.
-Next Action: Await separate authority for any release, tag, deployment, or new product
-work.
+State: In Progress
+Depends On: specify-manifest-authorized-typed-spool-contract
+Scope: Run the full Markdown-sensitive Java 17 regression, record fresh evidence, close
+the task/handoff, and commit the verified specification closure.
+Exit Criteria: The full regression passes with results read, canonical documents are
+current, intended local commits are clean, and the checkpoint is stable and clear.
+Verification: Full `.\scripts\gradle.ps1 test`, final focused governance,
+diff/commit/status inspection, and checkpoint reconciliation.
+Next Action: Await separate authority to implement RFC-0027 RED-first.
 
 ## Next
 
-Await separate authority for any release, tag, deployment, branch deletion, or new
-product work. The completed delivery task grants no continuing external authority.
+Commit Increment 1, run the full Increment 2 regression, and close the verified
+RFC-0027 specification.

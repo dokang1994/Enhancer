@@ -32,6 +32,7 @@ RFCs preserve long-term architecture intent and make references stable across Ch
 - `RFC-0024`: Governed Deterministic ModelWork Submission
 - `RFC-0025`: Supported Deterministic-Fake Model-Aware Scheduler Composition
 - `RFC-0026`: Supported Typed ModelWork Submission Input
+- `RFC-0027`: Manifest-Authorized Typed ModelWork Spool Ingress
 
 ## Status Values
 

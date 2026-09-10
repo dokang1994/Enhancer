@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-09-10 - Specify Manifest-Authorized Typed ModelWork Spool Ingress
+
+- Accepted RFC-0027 for separate deterministic-fake typed spool publisher and receiver
+  commands without widening direct submission or the legacy Work spool commands.
+- Defined manifest-before-publication preparation and a four-locator receiver that
+  derives the exact envelope, queue, capacity, capability, and priority from a
+  pre-existing RFC-0024 manifest before Message Bus admission and acknowledgement.
+- Preserved bounded at-least-once random transport points with idempotent queue
+  admission and explicit crash-prefix recovery. Existing durable schemas remain
+  sufficient; implementation, actual publication/receive/execution, providers, network,
+  credentials, background work, push, and merge remain separately authorized.
+
 ## 2026-09-10 - Deliver RFC-0026 Implementation To Main
 
 - Confirmed the completed RFC-0026 implementation and closure commits were already on
