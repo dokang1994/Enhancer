@@ -441,6 +441,39 @@ class ModelCandidateLocalityBoundaryTest {
         }
     }
 
+    @Test
+    void deterministicFakeModelSpoolCliValueCarriesNoAuthorityOrRuntimeComposition()
+            throws IOException {
+        String source = read(findProductionSource(
+                "DeterministicFakeModelSpoolCliCommand.java"));
+        assertTrue(source.contains("record DeterministicFakeModelSpoolCliCommand"));
+        assertTrue(source.contains("transportSpoolRoot"));
+        assertTrue(source.contains("maxPendingPublications"));
+        for (String forbidden : List.of(
+                "queueRoot",
+                "queueId",
+                "destination",
+                "requiredCapability",
+                "deterministic-echo",
+                "ModelExecutionProfile",
+                "DeterministicFakeModelSubmissionRequest",
+                "DeterministicFakeModelSubmissionManifestPreparer",
+                "SubmissionManifestStore",
+                "FileSpoolMessageTransport",
+                "MessageTransport",
+                "SchedulerQueueStore",
+                "ModelGateway",
+                "ModelCredentialSupplier",
+                "HttpMessageApiModelProviderAdapter",
+                "java.net",
+                "ProcessBuilder",
+                "System.getenv",
+                "System.getProperty")) {
+            assertFalse(source.contains(forbidden),
+                    () -> "typed spool CLI value must not reference " + forbidden);
+        }
+    }
+
     private static String readModelSource(String fileName) throws IOException {
         return Files.readString(
                 PRODUCTION_ROOT.resolve("com/enhancer/model").resolve(fileName),

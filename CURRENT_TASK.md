@@ -158,7 +158,7 @@ Next Action: Commit Increment 1 and select Increment 2.
 
 ### Increment 2 - add-typed-publisher-cli-contract
 
-State: In Progress
+State: Completed
 Depends On: extract-shared-manifest-preparation
 Scope: Establish RED parser/value/source tests and add exactly the twelve all-required
 typed publisher options with canonical capacity, identity, path, profile locator, and
@@ -171,7 +171,7 @@ Next Action: Commit Increment 2 and select Increment 3.
 
 ### Increment 3 - connect-manifest-only-typed-publisher
 
-State: Pending
+State: In Progress
 Depends On: add-typed-publisher-cli-contract
 Scope: Add the minimum public filesystem publisher composition and CLI execution using
 shared manifest preparation followed by the unchanged file spool transport.
@@ -234,5 +234,5 @@ network, background service, or later product work.
 
 ## Next
 
-Complete Increment 2 RED-first, commit its verified GREEN boundary, and select
-Increment 3.
+Complete Increment 3 RED-first, commit its verified GREEN boundary, and select
+Increment 4.

@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-09-10 - Add RFC-0027 Typed Publisher CLI Contract
+
+- Added the package-local value and parser branch for exactly twelve required
+  `scheduler-spool-deterministic-fake-model-work` options, including independent
+  canonical `1..4096` work and pending-publication bounds.
+- Kept capability, queue/destination/derived identity, time/snapshot, policy, provider,
+  network, and process authority out of the value; no profile read, store access,
+  publication, queue access, or execution dispatch is connected in this increment.
+- Fresh focused Java 17 verification passed 64 of 65 tests across six suites with one
+  existing conditional skip and zero failures or errors. No legacy command changed.
+
 ## 2026-09-10 - Extract RFC-0027 Shared Manifest Preparation
 
 - Extracted RFC-0024 deterministic-fake manifest preparation into one package-local

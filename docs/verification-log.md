@@ -7713,3 +7713,26 @@ Outcome:
   format. No provider/network/credential/spend path, background service, push, merge,
   release, deployment, permission change, destructive cleanup, or external effect was
   performed.
+
+## 2026-09-10 - RFC-0027 Implementation Increment 2 Typed Publisher CLI Contract
+
+- One bounded read-only review checked the exact RFC option surface, parser helpers,
+  value shape, legacy isolation, and locality risks. The primary Agent reconciled its
+  recommendations against the Active Task and RFC; the report was not verification
+  evidence.
+- The aligned RED compilation exposed only the absent package-local typed publisher
+  command value across 14 symbol references. The minimum GREEN added its separate
+  required option set and parser branch, retained parser-only profile location, and
+  reused canonical positive decimal validation independently for both `1..4096`
+  capacities.
+- Fresh focused Java 17 verification used the README-owned Gradle wrapper command and
+  completed with `BUILD SUCCESSFUL` in 5 seconds. Generated JUnit XML contained six
+  suites and 65 tests: 64 passed, one existing conditional test skipped, and zero
+  failed or errored. Coverage included exact value shape, every required and forbidden
+  option, capacity boundaries, identity/digest/priority/path refusal, direct typed-
+  submit compatibility, profile reader behavior, legacy Work spooling, locality, and
+  Markdown-sensitive governance.
+- This increment connects no execution dispatch, profile read, manifest/spool store,
+  queue, transport publication, receiver, provider/network/credential/spend path, or
+  background work and changes no durable format. No push, merge, release, deployment,
+  permission change, destructive cleanup, or external effect was performed.

@@ -223,6 +223,20 @@ final class CliArguments {
             "occurred-at",
             "signal",
             "reason");
+    private static final Set<String>
+            SCHEDULER_SPOOL_DETERMINISTIC_FAKE_MODEL_WORK_OPTIONS = Set.of(
+                    "project-root",
+                    "submission-root",
+                    "transport-spool-root",
+                    "task-id",
+                    "submission-id",
+                    "max-work-items",
+                    "max-pending-publications",
+                    "producer",
+                    "target-path",
+                    "expected-response-sha256",
+                    "model-execution-profile-file",
+                    "priority");
     private static final Set<String> SCHEDULER_SUBMIT_OPTIONS = Set.of(
             "project-root",
             "submission-root",
@@ -293,6 +307,7 @@ final class CliArguments {
                             + "scheduler-apply-cancel, "
                             + "scheduler-receive-work, scheduler-receive-control, "
                             + "scheduler-spool-work, scheduler-spool-control, "
+                            + "scheduler-spool-deterministic-fake-model-work, "
                             + "scheduler-migrate-cycle-checkpoint, "
                             + "scheduler-migrate-queue, "
                             + "scheduler-migrate-durable-closure, "
@@ -392,6 +407,10 @@ final class CliArguments {
                     parseOptions(arguments, SCHEDULER_SPOOL_WORK_OPTIONS));
             case "scheduler-spool-control" -> parseSchedulerSpoolControl(
                     parseOptions(arguments, SCHEDULER_SPOOL_CONTROL_OPTIONS));
+            case "scheduler-spool-deterministic-fake-model-work" ->
+                    parseDeterministicFakeModelSpool(parseOptions(
+                            arguments,
+                            SCHEDULER_SPOOL_DETERMINISTIC_FAKE_MODEL_WORK_OPTIONS));
             case "scheduler-submit" -> parseSchedulerSubmit(
                     parseOptions(
                             arguments,
@@ -1019,6 +1038,44 @@ final class CliArguments {
                 instant(options.get("occurred-at"), "occurred-at"),
                 signal,
                 nonBlank(options.get("reason"), "reason"));
+    }
+
+    private static DeterministicFakeModelSpoolCliCommand
+            parseDeterministicFakeModelSpool(Map<String, String> options) {
+        long maxWorkItems = canonicalPositiveLong(
+                options.get("max-work-items"), "max-work-items");
+        if (maxWorkItems > SingleWorkerSchedulerQueue.MAX_WORK_ITEMS) {
+            throw new CliUsageException(
+                    "max-work-items must not exceed "
+                            + SingleWorkerSchedulerQueue.MAX_WORK_ITEMS);
+        }
+        long maxPendingPublications = canonicalPositiveLong(
+                options.get("max-pending-publications"),
+                "max-pending-publications");
+        if (maxPendingPublications > BackpressurePolicy.MAX_PENDING_PUBLICATIONS) {
+            throw new CliUsageException(
+                    "max-pending-publications must not exceed "
+                            + BackpressurePolicy.MAX_PENDING_PUBLICATIONS);
+        }
+        String digest = options.get("expected-response-sha256");
+        if (!SHA_256.matcher(digest).matches()) {
+            throw new CliUsageException(
+                    "expected-response-sha256 must be 64 lowercase hexadecimal characters");
+        }
+        return new DeterministicFakeModelSpoolCliCommand(
+                path(options.get("project-root"), "project-root"),
+                path(options.get("submission-root"), "submission-root"),
+                path(options.get("transport-spool-root"), "transport-spool-root"),
+                nonBlank(options.get("task-id"), "task-id"),
+                canonicalUuid(options.get("submission-id"), "submission-id"),
+                (int) maxWorkItems,
+                (int) maxPendingPublications,
+                nonBlank(options.get("producer"), "producer"),
+                nonBlank(options.get("target-path"), "target-path"),
+                digest,
+                relativePath(options.get("model-execution-profile-file"),
+                        "model-execution-profile-file"),
+                priority(options.get("priority")));
     }
 
     private static SchedulerSubmitCliCommand parseSchedulerSubmit(
