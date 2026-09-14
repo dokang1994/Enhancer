@@ -171,7 +171,7 @@ Next Action: Commit Increment 2 and select Increment 3.
 
 ### Increment 3 - connect-manifest-only-typed-publisher
 
-State: In Progress
+State: Completed
 Depends On: add-typed-publisher-cli-contract
 Scope: Add the minimum public filesystem publisher composition and CLI execution using
 shared manifest preparation followed by the unchanged file spool transport.
@@ -185,7 +185,7 @@ Next Action: Commit Increment 3 and select Increment 4.
 
 ### Increment 4 - add-manifest-authorized-typed-receiver
 
-State: Pending
+State: In Progress
 Depends On: connect-manifest-only-typed-publisher
 Scope: Establish RED domain/composition tests and implement the separate typed receiver
 that validates exact manifest, envelope, route, fixed capability, capacity, and
@@ -234,5 +234,5 @@ network, background service, or later product work.
 
 ## Next
 
-Complete Increment 3 RED-first, commit its verified GREEN boundary, and select
-Increment 4.
+Complete Increment 4 RED-first, commit its verified GREEN boundary, and select
+Increment 5.

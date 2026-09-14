@@ -56,10 +56,12 @@ import com.enhancer.runtime.DurableWorkSubmissionService;
 import com.enhancer.runtime.DurableWorkMessageReceiveResult;
 import com.enhancer.runtime.DurableWorkMessageReceiver;
 import com.enhancer.runtime.DeterministicFakeModelSchedulerConfiguration;
+import com.enhancer.runtime.DeterministicFakeModelWorkPublicationResult;
 import com.enhancer.runtime.FileSystemAgentRuntimeStateStore;
 import com.enhancer.runtime.FileSystemAuthenticatedCancellationApplication;
 import com.enhancer.runtime.FileSystemCancellationAuthorizationAuditStore;
 import com.enhancer.runtime.FileSystemDeterministicFakeModelSubmission;
+import com.enhancer.runtime.FileSystemDeterministicFakeModelWorkPublisher;
 import com.enhancer.runtime.FileSystemExternalEffectLedgerStore;
 import com.enhancer.runtime.FileSystemPendingFinalizationStore;
 import com.enhancer.runtime.FileSystemRuntimeEventPublisher;
@@ -266,6 +268,9 @@ public final class EnhancerCli {
             }
             if (command instanceof SchedulerSpoolControlCliCommand publish) {
                 return executeSchedulerSpoolControl(publish, stdout);
+            }
+            if (command instanceof DeterministicFakeModelSpoolCliCommand publish) {
+                return executeDeterministicFakeModelSpool(publish, stdout);
             }
             if (command instanceof SchedulerSubmitCliCommand submit) {
                 return executeSchedulerSubmit(submit, stdout);
@@ -1511,6 +1516,63 @@ public final class EnhancerCli {
                 "goalId=" + command.goalId(),
                 "messageId=" + command.messageId(),
                 "signal=" + command.signal()) + "\n");
+        return 0;
+    }
+
+    private int executeDeterministicFakeModelSpool(
+            DeterministicFakeModelSpoolCliCommand command,
+            PrintStream stdout) throws IOException {
+        ModelExecutionProfile executionProfile;
+        try {
+            executionProfile = new ModelExecutionProfileFileReader().read(
+                    command.projectRoot(),
+                    command.modelExecutionProfileFile());
+        } catch (IOException | IllegalArgumentException exception) {
+            throw new CliUsageException(
+                    "deterministic-fake model publication profile input is invalid",
+                    exception);
+        }
+
+        DeterministicFakeModelWorkPublicationResult result;
+        try {
+            result = new FileSystemDeterministicFakeModelWorkPublisher(
+                    command.projectRoot(),
+                    command.submissionRoot(),
+                    command.transportSpoolRoot(),
+                    command.maxPendingPublications())
+                    .publish(
+                            command.submissionId(),
+                            command.taskId(),
+                            command.producer(),
+                            command.targetPath(),
+                            command.expectedResponseSha256(),
+                            executionProfile,
+                            command.maxWorkItems(),
+                            command.priority());
+        } catch (IllegalArgumentException exception) {
+            throw new CliUsageException(
+                    "deterministic-fake model publication input is invalid",
+                    exception);
+        } catch (IOException exception) {
+            throw new IOException(
+                    "deterministic-fake model publication failed", exception);
+        }
+
+        String reason = switch (result.publication().outcome().status()) {
+            case ACCEPTED -> "";
+            case BACKPRESSURED ->
+                    "transport spool reached its pending-publication limit";
+            case UNAVAILABLE -> "transport spool is unavailable";
+        };
+        writeBounded(stdout, String.join("\n",
+                "status=" + result.publication().outcome().status(),
+                "exitCode=0",
+                "submissionId=" + result.submissionId(),
+                "queueId=" + result.queueId(),
+                "messageFile=" + result.publication().messageFile().orElse(""),
+                "reason=" + reason,
+                "manifestCreated=" + result.manifestCreated(),
+                "workspaceSnapshotId=" + result.workspaceSnapshotId()) + "\n");
         return 0;
     }
 

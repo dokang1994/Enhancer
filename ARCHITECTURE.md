@@ -1893,8 +1893,9 @@ or durable format. The first integration connects only to the existing internal 
 aware worker in test-owned storage and proves verified completion plus a no-effect
 pre-call capability refusal. The supported model-aware Scheduler composition is defined
 below; RFC-0026 supplies the separate complete-profile direct submission entry point,
-while typed spool publication and any manifest-authorized receiver remain separate
-work. No durable schema changes.
+while the RFC-0027 manifest-first typed spool publisher now reuses the same preparation
+boundary and any manifest-authorized receiver remains separate work. No durable schema
+changes.
 
 RFC-0025 specifies the first supported deterministic-fake model-aware Scheduler
 composition without adding typed ingress. The existing `scheduler-cycle`,
@@ -1959,14 +1960,26 @@ message v2, manifest v3, queue v4, runtime v5, checkpoint v2, Model RunRecord v2
 runtime-event formats remain unchanged. Publication/receive, provider, network,
 credential, spend, and implicit execution remain separately authorized.
 
-RFC-0027's shared package-local manifest-preparation prerequisite is implemented, but
-its optional local file-spool publisher and receiver are not yet implemented. The
-accepted typed publisher shares RFC-0024 manifest preparation with direct
-submission, persists or exact-replays that manifest before publishing exactly
+RFC-0027's shared package-local manifest-preparation prerequisite and local file-spool
+publisher are implemented; its manifest-authorized receiver is not yet implemented.
+The typed publisher shares RFC-0024 manifest preparation with direct submission,
+persists or exact-replays that manifest before publishing exactly
 `queue(manifest.queueId)` plus `manifest.workMessage`, and never opens or admits the
 queue. It accepts the same complete RFC-0026 profile and caller intent plus a pending-
 point capacity, but no capability, destination, queue or derived identity, time,
 snapshot, policy, candidate, or provider authority.
+
+One public filesystem facade remains in the runtime package so the preparer and request
+stay package-local. It validates the existing request before durable access, prepares
+the manifest, and invokes only the unchanged `FileSpoolMessageTransport`. Its narrow
+result exposes submission and queue identities, manifest-created state, Workspace
+snapshot identity, and the bounded transport outcome. The separate supported CLI reads
+and validates the strict profile first, maps the exact twelve required inputs, and
+prints only the eight approved bounded fields. `BACKPRESSURED` and `UNAVAILABLE` are
+ordinary exit-zero transport outcomes; the typed CLI replaces adapter filesystem
+details with stable redacted reasons. Exact retries may create multiple byte-identical
+random points, while a refusal creates none and a retained manifest enables explicit
+retry without context or clock recapture.
 
 The separate four-locator typed receiver resolves one named pending or acknowledged
 point and the manifest named by its message identity. It requires canonical ModelWork
@@ -1982,8 +1995,8 @@ new random point, while exact receiver replay admits one queue item and acknowle
 each named point independently. The manifest-only, empty-queue, admitted-pending, and
 acknowledged-response-loss prefixes are recoverable without a new binary schema.
 Exactly-once publication, receipts/outboxes, scanning, dead letters, cleanup/retention,
-remote trust, background consumption, typed publication/receive implementation, and
-execution remain separate.
+remote trust, background consumption, typed receive implementation, and execution
+remain separate.
 
 ## Agent Orchestration Contract
 
@@ -2486,6 +2499,6 @@ Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts bel
   submission command over RFC-0024; each RFC-0025 command consumes its admitted work
   only when invoked separately. Capability disagreement still refuses before the model
   call, and event publication recovery reuses exact durable state without reinvocation.
-  RFC-0027 now specifies but does not implement manifest-authorized typed spool
-  publication/receive. Provider routing remains unselected.
+  RFC-0027 now implements manifest-authorized typed spool publication but not the
+  separate manifest-authorized receiver. Provider routing remains unselected.
 - Future LLM-backed Planner input/output schema is not selected yet.

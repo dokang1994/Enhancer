@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-09-14 - Connect RFC-0027 Manifest-First Typed Publisher
+
+- Added a public filesystem publisher and supported
+  `scheduler-spool-deterministic-fake-model-work` execution path that validates the
+  complete profile, persists or exact-replays the RFC-0024 manifest, and publishes only
+  its derived queue route and exact typed envelope through the existing file spool.
+- Proved queue non-access, manifest-only recovery without context/time recapture,
+  byte-identical random duplicate points, conflict refusal before another point,
+  backpressure, unavailable-root handling, and stable redacted typed output.
+- Fresh focused Java 17 verification passed 42 tests across eight suites with zero
+  skips, failures, or errors. The receiver, acknowledgement, execution, durable schema,
+  provider/network path, background service, push, merge, release, and deployment
+  remain absent.
+
 ## 2026-09-10 - Add RFC-0027 Typed Publisher CLI Contract
 
 - Added the package-local value and parser branch for exactly twelve required

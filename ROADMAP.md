@@ -938,8 +938,8 @@ Scope:
   complete profile, an independent closed repository-owned `deterministic-echo`
   capability source, strict supported profile input, manifest-first exact replay,
   durable admission, verified supported cycle/drain/service completion, and typed
-  pre-call refusal; RFC-0027 specifies typed spool ingress but its implementation
-  remains later work;
+  pre-call refusal; RFC-0027 now implements manifest-first typed spool publication while
+  its manifest-authorized receive and acknowledgement path remains later work;
 - an optional model-aware composition for the existing foreground Scheduler
   cycle, drain, and service commands, with a closed fake selector, explicit bounded
   process configuration, unchanged legacy/payload-kind recovery, denied-Tool pre-call
@@ -949,11 +949,12 @@ Scope:
   project-contained strict profile file maps all RFC-0014 components into the existing
   RFC-0024 producer without caller capability, spool publication/receive, implicit
   execution, or durable schema change;
-- an accepted but unimplemented manifest-authorized typed file-spool ingress whose
+- a partially implemented manifest-authorized typed file-spool ingress whose supported
   separate publisher persists exact RFC-0024 intent before a transport point and whose
-  four-locator receiver derives queue, capacity, capability, and priority only from that
-  manifest, admits through the real Message Bus, and acknowledges afterward under
-  bounded at-least-once recovery without widening legacy Work commands;
+  not-yet-implemented four-locator receiver derives queue, capacity, capability, and
+  priority only from that manifest, admits through the real Message Bus, and
+  acknowledges afterward under bounded at-least-once recovery without widening legacy
+  Work commands;
 - Model Router with deterministic fake plus explicitly selected provider adapters;
 - timeout, cancellation, token, context, cost, redaction, and response-validation budgets;
 - versioned per-model quality evaluation, policy-scoped fallback and response caching, prompt-injection resistance, source attribution, and visible uncertainty;

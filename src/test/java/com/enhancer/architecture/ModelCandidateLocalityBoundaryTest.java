@@ -377,7 +377,8 @@ class ModelCandidateLocalityBoundaryTest {
                 "DeterministicFakeModelSubmissionCapabilitySource.java",
                 preparerFile,
                 serviceFile,
-                "FileSystemDeterministicFakeModelSubmission.java");
+                "FileSystemDeterministicFakeModelSubmission.java",
+                "FileSystemDeterministicFakeModelWorkPublisher.java");
 
         String facadeFile = "FileSystemDeterministicFakeModelSubmission.java";
         String facade = read(findProductionSource(facadeFile));
@@ -397,6 +398,30 @@ class ModelCandidateLocalityBoundaryTest {
         assertFalse(cli.contains("DeterministicFakeModelSubmissionRequest"));
         assertFalse(cli.contains("DeterministicFakeModelSubmissionService"));
         assertFalse(cli.contains("DeterministicFakeModelSubmissionCapabilitySource"));
+
+        String publisherFile = "FileSystemDeterministicFakeModelWorkPublisher.java";
+        String publisher = read(findProductionSource(publisherFile));
+        assertTrue(publisher.contains("public final class ")
+                && publisher.contains("DeterministicFakeModelSubmissionManifestPreparer"));
+        assertTrue(publisher.contains("FileSpoolMessageTransport"));
+        assertTrue(publisher.contains("DeliveryDestination.queue(manifest.queueId())"));
+        assertFalse(publisher.contains("SchedulerQueueStore"));
+        assertFalse(publisher.contains("FileSystemSchedulerQueueStore"));
+        assertFalse(publisher.contains("DurableWorkSubmissionService"));
+        assertFalse(publisher.contains("DeterministicFakeModelSubmissionCapabilitySource"));
+        assertFalse(publisher.contains("\"deterministic-echo\""));
+        assertFalse(publisher.contains("executionProfile().requiredCapability()"));
+        for (String forbidden : List.of(
+                "ModelGateway",
+                "ModelCredentialSupplier",
+                "HttpMessageApiModelProviderAdapter",
+                "java.net",
+                "ProcessBuilder",
+                "System.getenv",
+                "System.getProperty")) {
+            assertFalse(publisher.contains(forbidden),
+                    () -> publisherFile + " must not reference " + forbidden);
+        }
         try (Stream<Path> files = Files.walk(PRODUCTION_ROOT)) {
             files.filter(path -> path.toString().endsWith(".java"))
                     .filter(path -> !boundaryFiles.contains(path.getFileName().toString()))
