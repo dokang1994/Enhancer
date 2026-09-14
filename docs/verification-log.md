@@ -7902,3 +7902,57 @@ Outcome:
   deployment, permission, destructive action, or external effect changed. The only
   test-source change was the exact actual-Roadmap Planner expectation authorized by the
   task.
+
+## 2026-09-14 - Gate 9 Maturity Baseline Audit Increment 1
+
+- Two bounded read-only reviews independently mapped the Gate 9 scope and exit criteria
+  and checked dependency/security ordering. The primary Agent reconciled their reports
+  against repository authority and fresh source/test evidence; neither report was
+  verification evidence.
+- The Gate 8 dependency is satisfied by its supported explicit cycle, drain, service,
+  direct-submission, and typed-spool single-agent workflows over the Integrated runtime
+  foundation. This does not claim whole-gate Operational or Released maturity.
+- Scope items 2 through 10 are Satisfied for their declared deterministic-fake and
+  supported-operator boundaries: complete execution profiles; additive Model RunRecord
+  provenance and exact Scheduler preparation; closed fake candidate/counter/capacity/
+  suitability; same-request budget and invocation; typed process execution,
+  finalization, retry, and recovery; governed typed source; model-aware cycle/drain/
+  service composition; strict-profile direct submission; and manifest-authorized spool
+  ingress with post-admission acknowledgement and recovery.
+- Scope item 1 is Partial because request, response, usage, gateway, and typed failure
+  contracts exist but no route or route-decision contract exists. Scope item 12 is
+  Partial because the fake path enforces timeout, cancellation checks, Unicode-scalar
+  token/context and zero-cost suitability, response bounds, digest verification, and
+  bounded redacted rendering, while provider cancellation, provider usage/cost
+  enforcement, and general secret/redaction policy remain absent.
+- Scope item 11 is Unsatisfied because there is no Model Router, candidate registry, or
+  selected provider adapter; the package-private HTTP adapter is an intentionally inert
+  shape. Scope items 13 through 17 are Unsatisfied because versioned model evaluation,
+  fallback/cache provenance, source attribution/uncertainty, secret detection, explicit
+  outbound destination/purpose/retention policy, MCP Server, MCP Client, and privacy-
+  aware local/remote routing do not exist.
+- Exit criteria for provider/protocol failure and content authority are Partial: model
+  failure codes reach bounded Tool failures and lifecycle stop evidence, and model
+  output remains untrusted, but no executed provider/protocol path or MCP content path
+  exists. The other five criteria are Unsatisfied because there is no approved MCP
+  resource path, external MCP Tool composition, sensitive-code/remote-adapter fixture,
+  fallback/cache path, or fixed-revision model quality/cost/latency/failure evaluation.
+- The first missing Gate-9-owned dependency is the provider-neutral routing decision,
+  but remote selection cannot precede an authoritative default-deny outbound admission
+  boundary. The smallest next design candidate is therefore one pure provider-neutral
+  outbound route-admission contract over explicit task/policy/profile, destination,
+  purpose, retention, candidate, classification, and pricing facts, without provider,
+  credential, network, spend, persistence, or MCP execution.
+- Source inspection also found two stale statements: the Architecture open question and
+  its `.ai/architecture.md` mirror still describe RFC-0027 receive/acknowledgement as
+  unimplemented, contradicting the current Architecture boundary, Roadmap, Project
+  State, and fresh operator tests. Increment 2 must correct those mirrors without
+  changing the accepted boundary.
+- Fresh focused Java 17 characterization used the README-owned Gradle wrapper and
+  completed with `BUILD SUCCESSFUL` in 28 seconds. Generated JUnit XML contained 66
+  suites and 274 tests: 270 passed, four conditional platform tests skipped, and zero
+  failed or errored. `git diff --check` also passed.
+- No production or test source, runtime behavior, durable format, provider/network/
+  credential/spend path, MCP, Memory, plugin, interface, multi-agent, background,
+  cleanup, push, merge, release, deployment, permission, destructive, or external state
+  changed.

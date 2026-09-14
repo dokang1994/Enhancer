@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-09-14 - Audit The Gate 9 Evidence Baseline
+
+- Mapped all 17 Gate 9 scope items and seven exit criteria against RFC-0013 through
+  RFC-0027 production connections and fresh focused characterization.
+- Found nine scope items satisfied, two partial, and six unsatisfied; two exit criteria
+  are partial and five unsatisfied. The supported deterministic-fake operator path does
+  not establish Router, outbound-policy, real-provider, MCP, fallback/cache, or model-
+  evaluation capability.
+- Fresh Java 17 characterization passed 270 of 274 tests across 66 suites with four
+  conditional skips and zero failures or errors. No production/test source, capability
+  maturity, Roadmap state, external state, push, merge, release, or deployment changed.
+
 ## 2026-09-14 - Advance The Roadmap From Gate 8 To Gate 9
 
 - Accepted the post-RFC-0027 boundary decision that limits Gate 8 completion to the

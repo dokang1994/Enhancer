@@ -2,94 +2,86 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Reassess Delivery Gate 8 maturity after RFC-0027 against every accepted scope item and
-exit criterion, separate later-gate dependencies from the bounded single-agent runtime,
-and record only the evidence-supported Roadmap transition.
+Establish an evidence-backed Delivery Gate 9 maturity baseline from the accepted
+RFC-0013 through RFC-0027 work, distinguish the closed deterministic-fake path from
+absent provider and MCP capability, and select exactly one smallest Gate-9-owned next
+task without implementing it.
 
 ## Task ID
 
-reassess-gate-8-maturity-after-rfc-0027
+audit-gate-9-maturity-baseline-after-gate-8-transition
 
 ## Context
 
-The current capability maturity is owned by `PROJECT_STATE.md`, and planned gate status
-and dependencies are owned by `ROADMAP.md`. The last accepted Gate 8 assessment
-predated the complete runtime-event owner connections,
-bounded foreground service, authenticated cancellation application core, durable
-migration recovery, lease/disposition recovery evidence, and RFC-0027 typed
-spool-to-receive-to-Scheduler operator path.
+The current capability maturity is owned by `PROJECT_STATE.md`, planned gate status and
+dependencies are owned by `ROADMAP.md`, and verification evidence is owned by
+`docs/verification-log.md`. The Gate 8 transition made Gate 9 the next planning surface
+only after confirming that the bounded event-driven single-agent dependency is
+available through supported explicit workflows.
 
-Current repository state identifies no obvious remaining Gate-8-owned implementation
-gap. Its remaining whole-gate blockers are largely assigned to Gate 7 durable messaging
-and retention, Gate 9 model/context budgets, Gate 10 Memory, Gate 11 production effect
-adapters, Gate 12 authenticated interfaces and remaining controls, and Gate 13
-background and role workers. Another mechanism must not be invented merely to keep Gate
-8 open, while Gate 9 must not be activated until its dependency is freshly assessed.
+RFC-0013 through RFC-0027 accumulated provider-neutral request/profile/admission
+contracts, a closed deterministic-fake candidate and exact-request invocation path,
+typed process execution, governed direct submission, supported Scheduler execution,
+and manifest-authorized typed spool ingress. Their combined maturity must be assessed
+without treating deterministic fake behavior as a real provider, MCP, outbound-policy,
+fallback/cache, or evaluation implementation.
 
 ## Justified By
 
 - User continuation request on 2026-09-14 after RFC-0027 completion
-- 2026-07-24: Assess Gate 8 Maturity Against Every Exit Criterion
-- 2026-07-29: Stop Adding Unowned Gate 7 Connections And Reassess Gate 8
-- 2026-07-29: Retain Gate 8 And Specify Explicit Runtime Events Next
 
 ## Approval
 
-The user's 2026-09-14 continuation authorizes a bounded documentation-and-evidence
-audit of Gate 8, fresh verification of already-named production connections, and the
-minimum evidence-backed lifecycle transition. If and only if the audit proves the
-bounded event-driven single-agent runtime satisfies every Gate-8-owned exit criterion,
-this task may record one accepted boundary decision, apply the minimum supported
-maturity and Roadmap transition in their owning documents, and name a separate Gate 9
-activation task. If the evidence does not support that transition, this task instead
-records the exact smallest Gate-8-owned gap and leaves both owning documents unchanged.
+The user's continuation after the completed Gate 8 to Gate 9 transition authorizes a
+bounded documentation-and-evidence audit of the accepted RFC-0013 through RFC-0027
+Gate 9 work, fresh verification of already-named production and test connections, and
+selection of one smallest next Gate-9-owned task. If the audit requires a material
+boundary or sequencing decision, this task may record one Accepted Decision and
+synchronize the owning documents.
 
-This approval does not authorize production Java changes or test-source behavior
-changes beyond the exact actual-Roadmap expectation in
-`RepositoryTaskPlannerTest`; weakening or rewriting existing evidence; counting
-later-gate implementation as Gate 8 capability;
-Gate 9 implementation; provider, network, credential, paid-service, MCP, Skill, plugin,
-Memory, multi-agent, background, Cloud Sync, or interface work; Constitution or Agent
-rule changes; schema migration; cleanup; push, merge, release, deployment, permission
-change, destructive action, or external effects.
+This approval does not authorize production or test-source behavior changes; a new RFC
+or implementation; real provider or network access; credentials, secrets, spend, MCP,
+Skill, Memory, plugin, interface, multi-agent, background, Cloud Sync, or release work;
+schema migration; cleanup; push, merge, release, deployment, permission change,
+destructive action, or external effects.
 
 ## Acceptance Criteria
 
-- Every Gate 8 Scope and Exit Criteria item in `ROADMAP.md` is classified against named
-  current production connections and fresh applicable tests as Satisfied, Partial, or
-  Unsatisfied.
-- Each Partial or Unsatisfied item identifies its exact missing behavior and owning
-  Delivery Gate. A later-gate capability is neither absorbed into Gate 8 nor used to
-  conceal a Gate-8-owned gap.
-- The Gate 9 dependency on an Operational event-driven single-agent runtime is evaluated
-  explicitly against the bounded runtime that actually exists.
-- Any maturity change is supported by pre-existing evidence rerun fresh during this
-  task. No new test is written solely to manufacture a promotion result.
-- A material Gate boundary or Roadmap transition is recorded as one Accepted Decision
-  with an exact matching `DECISION_LOG.md` index entry before state changes.
-- The actual-Roadmap Planner characterization selects the sole marker recorded by this
-  transition without changing generic Planner behavior.
+- Every Gate 9 Scope and Exit Criteria item in `ROADMAP.md` is classified as Satisfied,
+  Partial, or Unsatisfied against named current production connections and fresh
+  applicable tests.
+- The audit distinguishes provider-neutral contracts, the closed deterministic-fake
+  execution path, supported operator entry points, and absent real-provider/MCP paths
+  without promoting one as evidence for another.
+- Each Partial or Unsatisfied item identifies its exact missing behavior, prerequisites,
+  and owning Delivery Gate; later-gate capability is not absorbed into Gate 9.
+- The operational Gate 8 dependency is evaluated against the supported explicit runtime
+  workflows without overstating whole-gate or release maturity.
+- Exactly one smallest Gate-9-owned next task is selected in dependency order with clear
+  authority, data-classification, outbound-policy, credential, cost, and verification
+  boundaries. No implementation or RFC is created by this audit.
+- A material sequencing or boundary change is recorded as one Accepted Decision with an
+  exact matching `DECISION_LOG.md` index entry before owning documents change.
 - Capability maturity appears only in `PROJECT_STATE.md`; planned gate status and
-  dependencies appear in `ROADMAP.md`; architecture changes only if the component or
+  dependencies appear in `ROADMAP.md`; architecture changes only if a component or
   contract boundary changes; verification evidence is appended once to
   `docs/verification-log.md`.
-- `CURRENT_TASK.md` records the evidence-supported next task, applicable Markdown-
-  sensitive Java 17 verification is GREEN, `git diff --check` passes, and each completed
-  increment is committed locally.
+- `CURRENT_TASK.md` records the singular next task, applicable Markdown-sensitive Java
+  17 verification is GREEN, `git diff --check` passes, and each completed increment is
+  committed locally.
 
 ## Out Of Scope
 
-Production behavior changes or test changes beyond the exact actual-Roadmap Planner
-expectation; new Gate 8 runtime mechanisms; Gate 9 product implementation; real model
-providers; MCP; Skill or Memory runtime; Tool/plugin
-marketplace; API/editor/Desktop interfaces; multi-agent or background execution; cloud
-sync; self-improvement; packaging or distribution; durable schema changes; scan,
-cleanup, retention, or destructive repair; push, merge, release, deployment, permission
-change, credentials, paid services, and external effects.
+Production or test behavior changes; a new RFC or implementation; real model provider,
+network, credential, secret, or paid-service access; MCP client/server; Skill or Memory
+runtime; Tool/plugin marketplace; API/editor/Desktop interfaces; multi-agent or
+background execution; cloud sync; self-improvement; packaging or distribution; durable
+schema changes; scan, cleanup, retention, or destructive repair; push, merge, release,
+deployment, permission change, and external effects.
 
 ## Allowed Tools
 
@@ -105,54 +97,54 @@ change, credentials, paid services, and external effects.
 ## Verification
 
 This is an evidence audit, so code RED/GREEN does not apply. Equivalent verification is
-a complete criterion-to-evidence matrix, fresh characterization of the named runtime,
-Scheduler, Message Bus, recovery, event, authority, migration, and external-effect
-connections, architecture/governance tests, full README-owned Java 17 regression, and
-`git diff --check`. Subagent recommendations are not verification evidence.
+a complete Gate 9 scope-and-exit-criterion matrix, fresh characterization of the named
+model request/profile/admission, candidate, budget, invocation, typed execution,
+submission, Scheduler, spool, authority, provenance, and governance paths, the full
+README-owned Java 17 regression, and `git diff --check`. Subagent recommendations are
+not verification evidence.
 
 ## Dynamic Workflow
 
-Workflow ID: reassess-gate-8-maturity-after-rfc-0027
+Workflow ID: audit-gate-9-maturity-baseline-after-gate-8-transition
 Mode: Sequential
 Increment Limit: 2
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
-Stop Conditions: Stop on missing or conflicting named evidence, a Gate-8-owned exit
-criterion that requires new behavior, an attempted cross-gate scope transfer without an
-accepted decision, failed verification, checkpoint drift, new authority, or unsafe
+Stop Conditions: Stop on missing or conflicting named evidence, an attempted cross-gate
+scope transfer, a next slice requiring ungranted provider/network/credential/spend or
+external authority, failed verification, checkpoint drift, task drift, or unsafe
 recovery.
 
-### Increment 1 - audit-gate-8-evidence
+### Increment 1 - audit-existing-gate-9-evidence
 
 State: Completed
 Depends On: none
-Scope: Map every Gate 8 scope item and exit criterion to current named production
-connections, owning gates, and fresh characterization evidence without changing product
-behavior or capability maturity.
-Exit Criteria: The audit matrix is complete; each classification is evidence-backed;
-the Gate 9 runtime dependency is explicitly assessed; and the result selects either a
-bounded promotion decision or one exact Gate-8-owned gap.
-Verification: Existing runtime-event, Scheduler cycle/drain/service, Message Bus,
-recovery, migration, authority, external-effect, RFC-0027, architecture, and governance
-tests plus `git diff --check`.
+Scope: Map every Gate 9 scope item and exit criterion to RFC-0013 through RFC-0027
+production connections, owning gates, and fresh characterization evidence without
+changing product behavior, architecture, capability maturity, or Roadmap state.
+Exit Criteria: The audit matrix is complete; every classification is evidence-backed;
+the Gate 8 dependency is assessed; and the first exact Gate-9-owned missing boundary is
+identified without selecting implementation prematurely.
+Verification: Existing model, Scheduler, runtime, Message Bus, RunRecord, authority,
+source-locality, architecture, and governance tests plus `git diff --check`.
 Next Action: Commit Increment 1 and select Increment 2 only if the audit is coherent.
 
-### Increment 2 - record-evidence-supported-transition
+### Increment 2 - select-smallest-next-gate-9-task
 
-State: Completed
-Depends On: audit-gate-8-evidence
-Scope: Record the accepted audit decision and synchronize only the owning maturity,
-Roadmap, task, verification, and delivery documents; change Architecture only if the
-accepted boundary changes.
-Exit Criteria: Gate 8 and Gate 9 states reflect the audited evidence without overstated
-capability; the next task is singular and bounded; full Markdown-sensitive Java 17
-regression is GREEN; Git is clean; and the checkpoint is stable and clear.
-Verification: Gate 8 and Gate 9 source/locality, architecture/governance, full
+State: In Progress
+Depends On: audit-existing-gate-9-evidence
+Scope: Record only the evidence-supported Gate 9 baseline, any required accepted
+sequencing decision, and exactly one bounded next task in the owning documents.
+Exit Criteria: Current state is not overstated; one Gate-9-owned next task is singular,
+bounded, dependency-ready, and requires separate implementation authority; full
+Markdown-sensitive Java 17 regression is GREEN; Git is clean; and the checkpoint is
+stable and clear.
+Verification: Gate 9 source/locality, architecture/governance, full
 `.\scripts\gradle.ps1 test`, diff/commit/status, and checkpoint reconciliation.
-Next Action: Await separate authority for the selected Gate 9 task or identified Gate 8
-gap, and for any push, merge, release, deployment, or external work.
+Next Action: Await separate authority for the selected Gate 9 task and for any push,
+merge, release, deployment, provider/network, credential, spend, or external work.
 
 ## Next
 
-Await separate user authority for a bounded Gate 9 maturity-baseline audit of existing
-RFC-0013 through RFC-0027 evidence before selecting another model or MCP implementation,
-and for any push, merge, release, deployment, or external work.
+Record the audited baseline, correct only the stale RFC-0027 architecture statements,
+and select one separately authorized provider-neutral outbound route-admission
+specification task before any router, provider, credential, network, or MCP work.
