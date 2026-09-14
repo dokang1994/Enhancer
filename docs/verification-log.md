@@ -7836,3 +7836,43 @@ Outcome:
 - No durable format, provider/network/credential/spend path, background consumer, push,
   merge, release, deployment, permission change, destructive cleanup, or external effect
   was added or performed.
+
+## 2026-09-14 - Gate 8 Post-RFC-0027 Maturity Audit Increment 1
+
+- Two bounded read-only reviews independently mapped the exit criteria and checked the
+  transition authority. The primary Agent reconciled their recommendations against the
+  Constitution, Roadmap, current state, accepted decisions, and fresh tests; neither
+  report was verification evidence.
+- The first characterization run completed 171 tests with four conditional skips and
+  one expected governance failure: the newly activated task restated a gate maturity
+  owned only by `PROJECT_STATE.md`. The task contract was restored to its checkpointed
+  form, the stable checkpoint was cleared, and a corrected non-duplicating task contract
+  started a fresh run before verification continued.
+- Scope audit: persisted Goal/AgentRun state and the sequential single-agent worker are
+  Satisfied. Planner-to-Done, queues/control/budgets, effect recovery, priority under
+  model constraints, role workers, broader dependency analysis, and broader resource
+  budgets are Partial or Unsatisfied only where the Roadmap already assigns the missing
+  behavior to Gate 7 durable messaging/retention, Gate 9 model/context budgets, Gate 10
+  Memory/Reflection, Gate 11 production adapters, Gate 12 authenticated interfaces and
+  remaining controls, or Gate 13 background and role workers. No unidentified
+  Gate-8-owned product mechanism remains.
+- Exit-criterion audit: interruption recovery is covered by durable queue/runtime/
+  checkpoint/RunRecord and lease/disposition fixtures; Work and Result cross real fresh
+  Message Bus queues; all required runtime transitions have durable event owners;
+  authority is preserved across admission and capability mismatch; duplicate delivery,
+  lost acknowledgement, lease expiry, restart, and supported migrations converge; and
+  external effects retain the explicit applied/deduplicated/compensated/user-recovery
+  outcomes without a universal exactly-once claim.
+- The Gate 9 dependency is satisfied by the already Operational explicit single-agent
+  cycle, drain, and bounded service paths over the Integrated event-driven runtime
+  foundation; it does not require importing Gate 9 through 13 features back into Gate 8.
+  The audit therefore selects an accepted boundary decision and the minimum supported
+  Gate 8/Gate 9 Roadmap transition for Increment 2, without starting Gate 9 product work.
+- Fresh corrected Java 17 characterization used the README-owned Gradle wrapper command
+  and completed with `BUILD SUCCESSFUL` in 56 seconds. Generated JUnit XML contained 27
+  suites and 171 tests: 167 passed, four conditional platform tests skipped, and zero
+  failed or errored. `git diff --check` also passed.
+- No production or test source, runtime behavior, durable format, provider/network/
+  credential/spend path, MCP, Memory, plugin, interface, multi-agent, background,
+  cleanup, push, merge, release, deployment, permission, destructive, or external state
+  changed.

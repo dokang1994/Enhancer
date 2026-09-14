@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-09-14 - Audit Gate 8 Evidence After RFC-0027
+
+- Reassessed every Gate 8 scope item and exit criterion against current named
+  production connections after runtime-event, service, migration, recovery,
+  authenticated-cancellation-core, and typed spool ingress work.
+- Found all six exit criteria satisfied for the bounded event-driven single-agent
+  runtime, while remaining partial scope belongs explicitly to Gates 7 and 9 through
+  13 rather than an unidentified Gate 8 mechanism. Selected a boundary decision before
+  any maturity or Roadmap transition.
+- Fresh Java 17 characterization passed 167 of 171 tests across 27 suites with four
+  conditional platform skips and zero failures or errors. No product behavior,
+  production/test source, capability maturity, push, merge, release, or deployment
+  changed.
+
 ## 2026-09-14 - Complete RFC-0027 Typed Spool Ingress Implementation
 
 - Added real-filesystem operator evidence for separate typed publication, explicit
