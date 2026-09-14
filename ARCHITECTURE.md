@@ -1960,8 +1960,9 @@ message v2, manifest v3, queue v4, runtime v5, checkpoint v2, Model RunRecord v2
 runtime-event formats remain unchanged. Publication/receive, provider, network,
 credential, spend, and implicit execution remain separately authorized.
 
-RFC-0027's shared package-local manifest-preparation prerequisite and local file-spool
-publisher are implemented; its manifest-authorized receiver is not yet implemented.
+RFC-0027's shared package-local manifest preparation, local file-spool publisher, and
+manifest-authorized typed receiver domain are implemented; filesystem point resolution
+and acknowledgement remain unimplemented.
 The typed publisher shares RFC-0024 manifest preparation with direct submission,
 persists or exact-replays that manifest before publishing exactly
 `queue(manifest.queueId)` plus `manifest.workMessage`, and never opens or admits the
@@ -1981,22 +1982,26 @@ details with stable redacted reasons. Exact retries may create multiple byte-ide
 random points, while a refusal creates none and a retained manifest enables explicit
 retry without context or clock recapture.
 
-The separate four-locator typed receiver resolves one named pending or acknowledged
-point and the manifest named by its message identity. It requires canonical ModelWork
-v2, exact envelope equality, the manifest-derived queue route, the closed deterministic-
-fake capability, and exact queue capacity before delivering through a fresh Message Bus
-subscriber with only manifest capability and priority. Durable admission precedes a
-same-directory atomic `.received` rename; replay after admission or acknowledgement
-changes no queue work. The profile capability remains untrusted for later fresh
-RFC-0016 admission. Legacy Work commands remain unchanged and reject ModelWork.
+The package-local typed receiver domain accepts one already-decoded transport message,
+resolves the manifest by message identity, and validates ModelWork kind, exact envelope,
+all derived identities, the manifest-derived queue route, absent causation, the closed
+deterministic-fake capability, and exact existing capacity before queue mutation. It
+creates or opens only the manifest queue and uses one fresh real Message Bus subscriber
+with only manifest capability and priority. Its admission-only queue open preserves
+active work and revision instead of applying worker recovery; first admission advances
+exactly one revision and exact replay advances none. The later four-locator filesystem
+composition will add bounded canonical point decoding and same-directory atomic
+`.received` acknowledgement after this durable result. The profile capability remains
+untrusted for later fresh RFC-0016 admission. Legacy Work commands remain unchanged and
+reject ModelWork.
 
 The existing transport remains bounded at-least-once: every accepted retry may create a
 new random point, while exact receiver replay admits one queue item and acknowledges
 each named point independently. The manifest-only, empty-queue, admitted-pending, and
 acknowledged-response-loss prefixes are recoverable without a new binary schema.
 Exactly-once publication, receipts/outboxes, scanning, dead letters, cleanup/retention,
-remote trust, background consumption, typed receive implementation, and execution
-remain separate.
+remote trust, background consumption, typed receiver filesystem/acknowledgement
+integration, and execution remain separate.
 
 ## Agent Orchestration Contract
 
@@ -2499,6 +2504,7 @@ Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts bel
   submission command over RFC-0024; each RFC-0025 command consumes its admitted work
   only when invoked separately. Capability disagreement still refuses before the model
   call, and event publication recovery reuses exact durable state without reinvocation.
-  RFC-0027 now implements manifest-authorized typed spool publication but not the
-  separate manifest-authorized receiver. Provider routing remains unselected.
+  RFC-0027 now implements manifest-authorized typed spool publication and its package-
+  local receiver domain, but not point decoding, acknowledgement, or the supported
+  receive CLI. Provider routing remains unselected.
 - Future LLM-backed Planner input/output schema is not selected yet.

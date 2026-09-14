@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-09-14 - Add RFC-0027 Manifest-Authorized Typed Receiver Domain
+
+- Added a separate package-local typed receiver that resolves pre-existing manifest
+  authority, validates exact ModelWork envelope and derived route/identities before
+  queue mutation, and admits through one fresh real Message Bus subscriber using only
+  manifest capability and priority.
+- Added an admission-only durable queue open so receiver replay preserves active work
+  and revision instead of applying worker recovery; first admission advances one
+  revision and exact replay advances none.
+- Fresh focused Java 17 verification passed 59 tests across ten suites with zero skips,
+  failures, or errors. Filesystem point reading, acknowledgement, receive CLI,
+  execution, schema change, provider/network work, push, merge, release, and deployment
+  remain absent.
+
 ## 2026-09-14 - Connect RFC-0027 Manifest-First Typed Publisher
 
 - Added a public filesystem publisher and supported

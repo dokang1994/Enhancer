@@ -7759,3 +7759,26 @@ Outcome:
   provider/network/credential/spend path, background service, push, merge, release,
   deployment, permission change, destructive cleanup, or external effect was added or
   performed.
+
+## 2026-09-14 - RFC-0027 Implementation Increment 4 Manifest-Authorized Receiver Domain
+
+- One bounded read-only review checked the separate domain API, validation and mutation
+  ordering, fresh real Message Bus proof, queue recovery semantics, refusal matrix, and
+  source locality. The primary Agent reconciled its recommendations against repository
+  authority; the report was not verification evidence.
+- The initial aligned RED compilation exposed only 11 references to the absent typed
+  receiver. A second behavioral RED then exposed exactly two issues in the preliminary
+  composition: public visibility and worker-style recovery moving active work. The
+  minimum GREEN kept the receiver package-local and introduced an admission-only queue
+  open that preserves active state and revision.
+- Fresh focused Java 17 verification used the README-owned Gradle wrapper command and
+  completed with `BUILD SUCCESSFUL` in 12 seconds. Generated JUnit XML contained ten
+  suites and 59 tests: all 59 passed with zero skips, failures, or errors. Coverage
+  included exact manifest/route/envelope/derived-identity/capability/capacity validation,
+  first admission, fresh-bus exact replay, active-work preservation, missing/unreadable
+  manifest refusal, queue and manifest stores, legacy Work typed refusal, publisher
+  compatibility, locality, and governance.
+- No filesystem point reader, acknowledgement, receive CLI, Scheduler execution,
+  provider/network/credential/spend path, background service, durable schema change,
+  push, merge, release, deployment, permission change, destructive cleanup, or external
+  effect was added or performed.

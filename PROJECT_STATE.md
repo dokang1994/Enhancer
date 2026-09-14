@@ -981,23 +981,26 @@ it does not restate which commit published which increment.
   Result, evidence, disposition, runtime, queue, or event revision. Typed spool ingress,
   providers, network, credentials, spend, and background execution remain absent.
 - RFC-0027 implements the separate manifest-first deterministic-fake typed spool
-  publisher while its four-locator manifest-authorized receiver remains unimplemented.
+  publisher and package-local manifest-authorized receiver domain while its four-
+  locator filesystem/CLI and acknowledgement recovery remain unimplemented.
   The supported publisher validates one complete profile before durable access,
   persists or exact-replays RFC-0024 intent, publishes only the manifest-derived route
   and envelope through the existing bounded file spool, and stops before queue access.
   Fresh real-filesystem evidence proves accepted publication, manifest-only recovery,
   byte-identical random duplicate points, conflict refusal, backpressure, unavailable-
-  root redaction, and legacy/direct compatibility. The receiver will derive envelope,
-  queue, capacity, capability, and priority authority from one exact pre-existing
-  manifest and acknowledge only after durable admission. Legacy Work commands and
+  root redaction, and legacy/direct compatibility. The receiver domain now derives
+  envelope, queue, capacity, capability, and priority authority from one exact pre-
+  existing manifest, admits through one fresh real Message Bus, distinguishes exact
+  replay, and preserves active queue state through an admission-only open. Bounded point
+  reading and acknowledgement remain the next increment. Legacy Work commands and
   current schemas remain unchanged.
 - Self-hosting development means applying Enhancer's governed workflow to its own repository; local or hybrid model execution is a separate provider-routing capability.
 
 ## Not Yet Integrated Or Operational
 
 - Prompt and LLM invocation.
-- RFC-0027 manifest-authorized receive implementation, including its bounded no-follow
-  point reader, acknowledgement, and recovery integration.
+- RFC-0027 manifest-authorized receive filesystem/CLI implementation, including its
+  bounded no-follow point reader, acknowledgement, and recovery integration.
 - Remaining Workspace adapters, Project Brain graph persistence, Event/Message Bus production wiring, concrete IPC adapters, broader Agent Runtime and Scheduler production paths, and Model Gateway.
 - Project Brain graph storage and impact reasoning, Dependency Analyzer, Workflow Engine, Agent Marketplace, and privacy-aware hybrid model routing.
 - Skill loading runtime, plugins, MCP, multi-agent, background execution, Cloud Sync, and governed self-improvement.

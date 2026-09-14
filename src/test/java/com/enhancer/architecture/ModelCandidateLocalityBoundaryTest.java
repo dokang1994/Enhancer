@@ -378,7 +378,8 @@ class ModelCandidateLocalityBoundaryTest {
                 preparerFile,
                 serviceFile,
                 "FileSystemDeterministicFakeModelSubmission.java",
-                "FileSystemDeterministicFakeModelWorkPublisher.java");
+                "FileSystemDeterministicFakeModelWorkPublisher.java",
+                "ManifestAuthorizedDeterministicFakeModelWorkReceiver.java");
 
         String facadeFile = "FileSystemDeterministicFakeModelSubmission.java";
         String facade = read(findProductionSource(facadeFile));
@@ -421,6 +422,34 @@ class ModelCandidateLocalityBoundaryTest {
                 "System.getProperty")) {
             assertFalse(publisher.contains(forbidden),
                     () -> publisherFile + " must not reference " + forbidden);
+        }
+
+        String receiverFile =
+                "ManifestAuthorizedDeterministicFakeModelWorkReceiver.java";
+        String receiver = read(findProductionSource(receiverFile));
+        assertTrue(receiver.contains(
+                "final class ManifestAuthorizedDeterministicFakeModelWorkReceiver"));
+        assertFalse(receiver.contains("public final class"));
+        assertTrue(receiver.contains("SubmissionManifestStore"));
+        assertTrue(receiver.contains("SchedulerQueueStore"));
+        assertTrue(receiver.contains("InProcessMessageBus"));
+        assertTrue(receiver.contains("openForAdmission"));
+        assertTrue(receiver.contains("DeterministicFakeModelSubmissionCapabilitySource"));
+        assertFalse(receiver.contains("FileSpool"));
+        assertFalse(receiver.contains("com.enhancer.cli"));
+        assertFalse(receiver.contains("String requiredCapability"));
+        assertFalse(receiver.contains("SchedulerPriority priority"));
+        for (String forbidden : List.of(
+                "ModelExecutionProfile",
+                "ModelGateway",
+                "ModelCredentialSupplier",
+                "HttpMessageApiModelProviderAdapter",
+                "java.net",
+                "ProcessBuilder",
+                "System.getenv",
+                "System.getProperty")) {
+            assertFalse(receiver.contains(forbidden),
+                    () -> receiverFile + " must not reference " + forbidden);
         }
         try (Stream<Path> files = Files.walk(PRODUCTION_ROOT)) {
             files.filter(path -> path.toString().endsWith(".java"))

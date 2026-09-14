@@ -63,6 +63,23 @@ public final class DurableSingleWorkerSchedulerQueue {
                 revision);
     }
 
+    /**
+     * Opens one already-resolved queue for exact admission without applying worker recovery.
+     * Receiver retries must not move active work back to pending merely to check idempotency.
+     */
+    static DurableSingleWorkerSchedulerQueue openForAdmission(
+            SchedulerQueueState state,
+            SchedulerQueueStore store) {
+        SchedulerQueueState requiredState = Objects.requireNonNull(
+                state, "state must not be null");
+        Objects.requireNonNull(store, "store must not be null");
+        return new DurableSingleWorkerSchedulerQueue(
+                requiredState.queueId(),
+                store,
+                new SingleWorkerSchedulerQueue(requiredState),
+                requiredState.revision());
+    }
+
     public void enqueue(QueuedWork queuedWork) throws IOException {
         SingleWorkerSchedulerQueue candidate = copyQueue();
         candidate.enqueue(queuedWork);

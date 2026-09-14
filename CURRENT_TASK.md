@@ -185,7 +185,7 @@ Next Action: Commit Increment 3 and select Increment 4.
 
 ### Increment 4 - add-manifest-authorized-typed-receiver
 
-State: In Progress
+State: Completed
 Depends On: connect-manifest-only-typed-publisher
 Scope: Establish RED domain/composition tests and implement the separate typed receiver
 that validates exact manifest, envelope, route, fixed capability, capacity, and
@@ -201,7 +201,7 @@ Next Action: Commit Increment 4 and select Increment 5.
 
 ### Increment 5 - connect-and-harden-typed-receiver-cli
 
-State: Pending
+State: In Progress
 Depends On: add-manifest-authorized-typed-receiver
 Scope: Add the exact four-option CLI and bounded no-follow point/acknowledgement
 composition, then prove all RFC-0027 receive crash prefixes and refusal boundaries.
@@ -234,5 +234,5 @@ network, background service, or later product work.
 
 ## Next
 
-Complete Increment 4 RED-first, commit its verified GREEN boundary, and select
-Increment 5.
+Complete Increment 5 RED-first, commit its verified GREEN boundary, and select
+Increment 6.
