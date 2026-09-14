@@ -2,86 +2,81 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Establish an evidence-backed Delivery Gate 9 maturity baseline from the accepted
-RFC-0013 through RFC-0027 work, distinguish the closed deterministic-fake path from
-absent provider and MCP capability, and select exactly one smallest Gate-9-owned next
-task without implementing it.
+Deliver the twelve completed and verified Gate 8 transition and Gate 9 baseline commits
+currently ahead of `origin/main` to remote `main` through explicit non-force fast-
+forward pushes, required CI observation, and one committed delivery-evidence closure.
 
 ## Task ID
 
-audit-gate-9-maturity-baseline-after-gate-8-transition
+deliver-gate-8-transition-and-gate-9-baseline-to-main
 
 ## Context
 
-The current capability maturity is owned by `PROJECT_STATE.md`, planned gate status and
-dependencies are owned by `ROADMAP.md`, and verification evidence is owned by
-`docs/verification-log.md`. The Gate 8 transition made Gate 9 the next planning surface
-only after confirming that the bounded event-driven single-agent dependency is
-available through supported explicit workflows.
+The clean local `main` ends at `0119793` and is twelve linear commits ahead of the
+currently tracked `origin/main`. The completed work already resides directly on
+`main`; there is no feature branch requiring a synthetic merge commit. The user has
+explicitly requested commit, push, and merge.
 
-RFC-0013 through RFC-0027 accumulated provider-neutral request/profile/admission
-contracts, a closed deterministic-fake candidate and exact-request invocation path,
-typed process execution, governed direct submission, supported Scheduler execution,
-and manifest-authorized typed spool ingress. Their combined maturity must be assessed
-without treating deterministic fake behavior as a real provider, MCP, outbound-policy,
-fallback/cache, or evaluation implementation.
+The next product task remains the separately authorized RFC-0028 specification named
+by the completed Gate 9 baseline audit. This delivery task changes only delivery
+history and evidence.
 
 ## Justified By
 
-- User continuation request on 2026-09-14 after RFC-0027 completion
+- User request on 2026-09-14 to commit, push, and merge Gate 8 transition and Gate 9 baseline work to main
 
 ## Approval
 
-The user's continuation after the completed Gate 8 to Gate 9 transition authorizes a
-bounded documentation-and-evidence audit of the accepted RFC-0013 through RFC-0027
-Gate 9 work, fresh verification of already-named production and test connections, and
-selection of one smallest next Gate-9-owned task. If the audit requires a material
-boundary or sequencing decision, this task may record one Accepted Decision and
-synchronize the owning documents.
+The user's explicit 2026-09-14 request authorizes a bounded delivery task that commits
+the delivery authority and evidence cursor, runs fresh local verification, fetches and
+proves fast-forward ancestry, pushes local `main` to `origin/main` with the explicit
+non-force `main:main` refspec, verifies fetched and advertised refs, observes the push-
+triggered GitHub Actions `verify` workflow, commits the verified delivery evidence, and
+publishes that evidence commit under the same ancestry and ref checks.
 
-This approval does not authorize production or test-source behavior changes; a new RFC
-or implementation; real provider or network access; credentials, secrets, spend, MCP,
-Skill, Memory, plugin, interface, multi-agent, background, Cloud Sync, or release work;
-schema migration; cleanup; push, merge, release, deployment, permission change,
-destructive action, or external effects.
+Because all completed work is already linear on local `main`, a successful non-force
+fast-forward push is the requested merge. No temporary branch or synthetic merge commit
+is required.
+
+This approval does not authorize force push, rebase, reset, amend, squash, cherry-pick,
+history rewrite, tag, release, deployment, branch deletion, permission or credential
+change, destructive cleanup, product implementation, schema change, capability
+promotion, provider/network invocation, paid service, MCP, or unrelated external
+effect.
 
 ## Acceptance Criteria
 
-- Every Gate 9 Scope and Exit Criteria item in `ROADMAP.md` is classified as Satisfied,
-  Partial, or Unsatisfied against named current production connections and fresh
-  applicable tests.
-- The audit distinguishes provider-neutral contracts, the closed deterministic-fake
-  execution path, supported operator entry points, and absent real-provider/MCP paths
-  without promoting one as evidence for another.
-- Each Partial or Unsatisfied item identifies its exact missing behavior, prerequisites,
-  and owning Delivery Gate; later-gate capability is not absorbed into Gate 9.
-- The operational Gate 8 dependency is evaluated against the supported explicit runtime
-  workflows without overstating whole-gate or release maturity.
-- Exactly one smallest Gate-9-owned next task is selected in dependency order with clear
-  authority, data-classification, outbound-policy, credential, cost, and verification
-  boundaries. No implementation or RFC is created by this audit.
-- A material sequencing or boundary change is recorded as one Accepted Decision with an
-  exact matching `DECISION_LOG.md` index entry before owning documents change.
-- Capability maturity appears only in `PROJECT_STATE.md`; planned gate status and
-  dependencies appear in `ROADMAP.md`; architecture changes only if a component or
-  contract boundary changes; verification evidence is appended once to
-  `docs/verification-log.md`.
-- `CURRENT_TASK.md` records the singular next task, applicable Markdown-sensitive Java
-  17 verification is GREEN, `git diff --check` passes, and each completed increment is
-  committed locally.
+- One Accepted Decision records the exact delivery authority and non-force linear-merge
+  interpretation with an exact matching `DECISION_LOG.md` entry.
+- Fresh focused governance and full README-owned Java 17 regression are GREEN after the
+  delivery-authority documents are written; `git diff --check` passes.
+- The delivery-authority increment is committed locally before remote mutation.
+- A fresh fetch proves `origin/main` is the merge base and ancestor of local `main`,
+  with no remote-only commits, before each push.
+- Each push uses the explicit non-force `git push origin main:main` refspec; no force,
+  synthetic merge, rebase, or history rewrite occurs.
+- After the primary push, local `HEAD`, fetched `origin/main`, and advertised remote
+  `refs/heads/main` match exactly, and the exact-head GitHub Actions `verify` workflow
+  reaches terminal success.
+- Delivery evidence is appended once to `docs/verification-log.md`, notable delivery
+  history is recorded in `CHANGELOG.md`, and the completed task retains RFC-0028 as the
+  singular next product task.
+- The evidence closure is committed and delivered by the same non-force ancestry
+  protocol; final local, fetched, and advertised remote refs match, the exact-head
+  `verify` workflow succeeds, Git is clean, and the checkpoint is stable and clear.
 
 ## Out Of Scope
 
-Production or test behavior changes; a new RFC or implementation; real model provider,
-network, credential, secret, or paid-service access; MCP client/server; Skill or Memory
-runtime; Tool/plugin marketplace; API/editor/Desktop interfaces; multi-agent or
-background execution; cloud sync; self-improvement; packaging or distribution; durable
-schema changes; scan, cleanup, retention, or destructive repair; push, merge, release,
-deployment, permission change, and external effects.
+Product or test-source changes; architecture, capability maturity, Roadmap, RFC, or
+durable-schema changes; provider/network invocation beyond Git/GitHub delivery;
+credentials or paid services; MCP, Skill, Memory, plugin, interface, multi-agent,
+background, Cloud Sync, release, deployment, tag, branch deletion, permission change,
+destructive cleanup, force push, rebase, reset, amend, squash, cherry-pick, synthetic
+merge, history rewrite, and unrelated external effects.
 
 ## Allowed Tools
 
@@ -93,58 +88,69 @@ deployment, permission change, and external effects.
 - git-inspect
 - git-stage
 - git-commit
+- git-fetch
+- git-push
+- GitHub-Actions-observe
 
 ## Verification
 
-This is an evidence audit, so code RED/GREEN does not apply. Equivalent verification is
-a complete Gate 9 scope-and-exit-criterion matrix, fresh characterization of the named
-model request/profile/admission, candidate, budget, invocation, typed execution,
-submission, Scheduler, spool, authority, provenance, and governance paths, the full
-README-owned Java 17 regression, and `git diff --check`. Subagent recommendations are
-not verification evidence.
+Use the README-owned Java 17 Gradle command for focused governance and full regression.
+Before each push, fetch `origin`, prove exact merge-base ancestry and zero remote-only
+divergence, and inspect the explicit ref range. After each push, fetch again, compare
+local, tracking, and advertised remote refs, and observe the exact-head GitHub Actions
+`verify` workflow through terminal success. Subagent reports are not verification
+evidence.
 
 ## Dynamic Workflow
 
-Workflow ID: audit-gate-9-maturity-baseline-after-gate-8-transition
+Workflow ID: deliver-gate-8-transition-and-gate-9-baseline-to-main
 Mode: Sequential
-Increment Limit: 2
+Increment Limit: 3
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
-Stop Conditions: Stop on missing or conflicting named evidence, an attempted cross-gate
-scope transfer, a next slice requiring ungranted provider/network/credential/spend or
-external authority, failed verification, checkpoint drift, task drift, or unsafe
-recovery.
+Stop Conditions: Stop on a dirty or drifting worktree, failed verification, checkpoint
+drift, remote-only commits, failed ancestry, non-fast-forward refusal, ref mismatch,
+failed or unavailable required CI, new authority, or unsafe recovery.
 
-### Increment 1 - audit-existing-gate-9-evidence
+### Increment 1 - authorize-and-verify-delivery
 
 State: Completed
 Depends On: none
-Scope: Map every Gate 9 scope item and exit criterion to RFC-0013 through RFC-0027
-production connections, owning gates, and fresh characterization evidence without
-changing product behavior, architecture, capability maturity, or Roadmap state.
-Exit Criteria: The audit matrix is complete; every classification is evidence-backed;
-the Gate 8 dependency is assessed; and the first exact Gate-9-owned missing boundary is
-identified without selecting implementation prematurely.
-Verification: Existing model, Scheduler, runtime, Message Bus, RunRecord, authority,
-source-locality, architecture, and governance tests plus `git diff --check`.
-Next Action: Commit Increment 1 and select Increment 2 only if the audit is coherent.
+Scope: Record the accepted delivery decision and preflight evidence, run fresh focused
+governance and full regression, and commit the delivery authority locally.
+Exit Criteria: Decision/index, task, changelog, and preflight evidence are synchronized;
+fresh verification is GREEN; the worktree is clean after the ordinary local commit.
+Verification: Decision/document governance, full `.\scripts\gradle.ps1 test`,
+`git diff --check`, commit, status, and checkpoint reconciliation.
+Next Action: Select Increment 2 and fetch `origin`.
 
-### Increment 2 - select-smallest-next-gate-9-task
+### Increment 2 - fast-forward-main-and-observe-ci
 
-State: Completed
-Depends On: audit-existing-gate-9-evidence
-Scope: Record only the evidence-supported Gate 9 baseline, any required accepted
-sequencing decision, and exactly one bounded next task in the owning documents.
-Exit Criteria: Current state is not overstated; one Gate-9-owned next task is singular,
-bounded, dependency-ready, and requires separate implementation authority; full
-Markdown-sensitive Java 17 regression is GREEN; Git is clean; and the checkpoint is
-stable and clear.
-Verification: Gate 9 source/locality, architecture/governance, full
-`.\scripts\gradle.ps1 test`, diff/commit/status, and checkpoint reconciliation.
-Next Action: Await separate authority for the selected Gate 9 task and for any push,
-merge, release, deployment, provider/network, credential, spend, or external work.
+State: In Progress
+Depends On: authorize-and-verify-delivery
+Scope: Fetch remote state, prove ancestry, push explicit non-force `main:main`, verify
+local/fetched/advertised refs, observe the exact-head `verify` workflow, and record its
+delivery evidence.
+Exit Criteria: The primary delivery is a verified fast-forward, exact refs match, CI is
+successful, and the evidence closure is ready for a local commit.
+Verification: Fetch, merge-base/ancestor/divergence, explicit push, ref equality,
+GitHub Actions exact-head observation, diff, and checkpoint reconciliation.
+Next Action: Commit the evidence closure and select Increment 3.
+
+### Increment 3 - publish-and-close-delivery-evidence
+
+State: Pending
+Depends On: fast-forward-main-and-observe-ci
+Scope: Commit the verified evidence closure, re-fetch and prove fast-forward ancestry,
+push the explicit non-force `main:main` refspec, verify final refs and exact-head CI,
+then close the task and checkpoint.
+Exit Criteria: The evidence commit is on remote `main`; exact refs and CI are verified;
+Git is clean; the task is complete; and the checkpoint is stable and clear.
+Verification: Commit, fetch, merge-base/ancestor/divergence, explicit push, ref equality,
+GitHub Actions exact-head observation, status, and checkpoint reconciliation.
+Next Action: Await separate authority for RFC-0028 or another user-selected task.
 
 ## Next
 
-Await separate user authority to specify RFC-0028 as a pure provider-neutral outbound
-model route-admission contract before any Router, second candidate, provider adapter,
-credential, network, paid invocation, or MCP work.
+Fetch `origin`, prove non-force fast-forward ancestry, deliver the authority commit and
+completed work through explicit `main:main`, and observe exact-head CI before recording
+the evidence closure.

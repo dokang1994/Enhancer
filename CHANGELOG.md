@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-09-14 - Authorize Gate 8 Transition And Gate 9 Baseline Main Delivery
+
+- Accepted the user's bounded request to commit, push, and merge the twelve completed
+  and verified commits currently ahead of tracked `origin/main`.
+- Defined explicit non-force `main:main` fast-forward delivery as the requested merge
+  because the work already resides directly on local `main`; no temporary branch or
+  synthetic merge commit is required.
+- Fresh focused governance passed all 18 tests across five suites. Fresh full Java 17
+  regression passed 1,211 of 1,227 tests across 226 suites with 16 conditional skips
+  and zero failures or errors; remote ancestry/ref checks and exact-head CI observation
+  remain required before delivery closes.
+- Force push, history rewrite, tag, release, deployment, branch deletion, permissions,
+  credentials, product behavior, schema, and capability maturity remain unchanged.
+
 ## 2026-09-14 - Audit The Gate 9 Evidence Baseline
 
 - Mapped all 17 Gate 9 scope items and seven exit criteria against RFC-0013 through

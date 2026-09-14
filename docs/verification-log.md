@@ -7978,3 +7978,23 @@ Outcome:
   credential/spend path, MCP, Memory, plugin, interface, multi-agent, background,
   cleanup, push, merge, release, deployment, permission, destructive action, or
   external state changed.
+
+## 2026-09-14 - Gate 8 Transition And Gate 9 Baseline Main Delivery Preflight
+
+- The user explicitly authorized commit, push, and merge. Recovery began from an empty
+  checkpoint, a clean worktree, and local `main` at `0119793`, twelve commits ahead of
+  the then-tracked `origin/main`; no remote mutation occurred during this preflight.
+- The accepted delivery decision defines explicit non-force `main:main` fast-forward
+  delivery as the requested merge because all completed work already lies directly on
+  local `main`. Force push, history rewrite, synthetic merge, tag, release, deployment,
+  branch deletion, permissions, credentials, product changes, schema changes, and
+  capability promotion remain excluded.
+- Fresh focused Java 17 governance used the README-owned Gradle wrapper and completed
+  with `BUILD SUCCESSFUL`. Generated JUnit XML contained five suites and 18 tests: all
+  18 passed with zero skips, failures, or errors. `git diff --check` also passed.
+- Fresh full Java 17 regression completed with `BUILD SUCCESSFUL` in 1 minute 46
+  seconds. Generated JUnit XML contained 226 suites and 1,227 tests: 1,211 passed, 16
+  conditional platform tests skipped, and zero failed or errored. Capability maturity
+  and Roadmap state did not change.
+- `PROJECT_STATE.md`, `ROADMAP.md`, `ARCHITECTURE.md`, and `SESSION_HANDOFF.md` remain
+  unchanged because delivery adds no capability, plan, boundary, or host-only fact.

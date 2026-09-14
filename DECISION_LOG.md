@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User request on 2026-09-14 to commit, push, and merge Gate 8 transition and Gate 9 baseline work to main
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-09-14-deliver-gate-8-transition-and-gate-9-baseline-work-to-main.md)
+
 ### Select provider-neutral outbound model route admission before router or provider integration
 
 Status: Accepted Decision
