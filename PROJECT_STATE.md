@@ -978,7 +978,8 @@ it does not restate which commit published which increment.
   service command is an Operational deterministic-fake typed-work sub-path: all three
   reach verified Model RunRecord v2 completion, capability mismatch remains a no-effect
   recoverable pre-call refusal, and exact event recovery adds no invocation, record,
-  Result, evidence, disposition, runtime, queue, or event revision. Typed spool ingress,
+  Result, evidence, disposition, runtime, queue, or event revision. RFC-0027 now adds a
+  separate Operational typed spool ingress path to those same execution commands;
   providers, network, credentials, spend, and background execution remain absent.
 - RFC-0027 implements the separate manifest-first deterministic-fake typed spool
   publisher, package-local manifest-authorized receiver domain, and four-locator
@@ -996,15 +997,17 @@ it does not restate which commit published which increment.
   collision, non-regular and oversized input before admission, reads with a bounded
   no-follow operation, and atomically acknowledges only after durable admission.
   Pending, queue-only, admitted-pending, acknowledgement-failure, acknowledged replay,
-  duplicate-point, and capacity-release recovery are verified. Legacy Work commands
-  and current schemas remain unchanged; end-to-end operator-path closure remains in the
-  active implementation task.
+  duplicate-point, and capacity-release recovery are verified. The separate typed spool
+  path is Operational for the deterministic-fake reference composition: real
+  filesystem publication and receive followed by each separately invoked RFC-0025
+  cycle, drain, or finite service reaches verified Model RunRecord v2 completion, while
+  capability mismatch remains a no-effect pre-call refusal. Legacy Work commands and
+  current schemas remain unchanged.
 - Self-hosting development means applying Enhancer's governed workflow to its own repository; local or hybrid model execution is a separate provider-routing capability.
 
 ## Not Yet Integrated Or Operational
 
 - Prompt and LLM invocation.
-- RFC-0027 end-to-end typed spool operator-path closure and full regression evidence.
 - Remaining Workspace adapters, Project Brain graph persistence, Event/Message Bus production wiring, concrete IPC adapters, broader Agent Runtime and Scheduler production paths, and Model Gateway.
 - Project Brain graph storage and impact reasoning, Dependency Analyzer, Workflow Engine, Agent Marketplace, and privacy-aware hybrid model routing.
 - Skill loading runtime, plugins, MCP, multi-agent, background execution, Cloud Sync, and governed self-improvement.

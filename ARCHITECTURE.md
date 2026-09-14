@@ -1957,8 +1957,8 @@ admission path without a new transport point, manifest-authorized receiver,
 acknowledgement, or transport recovery contract. Submission and the explicitly model-
 configured RFC-0025 execution commands remain separate operator effects. Current
 message v2, manifest v3, queue v4, runtime v5, checkpoint v2, Model RunRecord v2, and
-runtime-event formats remain unchanged. Publication/receive, provider, network,
-credential, spend, and implicit execution remain separately authorized.
+runtime-event formats remain unchanged. Provider, network, credential, spend, and
+implicit execution remain separately authorized.
 
 RFC-0027's shared package-local manifest preparation, local file-spool publisher,
 manifest-authorized typed receiver domain, and bounded four-locator filesystem/CLI
@@ -2006,7 +2006,12 @@ each named point independently. A `.received` point no longer consumes pending s
 capacity. The manifest-only, empty-queue, admitted-pending, acknowledgement-failure,
 and acknowledged-response-loss prefixes are recoverable without a new binary schema.
 Exactly-once publication, receipts/outboxes, scanning, dead letters, cleanup/retention,
-remote trust, background consumption, and execution remain separate.
+remote trust, background consumption, and implicit execution remain separate. The
+supported operational composition deliberately keeps publication, one-point receive,
+and RFC-0025 execution as three operator effects. Real filesystem and process-isolated
+JVM evidence proves the admitted typed work reaches verified completion through each of
+`scheduler-cycle`, `scheduler-drain`, and finite `scheduler-service`; capability
+mismatch remains a no-effect pre-call refusal, and the legacy Work path is unchanged.
 
 ## Agent Orchestration Contract
 

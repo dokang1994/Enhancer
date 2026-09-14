@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-09-14 - Complete RFC-0027 Typed Spool Ingress Implementation
+
+- Added real-filesystem operator evidence for separate typed publication, explicit
+  one-point receive/acknowledgement, and each separately invoked RFC-0025
+  `scheduler-cycle`, `scheduler-drain`, and finite `scheduler-service` path reaching
+  verified Model RunRecord v2 completion through the existing process-isolated JVM.
+- Preserved the RFC-0026 direct submission evidence and legacy Work behavior, and proved
+  capability mismatch after typed spool receive remains a no-effect pre-call refusal.
+  Added README commands and explicit manifest-only, pending, admitted-pending,
+  acknowledged-response-loss, duplicate-point, and collision recovery guidance.
+- Fresh focused Java 17 verification passed 98 of 100 tests across 21 suites with two
+  existing conditional skips. Fresh full regression passed 1,211 of 1,227 tests across
+  226 suites with 16 conditional skips and zero failures or errors. No production or
+  durable-format change was needed in this closing increment; provider/network work,
+  background consumption, push, merge, release, and deployment remain absent.
+
 ## 2026-09-14 - Connect RFC-0027 Bounded Typed Receiver CLI
 
 - Added the exact four-locator

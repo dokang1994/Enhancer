@@ -940,7 +940,8 @@ Scope:
   durable admission, verified supported cycle/drain/service completion, and typed
   pre-call refusal; RFC-0027 now implements manifest-first typed spool publication,
   manifest-authorized admission, bounded point receive, post-admission acknowledgement,
-  and crash-prefix recovery while operator-path closure remains later work;
+  crash-prefix recovery, and separate verified cycle/drain/finite-service operator
+  paths;
 - an optional model-aware composition for the existing foreground Scheduler
   cycle, drain, and service commands, with a closed fake selector, explicit bounded
   process configuration, unchanged legacy/payload-kind recovery, denied-Tool pre-call
@@ -956,7 +957,10 @@ Scope:
   admits through a fresh real Message Bus, performs bounded no-follow point reading,
   and atomically acknowledges only after admission. Exact pending, acknowledged,
   duplicate, collision, capacity-release, and acknowledgement-failure recovery is
-  verified; legacy Work commands stay unchanged;
+  verified. Separate real-filesystem publication and receive followed by each supported
+  RFC-0025 execution command reaches verified deterministic-fake completion;
+  capability mismatch remains a no-effect pre-call refusal and legacy Work commands
+  stay unchanged;
 - Model Router with deterministic fake plus explicitly selected provider adapters;
 - timeout, cancellation, token, context, cost, redaction, and response-validation budgets;
 - versioned per-model quality evaluation, policy-scoped fallback and response caching, prompt-injection resistance, source attribution, and visible uncertainty;

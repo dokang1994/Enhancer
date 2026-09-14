@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -216,7 +216,7 @@ Next Action: Commit Increment 5 and select Increment 6.
 
 ### Increment 6 - prove-operator-path-and-close
 
-State: In Progress
+State: Completed
 Depends On: connect-and-harden-typed-receiver-cli
 Scope: Add real filesystem/JVM publisher -> receiver -> separate RFC-0025 cycle/drain/
 service evidence, capability-mismatch and legacy compatibility coverage, synchronize
@@ -234,5 +234,5 @@ network, background service, or later product work.
 
 ## Next
 
-Complete Increment 6 RED-first, close the verified Active Task locally, and await
-separate authority for any push, merge, release, or deployment.
+Await separate user authority for any push, merge, release, deployment, provider,
+network, background service, or later product work.

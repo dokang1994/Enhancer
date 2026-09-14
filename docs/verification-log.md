@@ -7806,3 +7806,33 @@ Outcome:
 - No Scheduler execution, provider/network/credential/spend path, background consumer,
   durable schema change, push, merge, release, deployment, permission change,
   destructive cleanup, or external effect was added or performed.
+
+## 2026-09-14 - RFC-0027 Implementation Increment 6 Operator Path And Closure
+
+- One bounded read-only review identified the existing RFC-0026 test fixture and
+  recommended preserving its direct-submission evidence while adding a separate typed
+  spool integration suite. The primary Agent reconciled that recommendation against the
+  Active Task and current source; the report was not verification evidence.
+- The aligned RED compilation exposed exactly six references to the absent test-owned
+  `supportedSpool` and `supportedReceive` composition helpers. The minimum GREEN added
+  those separate real CLI invocations and one dedicated integration suite; no production
+  source changed in this increment.
+- Real-filesystem publication returned one explicit accepted point, separate receive
+  durably admitted and acknowledged it, and each separately invoked RFC-0025 cycle,
+  drain, and finite service completed the same typed path through the existing isolated
+  worker JVM with one Verified Model RunRecord v2. Capability mismatch after receive
+  remained a pre-call refusal with no RunRecord, evidence, Result point, disposition, or
+  external-effect record. Existing direct RFC-0026 and legacy Work tests remained intact.
+- Fresh synchronized focused Java 17 verification used the README-owned Gradle wrapper
+  command and completed with `BUILD SUCCESSFUL` in 14 seconds. Generated JUnit XML
+  contained 21 suites and 100 tests: 98 passed, two existing conditional tests skipped,
+  and zero failed or errored. Coverage included RFC-0018-through-RFC-0027 model/spool/
+  manifest/queue/RunRecord boundaries, all three Scheduler commands, direct and legacy
+  compatibility, source locality, and Markdown-sensitive governance.
+- Fresh pre-closure full Java 17 regression completed with `BUILD SUCCESSFUL` in 1 minute
+  40 seconds. Generated JUnit XML contained 226 suites and 1,227 tests: 1,211 passed, 16
+  conditional tests skipped, and zero failed or errored. A final full rerun after all
+  Markdown ownership updates is required before the local closure commit.
+- No durable format, provider/network/credential/spend path, background consumer, push,
+  merge, release, deployment, permission change, destructive cleanup, or external effect
+  was added or performed.

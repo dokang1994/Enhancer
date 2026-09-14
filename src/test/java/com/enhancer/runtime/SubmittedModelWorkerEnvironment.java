@@ -41,6 +41,7 @@ final class SubmittedModelWorkerEnvironment {
 
     private final Path projectRoot;
     private final Path submissionRoot;
+    private final Path transportSpoolRoot;
     private final Path evidenceRoot;
     private final Path recordRoot;
     private final Path invocationRoot;
@@ -65,6 +66,7 @@ final class SubmittedModelWorkerEnvironment {
             Set<String> deniedTools) throws IOException {
         this.projectRoot = root.resolve("project");
         this.submissionRoot = root.resolve("submissions");
+        this.transportSpoolRoot = root.resolve("transport-spool");
         this.evidenceRoot = root.resolve("evidence");
         this.recordRoot = root.resolve("records");
         this.invocationRoot = root.resolve("invocations");
@@ -154,6 +156,47 @@ final class SubmittedModelWorkerEnvironment {
                         "--model-execution-profile-file", "model-execution.profile",
                         "--priority", request.priority().name()
                 },
+                new PrintStream(standardOutput, true, StandardCharsets.UTF_8),
+                new PrintStream(standardError, true, StandardCharsets.UTF_8));
+        return new CliExecution(
+                exitCode,
+                standardOutput.toString(StandardCharsets.UTF_8),
+                standardError.toString(StandardCharsets.UTF_8));
+    }
+
+    CliExecution supportedSpool() {
+        return execute(new String[] {
+                "scheduler-spool-deterministic-fake-model-work",
+                "--project-root", projectRoot.toString(),
+                "--submission-root", submissionRoot.toString(),
+                "--transport-spool-root", transportSpoolRoot.toString(),
+                "--task-id", request.taskId(),
+                "--submission-id", request.submissionId(),
+                "--max-work-items", Integer.toString(request.maxWorkItems()),
+                "--max-pending-publications", "8",
+                "--producer", request.producer(),
+                "--target-path", request.targetPath(),
+                "--expected-response-sha256", request.expectedResponseSha256(),
+                "--model-execution-profile-file", "model-execution.profile",
+                "--priority", request.priority().name()
+        });
+    }
+
+    CliExecution supportedReceive(String messageFile) {
+        return execute(new String[] {
+                "scheduler-receive-deterministic-fake-model-work",
+                "--transport-spool-root", transportSpoolRoot.toString(),
+                "--message-file", messageFile,
+                "--submission-root", submissionRoot.toString(),
+                "--queue-root", queueRoot.toString()
+        });
+    }
+
+    private CliExecution execute(String[] arguments) {
+        ByteArrayOutputStream standardOutput = new ByteArrayOutputStream();
+        ByteArrayOutputStream standardError = new ByteArrayOutputStream();
+        int exitCode = new EnhancerCli().execute(
+                arguments,
                 new PrintStream(standardOutput, true, StandardCharsets.UTF_8),
                 new PrintStream(standardError, true, StandardCharsets.UTF_8));
         return new CliExecution(

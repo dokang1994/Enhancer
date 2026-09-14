@@ -200,6 +200,59 @@ resubmit work to repair execution. A profile capability other than
 `deterministic-echo` remains an intentional pre-call refusal rather than being repaired
 from the fixed producer capability.
 
+## Spool And Receive Deterministic-Fake Typed ModelWork
+
+Use the separate RFC-0027 commands when submission must cross the bounded local file
+spool. First create the same complete profile described above, then publish the typed
+intent without opening the Scheduler queue:
+
+```powershell
+.\scripts\gradle.ps1 run --args="scheduler-spool-deterministic-fake-model-work --project-root C:\Enhancer --submission-root C:\Enhancer\.enhancer\submissions --transport-spool-root C:\Enhancer\.enhancer\model-work-spool --task-id <active-task-id> --submission-id <canonical-submission-uuid> --max-work-items 256 --max-pending-publications 64 --producer local-operator --target-path prompts/request.txt --expected-response-sha256 <lowercase-deterministic-response-sha256> --model-execution-profile-file profiles/deterministic-fake.profile --priority NORMAL"
+```
+
+All twelve options are required. `--max-work-items` and
+`--max-pending-publications` are independent canonical decimal values from `1` through
+`4096`. An accepted result prints `status=ACCEPTED`, the derived `queueId`, and one
+opaque canonical `messageFile`; preserve that filename. `BACKPRESSURED` and
+`UNAVAILABLE` are exit-zero transport outcomes and do not mean the queue contains work.
+The command persists or exact-replays the manifest before publication and prints no
+profile, capability, target, digest, prompt, response, or filesystem exception detail.
+
+Receive exactly the returned point in a separate invocation:
+
+```powershell
+.\scripts\gradle.ps1 run --args="scheduler-receive-deterministic-fake-model-work --transport-spool-root C:\Enhancer\.enhancer\model-work-spool --message-file <canonical-message-uuid>.transport --submission-root C:\Enhancer\.enhancer\submissions --queue-root C:\Enhancer\.enhancer\queue"
+```
+
+The receiver accepts exactly those four locators. It performs no directory scan and
+derives route, queue identity, capacity, capability, priority, and the exact envelope
+only from the retained manifest. Successful first admission prints `status=ADMITTED`
+and `spoolStatus=ACKNOWLEDGED`; it atomically renames the pending point to the same-root
+`.received` sibling only after durable admission. Pass the printed `queueId` to a
+separately authorized `scheduler-cycle`, `scheduler-drain`, or finite
+`scheduler-service` invocation with the complete model-execution option group above.
+
+Recovery is explicit and point-based:
+
+1. If publication is refused or its response is uncertain, repeat the exact publication
+   command. A retained manifest prevents context or clock recapture; an accepted retry
+   may create another byte-identical random point, and each returned filename is handled
+   independently.
+2. If receive fails before admission, retain the `.transport` point, repair only the
+   reported configuration or durable-state issue, and repeat the same receive command.
+3. If receive is interrupted after admission but before acknowledgement, repeating the
+   same command returns `REPLAYED` without another queue revision and then acknowledges
+   the point. If the response was lost after acknowledgement, the same original
+   `.transport` filename resolves its `.received` sibling and reports
+   `spoolStatus=ALREADY_ACKNOWLEDGED`.
+4. If both pending and `.received` siblings exist, or any root/point is indirect,
+   non-regular, corrupt, oversized, foreign, or manifest-conflicting, stop and inspect;
+   the receiver fails before an unauthorized acknowledgement or changed admission.
+
+Acknowledged `.received` points do not consume pending-publication capacity, but they
+remain retained evidence. This command adds no cleanup, retention scheduler, scanner,
+background consumer, implicit execution, or exactly-once publication guarantee.
+
 ## Inspect Durable Scheduler Queue Status
 
 `scheduler-status` reads one persisted queue snapshot without recovering or changing it:
