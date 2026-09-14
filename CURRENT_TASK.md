@@ -201,7 +201,7 @@ Next Action: Commit Increment 4 and select Increment 5.
 
 ### Increment 5 - connect-and-harden-typed-receiver-cli
 
-State: In Progress
+State: Completed
 Depends On: add-manifest-authorized-typed-receiver
 Scope: Add the exact four-option CLI and bounded no-follow point/acknowledgement
 composition, then prove all RFC-0027 receive crash prefixes and refusal boundaries.
@@ -216,7 +216,7 @@ Next Action: Commit Increment 5 and select Increment 6.
 
 ### Increment 6 - prove-operator-path-and-close
 
-State: Pending
+State: In Progress
 Depends On: connect-and-harden-typed-receiver-cli
 Scope: Add real filesystem/JVM publisher -> receiver -> separate RFC-0025 cycle/drain/
 service evidence, capability-mismatch and legacy compatibility coverage, synchronize
@@ -234,5 +234,5 @@ network, background service, or later product work.
 
 ## Next
 
-Complete Increment 5 RED-first, commit its verified GREEN boundary, and select
-Increment 6.
+Complete Increment 6 RED-first, close the verified Active Task locally, and await
+separate authority for any push, merge, release, or deployment.

@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-09-14 - Connect RFC-0027 Bounded Typed Receiver CLI
+
+- Added the exact four-locator
+  `scheduler-receive-deterministic-fake-model-work` command and a public filesystem
+  composition that resolves one named pending or acknowledged transport point, performs
+  bounded no-follow decoding, and admits only through the manifest-authorized typed
+  receiver before same-directory atomic `.received` acknowledgement.
+- Proved queue-only continuation, admitted-pending and acknowledged replay, duplicate
+  convergence, pending/acknowledged collision refusal, oversized and missing-manifest
+  no-ACK failure, acknowledgement-failure retry, pending-capacity release, bounded CLI
+  output, and conditional symbolic-point refusal without changing durable schemas or
+  legacy Work commands.
+- Fresh focused Java 17 verification passed 51 of 52 tests across eleven suites with one
+  Windows symbolic-link setup skip and zero failures or errors. Execution, provider/
+  network work, background consumption, push, merge, release, and deployment remain
+  absent.
+
 ## 2026-09-14 - Add RFC-0027 Manifest-Authorized Typed Receiver Domain
 
 - Added a separate package-local typed receiver that resolves pre-existing manifest

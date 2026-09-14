@@ -1960,9 +1960,9 @@ message v2, manifest v3, queue v4, runtime v5, checkpoint v2, Model RunRecord v2
 runtime-event formats remain unchanged. Publication/receive, provider, network,
 credential, spend, and implicit execution remain separately authorized.
 
-RFC-0027's shared package-local manifest preparation, local file-spool publisher, and
-manifest-authorized typed receiver domain are implemented; filesystem point resolution
-and acknowledgement remain unimplemented.
+RFC-0027's shared package-local manifest preparation, local file-spool publisher,
+manifest-authorized typed receiver domain, and bounded four-locator filesystem/CLI
+receive composition are implemented.
 The typed publisher shares RFC-0024 manifest preparation with direct submission,
 persists or exact-replays that manifest before publishing exactly
 `queue(manifest.queueId)` plus `manifest.workMessage`, and never opens or admits the
@@ -1989,19 +1989,24 @@ deterministic-fake capability, and exact existing capacity before queue mutation
 creates or opens only the manifest queue and uses one fresh real Message Bus subscriber
 with only manifest capability and priority. Its admission-only queue open preserves
 active work and revision instead of applying worker recovery; first admission advances
-exactly one revision and exact replay advances none. The later four-locator filesystem
-composition will add bounded canonical point decoding and same-directory atomic
-`.received` acknowledgement after this durable result. The profile capability remains
-untrusted for later fresh RFC-0016 admission. Legacy Work commands remain unchanged and
-reject ModelWork.
+exactly one revision and exact replay advances none. The public filesystem composition
+accepts only transport spool root, canonical UUID `.transport` filename, submission
+root, and queue root. It rejects root or final-point indirection, non-regular points,
+pending/acknowledged collisions, and oversized frames before admission; reads through
+the shared bounded no-follow transport decoder; and atomically renames a pending point
+to its deterministic `.received` sibling only after durable admission. Exact
+acknowledged re-entry validates and replays without another move or queue revision, and
+an acknowledgement failure retains the pending point for revision-free retry. The
+profile capability remains untrusted for later fresh RFC-0016 admission. Legacy Work
+commands remain unchanged and reject ModelWork.
 
 The existing transport remains bounded at-least-once: every accepted retry may create a
 new random point, while exact receiver replay admits one queue item and acknowledges
-each named point independently. The manifest-only, empty-queue, admitted-pending, and
-acknowledged-response-loss prefixes are recoverable without a new binary schema.
+each named point independently. A `.received` point no longer consumes pending spool
+capacity. The manifest-only, empty-queue, admitted-pending, acknowledgement-failure,
+and acknowledged-response-loss prefixes are recoverable without a new binary schema.
 Exactly-once publication, receipts/outboxes, scanning, dead letters, cleanup/retention,
-remote trust, background consumption, typed receiver filesystem/acknowledgement
-integration, and execution remain separate.
+remote trust, background consumption, and execution remain separate.
 
 ## Agent Orchestration Contract
 

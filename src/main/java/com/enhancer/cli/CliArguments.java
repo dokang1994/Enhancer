@@ -193,6 +193,12 @@ final class CliArguments {
             "goal-id");
     private static final Set<String> SCHEDULER_RECEIVE_CONTROL_OPTIONAL_OPTIONS =
             SCHEDULER_EXECUTION_OPTIONAL_OPTIONS;
+    private static final Set<String>
+            SCHEDULER_RECEIVE_DETERMINISTIC_FAKE_MODEL_WORK_OPTIONS = Set.of(
+                    "transport-spool-root",
+                    "message-file",
+                    "submission-root",
+                    "queue-root");
     private static final Set<String> SCHEDULER_APPLY_CANCEL_OPTIONS = Set.of(
             "runtime-root",
             "goal-id",
@@ -306,6 +312,7 @@ final class CliArguments {
                             + "scheduler-drain, scheduler-service, "
                             + "scheduler-apply-cancel, "
                             + "scheduler-receive-work, scheduler-receive-control, "
+                            + "scheduler-receive-deterministic-fake-model-work, "
                             + "scheduler-spool-work, scheduler-spool-control, "
                             + "scheduler-spool-deterministic-fake-model-work, "
                             + "scheduler-migrate-cycle-checkpoint, "
@@ -398,6 +405,10 @@ final class CliArguments {
                             arguments,
                             SCHEDULER_RECEIVE_CONTROL_OPTIONS,
                             SCHEDULER_RECEIVE_CONTROL_OPTIONAL_OPTIONS));
+            case "scheduler-receive-deterministic-fake-model-work" ->
+                    parseDeterministicFakeModelReceive(parseOptions(
+                            arguments,
+                            SCHEDULER_RECEIVE_DETERMINISTIC_FAKE_MODEL_WORK_OPTIONS));
             case "scheduler-apply-cancel" -> parseSchedulerApplyCancel(
                     parseOptions(
                             arguments,
@@ -978,6 +989,15 @@ final class CliArguments {
                 file.substring(0, file.length() - suffix.length()),
                 "message-file");
         return file;
+    }
+
+    private static DeterministicFakeModelReceiveCliCommand
+            parseDeterministicFakeModelReceive(Map<String, String> options) {
+        return new DeterministicFakeModelReceiveCliCommand(
+                path(options.get("transport-spool-root"), "transport-spool-root"),
+                canonicalTransportFile(options.get("message-file")),
+                path(options.get("submission-root"), "submission-root"),
+                path(options.get("queue-root"), "queue-root"));
     }
 
     private static SchedulerSpoolWorkCliCommand parseSchedulerSpoolWork(

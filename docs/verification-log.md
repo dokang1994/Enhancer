@@ -7782,3 +7782,27 @@ Outcome:
   provider/network/credential/spend path, background service, durable schema change,
   push, merge, release, deployment, permission change, destructive cleanup, or external
   effect was added or performed.
+
+## 2026-09-14 - RFC-0027 Implementation Increment 5 Bounded Typed Receiver CLI
+
+- The aligned RED compilation exposed 14 references to the absent four-option receive
+  command, filesystem point facade, bounded result, and transport frame bound. A second
+  RED exposed the missing injectable acknowledgement seam needed to prove the
+  admitted-before-ACK crash prefix. The minimum GREEN added only those surfaces and
+  reused the existing typed domain receiver, transport codec, manifest store, and queue
+  store.
+- The receiver validates an explicit canonical UUID `.transport` point and exactly one
+  pending or `.received` state, rejects root/final-point indirection, collision and
+  non-regular input, bounds no-follow frame reads, durably admits before an atomic
+  same-root rename, and leaves pending input untouched on every pre-ACK failure. An
+  injected ACK failure proves retry reaches revision-free replay before acknowledgement.
+- Fresh focused Java 17 verification used the README-owned Gradle wrapper command and
+  completed with `BUILD SUCCESSFUL`. Generated JUnit XML contained eleven suites and 52
+  tests: 51 passed, one Windows symbolic-link setup test skipped, and zero failed or
+  errored. Coverage included the exact CLI value/parser and output, pending and
+  acknowledged recovery, queue-only continuation, duplicate convergence, pending-
+  capacity release, collision, overflow, missing manifest, ACK failure, transport,
+  legacy receive/spool compatibility, locality, and Markdown-sensitive governance.
+- No Scheduler execution, provider/network/credential/spend path, background consumer,
+  durable schema change, push, merge, release, deployment, permission change,
+  destructive cleanup, or external effect was added or performed.

@@ -62,6 +62,7 @@ import com.enhancer.runtime.FileSystemAuthenticatedCancellationApplication;
 import com.enhancer.runtime.FileSystemCancellationAuthorizationAuditStore;
 import com.enhancer.runtime.FileSystemDeterministicFakeModelSubmission;
 import com.enhancer.runtime.FileSystemDeterministicFakeModelWorkPublisher;
+import com.enhancer.runtime.FileSystemManifestAuthorizedDeterministicFakeModelWorkReceiver;
 import com.enhancer.runtime.FileSystemExternalEffectLedgerStore;
 import com.enhancer.runtime.FileSystemPendingFinalizationStore;
 import com.enhancer.runtime.FileSystemRuntimeEventPublisher;
@@ -76,10 +77,12 @@ import com.enhancer.runtime.GeneratedInputSubmissionService;
 import com.enhancer.runtime.GeneratedSubmissionIdentities;
 import com.enhancer.runtime.GeneratedSubmissionRequest;
 import com.enhancer.runtime.MissingSchedulerQueueStateException;
+import com.enhancer.runtime.MissingSubmissionManifestException;
 import com.enhancer.runtime.MissingAgentRuntimeStateException;
 import com.enhancer.runtime.InstalledCancellationTrustMetadata;
 import com.enhancer.runtime.InstalledCancellationTrustMetadataLoader;
 import com.enhancer.runtime.PendingFinalizationMigrationResult;
+import com.enhancer.runtime.ManifestAuthorizedModelWorkPointReceiveResult;
 import com.enhancer.runtime.PinnedFileCancellationGrantTrustPolicyLoader;
 import com.enhancer.runtime.ExternalEffectStatus;
 import com.enhancer.runtime.SchedulerDrainResult;
@@ -262,6 +265,9 @@ public final class EnhancerCli {
             }
             if (command instanceof SchedulerReceiveControlCliCommand receive) {
                 return executeSchedulerReceiveControl(receive, stdout);
+            }
+            if (command instanceof DeterministicFakeModelReceiveCliCommand receive) {
+                return executeDeterministicFakeModelReceive(receive, stdout);
             }
             if (command instanceof SchedulerSpoolWorkCliCommand publish) {
                 return executeSchedulerSpoolWork(publish, stdout);
@@ -1427,6 +1433,37 @@ public final class EnhancerCli {
                 "signal=" + result.signal(),
                 "acknowledgedFile="
                         + spoolPoint.acknowledgedPath().getFileName()) + "\n");
+        return 0;
+    }
+
+    private int executeDeterministicFakeModelReceive(
+            DeterministicFakeModelReceiveCliCommand command,
+            PrintStream stdout) throws IOException {
+        ManifestAuthorizedModelWorkPointReceiveResult result;
+        try {
+            result = new FileSystemManifestAuthorizedDeterministicFakeModelWorkReceiver(
+                    command.transportSpoolRoot(),
+                    command.submissionRoot(),
+                    command.queueRoot())
+                    .receive(command.messageFile());
+        } catch (MissingSubmissionManifestException exception) {
+            throw new CliUsageException(
+                    "typed model receive manifest is missing", exception);
+        } catch (IllegalArgumentException | IllegalStateException exception) {
+            throw new CliUsageException(
+                    "typed model receive input is invalid", exception);
+        }
+        writeBounded(stdout, String.join("\n",
+                "status=" + result.admission().status(),
+                "spoolStatus=" + result.spoolStatus(),
+                "exitCode=0",
+                "submissionId=" + result.submissionId(),
+                "queueId=" + result.admission().queueId(),
+                "messageId=" + result.messageId(),
+                "workItemId=" + result.admission().workItemId(),
+                "queueRevision=" + result.admission().queueRevision(),
+                "priority=" + result.admission().priority(),
+                "acknowledgedFile=" + result.acknowledgedFile()) + "\n");
         return 0;
     }
 

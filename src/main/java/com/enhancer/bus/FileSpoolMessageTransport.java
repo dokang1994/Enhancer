@@ -1,5 +1,6 @@
 package com.enhancer.bus;
 
+import com.enhancer.io.BoundedFileOperations;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -32,6 +33,8 @@ import java.util.UUID;
  */
 public final class FileSpoolMessageTransport implements MessageTransport {
     public static final String FILE_SUFFIX = ".transport";
+    public static final int MAX_FRAME_BYTES =
+            Integer.BYTES + Integer.BYTES + 32 + MessageEnvelopeCodec.MAX_MESSAGE_BYTES;
 
     private static final MessageEnvelopeCodec CODEC = new MessageEnvelopeCodec();
 
@@ -87,7 +90,8 @@ public final class FileSpoolMessageTransport implements MessageTransport {
      */
     public static TransportMessage read(Path spooledMessage) throws IOException {
         Objects.requireNonNull(spooledMessage, "spooledMessage must not be null");
-        return CODEC.decode(Files.readAllBytes(spooledMessage));
+        return CODEC.decode(BoundedFileOperations.readAllBytesNoFollow(
+                spooledMessage, MAX_FRAME_BYTES));
     }
 
     private void prepareRoot() throws IOException {
