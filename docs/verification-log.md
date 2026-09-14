@@ -7998,3 +7998,27 @@ Outcome:
   and Roadmap state did not change.
 - `PROJECT_STATE.md`, `ROADMAP.md`, `ARCHITECTURE.md`, and `SESSION_HANDOFF.md` remain
   unchanged because delivery adds no capability, plan, boundary, or host-only fact.
+
+## 2026-09-14 - Gate 8 Transition And Gate 9 Baseline Main Fast-Forward Delivery
+
+- The verified delivery-authority increment was committed locally as
+  `cc76fb557249e46f2de0bd579d9eea9d7ef806dd` (`Authorize Gate 8 and Gate 9 main
+  delivery`). A fresh `git fetch origin --prune` resolved remote main at
+  `b5a2834a934dd07c6a5d8e1326dd6e3966a702a4`.
+- `git merge-base origin/main main` returned that exact remote commit,
+  `git merge-base --is-ancestor origin/main main` exited zero, and divergence was
+  `0 13`. Explicit non-force `git push origin main:main` advanced the named branch
+  through exact range `b5a2834..cc76fb5`; no temporary branch or synthetic merge
+  commit was created.
+- After a fresh fetch, local `HEAD`, fetched `origin/main`, and advertised
+  `refs/heads/main` all resolved to
+  `cc76fb557249e46f2de0bd579d9eea9d7ef806dd`, with divergence `0 0`.
+- Push-triggered GitHub Actions workflow `verify` run `34829289063` for that exact head
+  reached terminal `completed` / `success`; test job `103928549995` completed in 59
+  seconds. Its Node.js/action-version deprecation annotations were non-failing and no
+  repository test failed.
+- The verified evidence closure remains to be committed and delivered under the same
+  fresh-fetch, ancestry, explicit non-force refspec, exact-ref, and exact-head CI
+  checks. No force operation, tag, release, deployment, branch deletion, permission or
+  credential change, product implementation, schema change, capability promotion, or
+  unrelated external effect was performed.
