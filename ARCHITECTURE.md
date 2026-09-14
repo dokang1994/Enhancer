@@ -780,6 +780,22 @@ connections remain required before Gate 7 can be promoted as a whole.
 
 ## Agent Runtime Model
 
+### Gate 8 Ownership Boundary
+
+Gate 8 owns the bounded event-driven single-agent runtime: durable Goal and AgentRun
+lifecycle, Scheduler admission and selection, fenced leases, runtime-event derivation,
+retry and terminal disposition, recovery checkpoints and supported migrations,
+Message-Bus-mediated Work and Result paths, authority preservation, and explicit
+external-effect outcome records. Its supported compositions remain separate explicit
+operator effects rather than an implicit orchestration wrapper.
+
+Cross-gate extensions remain with their architectural owners. Gate 7 owns durable bus
+journaling and transport retention; Gate 9 owns model/context/cost and outbound policy;
+Gate 10 owns Memory and Reflection; Gate 11 owns production Tool/effect adapters; Gate
+12 owns authenticated interfaces plus remaining cancellation/pause/resume application;
+and Gate 13 owns background supervision, roles, and multi-agent execution. Those
+extensions consume the Gate 8 foundation and do not grant it their authority.
+
 The target runtime is a persisted, event-driven state machine:
 
 ```text

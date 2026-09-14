@@ -73,11 +73,11 @@ class RepositoryTaskPlannerTest {
                 "# Current Task\n\n## Status\n\nCompleted\n",
                 roadmap)).orElseThrow();
 
-        assertEquals("Delivery Gate 8: Agent Runtime And Scheduler", proposal.title());
+        assertEquals("Delivery Gate 9: Model Gateway And MCP Core", proposal.title());
         assertTrue(proposal.scope().contains(
-                "persisted Goal and AgentRun state machine;"));
+                "provider-neutral ModelRequest, response, usage, and routing contracts;"));
         assertTrue(proposal.acceptanceCriteria().contains(
-                "runtime scheduling cannot expand task or Tool authority."));
+                "model output and MCP content cannot grant authority."));
     }
 
     private ProjectContext context(String currentTask, String roadmap) {

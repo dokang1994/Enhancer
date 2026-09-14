@@ -16,7 +16,8 @@ The standalone label Implemented is no longer used for capability maturity. It m
 
 ## Current Position
 
-Status: Delivery Gate 6 Integrated with an Operational production composition; Delivery Gate 7 Contract Verified; Delivery Gate 8 Specified - Next
+Status: Delivery Gate 6 Integrated with an Operational production composition; Delivery
+Gate 7 Contract Verified; Delivery Gate 8 Integrated; Delivery Gate 9 Specified - Next
 
 Integrated capabilities:
 
@@ -530,20 +531,17 @@ Exit criteria:
 
 ## Delivery Gate 8: Agent Runtime And Scheduler
 
-Status: Specified - Next
+Status: Integrated
 
 Whole-gate assessment:
 
-- retained at `Specified - Next` after closing the pre-migration assessment's supported
-  migration gap, public priority admission, non-recovery priority/fairness selection,
-  priority/fairness observability, deterministic child-RunRecord recovery, lease-expiry
-  recovery, disposition-acknowledgement recovery, the bounded foreground service
-  connection, one supported durable spool-to-bus-to-admission point receiver, and
-  post-admission retained-point acknowledgement with exact `.received` re-entry. The
-  isolated child Work and parent Result paths now both cross real Message Bus queues, so
-  the earlier worker-communication blocker is closed. The bounded single-agent
-  Scheduler/runtime foundation is Integrated and retains Operational explicit workflows,
-  and the Tool-timeout, stagnation,
+- the bounded event-driven single-agent runtime includes supported migration, public
+  priority admission, deterministic fairness, child-RunRecord and lease/disposition
+  recovery, bounded foreground service, and durable spool-to-bus-to-admission receive
+  with exact acknowledgement re-entry. Isolated child Work and parent Result both cross
+  real Message Bus queues. Separate explicit cycle, drain, service, direct/generated
+  submission, and typed spool workflows remain the supported operating surfaces. The
+  Tool-timeout, stagnation,
   cancellation-request, verification, and terminal WorkItem transition owners now reach a
   persist-after-source recorder and injected publisher port. A concrete filesystem
   reference-point adapter implements that port, and the optional Control receiver is
@@ -551,11 +549,10 @@ Whole-gate assessment:
   Scheduler construction supports process timeout, lease timeout, retry decision/start,
   verification, Tool timeout, stagnation, and terminal WorkItem owners. Authenticated
   cancellation now has a separate supported authorizer-injected filesystem application
-  surface with optional concrete `CANCELLATION_APPLIED` publication; authenticated
-  interface adapters and cancelled queue disposition remain.
-  Whole-gate promotion remains
-  blocked by broader publication/consumption and later-gate budgets,
-  Memory, authenticated control interfaces, production adapters, and role workers;
+  surface with optional concrete `CANCELLATION_APPLIED` publication. Durable bus
+  infrastructure, model budgets, Memory, production adapters, authenticated
+  interfaces, remaining controls, and role workers remain owned by Gates 7 and 9
+  through 13 rather than being Gate 8 completion requirements;
 - existing queue-active, checkpoint, deterministic lost-acknowledgement point, and
   expired-lease recovery satisfy the accepted at-least-once correctness prefixes. A
   general orphan inventory or cleanup feature is not silently required and would need a
@@ -582,10 +579,9 @@ Whole-gate assessment:
   a forced clear failure retains the exact intent and a fresh worker removes it without
   another execution, RunRecord, effect outcome, runtime transition, or queue revision.
   Unresolved `PREPARED` external effects remain fail-closed and await their owning
-  adapter/recovery policy. Further whole-gate work returns to the broader gaps already
-  assigned to production adapters, authenticated interface adapters and remaining
-  controls, service operation, and
-  role-based workers rather than inventing another acknowledgement fixture.
+  adapter/recovery policy. Further extensions stay assigned to production adapters,
+  authenticated interfaces and remaining controls, and role-based workers rather than
+  inventing another acknowledgement fixture.
 - the first migration boundary is Contract Verified and Integrated: an explicit
   stopped-Scheduler maintenance command losslessly converts only the schema-v1
   pending-finalization checkpoint to schema v2 through validated candidate-first atomic
@@ -892,14 +888,25 @@ Dependencies:
 Scope:
 
 - persisted Goal and AgentRun state machine;
-- Goal -> Planner -> Executor -> Memory -> Reflection -> Retry -> Done transitions;
-- Scheduler queues, dependency validation, cycle rejection, fenced leases, idempotency, budgets, cancellation, pause, resume, reassignment, and recovery;
-- at-least-once delivery with a stable logical-work/effect idempotency key, fence-checked state/effect commits, versioned checkpoints and state migration, explicit orphan detection/reclamation, and replay-safe or compensatable external effects;
-- priority and fairness within dependency, authority, data-classification, cancellation, and cost/time budget constraints;
-- Planner, Coder, Reviewer, Tester, and Memory worker roles behind message contracts;
-- single-agent sequential worker first, without multi-agent concurrency.
-- Dependency Analyzer and Verification Engine as Kernel services;
-- resource budgets, locks, leases, and recovery checkpoints.
+- Planner -> Executor -> Retry -> Verification -> Done transitions over retained state;
+- Scheduler queues, backward dependency validation, cycle refusal, deterministic
+  priority/fairness, fenced leases, idempotency, cancellation intent, and recovery;
+- at-least-once delivery with stable logical-work/effect identities, fence-checked
+  state/effect commits, versioned checkpoints, supported state migration, and explicit
+  applied/deduplicated/compensated/user-recovery effect outcomes;
+- single-agent sequential process-isolated worker execution through Message Bus Work
+  and Result paths;
+- existing Verification Engine integration plus bounded queue, retry, process, file,
+  lock, lease, and checkpoint resources.
+
+Cross-gate extensions:
+
+- Gate 7: durable bus journaling, directory consumption, and transport retention;
+- Gate 9: model/context/cost budgets, providers, MCP, and outbound policy;
+- Gate 10: Memory, Reflection, and reusable workflow execution;
+- Gate 11: production Tool and external-effect adapters;
+- Gate 12: authenticated interfaces and remaining cancel/pause/resume application;
+- Gate 13: background supervision, role workers, and multi-agent execution.
 
 Exit criteria:
 
@@ -912,7 +919,7 @@ Exit criteria:
 
 ## Delivery Gate 9: Model Gateway And MCP Core
 
-Status: Planned
+Status: Specified - Next
 
 Dependencies:
 

@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-09-14 - Advance The Roadmap From Gate 8 To Gate 9
+
+- Accepted the post-RFC-0027 boundary decision that limits Gate 8 completion to the
+  bounded event-driven single-agent runtime and keeps durable messaging, model budgets,
+  Memory, production adapters, authenticated interfaces, and role workers with their
+  owning later gates.
+- Promoted Gate 8 to Integrated while retaining its explicit Operational sub-paths, and
+  moved the sole `Specified - Next` Roadmap marker to Gate 9 without starting provider,
+  MCP, or other Gate 9 implementation work.
+- The only test-source change updated the actual-Roadmap Planner expectation to the new
+  sole marker; production source, runtime behavior, durable formats, and external state
+  did not change. Fresh full regression passed 1,211 of 1,227 tests across 226 suites
+  with 16 conditional skips and zero failures or errors. No push, merge, release, or
+  deployment was performed.
+
 ## 2026-09-14 - Audit Gate 8 Evidence After RFC-0027
 
 - Reassessed every Gate 8 scope item and exit criterion against current named

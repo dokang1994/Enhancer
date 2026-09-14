@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-09-14 after RFC-0027 completion
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-09-14-user-continuation-after-rfc-0027-completion.md)
+
 ### User continuation request on 2026-09-10 into RFC-0027 manifest-authorized typed ModelWork spool ingress implementation
 
 Status: Accepted Decision

@@ -7876,3 +7876,29 @@ Outcome:
   credential/spend path, MCP, Memory, plugin, interface, multi-agent, background,
   cleanup, push, merge, release, deployment, permission, destructive, or external state
   changed.
+
+## 2026-09-14 - Gate 8 To Gate 9 Roadmap Transition Increment 2
+
+- Recorded the accepted post-RFC-0027 boundary decision and its exact Decision Log
+  index entry, clarified the Architecture ownership boundary, promoted Gate 8 to
+  Integrated in the capability-state owner, and moved the sole `Specified - Next`
+  Roadmap marker to Gate 9. The transition preserves the separately proven Operational
+  cycle, drain, service, direct-submission, generated-request, and typed-spool subpaths
+  without claiming that the whole gate is Operational or Released.
+- The first transition-governance run exposed one aligned stale characterization:
+  `RepositoryTaskPlannerTest` still expected the prior actual-Roadmap Gate 8 marker.
+  The active checkpoint was stabilized and cleared before the task contract was
+  narrowly amended to permit only that actual-Roadmap expectation update; generic
+  Planner behavior and production source remained unchanged.
+- Fresh transition-governance verification then used the README-owned Java 17 Gradle
+  wrapper and completed with `BUILD SUCCESSFUL`. Generated JUnit XML contained four
+  suites and 14 tests: all 14 passed with zero skips, failures, or errors.
+  `git diff --check` also passed.
+- Fresh full Markdown-sensitive Java 17 regression completed with `BUILD SUCCESSFUL`
+  in 2 minutes 4 seconds. Generated JUnit XML contained 226 suites and 1,227 tests:
+  1,211 passed, 16 conditional tests skipped, and zero failed or errored.
+- No production behavior, durable format, provider/network/credential/spend path, MCP,
+  Memory, plugin, interface, multi-agent, background, cleanup, push, merge, release,
+  deployment, permission, destructive action, or external effect changed. The only
+  test-source change was the exact actual-Roadmap Planner expectation authorized by the
+  task.

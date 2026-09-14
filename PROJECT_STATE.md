@@ -1053,9 +1053,10 @@ it does not restate which commit published which increment.
   destructive authority and audit/replay policy. Gate 7 therefore remains Contract
   Verified while its named Work, Result, and Control sub-path maturities remain
   unchanged.
-- Delivery Gate 8: Specified - Next; the previously recorded queue, runtime, execution,
-  recovery, priority, migration, retry, effect, drain, service, and supported CLI
-  sub-path maturities remain unchanged. One retained Gate 7 transport artifact now has a
+- Delivery Gate 8: Integrated for the bounded event-driven single-agent runtime after a
+  fresh post-RFC-0027 scope and exit-criterion audit. The previously recorded queue,
+  runtime, execution, recovery, priority, migration, retry, effect, drain, service, and
+  supported CLI sub-path maturities remain unchanged. One retained Gate 7 transport artifact has a
   Contract Verified and Integrated point path through the real Message Bus to durable
   Scheduler admission, with separate process-isolated service completion and
   duplicate-free exact re-receipt. The retained point now has Contract Verified and
@@ -1066,14 +1067,14 @@ it does not restate which commit published which increment.
   budgets, Memory runtime,
   background/supervisor topology, and broader production wiring remain owned by Gates 9
   through 13.
-- Gate 8 remains `Specified - Next` after closing the pre-migration assessment's
-  supported-migration, priority-admission, non-recovery fairness-selection, and
-  priority/fairness-observability gaps. Durable lifecycle, sequential process-isolated
+- Gate 8's Integrated boundary includes the supported-migration, priority-admission,
+  non-recovery fairness-selection, and priority/fairness-observability paths. Durable
+  lifecycle, sequential process-isolated
   execution, recovery inspection, authority preservation, migration-to-cycle recovery,
   deterministic child-RunRecord recovery, lease-expiry recovery, disposition-
   acknowledgement recovery, and several restart/idempotency paths have named evidence.
-  The supported bounded service and point spool-to-admission gaps are now closed.
-  Whole-gate blockers remain separated by owner: Gate 7 owns durable bus journaling,
+  The supported bounded service and point spool-to-admission gaps are closed.
+  Cross-gate extensions remain separated by owner: Gate 7 owns durable bus journaling,
   remaining reliability connections, and cleanup/retention policy; Gate 12 owns
   authenticated interface adapters, queue disposition, and remaining typed controls;
   Gate 11 owns production
@@ -1081,6 +1082,13 @@ it does not restate which commit published which increment.
   and Gate 13 owns background/supervisor topology and role-based workers. Existing
   point recovery and expired-lease reclamation satisfy the accepted correctness
   prefixes without authorizing a general orphan scanner or cleanup policy.
+- Delivery Gate 9: Specified - Next. Existing RFC-0013 through RFC-0027 deterministic-
+  fake request, profile, budget, suitability, typed execution, direct submission, and
+  typed spool sub-paths range from Contract Verified to Operational, but their
+  accumulation does not establish whole-gate maturity. Real providers, MCP client/server
+  composition, outbound data policy, fallback/cache provenance, and fixed-fixture model
+  evaluation remain absent and require a separate evidence-baseline task before another
+  implementation slice is selected.
 - Gate 8 lease-expiry recovery now has one named worker-level fixture over the
   post-RunRecord-reference prefix. The first cycle persists exactly one reference,
   expires before execution acknowledgement, and leaves the AgentRun reclaimable at

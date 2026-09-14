@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -48,8 +48,10 @@ maturity and Roadmap transition in their owning documents, and name a separate G
 activation task. If the evidence does not support that transition, this task instead
 records the exact smallest Gate-8-owned gap and leaves both owning documents unchanged.
 
-This approval does not authorize Java or test-source behavior changes; weakening or
-rewriting existing evidence; counting later-gate implementation as Gate 8 capability;
+This approval does not authorize production Java changes or test-source behavior
+changes beyond the exact actual-Roadmap expectation in
+`RepositoryTaskPlannerTest`; weakening or rewriting existing evidence; counting
+later-gate implementation as Gate 8 capability;
 Gate 9 implementation; provider, network, credential, paid-service, MCP, Skill, plugin,
 Memory, multi-agent, background, Cloud Sync, or interface work; Constitution or Agent
 rule changes; schema migration; cleanup; push, merge, release, deployment, permission
@@ -69,6 +71,8 @@ change, destructive action, or external effects.
   task. No new test is written solely to manufacture a promotion result.
 - A material Gate boundary or Roadmap transition is recorded as one Accepted Decision
   with an exact matching `DECISION_LOG.md` index entry before state changes.
+- The actual-Roadmap Planner characterization selects the sole marker recorded by this
+  transition without changing generic Planner behavior.
 - Capability maturity appears only in `PROJECT_STATE.md`; planned gate status and
   dependencies appear in `ROADMAP.md`; architecture changes only if the component or
   contract boundary changes; verification evidence is appended once to
@@ -79,8 +83,9 @@ change, destructive action, or external effects.
 
 ## Out Of Scope
 
-Production or test behavior changes; new Gate 8 runtime mechanisms; Gate 9 product
-implementation; real model providers; MCP; Skill or Memory runtime; Tool/plugin
+Production behavior changes or test changes beyond the exact actual-Roadmap Planner
+expectation; new Gate 8 runtime mechanisms; Gate 9 product implementation; real model
+providers; MCP; Skill or Memory runtime; Tool/plugin
 marketplace; API/editor/Desktop interfaces; multi-agent or background execution; cloud
 sync; self-improvement; packaging or distribution; durable schema changes; scan,
 cleanup, retention, or destructive repair; push, merge, release, deployment, permission
@@ -133,7 +138,7 @@ Next Action: Commit Increment 1 and select Increment 2 only if the audit is cohe
 
 ### Increment 2 - record-evidence-supported-transition
 
-State: In Progress
+State: Completed
 Depends On: audit-gate-8-evidence
 Scope: Record the accepted audit decision and synchronize only the owning maturity,
 Roadmap, task, verification, and delivery documents; change Architecture only if the
@@ -148,6 +153,6 @@ gap, and for any push, merge, release, deployment, or external work.
 
 ## Next
 
-Record the evidence-supported Gate boundary decision, synchronize the owning state and
-Roadmap documents, verify the complete Markdown-sensitive repository, and close
-Increment 2 locally.
+Await separate user authority for a bounded Gate 9 maturity-baseline audit of existing
+RFC-0013 through RFC-0027 evidence before selecting another model or MCP implementation,
+and for any push, merge, release, deployment, or external work.
