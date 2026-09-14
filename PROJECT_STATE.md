@@ -443,9 +443,10 @@ it does not restate which commit published which increment.
   interrupted pre-reference attempt, bounded rejected-result retry with two distinct
   AgentRun evidence/record identities, and terminal queue disposition. Complete v2
   points suppress reinvocation and outrank timeout; corrupt, cross-kind, foreign,
-  changed, symbolic, non-regular, or partial prefixes fail closed. RFC-0026 now supplies
-  a separate production typed producer; no typed receiver, schema change, provider,
-  network, credential, or spend path exists.
+  changed, symbolic, non-regular, or partial prefixes fail closed. RFC-0026 supplies a
+  separate supported direct producer and RFC-0027 supplies separate typed spool
+  publication and receive; no schema change, provider, network, credential, or spend
+  path exists.
 
 - RFC-0024 governed deterministic-fake typed submission is Integrated behind the
   RFC-0026 public filesystem facade while its request, service, and fixed capability
@@ -1007,8 +1008,8 @@ it does not restate which commit published which increment.
 
 ## Not Yet Integrated Or Operational
 
-- Prompt and LLM invocation.
-- Remaining Workspace adapters, Project Brain graph persistence, Event/Message Bus production wiring, concrete IPC adapters, broader Agent Runtime and Scheduler production paths, and Model Gateway.
+- Real-provider LLM invocation and routing beyond the closed deterministic fake.
+- Remaining Workspace adapters, Project Brain graph persistence, Event/Message Bus production wiring, concrete IPC adapters, broader Agent Runtime and Scheduler production paths, and real-provider Model Router/Gateway composition.
 - Project Brain graph storage and impact reasoning, Dependency Analyzer, Workflow Engine, Agent Marketplace, and privacy-aware hybrid model routing.
 - Skill loading runtime, plugins, MCP, multi-agent, background execution, Cloud Sync, and governed self-improvement.
 - CI/CD and released distribution.
@@ -1087,8 +1088,10 @@ it does not restate which commit published which increment.
   typed spool sub-paths range from Contract Verified to Operational, but their
   accumulation does not establish whole-gate maturity. Real providers, MCP client/server
   composition, outbound data policy, fallback/cache provenance, and fixed-fixture model
-  evaluation remain absent and require a separate evidence-baseline task before another
-  implementation slice is selected.
+  evaluation remain absent. The fresh baseline audit confirms that provider-neutral
+  routing is the first missing Gate-9-owned dependency and that default-deny outbound
+  route admission must be specified before any second candidate, Router, provider,
+  credential, network, or paid invocation is connected.
 - Gate 8 lease-expiry recovery now has one named worker-level fixture over the
   post-RunRecord-reference prefix. The first cycle persists exactly one reference,
   expires before execution acknowledgement, and leaves the AgentRun reclaimable at

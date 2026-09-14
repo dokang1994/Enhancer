@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### Select provider-neutral outbound model route admission before router or provider integration
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-09-14-select-provider-neutral-outbound-model-route-admission-before-router-or-provider-integration.md)
+
 ### User continuation request on 2026-09-14 after RFC-0027 completion
 
 Status: Accepted Decision

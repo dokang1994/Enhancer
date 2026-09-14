@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -130,7 +130,7 @@ Next Action: Commit Increment 1 and select Increment 2 only if the audit is cohe
 
 ### Increment 2 - select-smallest-next-gate-9-task
 
-State: In Progress
+State: Completed
 Depends On: audit-existing-gate-9-evidence
 Scope: Record only the evidence-supported Gate 9 baseline, any required accepted
 sequencing decision, and exactly one bounded next task in the owning documents.
@@ -145,6 +145,6 @@ merge, release, deployment, provider/network, credential, spend, or external wor
 
 ## Next
 
-Record the audited baseline, correct only the stale RFC-0027 architecture statements,
-and select one separately authorized provider-neutral outbound route-admission
-specification task before any router, provider, credential, network, or MCP work.
+Await separate user authority to specify RFC-0028 as a pure provider-neutral outbound
+model route-admission contract before any Router, second candidate, provider adapter,
+credential, network, paid invocation, or MCP work.

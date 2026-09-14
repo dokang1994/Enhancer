@@ -2029,6 +2029,16 @@ JVM evidence proves the admitted typed work reaches verified completion through 
 `scheduler-cycle`, `scheduler-drain`, and finite `scheduler-service`; capability
 mismatch remains a no-effect pre-call refusal, and the legacy Work path is unchanged.
 
+The post-RFC-0027 Gate 9 baseline sets one sequencing constraint before any second
+candidate, Router, provider adapter construction, credential access, or network call:
+a separately specified provider-neutral outbound route-admission boundary must make a
+fresh default-deny decision from the exact task, execution policy, profiled request,
+independently governed candidate and destination facts, purpose, retention,
+classification, and pricing inputs. Profile data cannot self-authorize disclosure,
+cost ceilings cannot authorize spend, and an ephemeral admission result cannot carry a
+credential or become durable authority. The specification and any later implementation
+remain separate tasks.
+
 ## Agent Orchestration Contract
 
 ### Development-Time Adaptive Subagent Delegation
@@ -2530,7 +2540,9 @@ Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts bel
   submission command over RFC-0024; each RFC-0025 command consumes its admitted work
   only when invoked separately. Capability disagreement still refuses before the model
   call, and event publication recovery reuses exact durable state without reinvocation.
-  RFC-0027 now implements manifest-authorized typed spool publication and its package-
-  local receiver domain, but not point decoding, acknowledgement, or the supported
-  receive CLI. Provider routing remains unselected.
+  RFC-0027 implements manifest-authorized typed spool publication, bounded point
+  decoding, its package-local receiver domain, post-admission acknowledgement, and the
+  supported receive CLI/operator path. Provider routing remains unselected; the next
+  separately authorized design boundary must specify default-deny outbound route
+  admission before any second candidate, Router, or provider integration.
 - Future LLM-backed Planner input/output schema is not selected yet.

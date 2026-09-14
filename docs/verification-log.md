@@ -7956,3 +7956,25 @@ Outcome:
   credential/spend path, MCP, Memory, plugin, interface, multi-agent, background,
   cleanup, push, merge, release, deployment, permission, destructive, or external state
   changed.
+
+## 2026-09-14 - Gate 9 Maturity Baseline Audit Increment 2
+
+- Recorded the accepted sequencing decision that a pure provider-neutral default-deny
+  outbound route-admission specification must precede any second candidate, Router,
+  provider construction, credential access, paid invocation, network transmission, or
+  MCP work. The decision selects RFC-0028 specification as the next separately
+  authorized task and grants no implementation or external-effect authority.
+- Corrected the stale RFC-0027 Architecture open question and `.ai/architecture.md`
+  mirror to reflect the implemented bounded receiver, acknowledgement, recovery, and
+  supported operator path. Narrowed Project State's broad missing-LLM language to the
+  actually absent real-provider routing/invocation capability and recorded the audited
+  routing/outbound-policy limitation without changing capability maturity or Roadmap
+  state.
+- Fresh pre-closure full Markdown-sensitive Java 17 regression used the README-owned
+  Gradle wrapper and completed with `BUILD SUCCESSFUL` in 1 minute 36 seconds. Generated
+  JUnit XML contained 226 suites and 1,227 tests: 1,211 passed, 16 conditional platform
+  tests skipped, and zero failed or errored.
+- No production or test source, runtime behavior, durable format, provider/network/
+  credential/spend path, MCP, Memory, plugin, interface, multi-agent, background,
+  cleanup, push, merge, release, deployment, permission, destructive action, or
+  external state changed.

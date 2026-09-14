@@ -8,9 +8,14 @@
   are partial and five unsatisfied. The supported deterministic-fake operator path does
   not establish Router, outbound-policy, real-provider, MCP, fallback/cache, or model-
   evaluation capability.
+- Accepted default-deny outbound route admission as the next specification boundary
+  before any Router or provider integration, and corrected stale RFC-0027 architecture
+  mirrors plus ambiguous real-provider limitation wording without changing maturity.
 - Fresh Java 17 characterization passed 270 of 274 tests across 66 suites with four
-  conditional skips and zero failures or errors. No production/test source, capability
-  maturity, Roadmap state, external state, push, merge, release, or deployment changed.
+  conditional skips and zero failures or errors. Fresh full regression passed 1,211 of
+  1,227 tests across 226 suites with 16 conditional skips and zero failures or errors.
+  No production/test source, capability maturity, Roadmap state, external state, push,
+  merge, release, or deployment changed.
 
 ## 2026-09-14 - Advance The Roadmap From Gate 8 To Gate 9
 
