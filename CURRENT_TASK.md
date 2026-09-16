@@ -42,11 +42,13 @@ Because all completed work is already linear on local `main`, a successful non-f
 fast-forward push is the requested merge. No temporary branch or synthetic merge commit
 is required.
 
-This approval does not authorize force push, rebase, reset, amend, squash, cherry-pick,
-history rewrite, tag, release, deployment, branch deletion, permission or credential
-change, destructive cleanup, product implementation, schema change, capability
-promotion, provider/network invocation, paid service, MCP, or unrelated external
-effect.
+This approval permits only the exact actual-Roadmap Gate 9 proposal expectation in
+`AssistedDevelopmentLoopTest` required to align the completed-task path with the already
+accepted Roadmap transition. It does not authorize any other production or test-source
+change; force push, rebase, reset, amend, squash, cherry-pick, history rewrite, tag,
+release, deployment, branch deletion, permission or credential change, destructive
+cleanup, product implementation, schema change, capability promotion, provider/network
+invocation, paid service, MCP, or unrelated external effect.
 
 ## Acceptance Criteria
 
@@ -68,11 +70,14 @@ effect.
 - The evidence closure is committed and delivered by the same non-force ancestry
   protocol; final local, fetched, and advertised remote refs match, the exact-head
   `verify` workflow succeeds, Git is clean, and the checkpoint is stable and clear.
+- The completed-task Assisted Loop characterization expects the sole actual-Roadmap
+  Gate 9 proposal without changing generic Planner or loop behavior.
 
 ## Out Of Scope
 
-Product or test-source changes; architecture, capability maturity, Roadmap, RFC, or
-durable-schema changes; provider/network invocation beyond Git/GitHub delivery;
+Production changes or test-source changes beyond the exact actual-Roadmap Assisted Loop
+expectation; architecture, capability maturity, Roadmap, RFC, or durable-schema changes;
+provider/network invocation beyond Git/GitHub delivery;
 credentials or paid services; MCP, Skill, Memory, plugin, interface, multi-agent,
 background, Cloud Sync, release, deployment, tag, branch deletion, permission change,
 destructive cleanup, force push, rebase, reset, amend, squash, cherry-pick, synthetic

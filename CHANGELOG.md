@@ -18,6 +18,11 @@
 - Push-triggered GitHub Actions `verify` run `34829289063` completed successfully for
   exact head `cc76fb5`; its `test` job completed in 59 seconds. The non-failing action-
   version deprecation annotations do not represent repository test failures.
+- The evidence-closure push exposed one stale completed-task characterization that
+  still expected the former Gate 8 Roadmap proposal. The exact expectation now names
+  the sole actual Gate 9 proposal; fresh focused governance passed all 18 tests and
+  fresh full regression again passed 1,211 of 1,227 tests with 16 conditional skips
+  and zero failures or errors.
 - Force push, history rewrite, tag, release, deployment, branch deletion, permissions,
   credentials, product behavior, schema, and capability maturity remain unchanged.
 

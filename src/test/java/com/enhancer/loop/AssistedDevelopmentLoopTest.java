@@ -67,7 +67,7 @@ class AssistedDevelopmentLoopTest {
         if (normalizedCurrentTask.contains("## Status\n\nCompleted")) {
             assertEquals(AssistedDevelopmentOutcome.PROPOSAL_AVAILABLE, result.outcome());
             assertEquals(
-                    "Delivery Gate 8: Agent Runtime And Scheduler",
+                    "Delivery Gate 9: Model Gateway And MCP Core",
                     result.proposal().orElseThrow().title());
         } else {
             assertEquals(AssistedDevelopmentOutcome.ACTIVE_TASK_PRESERVED, result.outcome());

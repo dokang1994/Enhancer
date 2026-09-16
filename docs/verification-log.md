@@ -8022,3 +8022,34 @@ Outcome:
   checks. No force operation, tag, release, deployment, branch deletion, permission or
   credential change, product implementation, schema change, capability promotion, or
   unrelated external effect was performed.
+
+## 2026-09-14 - Final Main Delivery CI Characterization Repair
+
+- Evidence closure commit `d1d2db1906a0b03545d4d64cd7acf01b6f4e1821` was delivered
+  by explicit non-force `main:main` push after a fresh fetch proved fetched remote
+  `cc76fb557249e46f2de0bd579d9eea9d7ef806dd` was the exact merge base and ancestor,
+  with divergence `0 1`. A subsequent fresh fetch resolved local, fetched, and
+  advertised main to `d1d2db1906a0b03545d4d64cd7acf01b6f4e1821` with divergence
+  `0 0`.
+- Exact-head GitHub Actions `verify` run `34829724427`, job `103929941475`, then failed
+  in 1 minute 16 seconds with one failure among 1,227 tests and five environment-
+  conditional skips. `AssistedDevelopmentLoopTest.matchesTheActualEnhancerTaskState`
+  still expected the former Gate 8 proposal after `CURRENT_TASK.md` became Completed,
+  while the actual Roadmap correctly exposed Gate 9. A local one-test reproduction
+  failed at the same assertion.
+- The failed delivery checkpoint was stabilized and cleared before the task contract
+  was narrowly amended. The sole source repair changes that exact actual-Roadmap
+  characterization from `Delivery Gate 8: Agent Runtime And Scheduler` to `Delivery
+  Gate 9: Model Gateway And MCP Core`; generic Planner, loop, and production behavior
+  remain unchanged.
+- An intermediate focused run correctly rejected a mistaken workflow cursor with one
+  `DynamicWorkflowDocumentTest` failure among 18 tests; the cursor was corrected
+  without widening scope. The final focused governance run completed five suites and
+  18 tests with all passing, no skips, failures, or errors, and `git diff --check`
+  passed.
+- Fresh post-repair full Java 17 regression used the README-owned Gradle wrapper and
+  completed with `BUILD SUCCESSFUL` in 1 minute 55 seconds. Generated JUnit XML
+  contained 226 suites and 1,227 tests: 1,211 passed, 16 conditional platform tests
+  skipped, and zero failed or errored. The repair remains to be committed and delivered
+  under the same fresh-fetch, ancestry, explicit non-force refspec, exact-ref, and
+  exact-head CI protocol.
