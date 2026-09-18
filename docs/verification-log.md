@@ -8092,3 +8092,31 @@ Outcome:
   continuation fact exists. No production/test source, durable schema, provider,
   network, credential, spend, MCP, external state, push, merge, release, deployment,
   permission, destructive, or unrelated effect changed.
+
+## 2026-09-18 - RFC-0028 Pure Route Values Increment
+
+- The expected RED run failed during test compilation only because the new RFC-0028
+  symbols did not yet exist. The failure was classified against the accepted RFC and
+  active task before implementation; no existing behavior test failed.
+- The GREEN implementation adds immutable provider-neutral candidate, destination,
+  purpose, retention, content, inspection, redaction, pricing, proposal, and closed
+  decision values under `com.enhancer.model`. Opaque facts have package-private
+  construction, collections are defensively copied and bounded, content digests are
+  derived over exact UTF-8 prompts, and nested rendering omits prompt, finding, and
+  numeric price values.
+- Two bounded read-only reviews identified purpose and missing-evidence reachability,
+  policy-rule ambiguity, inspection expiry, pricing budget binding, and constructor
+  versus evaluator cross-binding risks. The implementation retains typed optional
+  inspection, redaction, and pricing evidence; permits an empty closed purpose set;
+  rejects overlapping route-purpose rules; carries exclusive expiry and exact token
+  budget facts; and reserves policy cross-binding for the evaluator. Subagent reports
+  were recommendations, not verification evidence.
+- Fresh focused Java 17 verification completed with `BUILD SUCCESSFUL` in 6 seconds.
+  Generated JUnit XML contained eight suites and 53 tests, all passing with zero skips,
+  failures, or errors. The suite covered the new value contract, RFC-0014 through
+  RFC-0016 regressions, decision/index and document governance, dynamic workflow, and
+  existing candidate-locality boundaries. `git diff --check` passed.
+- No production caller, Router, provider, adapter, endpoint, credential, network,
+  scanner, redactor, pricing source, spend path, runtime wiring, persistence, MCP,
+  capability promotion, push, merge, release, deployment, permission, destructive, or
+  unrelated external effect was added.

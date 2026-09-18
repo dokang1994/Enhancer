@@ -2,83 +2,82 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Specify RFC-0028 as the provider-neutral default-deny outbound model route-admission
-contract that must precede any second candidate, Router, provider adapter, credential,
-network transmission, paid invocation, or MCP work.
+Implement the pure RFC-0028 provider-neutral outbound model route-admission contract
+RED-first, without adding a production caller, Router, provider adapter, credential,
+network, or spend path.
 
 ## Task ID
 
-specify-provider-neutral-outbound-model-route-admission
+implement-provider-neutral-outbound-model-route-admission
 
 ## Context
 
-The completed Gate 9 baseline audit found that the deterministic-fake path is bounded
-and supported, but no provider-neutral route decision or outbound data-policy boundary
-exists. The accepted sequencing decision selects RFC-0028 specification as the next
-task before any Router or real-provider integration. The user requested continuation
-on 2026-09-17.
+RFC-0028 and its accepted sequencing decision now define the required default-deny
+boundary after RFC-0016 admission and before any remote model route can become
+eligible. The user requested continuation on 2026-09-18. This task implements only
+that pure immutable contract and evaluator; runtime fact acquisition and consumption
+remain separately governed future work.
 
 ## Justified By
 
-- Select provider-neutral outbound model route admission before router or provider integration
 - User continuation request on 2026-09-17 into provider-neutral outbound model route-admission specification
+- User continuation request on 2026-09-18 into RFC-0028 pure outbound route-admission implementation
 
 ## Approval
 
-The user's 2026-09-17 continuation request authorizes a documentation-only RFC-0028
-specification task. It permits the RFC, one matching accepted continuation decision and
-Decision Log entry, Architecture and `.ai/architecture.md` contract synchronization,
-Roadmap RFC-index synchronization, task/state-consistency documentation, verification
-evidence, Changelog, and any necessary session handoff update. It also permits focused
-and full README-owned verification and the ordinary local commit required for the
-verified GREEN increment.
+The user's 2026-09-18 continuation request authorizes production and test source
+changes only for the pure RFC-0028 contract under `com.enhancer.model`, one matching
+accepted continuation decision and Decision Log entry, focused and full README-owned
+verification, owned-document synchronization, and ordinary local commits at verified
+GREEN increment boundaries.
 
-This approval does not authorize Java or test-source implementation, a second model
-candidate, Router or registry construction, provider adapter construction or
-invocation, credential access, secret persistence, network transmission, spend, MCP,
-durable schema change, capability-maturity promotion, push, merge, release, deployment,
-permission change, destructive cleanup, or another external effect.
+This approval does not authorize production fact sources or callers, a Router or
+registry, a second executable candidate, provider or adapter construction, endpoint or
+network access, credentials or secrets, spend or paid invocation, pricing acquisition,
+content scanner or redactor implementation, runtime or Scheduler wiring, durable
+schema or persistence changes, MCP, push, merge, release, deployment, permission
+change, destructive cleanup, or another external effect.
 
 ## Acceptance Criteria
 
 - One accepted decision records the user's bounded continuation authority, with an
   exact matching `DECISION_LOG.md` entry.
-- RFC-0028 defines one provider-neutral fresh default-deny decision over the exact
-  active task, execution policy, profiled request, independently governed candidate and
-  destination facts, purpose, retention, classification, content-inspection/redaction,
-  and pricing facts.
-- The RFC preserves profile classification as untrusted requirement data, treats cost
-  ceilings as limits rather than spend authority, and makes sensitive-content
-  inspection plus required redaction prerequisites for any remote eligibility.
-- The RFC defines closed typed admission/refusal outcomes, deterministic evaluation
-  order, local and remote behavior, identity/provenance retention, and the exact future
-  Router consumer without granting credentials, network, spend, persistence, or
-  reusable authority.
-- Existing deterministic-fake local execution, RFC-0016 admission, provider-neutral
-  model contracts, Tool/evidence/verification/RunRecord behavior, and durable schemas
-  remain unchanged.
-- Architecture, its `.ai/` mirror, Roadmap RFC tracking, current-state limitations,
-  task, verification evidence, Changelog, and session handoff are synchronized only
-  where their owning facts change; Gate 9 maturity does not change.
-- Fresh focused document/architecture verification and full Markdown-sensitive Java 17
-  regression pass, `git diff --check` passes, and the verified increment is committed
-  locally with no push.
+- Provider-neutral immutable proposal and fact values implement RFC-0028's exact
+  versions, temporal bounds, identities, provenance, and cross-bindings.
+- A sealed route-admission decision exposes eligible and refused outcomes, and one
+  closed rejection enum contains the 24 RFC-0028 reasons in normative order.
+- A field-free evaluator delegates to existing RFC-0016 admission and continues only
+  from its exact `OUTBOUND_POLICY_REQUIRED` refusal; every earlier RFC-0016 refusal
+  and every local admission remains terminal for outbound routing.
+- Evaluation is deterministic and default-deny across strict freshness, exact route,
+  purpose, retention, content, inspection, redaction, effective-classification, and
+  pricing bindings; only a verified zero-charge route can become eligible.
+- Eligible output retains the exact proposal identity and effective classification,
+  safe rendering does not disclose outbound content, and production source and
+  dependency guards prevent forbidden callers or infrastructure coupling.
+- The existing deterministic-fake execution path and RFC-0016 behavior remain
+  unchanged.
+- Fresh focused and full Java 17 verification passes, owned documents are synchronized,
+  each verified GREEN increment is committed locally, and no push occurs.
 
 ## Out Of Scope
 
-Java or test-source implementation; candidate, Router, registry, provider, adapter,
-endpoint, protocol, network, credential, secret-store, pricing-source, billing, spend,
-MCP, cache, fallback, runtime-event, durable schema or migration work; capability
-promotion; external verification; push, merge, release, deployment, permission change,
-destructive cleanup, and unrelated external effects.
+Production fact sources or callers; Router, registry, second executable candidate,
+provider, adapter, endpoint, protocol, network, credential, secret-store,
+pricing-source, billing, spend, scanner, redactor, MCP, cache, fallback, runtime-event,
+Scheduler wiring, durable schema or migration work; capability promotion; external
+verification; push, merge, release, deployment, permission change, destructive cleanup,
+and unrelated external effects.
 
 ## Allowed Tools
 
 - read-file
+- write-code
+- write-tests
 - write-docs
 - build-output
 - verify
@@ -90,54 +89,80 @@ destructive cleanup, and unrelated external effects.
 
 ## Verification
 
-Review RFC-0028 against RFC-0013 through RFC-0027, the accepted outbound sequencing
-decision, Architecture, Roadmap Gate 9, and current model types. Run the focused
-decision/index, document ownership, Architecture mirror/source, RFC/source-locality,
-Planner/Assisted Loop, and dynamic-workflow governance tests that apply, then run the
-README-owned full `.\scripts\gradle.ps1 test` command and `git diff --check`.
-Subagent reports are recommendations and are not verification evidence.
+Use test-first development for observable evaluator behavior. Run focused model
+contract, evaluator, reflection, source-locality, dependency, and architecture tests,
+including applicable RFC-0014 through RFC-0016 and deterministic-fake regressions.
+Then run the README-owned full `.\scripts\gradle.ps1 test` command and
+`git diff --check`. Read the fresh output before making lifecycle claims. Subagent
+reports are recommendations and are not verification evidence.
 
 ## Dynamic Workflow
 
-Workflow ID: specify-provider-neutral-outbound-model-route-admission
+Workflow ID: implement-provider-neutral-outbound-model-route-admission
 Mode: Sequential
-Increment Limit: 2
+Increment Limit: 4
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
 Stop Conditions: Stop on failed verification, task or checkpoint drift, an RFC-0016
-compatibility conflict, missing content/pricing authority semantics, new implementation
-or external-effect authority, or unsafe recovery.
+compatibility conflict, incomplete closed-world semantics, new caller or external-
+effect authority, or unsafe recovery.
 
-### Increment 1 - specify-outbound-route-contract
+### Increment 1 - define-route-proposal-values
 
 State: Completed
 Depends On: none
-Scope: Record the accepted continuation decision and RFC-0028, then synchronize the
-Architecture mirror, Roadmap RFC track, Changelog, and active task without changing
-implementation or capability maturity.
-Exit Criteria: The exact decision/index pair and accepted RFC exist; owned documents
-describe one compatible default-deny contract; focused document governance and
-`git diff --check` are GREEN.
-Verification: Decision/index, ownership, Architecture, task/justification, Planner,
-Assisted Loop, RFC-0016/locality, dynamic-workflow tests, and `git diff --check`.
-Next Action: Select Increment 2 and close the task with fresh full regression evidence.
+Scope: Record the accepted continuation decision, add RED tests for RFC-0028's
+immutable provider-neutral proposal/fact values and closed outcomes, then implement
+the minimum pure values required to make those tests GREEN.
+Exit Criteria: Exact decision/index pair exists; value construction, validation,
+identity, provenance, safe rendering, and the 24-reason closed vocabulary are covered
+by fresh focused GREEN tests; verification evidence is appended once; and the increment
+is committed locally.
+Verification: Focused RFC-0028 value, reflection, dependency, decision/index, document
+governance, and `git diff --check` tests.
+Next Action: Select Increment 2 after reading fresh Increment 1 evidence.
 
-### Increment 2 - verify-and-close-specification
+### Increment 2 - implement-default-deny-evaluator
 
-State: Completed
-Depends On: specify-outbound-route-contract
-Scope: Append verification evidence once, synchronize completion and next-task state,
-run the full Markdown-sensitive Java 17 regression on the exact final tree, review the
-diff, and create the required ordinary local GREEN commit.
+State: In Progress
+Depends On: define-route-proposal-values
+Scope: Add RED decision-table tests, then implement the minimum field-free evaluator
+that delegates to RFC-0016 and enforces RFC-0028's ordered default-deny checks.
+Exit Criteria: Every RFC-0016 gate and all RFC-0028 refusal branches are covered;
+eligible output retains exact identity; focused evaluator/regression tests are GREEN;
+evidence is appended once; and the increment is committed locally.
+Verification: Focused evaluator decision table, RFC-0014 through RFC-0016,
+deterministic-fake regression, architecture, and `git diff --check` tests.
+Next Action: Select Increment 3 after reading fresh Increment 2 evidence.
+
+### Increment 3 - enforce-source-and-locality-guards
+
+State: Pending
+Depends On: implement-default-deny-evaluator
+Scope: Add and satisfy source, locality, reflection, and dependency guards proving
+that the pure contract has no production caller or forbidden infrastructure coupling.
+Exit Criteria: Guard tests are GREEN; no runtime or infrastructure caller exists;
+evidence is appended once; and the increment is committed locally.
+Verification: RFC-0028 source/locality, dependency, reflection, architecture, task,
+and `git diff --check` tests.
+Next Action: Select Increment 4 after reading fresh Increment 3 evidence.
+
+### Increment 4 - verify-and-close-pure-contract
+
+State: Pending
+Depends On: enforce-source-and-locality-guards
+Scope: Synchronize owned documents, run full Markdown-sensitive Java 17 regression on
+the exact final tree, review the diff, close the task, and create the final required
+ordinary local GREEN commit.
 Exit Criteria: Fresh full regression and diff checks are GREEN; owned documents are
-current; the task is Completed; the local commit exists; Git is clean; and the
-checkpoint is stable and clear.
+current; the task is Completed; local commits exist; Git is clean; and the checkpoint
+is stable and clear.
 Verification: Full `.\scripts\gradle.ps1 test`, generated JUnit XML counts,
-`git diff --check`, diff/status/log review, commit, and checkpoint reconciliation.
-Next Action: Await separate user authority for pure RFC-0028 implementation or another
-task; do not push.
+`git diff --check`, diff/status/log review, commits, and checkpoint reconciliation.
+Next Action: Await separate authority for a future Router or governed fact sources;
+do not push.
 
 ## Next
 
-Await separate user authority to implement the pure RFC-0028 outbound route-admission
-contract RED-first or to select another task. No Router, provider, network, credential,
-spend, MCP, push, release, or deployment work is active.
+Complete Increment 2 by defining and verifying the field-free default-deny evaluator
+against every RFC-0016 and RFC-0028 refusal branch. Do not add a production caller,
+Router, provider, network, credential, spend, MCP, push, release, or deployment path.

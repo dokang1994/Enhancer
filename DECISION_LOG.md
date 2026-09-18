@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-09-18 into RFC-0028 pure outbound route-admission implementation
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-09-18-implement-rfc-0028-pure-outbound-route-admission.md)
+
 ### User continuation request on 2026-09-17 into provider-neutral outbound model route-admission specification
 
 Status: Accepted Decision
