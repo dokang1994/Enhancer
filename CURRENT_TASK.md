@@ -6,82 +6,75 @@ Completed
 
 ## Task
 
-Deliver the twelve completed and verified Gate 8 transition and Gate 9 baseline commits
-currently ahead of `origin/main` to remote `main` through explicit non-force fast-
-forward pushes, required CI observation, and one committed delivery-evidence closure.
+Specify RFC-0028 as the provider-neutral default-deny outbound model route-admission
+contract that must precede any second candidate, Router, provider adapter, credential,
+network transmission, paid invocation, or MCP work.
 
 ## Task ID
 
-deliver-gate-8-transition-and-gate-9-baseline-to-main
+specify-provider-neutral-outbound-model-route-admission
 
 ## Context
 
-The clean local `main` ends at `0119793` and is twelve linear commits ahead of the
-currently tracked `origin/main`. The completed work already resides directly on
-`main`; there is no feature branch requiring a synthetic merge commit. The user has
-explicitly requested commit, push, and merge.
-
-The next product task remains the separately authorized RFC-0028 specification named
-by the completed Gate 9 baseline audit. This delivery task changes only delivery
-history and evidence.
+The completed Gate 9 baseline audit found that the deterministic-fake path is bounded
+and supported, but no provider-neutral route decision or outbound data-policy boundary
+exists. The accepted sequencing decision selects RFC-0028 specification as the next
+task before any Router or real-provider integration. The user requested continuation
+on 2026-09-17.
 
 ## Justified By
 
-- User request on 2026-09-14 to commit, push, and merge Gate 8 transition and Gate 9 baseline work to main
+- Select provider-neutral outbound model route admission before router or provider integration
+- User continuation request on 2026-09-17 into provider-neutral outbound model route-admission specification
 
 ## Approval
 
-The user's explicit 2026-09-14 request authorizes a bounded delivery task that commits
-the delivery authority and evidence cursor, runs fresh local verification, fetches and
-proves fast-forward ancestry, pushes local `main` to `origin/main` with the explicit
-non-force `main:main` refspec, verifies fetched and advertised refs, observes the push-
-triggered GitHub Actions `verify` workflow, commits the verified delivery evidence, and
-publishes that evidence commit under the same ancestry and ref checks.
+The user's 2026-09-17 continuation request authorizes a documentation-only RFC-0028
+specification task. It permits the RFC, one matching accepted continuation decision and
+Decision Log entry, Architecture and `.ai/architecture.md` contract synchronization,
+Roadmap RFC-index synchronization, task/state-consistency documentation, verification
+evidence, Changelog, and any necessary session handoff update. It also permits focused
+and full README-owned verification and the ordinary local commit required for the
+verified GREEN increment.
 
-Because all completed work is already linear on local `main`, a successful non-force
-fast-forward push is the requested merge. No temporary branch or synthetic merge commit
-is required.
-
-This approval permits only the exact actual-Roadmap Gate 9 proposal expectation in
-`AssistedDevelopmentLoopTest` required to align the completed-task path with the already
-accepted Roadmap transition. It does not authorize any other production or test-source
-change; force push, rebase, reset, amend, squash, cherry-pick, history rewrite, tag,
-release, deployment, branch deletion, permission or credential change, destructive
-cleanup, product implementation, schema change, capability promotion, provider/network
-invocation, paid service, MCP, or unrelated external effect.
+This approval does not authorize Java or test-source implementation, a second model
+candidate, Router or registry construction, provider adapter construction or
+invocation, credential access, secret persistence, network transmission, spend, MCP,
+durable schema change, capability-maturity promotion, push, merge, release, deployment,
+permission change, destructive cleanup, or another external effect.
 
 ## Acceptance Criteria
 
-- One Accepted Decision records the exact delivery authority and non-force linear-merge
-  interpretation with an exact matching `DECISION_LOG.md` entry.
-- Fresh focused governance and full README-owned Java 17 regression are GREEN after the
-  delivery-authority documents are written; `git diff --check` passes.
-- The delivery-authority increment is committed locally before remote mutation.
-- A fresh fetch proves `origin/main` is the merge base and ancestor of local `main`,
-  with no remote-only commits, before each push.
-- Each push uses the explicit non-force `git push origin main:main` refspec; no force,
-  synthetic merge, rebase, or history rewrite occurs.
-- After the primary push, local `HEAD`, fetched `origin/main`, and advertised remote
-  `refs/heads/main` match exactly, and the exact-head GitHub Actions `verify` workflow
-  reaches terminal success.
-- Delivery evidence is appended once to `docs/verification-log.md`, notable delivery
-  history is recorded in `CHANGELOG.md`, and the completed task retains RFC-0028 as the
-  singular next product task.
-- The evidence closure is committed and delivered by the same non-force ancestry
-  protocol; final local, fetched, and advertised remote refs match, the exact-head
-  `verify` workflow succeeds, Git is clean, and the checkpoint is stable and clear.
-- The completed-task Assisted Loop characterization expects the sole actual-Roadmap
-  Gate 9 proposal without changing generic Planner or loop behavior.
+- One accepted decision records the user's bounded continuation authority, with an
+  exact matching `DECISION_LOG.md` entry.
+- RFC-0028 defines one provider-neutral fresh default-deny decision over the exact
+  active task, execution policy, profiled request, independently governed candidate and
+  destination facts, purpose, retention, classification, content-inspection/redaction,
+  and pricing facts.
+- The RFC preserves profile classification as untrusted requirement data, treats cost
+  ceilings as limits rather than spend authority, and makes sensitive-content
+  inspection plus required redaction prerequisites for any remote eligibility.
+- The RFC defines closed typed admission/refusal outcomes, deterministic evaluation
+  order, local and remote behavior, identity/provenance retention, and the exact future
+  Router consumer without granting credentials, network, spend, persistence, or
+  reusable authority.
+- Existing deterministic-fake local execution, RFC-0016 admission, provider-neutral
+  model contracts, Tool/evidence/verification/RunRecord behavior, and durable schemas
+  remain unchanged.
+- Architecture, its `.ai/` mirror, Roadmap RFC tracking, current-state limitations,
+  task, verification evidence, Changelog, and session handoff are synchronized only
+  where their owning facts change; Gate 9 maturity does not change.
+- Fresh focused document/architecture verification and full Markdown-sensitive Java 17
+  regression pass, `git diff --check` passes, and the verified increment is committed
+  locally with no push.
 
 ## Out Of Scope
 
-Production changes or test-source changes beyond the exact actual-Roadmap Assisted Loop
-expectation; architecture, capability maturity, Roadmap, RFC, or durable-schema changes;
-provider/network invocation beyond Git/GitHub delivery;
-credentials or paid services; MCP, Skill, Memory, plugin, interface, multi-agent,
-background, Cloud Sync, release, deployment, tag, branch deletion, permission change,
-destructive cleanup, force push, rebase, reset, amend, squash, cherry-pick, synthetic
-merge, history rewrite, and unrelated external effects.
+Java or test-source implementation; candidate, Router, registry, provider, adapter,
+endpoint, protocol, network, credential, secret-store, pricing-source, billing, spend,
+MCP, cache, fallback, runtime-event, durable schema or migration work; capability
+promotion; external verification; push, merge, release, deployment, permission change,
+destructive cleanup, and unrelated external effects.
 
 ## Allowed Tools
 
@@ -93,69 +86,58 @@ merge, history rewrite, and unrelated external effects.
 - git-inspect
 - git-stage
 - git-commit
-- git-fetch
-- git-push
-- GitHub-Actions-observe
+- development-subagents-read-only
 
 ## Verification
 
-Use the README-owned Java 17 Gradle command for focused governance and full regression.
-Before each push, fetch `origin`, prove exact merge-base ancestry and zero remote-only
-divergence, and inspect the explicit ref range. After each push, fetch again, compare
-local, tracking, and advertised remote refs, and observe the exact-head GitHub Actions
-`verify` workflow through terminal success. Subagent reports are not verification
-evidence.
+Review RFC-0028 against RFC-0013 through RFC-0027, the accepted outbound sequencing
+decision, Architecture, Roadmap Gate 9, and current model types. Run the focused
+decision/index, document ownership, Architecture mirror/source, RFC/source-locality,
+Planner/Assisted Loop, and dynamic-workflow governance tests that apply, then run the
+README-owned full `.\scripts\gradle.ps1 test` command and `git diff --check`.
+Subagent reports are recommendations and are not verification evidence.
 
 ## Dynamic Workflow
 
-Workflow ID: deliver-gate-8-transition-and-gate-9-baseline-to-main
+Workflow ID: specify-provider-neutral-outbound-model-route-admission
 Mode: Sequential
-Increment Limit: 3
+Increment Limit: 2
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
-Stop Conditions: Stop on a dirty or drifting worktree, failed verification, checkpoint
-drift, remote-only commits, failed ancestry, non-fast-forward refusal, ref mismatch,
-failed or unavailable required CI, new authority, or unsafe recovery.
+Stop Conditions: Stop on failed verification, task or checkpoint drift, an RFC-0016
+compatibility conflict, missing content/pricing authority semantics, new implementation
+or external-effect authority, or unsafe recovery.
 
-### Increment 1 - authorize-and-verify-delivery
+### Increment 1 - specify-outbound-route-contract
 
 State: Completed
 Depends On: none
-Scope: Record the accepted delivery decision and preflight evidence, run fresh focused
-governance and full regression, and commit the delivery authority locally.
-Exit Criteria: Decision/index, task, changelog, and preflight evidence are synchronized;
-fresh verification is GREEN; the worktree is clean after the ordinary local commit.
-Verification: Decision/document governance, full `.\scripts\gradle.ps1 test`,
-`git diff --check`, commit, status, and checkpoint reconciliation.
-Next Action: Select Increment 2 and fetch `origin`.
+Scope: Record the accepted continuation decision and RFC-0028, then synchronize the
+Architecture mirror, Roadmap RFC track, Changelog, and active task without changing
+implementation or capability maturity.
+Exit Criteria: The exact decision/index pair and accepted RFC exist; owned documents
+describe one compatible default-deny contract; focused document governance and
+`git diff --check` are GREEN.
+Verification: Decision/index, ownership, Architecture, task/justification, Planner,
+Assisted Loop, RFC-0016/locality, dynamic-workflow tests, and `git diff --check`.
+Next Action: Select Increment 2 and close the task with fresh full regression evidence.
 
-### Increment 2 - fast-forward-main-and-observe-ci
-
-State: Completed
-Depends On: authorize-and-verify-delivery
-Scope: Fetch remote state, prove ancestry, push explicit non-force `main:main`, verify
-local/fetched/advertised refs, observe the exact-head `verify` workflow, and record its
-delivery evidence.
-Exit Criteria: The primary delivery is a verified fast-forward, exact refs match, CI is
-successful, and the evidence closure is ready for a local commit.
-Verification: Fetch, merge-base/ancestor/divergence, explicit push, ref equality,
-GitHub Actions exact-head observation, diff, and checkpoint reconciliation.
-Next Action: Commit the evidence closure and select Increment 3.
-
-### Increment 3 - publish-and-close-delivery-evidence
+### Increment 2 - verify-and-close-specification
 
 State: Completed
-Depends On: fast-forward-main-and-observe-ci
-Scope: Commit the verified evidence closure, re-fetch and prove fast-forward ancestry,
-push the explicit non-force `main:main` refspec, verify final refs and exact-head CI,
-then close the task and checkpoint.
-Exit Criteria: The evidence commit is on remote `main`; exact refs and CI are verified;
-Git is clean; the task is complete; and the checkpoint is stable and clear.
-Verification: Commit, fetch, merge-base/ancestor/divergence, explicit push, ref equality,
-GitHub Actions exact-head observation, status, and checkpoint reconciliation.
-Next Action: Await separate authority for RFC-0028 or another user-selected task.
+Depends On: specify-outbound-route-contract
+Scope: Append verification evidence once, synchronize completion and next-task state,
+run the full Markdown-sensitive Java 17 regression on the exact final tree, review the
+diff, and create the required ordinary local GREEN commit.
+Exit Criteria: Fresh full regression and diff checks are GREEN; owned documents are
+current; the task is Completed; the local commit exists; Git is clean; and the
+checkpoint is stable and clear.
+Verification: Full `.\scripts\gradle.ps1 test`, generated JUnit XML counts,
+`git diff --check`, diff/status/log review, commit, and checkpoint reconciliation.
+Next Action: Await separate user authority for pure RFC-0028 implementation or another
+task; do not push.
 
 ## Next
 
-Await separate user authority to specify RFC-0028 as the provider-neutral outbound
-model route-admission contract or to select another task. No product implementation,
-release, or deployment is active.
+Await separate user authority to implement the pure RFC-0028 outbound route-admission
+contract RED-first or to select another task. No Router, provider, network, credential,
+spend, MCP, push, release, or deployment work is active.

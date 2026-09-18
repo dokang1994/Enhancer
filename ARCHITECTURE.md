@@ -2039,6 +2039,22 @@ cost ceilings cannot authorize spend, and an ephemeral admission result cannot c
 credential or become durable authority. The specification and any later implementation
 remain separate tasks.
 
+RFC-0028 specifies that provider-neutral outbound continuation without changing the
+current local path. The pure evaluator begins with fresh RFC-0016 evaluation: its first
+four refusals remain terminal, local `Admitted` refuses outbound, and only the exact
+`OUTBOUND_POLICY_REQUIRED` result may proceed. One remote proposal then binds opaque
+fresh candidate and destination-policy facts, the closed inference purpose, explicit
+retention uses/duration, a separate exact outbound-content projection with source and
+outbound inspection plus complete redaction provenance, conservative classification,
+and fresh exact-currency worst-case pricing. An empty policy denies all routes, any
+positive charge still requires separate spend authority, and success is invocation-
+local non-persistent eligibility. The existing deterministic fake bypasses this
+outbound-only boundary unchanged. A future pure `ModelRouter` is the first named
+consumer and may select only among freshly eligible proposals plus separately proven
+candidate suitability; Router/provider construction, scanners/redactors, pricing
+sources, credentials, network invocation, durable route provenance, and MCP remain
+separate contracts.
+
 ## Agent Orchestration Contract
 
 ### Development-Time Adaptive Subagent Delegation

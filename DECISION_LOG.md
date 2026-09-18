@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-09-17 into provider-neutral outbound model route-admission specification
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-09-17-specify-provider-neutral-outbound-model-route-admission.md)
+
 ### User request on 2026-09-14 to commit, push, and merge Gate 8 transition and Gate 9 baseline work to main
 
 Status: Accepted Decision

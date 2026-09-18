@@ -8053,3 +8053,42 @@ Outcome:
   skipped, and zero failed or errored. The repair remains to be committed and delivered
   under the same fresh-fetch, ancestry, explicit non-force refspec, exact-ref, and
   exact-head CI protocol.
+
+## 2026-09-18 - RFC-0028 Provider-Neutral Outbound Model Route Admission
+
+- The user's continuation request activated a documentation-only RFC-0028 task under
+  the previously accepted Gate 9 sequencing decision. Two bounded read-only subagent
+  reviews separately checked existing model-contract compatibility and outbound
+  security/authority semantics; the primary Agent reconciled their recommendations
+  against repository authority and current source. Their reports were not verification
+  evidence.
+- The accepted contract preserves RFC-0016 exactly: its task, policy, capability, and
+  timeout refusals remain terminal, local admission refuses outbound, and only the
+  exact `OUTBOUND_POLICY_REQUIRED` refusal may continue into fresh remote predicates.
+  Existing deterministic-fake local execution remains unchanged.
+- One exact remote proposal must bind fresh opaque candidate and destination-policy
+  facts, the closed inference purpose, explicit retention uses and duration, an exact
+  outbound-content projection with source/outbound inspection and complete redaction
+  provenance, conservative effective classification, and fresh exact-currency worst-
+  case pricing. Empty policy denies all routes; positive cost still requires separate
+  spend authority. Eligibility is invocation-local, credential-free, non-persistent,
+  and names a future pure Router as its first consumer without constructing one.
+- The initial focused run completed 48 tests with one expected governance failure:
+  `DynamicWorkflowDocumentTest` reported the missing bounded workflow section for the
+  newly In-Progress task. No product/RFC behavior failed. The task contract was amended
+  with two sequential bounded increments, the failed checkpoint was retired safely,
+  and the replacement checkpoint reconciled every changed artifact.
+- The corrected focused run used the README-owned Java 17 Gradle wrapper and completed
+  with `BUILD SUCCESSFUL` in 5 seconds. Generated JUnit XML contained nine suites and
+  48 tests: all 48 passed with zero skips, failures, or errors. `git diff --check`
+  passed.
+- Fresh pre-closure full Markdown-sensitive Java 17 regression completed with
+  `BUILD SUCCESSFUL` in 2 minutes 3 seconds. Generated JUnit XML contained 226 suites
+  and 1,227 tests: 1,211 passed, 16 conditional platform tests skipped, and zero failed
+  or errored. Final-tree verification follows after the evidence and completion cursor
+  are present.
+- `PROJECT_STATE.md` remains unchanged because RFC acceptance adds no implementation or
+  capability maturity. `SESSION_HANDOFF.md` remains unchanged because no new host-only
+  continuation fact exists. No production/test source, durable schema, provider,
+  network, credential, spend, MCP, external state, push, merge, release, deployment,
+  permission, destructive, or unrelated effect changed.

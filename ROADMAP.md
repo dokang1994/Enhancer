@@ -1283,6 +1283,7 @@ Status: Accepted
 - RFC-0025: Supported Deterministic-Fake Model-Aware Scheduler Composition
 - RFC-0026: Supported Typed ModelWork Submission Input
 - RFC-0027: Manifest-Authorized Typed ModelWork Spool Ingress
+- RFC-0028: Provider-Neutral Outbound Model Route Admission
 
 RFC acceptance does not imply Contract Verified, Integrated, Operational, or Released capability maturity.
 

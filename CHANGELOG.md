@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-09-18 - Specify Provider-Neutral Outbound Model Route Admission
+
+- Accepted RFC-0028 as the documentation-only default-deny policy boundary that must
+  precede any second candidate, Router, provider adapter, credential, network, paid
+  invocation, or MCP work.
+- Preserved RFC-0016 by allowing only its exact `OUTBOUND_POLICY_REQUIRED` refusal to
+  continue into remote checks; all earlier refusals and local admission remain terminal
+  for this outbound boundary.
+- Required one exact remote proposal to bind independently governed fresh candidate,
+  destination-policy, purpose, retention, complete model-visible inspection/redaction,
+  conservative classification, and exact-currency pricing facts. Eligibility remains
+  ephemeral and positive cost still requires separate spend authority.
+- Existing deterministic-fake execution, production/test source, durable schemas,
+  capability maturity, external state, provider/network activity, MCP, push, merge,
+  release, and deployment remain unchanged.
+- Fresh focused governance passed 48 tests across nine suites. Fresh full Java 17
+  regression passed 1,211 of 1,227 tests across 226 suites with 16 conditional platform
+  skips and zero failures or errors; `git diff --check` also passed.
+
 ## 2026-09-14 - Deliver Gate 8 Transition And Gate 9 Baseline Work To Main
 
 - Accepted the user's bounded request to commit, push, and merge the twelve completed
