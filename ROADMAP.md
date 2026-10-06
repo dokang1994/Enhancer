@@ -968,6 +968,13 @@ Scope:
   RFC-0025 execution command reaches verified deterministic-fake completion;
   capability mismatch remains a no-effect pre-call refusal and legacy Work commands
   stay unchanged;
+- a Contract Verified pure provider-neutral outbound route-admission boundary whose
+  immutable proposal and opaque governed facts bind exact RFC-0016 authority,
+  destination, purpose, retention, inspected/redacted content, conservative
+  classification, and exact-currency pricing. Its field-free evaluator is default-deny
+  in a closed 24-reason order, grants only invocation-local eligibility, and has source,
+  locality, dependency, and reflection guards proving zero infrastructure coupling and
+  zero production callers;
 - Model Router with deterministic fake plus explicitly selected provider adapters;
 - timeout, cancellation, token, context, cost, redaction, and response-validation budgets;
 - versioned per-model quality evaluation, policy-scoped fallback and response caching, prompt-injection resistance, source attribution, and visible uncertainty;

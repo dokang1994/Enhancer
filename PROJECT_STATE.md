@@ -2,15 +2,15 @@
 
 ## Updated At
 
-2026-09-08
+2026-10-06
 
 ## Repository State
 
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 470 Java files.
-- Test source: 218 Java files.
+- Production source: 502 Java files.
+- Test source: 235 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -19,6 +19,22 @@ it does not restate which commit published which increment.
 ## Capability Maturity
 
 ### Contract Verified
+
+- The RFC-0028 provider-neutral outbound model route-admission boundary under
+  `com.enhancer.model` is Contract Verified without a production caller. Nineteen
+  immutable definition types retain opaque fresh candidate and destination policy,
+  closed purpose and retention, exact outbound content with inspection/redaction
+  provenance, conservative classification, and exact-currency worst-case pricing.
+  Field-free `ModelOutboundRouteAdmission` freshly delegates the exact task, policy,
+  profiled request, and capability to RFC-0016, preserves its first four refusals,
+  refuses local admission, and continues only from `OUTBOUND_POLICY_REQUIRED` through
+  the closed 24-reason default-deny order. Eligible output retains the exact proposal
+  plus effective classification but grants no transmission, credential, spend,
+  persistence, or execution authority. Source, locality, dependency, and reflection
+  guards prove the definitions have no infrastructure coupling and no production Java
+  source consumes them. Governed fact sources, scanners/redactors, pricing acquisition,
+  a pure Router consumer, provider construction, credentials, network invocation,
+  durable route provenance, and MCP remain absent.
 
 - The first RFC-0023 implementation prerequisite is Contract Verified without a
   production caller. `AgentRunEvidenceIdentity` derives one canonical, versioned,
@@ -1085,13 +1101,14 @@ it does not restate which commit published which increment.
   prefixes without authorizing a general orphan scanner or cleanup policy.
 - Delivery Gate 9: Specified - Next. Existing RFC-0013 through RFC-0027 deterministic-
   fake request, profile, budget, suitability, typed execution, direct submission, and
-  typed spool sub-paths range from Contract Verified to Operational, but their
+  typed spool sub-paths range from Contract Verified to Operational, and RFC-0028 now
+  provides the Contract Verified pure outbound route-admission boundary without a
+  caller. Their
   accumulation does not establish whole-gate maturity. Real providers, MCP client/server
   composition, outbound data policy, fallback/cache provenance, and fixed-fixture model
-  evaluation remain absent. The fresh baseline audit confirms that provider-neutral
-  routing is the first missing Gate-9-owned dependency and that default-deny outbound
-  route admission must be specified before any second candidate, Router, provider,
-  credential, network, or paid invocation is connected.
+  evaluation remain absent. Governed fact acquisition and the pure Router consumer are
+  the next missing Gate-9-owned integration boundaries before any second candidate,
+  provider, credential, network, or paid invocation is connected.
 - Gate 8 lease-expiry recovery now has one named worker-level fixture over the
   post-RunRecord-reference prefix. The first cycle persists exactly one reference,
   expires before execution acknowledgement, and leaves the AgentRun reclaimable at

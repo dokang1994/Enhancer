@@ -2029,18 +2029,11 @@ JVM evidence proves the admitted typed work reaches verified completion through 
 `scheduler-cycle`, `scheduler-drain`, and finite `scheduler-service`; capability
 mismatch remains a no-effect pre-call refusal, and the legacy Work path is unchanged.
 
-The post-RFC-0027 Gate 9 baseline sets one sequencing constraint before any second
-candidate, Router, provider adapter construction, credential access, or network call:
-a separately specified provider-neutral outbound route-admission boundary must make a
-fresh default-deny decision from the exact task, execution policy, profiled request,
-independently governed candidate and destination facts, purpose, retention,
-classification, and pricing inputs. Profile data cannot self-authorize disclosure,
-cost ceilings cannot authorize spend, and an ephemeral admission result cannot carry a
-credential or become durable authority. The specification and any later implementation
-remain separate tasks.
-
-RFC-0028 specifies that provider-neutral outbound continuation without changing the
-current local path. The pure evaluator begins with fresh RFC-0016 evaluation: its first
+RFC-0028 implements the provider-neutral outbound continuation boundary without
+changing the current local path. Its nineteen immutable definition types retain exact
+task/policy/profile authority inputs plus independently governed candidate,
+destination, purpose, retention, content, inspection/redaction, classification, and
+pricing facts. The field-free pure evaluator begins with fresh RFC-0016 evaluation: its first
 four refusals remain terminal, local `Admitted` refuses outbound, and only the exact
 `OUTBOUND_POLICY_REQUIRED` result may proceed. One remote proposal then binds opaque
 fresh candidate and destination-policy facts, the closed inference purpose, explicit
@@ -2048,12 +2041,14 @@ retention uses/duration, a separate exact outbound-content projection with sourc
 outbound inspection plus complete redaction provenance, conservative classification,
 and fresh exact-currency worst-case pricing. An empty policy denies all routes, any
 positive charge still requires separate spend authority, and success is invocation-
-local non-persistent eligibility. The existing deterministic fake bypasses this
-outbound-only boundary unchanged. A future pure `ModelRouter` is the first named
-consumer and may select only among freshly eligible proposals plus separately proven
-candidate suitability; Router/provider construction, scanners/redactors, pricing
-sources, credentials, network invocation, durable route provenance, and MCP remain
-separate contracts.
+local non-persistent eligibility. Source, locality, dependency, and reflection guards
+keep every definition free of infrastructure coupling and prove that no production Java
+source consumes the boundary. The existing deterministic fake bypasses this outbound-
+only boundary unchanged. A future pure `ModelRouter` is the first named consumer and
+may select only among freshly eligible proposals plus separately proven candidate
+suitability; governed fact sources, Router/provider construction, scanners/redactors,
+pricing sources, credentials, network invocation, durable route provenance, and MCP
+remain separate contracts.
 
 ## Agent Orchestration Contract
 
@@ -2558,7 +2553,8 @@ Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts bel
   call, and event publication recovery reuses exact durable state without reinvocation.
   RFC-0027 implements manifest-authorized typed spool publication, bounded point
   decoding, its package-local receiver domain, post-admission acknowledgement, and the
-  supported receive CLI/operator path. Provider routing remains unselected; the next
-  separately authorized design boundary must specify default-deny outbound route
-  admission before any second candidate, Router, or provider integration.
+  supported receive CLI/operator path. RFC-0028 now provides Contract Verified pure
+  default-deny outbound route admission with no production caller; governed fact
+  acquisition and a pure Router consumer remain separately authorized before any second
+  candidate or provider integration.
 - Future LLM-backed Planner input/output schema is not selected yet.

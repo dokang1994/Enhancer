@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -148,7 +148,7 @@ Next Action: Select Increment 4 after reading fresh Increment 3 evidence.
 
 ### Increment 4 - verify-and-close-pure-contract
 
-State: In Progress
+State: Completed
 Depends On: enforce-source-and-locality-guards
 Scope: Synchronize owned documents, run full Markdown-sensitive Java 17 regression on
 the exact final tree, review the diff, close the task, and create the final required
@@ -163,8 +163,6 @@ do not push.
 
 ## Next
 
-Complete Increment 4 by synchronizing owned documents and running the fresh full
-Markdown-sensitive Java 17 regression on the exact final tree. Review the final diff,
-create the required ordinary local GREEN commit, stabilize and clear the checkpoint,
-and do not add or authorize a production caller, Router, provider, network, credential,
-spend, MCP, push, release, or deployment path.
+Await separate user authority for governed RFC-0028 fact sources or a future pure
+Router consumer. Do not add or authorize a production caller, provider, network,
+credential, spend, MCP, push, release, or deployment path under this completed task.

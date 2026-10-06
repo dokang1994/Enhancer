@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-10-06 - Implement Provider-Neutral Outbound Model Route Admission
+
+- Added RFC-0028's immutable proposal, opaque governed facts, closed purposes,
+  retention uses, inspection/redaction values, exact pricing, sealed decision, and
+  24-reason rejection vocabulary under `com.enhancer.model`.
+- Added a field-free default-deny evaluator that begins with fresh RFC-0016 admission,
+  preserves its terminal refusals, refuses local admission, and continues only from
+  `OUTBOUND_POLICY_REQUIRED` through the exact remote checks. Eligibility retains exact
+  proposal identity and effective classification without granting invocation or spend.
+- Added decision-table, value, source, locality, dependency, and reflection coverage.
+  The boundary has no production caller or infrastructure coupling; governed fact
+  sources, a pure Router consumer, providers, credentials, network calls, persistence,
+  and MCP remain future separately authorized work.
+- Fresh full Java 17 regression executed all tasks and passed 1,226 of 1,242 tests
+  across 229 suites, with 16 conditional platform skips and zero failures or errors;
+  `git diff --check` also passed. No push, merge, release, or deployment was performed.
+
 ## 2026-09-18 - Specify Provider-Neutral Outbound Model Route Admission
 
 - Accepted RFC-0028 as the documentation-only default-deny policy boundary that must

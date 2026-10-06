@@ -8161,3 +8161,19 @@ Outcome:
   dependency risks. The primary Agent reconciled their recommendations against the
   accepted RFC and source; their reports were recommendations, not verification
   evidence. No production caller or infrastructure integration was added.
+
+## 2026-10-06 - RFC-0028 Pure Route Admission Closure
+
+- Synchronized the implemented pure RFC-0028 contract into its Architecture mirror,
+  capability maturity, Gate 9 Roadmap scope, task cursor, and delivery history without
+  promoting the whole gate. `SESSION_HANDOFF.md` remains unchanged because no new
+  host-only continuation fact exists; the accepted decision and index were already
+  current.
+- Fresh pre-closure full Java 17 verification used the README-owned Gradle wrapper with
+  `--rerun-tasks` and completed with `BUILD SUCCESSFUL` in 9 minutes. Generated JUnit
+  XML contained 229 suites and 1,242 tests: 1,226 passed, 16 conditional platform tests
+  skipped, and zero failed or errored. `git diff --check` passed.
+- The resulting capability is Contract Verified only: there is no production caller,
+  governed fact acquisition, Router, provider, credential, network, persistence, spend,
+  MCP, push, merge, release, deployment, permission change, destructive action, or
+  unrelated external effect.
