@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 public final class ModelRoutePricingFacts {
 
     public static final String SCHEMA_VERSION = "model-route-pricing-facts-v1";
+    public static final String TOKEN_SEMANTICS_IDENTITY = "profile-token-budget-v1";
 
     private static final Pattern CURRENCY_CODE = Pattern.compile("[A-Z]{3}");
 

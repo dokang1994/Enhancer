@@ -34,9 +34,9 @@ public final class ModelOutboundContent {
             throw new IllegalArgumentException(
                     "REDACTED content must differ from the source prompt");
         }
-        this.sourcePromptDigest = sha256(sourcePrompt);
+        this.sourcePromptDigest = digestOf(sourcePrompt);
         this.outboundPrompt = outboundPrompt;
-        this.outboundPromptDigest = sha256(outboundPrompt);
+        this.outboundPromptDigest = digestOf(outboundPrompt);
     }
 
     public static ModelOutboundContent unchanged(String sourcePrompt) {
@@ -63,7 +63,7 @@ public final class ModelOutboundContent {
         }
     }
 
-    private static String sha256(String value) {
+    static String digestOf(String value) {
         try {
             byte[] digest = MessageDigest.getInstance("SHA-256")
                     .digest(value.getBytes(StandardCharsets.UTF_8));

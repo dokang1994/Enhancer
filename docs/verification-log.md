@@ -8120,3 +8120,25 @@ Outcome:
   scanner, redactor, pricing source, spend path, runtime wiring, persistence, MCP,
   capability promotion, push, merge, release, deployment, permission, destructive, or
   unrelated external effect was added.
+
+## 2026-09-18 - RFC-0028 Default-Deny Evaluator Increment
+
+- The expected RED run failed during test compilation only because
+  `ModelOutboundRouteAdmission` did not yet exist. The failure matched the accepted
+  task and RFC; no pre-existing test failed.
+- The field-free evaluator now invokes RFC-0016 on the exact authority inputs. It maps
+  its first four refusals unchanged, refuses local admission for outbound routing, and
+  continues only from `OUTBOUND_POLICY_REQUIRED`. It then evaluates candidate and
+  destination freshness, exact route and purpose, retention, content and inspection,
+  redaction, conservative classification, pricing, currency, ceiling, and zero-charge
+  spend separation in the RFC's closed first-match order.
+- Decision-table tests exercise all 24 refusal reasons, programming-error nulls,
+  exact eligible proposal identity, effective classification, inclusive observation,
+  exclusive expiry, and a combined first-match case. The implementation performs no
+  lookup, I/O, Tool call, gateway call, routing, provider construction, credential
+  access, network access, persistence, or spend.
+- Fresh focused Java 17 verification completed with `BUILD SUCCESSFUL` in 8 seconds.
+  Generated JUnit XML contained 22 model and architecture suites and 131 tests: 129
+  passed, two conditional tests skipped, and zero failed or errored. Existing RFC-0014
+  through RFC-0016 and deterministic-fake model tests remained GREEN, and
+  `git diff --check` passed.

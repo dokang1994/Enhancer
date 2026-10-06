@@ -123,7 +123,7 @@ Next Action: Select Increment 2 after reading fresh Increment 1 evidence.
 
 ### Increment 2 - implement-default-deny-evaluator
 
-State: In Progress
+State: Completed
 Depends On: define-route-proposal-values
 Scope: Add RED decision-table tests, then implement the minimum field-free evaluator
 that delegates to RFC-0016 and enforces RFC-0028's ordered default-deny checks.
@@ -136,7 +136,7 @@ Next Action: Select Increment 3 after reading fresh Increment 2 evidence.
 
 ### Increment 3 - enforce-source-and-locality-guards
 
-State: Pending
+State: In Progress
 Depends On: implement-default-deny-evaluator
 Scope: Add and satisfy source, locality, reflection, and dependency guards proving
 that the pure contract has no production caller or forbidden infrastructure coupling.
@@ -163,6 +163,6 @@ do not push.
 
 ## Next
 
-Complete Increment 2 by defining and verifying the field-free default-deny evaluator
-against every RFC-0016 and RFC-0028 refusal branch. Do not add a production caller,
-Router, provider, network, credential, spend, MCP, push, release, or deployment path.
+Complete Increment 3 by adding source, locality, reflection, and dependency guards for
+the pure RFC-0028 contract. Do not add a production caller, Router, provider, network,
+credential, spend, MCP, push, release, or deployment path.
