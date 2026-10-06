@@ -136,7 +136,7 @@ Next Action: Select Increment 3 after reading fresh Increment 2 evidence.
 
 ### Increment 3 - enforce-source-and-locality-guards
 
-State: In Progress
+State: Completed
 Depends On: implement-default-deny-evaluator
 Scope: Add and satisfy source, locality, reflection, and dependency guards proving
 that the pure contract has no production caller or forbidden infrastructure coupling.
@@ -148,7 +148,7 @@ Next Action: Select Increment 4 after reading fresh Increment 3 evidence.
 
 ### Increment 4 - verify-and-close-pure-contract
 
-State: Pending
+State: In Progress
 Depends On: enforce-source-and-locality-guards
 Scope: Synchronize owned documents, run full Markdown-sensitive Java 17 regression on
 the exact final tree, review the diff, close the task, and create the final required
@@ -163,6 +163,8 @@ do not push.
 
 ## Next
 
-Complete Increment 3 by adding source, locality, reflection, and dependency guards for
-the pure RFC-0028 contract. Do not add a production caller, Router, provider, network,
-credential, spend, MCP, push, release, or deployment path.
+Complete Increment 4 by synchronizing owned documents and running the fresh full
+Markdown-sensitive Java 17 regression on the exact final tree. Review the final diff,
+create the required ordinary local GREEN commit, stabilize and clear the checkpoint,
+and do not add or authorize a production caller, Router, provider, network, credential,
+spend, MCP, push, release, or deployment path.

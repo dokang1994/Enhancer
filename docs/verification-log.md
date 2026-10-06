@@ -8142,3 +8142,22 @@ Outcome:
   passed, two conditional tests skipped, and zero failed or errored. Existing RFC-0014
   through RFC-0016 and deterministic-fake model tests remained GREEN, and
   `git diff --check` passed.
+
+## 2026-10-06 - RFC-0028 Source And Locality Guards Increment
+
+- Added a dedicated architecture boundary test over all 19 RFC-0028 definition files.
+  It permits only the exact RFC-0016 `ApprovedTask` and `ExecutionPolicy` authority
+  imports, rejects filesystem, network, process, environment, runtime, persistence,
+  gateway, provider, credential, Tool, evidence, Router, scheduler, and bus coupling,
+  and proves that the evaluator delegates to RFC-0016 without invoking a model.
+- The guard scans every other production Java source and proves that no caller consumes
+  or persists any RFC-0028 boundary type. Reflection checks keep the evaluator field-
+  free and final, the decision hierarchy sealed to its two record variants, and opaque
+  governed facts final with no public construction path.
+- Fresh focused Java 17 verification used `--rerun-tasks` and completed with
+  `BUILD SUCCESSFUL` in 36 seconds. Generated JUnit XML contained three suites and 15
+  tests, all passing with zero skips, failures, or errors. `git diff --check` passed.
+- Two bounded read-only reviews independently surveyed source/locality and reflection/
+  dependency risks. The primary Agent reconciled their recommendations against the
+  accepted RFC and source; their reports were recommendations, not verification
+  evidence. No production caller or infrastructure integration was added.
