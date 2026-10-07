@@ -8325,3 +8325,21 @@ Outcome:
 - The final repository state remains Contract Verified without a production Router
   caller or any newly authorized external effect; the closure commit and checkpoint
   stabilization are the only remaining local session actions.
+
+## 2026-10-07 - RFC-0030 Governed Remote Suitability Specification Increment
+
+- Accepted RFC-0030 as the documentation-only boundary for independently governed
+  remote candidate capability facts and the field-free evaluator that may create the
+  existing RFC-0029 suitability proof. The contract fixes exact request, eligibility,
+  candidate, destination, profile, pricing, token, capacity, timeout, cost, and
+  classification relationships in a closed 18-reason order.
+- Fresh focused Java 17 governance verification used the README-owned Gradle wrapper
+  with `--rerun-tasks` and completed with `BUILD SUCCESSFUL` in 46 seconds. Generated
+  JUnit XML contained nine suites and 31 tests, all passing with zero skips, failures,
+  or errors. `git diff --check` passed.
+- Two bounded read-only audits independently reviewed contract semantics and document
+  ownership. The primary Agent reconciled their recommendations against repository
+  authority and current source; their reports were not verification evidence.
+- No Java, test source, production fact source, Router caller, provider, adapter,
+  credential, network, spend, route execution, persistence, retry, fallback, runtime,
+  MCP, capability promotion, or external effect was added.

@@ -982,9 +982,13 @@ Scope:
   ordinal-zero selection and returns only an ephemeral identity-preserving selected
   route with no provider, credential, transmission, spend, persistence, retry,
   fallback, or execution authority;
-- governed remote-suitability evidence and route-execution preparation for explicitly
-  selected provider adapters; the deterministic fake remains on its existing separate
-  local-only path;
+- an Accepted RFC-0030 governed remote-candidate suitability contract whose immutable
+  capability facts bind independent provenance, exact route, token/capacity, supported
+  timeout, price schedule/cost basis, currency, and classification evidence. Its future
+  field-free evaluator may create only the existing invocation-local RFC-0029 proof in
+  a closed 18-reason order; the pure implementation, production fact acquisition, and
+  route-execution preparation remain planned separately, and the deterministic fake
+  remains on its existing local-only path;
 - timeout, cancellation, token, context, cost, redaction, and response-validation budgets;
 - versioned per-model quality evaluation, policy-scoped fallback and response caching, prompt-injection resistance, source attribution, and visible uncertainty;
 - secret/sensitive-data detection plus explicit outbound destination, purpose, retention, and data-classification policy before remote transmission;
@@ -1301,6 +1305,7 @@ Status: Accepted
 - RFC-0027: Manifest-Authorized Typed ModelWork Spool Ingress
 - RFC-0028: Provider-Neutral Outbound Model Route Admission
 - RFC-0029: Pure Provider-Neutral Model Router
+- RFC-0030: Governed Remote Model Candidate Suitability
 
 RFC acceptance does not imply Contract Verified, Integrated, Operational, or Released capability maturity.
 

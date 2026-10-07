@@ -2,81 +2,90 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Implement RFC-0029 RED-first as the first pure provider-neutral `ModelRouter`, without
-adding governed fact sources, a provider, adapter, credential, network, spend,
-persistence, runtime, or MCP path.
+Specify RFC-0030 as the first governed provider-neutral remote model candidate
+suitability contract after RFC-0029, without implementing Java, a production fact
+source, provider, adapter, credential, network, spend, persistence, runtime, or MCP
+path.
 
 ## Task ID
 
-implement-rfc-0029-pure-provider-neutral-model-router
+specify-governed-remote-model-candidate-suitability
 
 ## Context
 
-RFC-0028 is Contract Verified and RFC-0029 is Accepted. The completed specification
-task names a separately authorized pure implementation as the next work. The user
-requested continuation on 2026-10-07, which authorizes that bounded implementation.
-The implementation must preserve exact RFC-0028 eligibility, add only invocation-local
-remote-suitability and route-selection values, validate the entire bounded ordered set,
-and keep every production caller and external effect absent.
+RFC-0028 outbound eligibility and RFC-0029 pure route selection are Contract Verified,
+but `RemoteModelCandidateSuitability` remains constructible only by package-local test
+fixtures. The completed RFC-0029 implementation task names governed remote-suitability
+evaluation and fact acquisition as the next missing Gate 9 boundary. The user's
+2026-10-07 continuation request authorizes a bounded specification before any such
+implementation or external integration.
 
 ## Justified By
 
-- Select provider-neutral outbound model route admission before router or provider integration
 - User continuation request on 2026-10-07 into RFC-0029 pure ModelRouter implementation
+- User continuation request on 2026-10-07 into governed remote model candidate suitability specification
 
 ## Approval
 
-The user's 2026-10-07 continuation request authorizes the RED-first pure RFC-0029 Java
-values, field-free Router evaluator, focused tests, source/locality/dependency/reflection
-guards, the exact RFC-0028 no-consumer-guard narrowing needed for this Router, necessary
-Architecture/mirror/state/roadmap/task/evidence/Changelog/handoff synchronization,
-fresh README-owned verification, and ordinary local commits at verified GREEN increment
+The user's 2026-10-07 continuation request authorizes a documentation-only RFC for the
+provider-neutral remote suitability evidence and evaluator boundary, one matching
+accepted continuation decision and Decision Log entry, Architecture and mirror
+synchronization, Roadmap RFC tracking, task/evidence/Changelog synchronization, fresh
+README-owned verification, and ordinary local commits at verified GREEN increment
 boundaries.
 
-This approval does not authorize a governed candidate, destination, inspection,
-redaction, pricing, token, capacity, or suitability fact source; discovery or registry;
-provider or adapter construction; endpoint, protocol, credential, secret, network,
-transmission, spend, or paid use; Tool execution; Scheduler/runtime/RunRecord/schema
-integration; persistence, retry, fallback execution, MCP, push, merge, release,
-deployment, permission change, destructive cleanup, or another external effect.
+This approval does not authorize Java or test-source implementation; changes to
+RFC-0013 through RFC-0029 behavior; a production candidate, destination, token,
+capacity, pricing, availability, quality, or suitability source; discovery or a
+registry; provider or adapter construction; endpoint, protocol, credential, secret,
+network, transmission, spend, or paid use; route-execution preparation; Tool,
+Scheduler, runtime, RunRecord, durable schema, persistence, retry, fallback, MCP, push,
+merge, release, deployment, permission change, destructive cleanup, or another
+external effect.
 
 ## Acceptance Criteria
 
-- One accepted decision records the bounded implementation authority, with an exact
+- One accepted decision records the bounded continuation authority, with an exact
   matching `DECISION_LOG.md` entry.
-- RED-first tests define the opaque remote-suitability proof, immutable route option,
-  zero-through-256 defensive option set, opaque selected route, and sealed decision.
-- The field-free Router validates the complete set in RFC-0029's closed order, rejects
-  every exact-instance, content, profile, candidate, destination, freshness, and
-  duplicate mismatch, and selects only ordinal zero after all options pass.
-- Zero, one, 256, and 257 options, defensive copying, immutable order, strict freshness,
-  equal-but-not-identical substitutions, later malformed entries, duplicate positions,
-  exact identity retention, and safe rendering are covered.
-- Source, locality, dependency, and reflection guards prove zero infrastructure or
-  production-caller coupling; the RFC-0028 consumer guard permits only the exact pure
-  Router dependency.
-- RFC-0016, RFC-0020, RFC-0028, and the deterministic-fake path remain unchanged.
-- Fresh focused and full Java 17 verification passes, owned documents are synchronized,
-  the task is completed, required local GREEN commits exist, and no push occurs.
+- RFC-0030 defines the exact relationship among the RFC-0014 requirements, RFC-0028
+  eligibility, RFC-0029 remote-suitability proof and Router, and the unchanged local
+  deterministic-fake path.
+- The contract defines one immutable independently governed remote-candidate
+  suitability-facts value with exact candidate binding, provenance, revision,
+  freshness, token semantics, capacity, reasoning, timeout, cost, and classification
+  evidence, without embedding a provider adapter or authority.
+- One field-free evaluator accepts only the exact profiled request, exact RFC-0028
+  `Eligible`, exact suitability facts, and explicit evaluation time; it returns a
+  closed suitable/refused decision and creates the existing opaque RFC-0029 proof only
+  after complete ordered validation.
+- Exact-instance and content bindings, strict freshness, checked token-capacity
+  relationships, price/currency binding, classification support, safe rendering,
+  retry lifetime, and deterministic first-match refusal behavior are specified.
+- Governed source obligations and the first future pure implementation consumer are
+  named, while production acquisition and route-execution preparation remain separate
+  later work.
+- Fresh focused document-governance and full Java 17 verification passes, owned
+  documents are synchronized, the task is completed, required local GREEN commits
+  exist, and no push occurs.
 
 ## Out Of Scope
 
-Changes to RFC-0013 through RFC-0028 behavior; production fact sources, registries,
-discovery, scanners/redactors, pricing or capacity acquisition, provider/adapter/model/
-endpoint/protocol/network/credential/secret/spend paths; request transmission, response
-validation, fallback/cache execution, Tool, Scheduler, runtime, RunRecord, durable
-schema, migration, MCP, capability promotion, push, merge, release, deployment,
-permission change, destructive cleanup, and unrelated external effects.
+Java or test-source implementation; changes to existing model admission, outbound
+eligibility, Router, deterministic-fake suitability/execution, submission, transport,
+or recovery behavior; production fact sources, registries, discovery, provider/
+adapter/model/endpoint/protocol/network/credential/secret/spend paths; request
+transmission, response validation, Tool, Scheduler, runtime, RunRecord, durable schema,
+migration, persistence, retry, fallback execution, MCP, capability promotion, push,
+merge, release, deployment, permission change, destructive cleanup, and unrelated
+external effects.
 
 ## Allowed Tools
 
 - read-file
-- write-code
-- write-tests
 - write-docs
 - build-output
 - verify
@@ -88,90 +97,57 @@ permission change, destructive cleanup, and unrelated external effects.
 
 ## Verification
 
-Use the README-owned Java 17 wrapper. Run focused RFC-0029 value/Router tests and
-architecture/source/locality/dependency/reflection guards for each increment, plus
-relevant RFC-0014, RFC-0016, RFC-0020, RFC-0028, and deterministic-fake regressions.
-Run the full Markdown-sensitive `powershell -ExecutionPolicy Bypass -File
-.\scripts\gradle.ps1 test` command and `git diff --check` before closure. Read fresh
-output before lifecycle claims. Subagent reports are recommendations and never
-verification evidence.
+Run focused RFC/index/decision/document-ownership/Architecture-mirror/Planner/
+Assisted-Loop/dynamic-workflow governance tests, then the README-owned full
+`powershell -ExecutionPolicy Bypass -File .\scripts\gradle.ps1 test` command and
+`git diff --check`. Read fresh output before lifecycle claims. Subagent reports are
+recommendations and never verification evidence.
 
 ## Dynamic Workflow
 
-Workflow ID: implement-rfc-0029-pure-provider-neutral-model-router
+Workflow ID: specify-governed-remote-model-candidate-suitability
 Mode: Sequential
-Increment Limit: 4
+Increment Limit: 2
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
-Stop Conditions: Stop on failed verification, task or checkpoint drift, an RFC-0016,
-RFC-0020, RFC-0028, or RFC-0029 compatibility conflict, a need for governed production
-facts or external authority, unsafe recovery, or scope expansion.
+Stop Conditions: Stop on failed verification, task or checkpoint drift, an RFC-0014,
+RFC-0028, or RFC-0029 compatibility conflict, incomplete evidence or evaluator
+binding, newly required production or external authority, or unsafe recovery.
 
-### Increment 1 - define-pure-router-values
+### Increment 1 - specify-remote-suitability-contract
 
-State: Completed
+State: In Progress
 Depends On: none
-Scope: Record the accepted implementation decision, add missing-symbol RED tests for
-the RFC-0029 value layer, and minimally implement the opaque remote-suitability proof,
-route option, bounded option set, selected-route value, refusal reasons, and sealed
-decision without a production caller.
-Exit Criteria: The decision/index pair exists; RED is classified against RFC-0029;
-value tests are GREEN; exact identities, bounds, defensive copying, immutability, and
-safe rendering are proven; focused regressions pass; evidence is appended once; and the
-increment is committed locally.
-Verification: Focused value, RFC-0028 boundary, decision/index/document-governance,
-Architecture mirror, and `git diff --check` tests.
+Scope: Record the accepted continuation decision and RFC-0030 provider-neutral remote
+suitability evidence/evaluator contract, then synchronize Architecture, its mirror,
+Roadmap RFC tracking, and delivery history.
+Exit Criteria: The decision/index pair and RFC exist; exact evidence, evaluator,
+decision, refusal, identity, freshness, token/cost/classification, source-obligation,
+retry, and non-authority semantics are specified; focused document-governance
+verification is GREEN; evidence is appended once; and the increment is committed
+locally.
+Verification: Focused RFC/index/decision/document ownership/Architecture mirror/
+Roadmap/Planner/Assisted Loop/dynamic-workflow tests and `git diff --check`.
 Next Action: Select Increment 2 only after reading fresh Increment 1 evidence.
 
-### Increment 2 - implement-field-free-router
+### Increment 2 - verify-and-close-remote-suitability-specification
 
-State: Completed
-Depends On: define-pure-router-values
-Scope: Add RED-first Router behavior tests and the minimal field-free evaluator for
-whole-set validation, closed refusal precedence, strict freshness, duplicate refusal,
-and ordinal-zero selection.
-Exit Criteria: Every decision shape and refusal reason is covered alone and in combined
-precedence cases; later invalid options prevent selection; exact instances are retained;
-focused model regressions pass; evidence is appended once; and the increment is
-committed locally.
-Verification: Focused Router plus RFC-0014, RFC-0016, RFC-0020, RFC-0028, and
-deterministic-fake tests and `git diff --check`.
-Next Action: Select Increment 3 only after reading fresh Increment 2 evidence.
-
-### Increment 3 - guard-pure-router-boundary
-
-State: Completed
-Depends On: implement-field-free-router
-Scope: Add safe-rendering, reflection, source, locality, dependency, and no-production-
-caller guards; narrow the RFC-0028 no-consumer guard only for the exact Router; and
-reconcile Architecture/mirror wording with the accepted zero-through-256 contract.
-Exit Criteria: Guards prove the Router is field-free and pure, suitability and selected
-route remain opaque and invocation-local, no other production caller exists, canonical
-architecture matches RFC-0029, focused governance tests pass, evidence is appended
-once, and the increment is committed locally.
-Verification: Focused architecture/source/locality/dependency/reflection/document tests,
-relevant model regressions, and `git diff --check`.
-Next Action: Select Increment 4 only after reading fresh Increment 3 evidence.
-
-### Increment 4 - verify-and-close-pure-router
-
-State: Completed
-Depends On: guard-pure-router-boundary
+State: Pending
+Depends On: specify-remote-suitability-contract
 Scope: Run the full Markdown-sensitive Java 17 regression on the exact final tree,
-review the diff, synchronize maturity/task/roadmap/handoff/delivery documents, close the
-task, and create the final required ordinary local GREEN commit if closure changes
-remain.
+review the diff, synchronize task and handoff state, close the documentation-only task,
+and create the final required ordinary local GREEN commit if closure changes remain.
 Exit Criteria: Fresh full regression and diff checks are GREEN; owned documents are
 current; the task is Completed; required local commits exist; Git is clean; and the
 checkpoint is stable and clear.
 Verification: Full README-owned test command, generated JUnit XML counts,
 `git diff --check`, diff/status/log review, commits, and checkpoint reconciliation.
-Next Action: Await separate authority for governed remote suitability fact acquisition
-or a later Router consumer; do not add a provider, network path, persistence, or push.
+Next Action: Await separate authority for RFC-0030 implementation; do not add a
+production fact source, provider or network path, route execution, persistence, or
+push.
 
 ## Next
 
-After this pure implementation task is completed, await separate user authority for a
-governed remote-suitability evaluator and its evidence sources or another explicitly
-selected Gate 9 boundary. Every production caller, provider, credential, network,
-spend, persistence, fallback, MCP, release, and deployment path remains separate later
-work.
+After this documentation-only task is completed, await separate user authority for a
+RED-first pure RFC-0030 suitability facts/evaluator implementation. Production fact
+acquisition, route-execution preparation, every provider, credential, network, spend,
+persistence, fallback, MCP, release, and deployment path remain separate later work.

@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-10-07 - Specify Governed Remote Model Candidate Suitability
+
+- Accepted RFC-0030 as the documentation-only evidence and pure-evaluation boundary
+  between RFC-0028 outbound eligibility and RFC-0029 route selection.
+- Defined opaque independently governed capability facts, exact request/eligibility/
+  candidate bindings, strict freshness, token/capacity/timeout/classification checks,
+  exact price-schedule and token-budget cost binding, and a closed 18-reason decision.
+- Kept the proof invocation-local and the deterministic-fake path unchanged. The pure
+  implementation, production fact acquisition, Router caller, providers, credentials,
+  network, spend, route execution, persistence, retry, fallback, runtime, and MCP
+  remain separate work.
+
 ## 2026-10-07 - Implement Pure Provider-Neutral Model Router
 
 - Added RFC-0029's opaque remote-suitability proof, immutable route option,

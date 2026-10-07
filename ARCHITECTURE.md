@@ -2067,6 +2067,23 @@ The pure implementation has no production caller; governed suitability evidence,
 sources, route-execution preparation, provider/network integration, and durable
 provenance remain separately accepted contracts.
 
+RFC-0030 specifies the governed provider-neutral remote-candidate suitability boundary
+without changing RFC-0014, RFC-0028, RFC-0029, or the deterministic-fake local path.
+One opaque immutable `RemoteModelCandidateCapabilityFacts` binds an independent source
+and revision, exclusive freshness, exact candidate/destination/model/capability,
+token-semantics and capacity evidence, price schedule and exact token-budget cost basis,
+supported reasoning/context/input/output/total-token/request-timeout maxima, conservative
+currency cost, and maximum model-visible classification. A future field-free evaluator
+accepts only the exact profiled request, exact RFC-0028 `Eligible`, those facts, and an
+explicit evaluation time. It returns one closed 18-reason refusal or creates the
+existing RFC-0029 proof while preserving exact request, eligibility, and candidate-fact
+identities. Facts, proof, and decision remain invocation-local and grant no availability,
+provider, credential, transmission, spend, execution, persistence, retry, or fallback
+authority. The first pure implementation may use test-owned fixtures only; governed
+production acquisition, RFC-0029 option construction by a production caller,
+route-execution preparation, provider/network integration, and durable provenance
+remain separate accepted contracts.
+
 ## Agent Orchestration Contract
 
 ### Development-Time Adaptive Subagent Delegation

@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-10-07 into governed remote model candidate suitability specification
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-10-07-specify-governed-remote-model-candidate-suitability.md)
+
 ### User continuation request on 2026-10-07 into RFC-0029 pure ModelRouter implementation
 
 Status: Accepted Decision
