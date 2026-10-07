@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-10-07 - Implement Pure Provider-Neutral Model Router
+
+- Added RFC-0029's opaque remote-suitability proof, immutable route option,
+  zero-through-256 defensive option set, sealed decision, nine ordered refusal reasons,
+  and opaque identity-preserving selected route.
+- Added a final field-free Router that validates the complete option set reason-first,
+  rechecks exact bindings and strict freshness, rejects later malformed or duplicate
+  routes, and selects caller ordinal zero only after all entries pass.
+- Added value, decision-table, safe-rendering, reflection, source, locality,
+  dependency, and zero-production-caller guards. The deterministic-fake path remains
+  separate, and no fact source, provider, credential, network, spend, persistence,
+  retry, fallback, runtime, or MCP integration was added.
+- Fresh focused verification passed 151 of 153 tests across 24 suites with two
+  conditional skips and zero failures or errors; `git diff --check` passed.
+- Fresh full Java 17 regression executed all tasks and passed 1,247 of 1,263 tests
+  across 232 suites, with 16 conditional platform skips and zero failures or errors;
+  `git diff --check` also passed. No push, merge, release, or deployment was performed.
+
 ## 2026-10-07 - Specify Pure Provider-Neutral Model Router
 
 - Accepted RFC-0029 as the documentation-only pure selection boundary after RFC-0028.

@@ -8294,3 +8294,34 @@ Outcome:
   `git diff --check` passed.
 - No fact source, provider, adapter, credential, network, spend, persistence, runtime,
   retry, fallback, MCP, production caller, or external effect was added.
+
+## 2026-10-07 - RFC-0029 Pure Router Closure
+
+- Synchronized the Contract Verified pure Router into `PROJECT_STATE.md`, Gate 9 scope
+  in `ROADMAP.md`, the Architecture mirror, task cursor, and delivery history without
+  promoting the whole gate. The next missing boundaries are governed remote-suitability
+  evaluation/fact acquisition and a separately authorized route-execution preparation
+  consumer. `SESSION_HANDOFF.md` remains unchanged because no new host-only fact exists.
+- Fresh pre-closure full Markdown-sensitive Java 17 regression used the README-owned
+  Gradle wrapper with `--rerun-tasks` and completed with `BUILD SUCCESSFUL` in 11
+  minutes 59 seconds. Generated JUnit XML contained 232 suites and 1,263 tests: 1,247
+  passed, 16 conditional platform tests skipped, and zero failed or errored.
+  `git diff --check` passed.
+- The result is Contract Verified only. No governed suitability evaluator or fact
+  source, production Router caller, provider, adapter, credential, endpoint, network,
+  transmission, spend, persistence, retry, fallback, runtime, MCP, push, merge,
+  release, deployment, permission change, destructive action, or unrelated external
+  effect was added.
+- Final-tree verification follows with this append-only evidence and the completed task
+  cursor present before the closure commit and checkpoint clear.
+
+## 2026-10-07 - RFC-0029 Pure Router Final-Tree Verification
+
+- Fresh full Markdown-sensitive Java 17 regression ran on the completed task cursor and
+  synchronized capability, Roadmap, Architecture, Changelog, and append-only evidence
+  tree. It completed with `BUILD SUCCESSFUL` in 9 minutes 16 seconds. Generated JUnit
+  XML again contained 232 suites and 1,263 tests: 1,247 passed, 16 conditional platform
+  tests skipped, and zero failed or errored. `git diff --check` passed.
+- The final repository state remains Contract Verified without a production Router
+  caller or any newly authorized external effect; the closure commit and checkpoint
+  stabilization are the only remaining local session actions.

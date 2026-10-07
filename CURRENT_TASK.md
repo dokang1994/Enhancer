@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -154,7 +154,7 @@ Next Action: Select Increment 4 only after reading fresh Increment 3 evidence.
 
 ### Increment 4 - verify-and-close-pure-router
 
-State: In Progress
+State: Completed
 Depends On: guard-pure-router-boundary
 Scope: Run the full Markdown-sensitive Java 17 regression on the exact final tree,
 review the diff, synchronize maturity/task/roadmap/handoff/delivery documents, close the

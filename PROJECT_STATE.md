@@ -2,15 +2,15 @@
 
 ## Updated At
 
-2026-10-06
+2026-10-07
 
 ## Repository State
 
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 502 Java files.
-- Test source: 235 Java files.
+- Production source: 509 Java files.
+- Test source: 238 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -20,8 +20,23 @@ it does not restate which commit published which increment.
 
 ### Contract Verified
 
+- The RFC-0029 pure provider-neutral Router under `com.enhancer.model` is Contract
+  Verified without a production caller. Its opaque invocation-local remote-suitability
+  proof retains the exact profiled request, RFC-0028 eligibility, and candidate facts;
+  immutable options form a defensive ordered set of zero through 256 entries. Final
+  field-free `ModelRouter` validates the complete set in the closed nine-reason order,
+  revalidates exact request/content/profile/candidate/destination bindings and strict
+  eligibility/suitability freshness, rejects duplicate candidate-destination identity,
+  and selects ordinal zero only after every option passes. The opaque selected route
+  preserves every exact input instance but grants no provider, credential,
+  transmission, spend, persistence, retry, fallback, or execution authority. Source,
+  locality, dependency, reflection, and no-caller guards keep the deterministic fake
+  outside this boundary. Governed remote-suitability evaluation and fact acquisition,
+  route-execution preparation, providers, networks, durable provenance, and MCP remain
+  absent.
+
 - The RFC-0028 provider-neutral outbound model route-admission boundary under
-  `com.enhancer.model` is Contract Verified without a production caller. Nineteen
+  `com.enhancer.model` is Contract Verified. Nineteen
   immutable definition types retain opaque fresh candidate and destination policy,
   closed purpose and retention, exact outbound content with inspection/redaction
   provenance, conservative classification, and exact-currency worst-case pricing.
@@ -31,10 +46,11 @@ it does not restate which commit published which increment.
   the closed 24-reason default-deny order. Eligible output retains the exact proposal
   plus effective classification but grants no transmission, credential, spend,
   persistence, or execution authority. Source, locality, dependency, and reflection
-  guards prove the definitions have no infrastructure coupling and no production Java
-  source consumes them. Governed fact sources, scanners/redactors, pricing acquisition,
-  a pure Router consumer, provider construction, credentials, network invocation,
-  durable route provenance, and MCP remain absent.
+  guards prove the definitions have no infrastructure coupling and permit only the
+  exact RFC-0029 definition surface to consume them. Governed fact sources,
+  scanners/redactors, pricing acquisition, every Router execution consumer, provider
+  construction, credentials, network invocation, durable route provenance, and MCP
+  remain absent.
 
 - The first RFC-0023 implementation prerequisite is Contract Verified without a
   production caller. `AgentRunEvidenceIdentity` derives one canonical, versioned,
@@ -1102,13 +1118,14 @@ it does not restate which commit published which increment.
 - Delivery Gate 9: Specified - Next. Existing RFC-0013 through RFC-0027 deterministic-
   fake request, profile, budget, suitability, typed execution, direct submission, and
   typed spool sub-paths range from Contract Verified to Operational, and RFC-0028 now
-  provides the Contract Verified pure outbound route-admission boundary without a
-  caller. Their
+  provides the Contract Verified pure outbound route-admission boundary while RFC-0029
+  provides its Contract Verified pure Router consumer without an execution caller. Their
   accumulation does not establish whole-gate maturity. Real providers, MCP client/server
   composition, outbound data policy, fallback/cache provenance, and fixed-fixture model
-  evaluation remain absent. Governed fact acquisition and the pure Router consumer are
-  the next missing Gate-9-owned integration boundaries before any second candidate,
-  provider, credential, network, or paid invocation is connected.
+  evaluation remain absent. Governed remote-suitability evaluation and fact acquisition
+  plus a route-execution preparation consumer are the next missing Gate-9-owned
+  boundaries before any second candidate, provider, credential, network, or paid
+  invocation is connected.
 - Gate 8 lease-expiry recovery now has one named worker-level fixture over the
   post-RunRecord-reference prefix. The first cycle persists exactly one reference,
   expires before execution acknowledgement, and leaves the AgentRun reclaimable at

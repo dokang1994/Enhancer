@@ -974,14 +974,17 @@ Scope:
   classification, and exact-currency pricing. Its field-free evaluator is default-deny
   in a closed 24-reason order, grants only invocation-local eligibility, and has source,
   locality, dependency, and reflection guards proving zero infrastructure coupling and
-  zero production callers;
-- an accepted pure provider-neutral Router specification requiring each bounded
-  ordered option to retain exact RFC-0028 eligibility plus separate remote suitability
-  bound to that eligibility, the request/profile, and candidate facts, validating the complete set before deterministic ordinal-zero
-  selection, and returning only an ephemeral identity-preserving selected route with
-  no provider, credential, transmission, spend, persistence, retry, or fallback
-  authority;
-- Model Router with deterministic fake plus explicitly selected provider adapters;
+  no production consumer outside the exact RFC-0029 definition surface;
+- a Contract Verified pure provider-neutral Router whose zero-through-256 ordered
+  options retain exact RFC-0028 eligibility plus separate remote suitability bound to
+  that eligibility, the request/profile, and candidate facts. Its field-free evaluator
+  validates the complete set in a closed nine-reason order before deterministic
+  ordinal-zero selection and returns only an ephemeral identity-preserving selected
+  route with no provider, credential, transmission, spend, persistence, retry,
+  fallback, or execution authority;
+- governed remote-suitability evidence and route-execution preparation for explicitly
+  selected provider adapters; the deterministic fake remains on its existing separate
+  local-only path;
 - timeout, cancellation, token, context, cost, redaction, and response-validation budgets;
 - versioned per-model quality evaluation, policy-scoped fallback and response caching, prompt-injection resistance, source attribution, and visible uncertainty;
 - secret/sensitive-data detection plus explicit outbound destination, purpose, retention, and data-classification policy before remote transmission;
