@@ -124,7 +124,7 @@ Next Action: Select Increment 2 only after reading fresh Increment 1 evidence.
 
 ### Increment 2 - implement-field-free-router
 
-State: In Progress
+State: Completed
 Depends On: define-pure-router-values
 Scope: Add RED-first Router behavior tests and the minimal field-free evaluator for
 whole-set validation, closed refusal precedence, strict freshness, duplicate refusal,
@@ -139,7 +139,7 @@ Next Action: Select Increment 3 only after reading fresh Increment 2 evidence.
 
 ### Increment 3 - guard-pure-router-boundary
 
-State: Pending
+State: In Progress
 Depends On: implement-field-free-router
 Scope: Add safe-rendering, reflection, source, locality, dependency, and no-production-
 caller guards; narrow the RFC-0028 no-consumer guard only for the exact Router; and

@@ -8246,3 +8246,26 @@ Outcome:
   The primary Agent reconciled them against RFC-0029 and source; their reports were
   recommendations, not verification evidence. No production caller or governed fact
   source was added.
+
+## 2026-10-07 - RFC-0029 Field-Free Router Increment
+
+- The expected RED failed during test compilation with eight references to the missing
+  `ModelRouter`. The failure matched the accepted RFC-0029 sequence and no pre-existing
+  production symbol failed.
+- Added a final field-free Router that accepts only the exact profiled request, bounded
+  option set, and explicit evaluation time. It validates every option reason-first
+  across the complete set, revalidates eligibility and suitability freshness and
+  provenance, refuses the first typed mismatch or later duplicate, and selects ordinal
+  zero only after all options pass.
+- Tests cover all nine refusal reasons, both decision shapes, null programming errors,
+  empty input, equal-but-not-identical request/eligibility/candidate substitutions,
+  complete-set and reason-order precedence, lowest ordinal, inclusive observation,
+  exclusive expiry, insufficient suitability, adjacent/non-adjacent/256-entry
+  duplicates, and exact selected-route identity retention.
+- Fresh focused Java 17 model regression completed with `BUILD SUCCESSFUL` in 21
+  seconds. Generated JUnit XML contained 18 suites and 120 tests: 118 passed, two
+  conditional tests skipped, and zero failed or errored. This covered RFC-0013 through
+  RFC-0029 model contracts and the unchanged deterministic-fake path.
+- The Router has no production caller, fact source, registry, provider, adapter,
+  credential, filesystem, network, persistence, spend, retry, fallback, runtime, or MCP
+  integration.
