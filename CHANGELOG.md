@@ -13,6 +13,9 @@
   Governed fact sources, Router implementation, providers, credentials, network,
   spend, persistence, fallback execution, MCP, push, merge, release, and deployment
   remain separate work.
+- Fresh focused governance passed 31 tests across nine suites. Fresh full Java 17
+  regression passed 1,226 of 1,242 tests across 229 suites with 16 conditional skips
+  and zero failures or errors; `git diff --check` also passed.
 
 ## 2026-10-06 - Implement Provider-Neutral Outbound Model Route Admission
 

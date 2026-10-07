@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -122,7 +122,7 @@ Next Action: Select Increment 2 only after reading fresh Increment 1 evidence.
 
 ### Increment 2 - verify-and-close-router-specification
 
-State: In Progress
+State: Completed
 Depends On: specify-pure-router-contract
 Scope: Run the full Markdown-sensitive Java 17 regression on the exact final tree,
 review the diff, synchronize task and handoff state, close the documentation-only task,

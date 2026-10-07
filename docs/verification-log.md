@@ -8196,3 +8196,28 @@ Outcome:
   fact source, provider, credential, network, spend, persistence, fallback execution,
   MCP, push, merge, release, deployment, permission, destructive, or unrelated effect
   changed.
+
+## 2026-10-07 - RFC-0029 Pure Model Router Specification Closure
+
+- Corrected the accepted specification before its GREEN commit so remote suitability
+  retains the exact RFC-0028 eligibility instance as well as the exact request/profile
+  and candidate facts. The bounded option value permits an empty input for typed
+  `NO_ROUTE_OPTIONS` refusal, rejects more than 256 options as a programming error,
+  and no longer declares an unreachable oversize routing reason.
+- Fresh post-correction focused Java 17 verification used `--rerun-tasks` and completed
+  with `BUILD SUCCESSFUL` in 52 seconds. Generated JUnit XML contained nine suites and
+  31 tests: all 31 passed with zero skips, failures, or errors. `git diff --check`
+  passed, and the verified specification increment was committed locally as
+  `87c4226`.
+- Fresh pre-closure full Markdown-sensitive Java 17 regression used the README-owned
+  Gradle wrapper with `--rerun-tasks` and completed with `BUILD SUCCESSFUL` in 9 minutes
+  36 seconds. Generated JUnit XML contained 229 suites and 1,242 tests: 1,226 passed,
+  16 conditional platform tests skipped, and zero failed or errored. `git diff --check`
+  passed. Final-tree verification follows after this evidence and the completion cursor
+  are present.
+- `PROJECT_STATE.md` remains unchanged because specification acceptance does not change
+  implementation or capability maturity. `SESSION_HANDOFF.md` remains unchanged
+  because no new host-only continuation fact exists. No production/test source,
+  governed fact source, provider, credential, network, spend, persistence, fallback
+  execution, MCP, external state, push, merge, release, deployment, permission,
+  destructive, or unrelated effect changed.
