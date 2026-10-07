@@ -85,6 +85,8 @@ class ModelCandidateLocalityBoundaryTest {
 
     @Test
     void noProductionCallerOrPersistenceBoundaryUsesTheNewTypes() throws IOException {
+        Pattern exactLocalSuitability =
+                Pattern.compile("\\bModelCandidateSuitability\\b");
         try (Stream<Path> files = Files.walk(PRODUCTION_ROOT)) {
             files.filter(path -> path.toString().endsWith(".java"))
                     .filter(path -> !DEFINITION_FILES.contains(path.getFileName().toString()))
@@ -94,7 +96,7 @@ class ModelCandidateLocalityBoundaryTest {
                         String source = read(path);
                         assertFalse(source.contains("DeterministicFakeModelCandidate"),
                                 () -> path + " must not bind or consume candidates yet");
-                        assertFalse(source.contains("ModelCandidateSuitability"),
+                        assertFalse(exactLocalSuitability.matcher(source).find(),
                                 () -> path + " must not call or persist suitability yet");
                         assertFalse(source.contains("DeterministicFakeTokenCounter"),
                                 () -> path + " must not count fake tokens yet");

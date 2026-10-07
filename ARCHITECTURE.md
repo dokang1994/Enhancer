@@ -2042,27 +2042,29 @@ outbound inspection plus complete redaction provenance, conservative classificat
 and fresh exact-currency worst-case pricing. An empty policy denies all routes, any
 positive charge still requires separate spend authority, and success is invocation-
 local non-persistent eligibility. Source, locality, dependency, and reflection guards
-keep every definition free of infrastructure coupling and prove that no production Java
-source consumes the boundary. The existing deterministic fake bypasses this outbound-
-only boundary unchanged. A future pure `ModelRouter` is the first named consumer and
-may select only among freshly eligible proposals plus separately proven candidate
-suitability; governed fact sources, Router/provider construction, scanners/redactors,
-pricing sources, credentials, network invocation, durable route provenance, and MCP
-remain separate contracts.
+keep every definition free of infrastructure coupling and permit only the exact pure
+RFC-0029 Router definitions to consume the boundary. The existing deterministic fake
+bypasses this outbound-only boundary unchanged. The pure `ModelRouter` selects only
+among freshly eligible proposals plus separately proven candidate suitability;
+governed fact sources, a production Router caller, provider construction,
+scanners/redactors, pricing sources, credentials, network invocation, durable route
+provenance, and MCP remain separate contracts.
 
-RFC-0029 specifies the next pure provider-neutral selection boundary without changing
-RFC-0028 or the deterministic-fake local path. A future field-free `ModelRouter`
-receives one exact `ProfiledModelRequest`, an explicit evaluation time, and a bounded
-ordered set of one through 256 options. Every option retains the exact RFC-0028
+RFC-0029 implements the pure provider-neutral selection boundary without changing
+RFC-0028 or the deterministic-fake local path. The field-free `ModelRouter` receives
+one exact `ProfiledModelRequest`, an explicit evaluation time, and a bounded ordered
+set of zero through 256 options. Every non-empty option retains the exact RFC-0028
 `Eligible` instance plus an opaque, invocation-local remote suitability proof bound by
 identity to that eligibility, the same request/profile, and exact candidate facts. The Router validates
 the complete set before selection, refuses request/profile/content/candidate/
-destination mismatches, stale eligibility or suitability, oversize input, and duplicate
-candidate-destination identity in a closed order, then selects caller ordinal zero.
+destination mismatches, stale eligibility or suitability, and duplicate candidate-
+destination identity in a closed order, then selects caller ordinal zero. An empty set
+returns typed `NO_ROUTE_OPTIONS`; more than 256 options is a construction-time
+programming error before Router evaluation.
 `SelectedModelRoute` retains every exact input identity but grants no provider,
 credential, transmission, spend, invocation, persistence, retry, or fallback authority.
-The first pure implementation has no production caller; governed suitability evidence,
-fact sources, route-execution preparation, provider/network integration, and durable
+The pure implementation has no production caller; governed suitability evidence, fact
+sources, route-execution preparation, provider/network integration, and durable
 provenance remain separately accepted contracts.
 
 ## Agent Orchestration Contract
@@ -2569,7 +2571,8 @@ Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts bel
   RFC-0027 implements manifest-authorized typed spool publication, bounded point
   decoding, its package-local receiver domain, post-admission acknowledgement, and the
   supported receive CLI/operator path. RFC-0028 now provides Contract Verified pure
-  default-deny outbound route admission with no production caller; governed fact
-  acquisition and a pure Router consumer remain separately authorized before any second
-  candidate or provider integration.
+  default-deny outbound route admission whose only production consumers are the exact
+  pure RFC-0029 definition surface; governed fact acquisition and every Router execution
+  consumer remain separately authorized before any second candidate or provider
+  integration.
 - Future LLM-backed Planner input/output schema is not selected yet.

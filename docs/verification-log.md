@@ -8269,3 +8269,28 @@ Outcome:
 - The Router has no production caller, fact source, registry, provider, adapter,
   credential, filesystem, network, persistence, spend, retry, fallback, runtime, or MCP
   integration.
+
+## 2026-10-07 - RFC-0029 Router Boundary Guard Increment
+
+- Added a dedicated architecture guard over the seven RFC-0029 definition files. It
+  fixes the Router's exact public three-input evaluation surface, field-free final
+  shape, sealed result and record components, opaque proof/selection construction,
+  file-specific RFC-0028 dependencies, deterministic-fake separation, zero
+  infrastructure coupling, and zero production callers.
+- The initial guard run produced exactly two expected failures: the RFC-0028
+  zero-consumer guard had not yet admitted `ModelRouter.java`, and the deterministic-
+  fake guard used a substring check that confused `RemoteModelCandidateSuitability`
+  with the exact local `ModelCandidateSuitability` type. The repair permits only the
+  seven explicit RFC-0029 definition files and changes the local check to an exact Java
+  type-name boundary; no general production-consumer exemption was added.
+- Corrected canonical Architecture and its mirror from the stale specification wording
+  to the implemented contract: zero through 256 options, typed empty refusal, more-than-
+  256 construction error, whole-set validation, and no production caller. Safe-
+  rendering coverage now includes successful selected routes and decisions.
+- Fresh focused Java 17 verification completed with `BUILD SUCCESSFUL` in 23 seconds.
+  Generated JUnit XML contained 24 suites and 153 tests: 151 passed, two conditional
+  tests skipped, and zero failed or errored. Model, RFC-0028, Router, local-candidate,
+  decision/index, document-ownership, and dynamic-workflow guards were GREEN;
+  `git diff --check` passed.
+- No fact source, provider, adapter, credential, network, spend, persistence, runtime,
+  retry, fallback, MCP, production caller, or external effect was added.

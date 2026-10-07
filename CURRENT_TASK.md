@@ -139,7 +139,7 @@ Next Action: Select Increment 3 only after reading fresh Increment 2 evidence.
 
 ### Increment 3 - guard-pure-router-boundary
 
-State: In Progress
+State: Completed
 Depends On: implement-field-free-router
 Scope: Add safe-rendering, reflection, source, locality, dependency, and no-production-
 caller guards; narrow the RFC-0028 no-consumer guard only for the exact Router; and
@@ -154,7 +154,7 @@ Next Action: Select Increment 4 only after reading fresh Increment 3 evidence.
 
 ### Increment 4 - verify-and-close-pure-router
 
-State: Pending
+State: In Progress
 Depends On: guard-pure-router-boundary
 Scope: Run the full Markdown-sensitive Java 17 regression on the exact final tree,
 review the diff, synchronize maturity/task/roadmap/handoff/delivery documents, close the

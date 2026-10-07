@@ -82,6 +82,7 @@ class ModelOutboundRouteBoundaryTest {
             "ModelRouteOptionSet.java",
             "ModelRouteSelectionDecision.java",
             "ModelRouteSelectionRefusalReason.java",
+            "ModelRouter.java",
             "RemoteModelCandidateSuitability.java",
             "SelectedModelRoute.java");
 

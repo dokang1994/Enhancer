@@ -1,6 +1,7 @@
 package com.enhancer.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -359,6 +360,8 @@ class ModelRouterTest {
         assertSame(fixture.proposal.destinationPolicyFacts(), route.destinationFacts());
         assertEquals(0, route.optionOrdinal());
         assertEquals(SelectedModelRoute.CONTRACT_VERSION, route.contractVersion());
+        assertFalse(route.toString().contains(PROMPT));
+        assertFalse(selected.toString().contains(PROMPT));
     }
 
     private static ModelRouteSelectionDecision evaluate(
