@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-10-07 into pure provider-neutral ModelRouter specification
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-10-07-specify-pure-provider-neutral-model-router.md)
+
 ### User continuation request on 2026-09-18 into RFC-0028 pure outbound route-admission implementation
 
 Status: Accepted Decision

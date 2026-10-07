@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-10-07 - Specify Pure Provider-Neutral Model Router
+
+- Accepted RFC-0029 as the documentation-only pure selection boundary after RFC-0028.
+  Every bounded ordered option must retain exact outbound eligibility plus a separate
+  remote suitability proof bound to that eligibility, the same request/profile, and
+  candidate facts.
+- Specified whole-set validation, a closed refusal order, duplicate route rejection,
+  deterministic caller-ordinal-zero selection, and exact identity retention in an
+  ephemeral `SelectedModelRoute`.
+- Preserved RFC-0016, RFC-0020, RFC-0028, and the existing deterministic-fake path.
+  Governed fact sources, Router implementation, providers, credentials, network,
+  spend, persistence, fallback execution, MCP, push, merge, release, and deployment
+  remain separate work.
+
 ## 2026-10-06 - Implement Provider-Neutral Outbound Model Route Admission
 
 - Added RFC-0028's immutable proposal, opaque governed facts, closed purposes,

@@ -975,6 +975,12 @@ Scope:
   in a closed 24-reason order, grants only invocation-local eligibility, and has source,
   locality, dependency, and reflection guards proving zero infrastructure coupling and
   zero production callers;
+- an accepted pure provider-neutral Router specification requiring each bounded
+  ordered option to retain exact RFC-0028 eligibility plus separate remote suitability
+  bound to that eligibility, the request/profile, and candidate facts, validating the complete set before deterministic ordinal-zero
+  selection, and returning only an ephemeral identity-preserving selected route with
+  no provider, credential, transmission, spend, persistence, retry, or fallback
+  authority;
 - Model Router with deterministic fake plus explicitly selected provider adapters;
 - timeout, cancellation, token, context, cost, redaction, and response-validation budgets;
 - versioned per-model quality evaluation, policy-scoped fallback and response caching, prompt-injection resistance, source attribution, and visible uncertainty;
@@ -1291,6 +1297,7 @@ Status: Accepted
 - RFC-0026: Supported Typed ModelWork Submission Input
 - RFC-0027: Manifest-Authorized Typed ModelWork Spool Ingress
 - RFC-0028: Provider-Neutral Outbound Model Route Admission
+- RFC-0029: Pure Provider-Neutral Model Router
 
 RFC acceptance does not imply Contract Verified, Integrated, Operational, or Released capability maturity.
 

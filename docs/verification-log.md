@@ -8177,3 +8177,22 @@ Outcome:
   governed fact acquisition, Router, provider, credential, network, persistence, spend,
   MCP, push, merge, release, deployment, permission change, destructive action, or
   unrelated external effect.
+
+## 2026-10-07 - RFC-0029 Pure Model Router Specification Increment
+
+- Accepted the bounded documentation-only RFC-0029 contract after RFC-0028. The future
+  pure Router requires each bounded ordered option to preserve exact outbound
+  eligibility plus separate remote suitability bound to the same request/profile and
+  candidate facts, validates the entire set, and returns only an ephemeral identity-
+  preserving selection.
+- Fresh focused Java 17 verification used `--rerun-tasks` and completed with
+  `BUILD SUCCESSFUL` in 1 minute 36 seconds. Generated JUnit XML contained nine suites
+  and 31 tests: all 31 passed with zero skips, failures, or errors. The suites covered
+  decision/index, document ownership, dynamic workflow, accepted-decision projection,
+  task justification, approved-task reading/revision, Planner, and Assisted Loop
+  governance. `git diff --check` passed.
+- The bounded read-only sequence and source-surface reviews were recommendations, not
+  verification evidence. No production/test source, capability maturity, governed
+  fact source, provider, credential, network, spend, persistence, fallback execution,
+  MCP, push, merge, release, deployment, permission, destructive, or unrelated effect
+  changed.

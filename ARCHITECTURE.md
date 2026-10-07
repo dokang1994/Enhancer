@@ -2050,6 +2050,21 @@ suitability; governed fact sources, Router/provider construction, scanners/redac
 pricing sources, credentials, network invocation, durable route provenance, and MCP
 remain separate contracts.
 
+RFC-0029 specifies the next pure provider-neutral selection boundary without changing
+RFC-0028 or the deterministic-fake local path. A future field-free `ModelRouter`
+receives one exact `ProfiledModelRequest`, an explicit evaluation time, and a bounded
+ordered set of one through 256 options. Every option retains the exact RFC-0028
+`Eligible` instance plus an opaque, invocation-local remote suitability proof bound by
+identity to that eligibility, the same request/profile, and exact candidate facts. The Router validates
+the complete set before selection, refuses request/profile/content/candidate/
+destination mismatches, stale eligibility or suitability, oversize input, and duplicate
+candidate-destination identity in a closed order, then selects caller ordinal zero.
+`SelectedModelRoute` retains every exact input identity but grants no provider,
+credential, transmission, spend, invocation, persistence, retry, or fallback authority.
+The first pure implementation has no production caller; governed suitability evidence,
+fact sources, route-execution preparation, provider/network integration, and durable
+provenance remain separately accepted contracts.
+
 ## Agent Orchestration Contract
 
 ### Development-Time Adaptive Subagent Delegation
