@@ -8221,3 +8221,28 @@ Outcome:
   governed fact source, provider, credential, network, spend, persistence, fallback
   execution, MCP, external state, push, merge, release, deployment, permission,
   destructive, or unrelated effect changed.
+
+## 2026-10-07 - RFC-0029 Pure Router Value Increment
+
+- The expected missing-symbol RED failed during test compilation with 54 references to
+  the not-yet-defined RFC-0029 value types. The failure matched the accepted task and
+  RFC; no pre-existing symbol or behavior failed.
+- Added the opaque package-constructible remote-suitability proof, immutable exact-
+  identity route option, defensive zero-through-256 ordered option set, closed nine-
+  reason refusal vocabulary, sealed decision, and opaque private-constructor selected
+  route. Rendering omits prompt, raw cost, endpoint, and credential sentinels; the
+  values contain no provider, adapter, credential, network, persistence, or invocation
+  capability.
+- The first focused run exposed the existing RFC-0028 zero-consumer guard as the single
+  expected compatibility failure. Its exclusion was narrowed to the six exact RFC-0029
+  value-definition files while the RFC-0028 definitions retain their Router and
+  selected-route reverse-dependency bans. A later dedicated Router guard remains part
+  of this Active Task.
+- Fresh focused Java 17 verification completed with `BUILD SUCCESSFUL` in 23 seconds.
+  Generated JUnit XML contained five suites and 20 tests, all passing with zero skips,
+  failures, or errors. The suites covered RFC-0029 values, RFC-0028 boundaries,
+  decision/index and document ownership, and dynamic-workflow governance.
+- Two bounded read-only audits recommended value/test structure and boundary/doc risks.
+  The primary Agent reconciled them against RFC-0029 and source; their reports were
+  recommendations, not verification evidence. No production caller or governed fact
+  source was added.

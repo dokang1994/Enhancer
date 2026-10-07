@@ -1,0 +1,14 @@
+package com.enhancer.model;
+
+/** Closed repository-ordered RFC-0029 route-selection refusal reasons. */
+public enum ModelRouteSelectionRefusalReason {
+    NO_ROUTE_OPTIONS,
+    REQUEST_BINDING_MISMATCH,
+    SOURCE_CONTENT_BINDING_MISMATCH,
+    PROFILE_BINDING_MISMATCH,
+    CANDIDATE_BINDING_MISMATCH,
+    DESTINATION_BINDING_MISMATCH,
+    ELIGIBILITY_INVALID_OR_STALE,
+    SUITABILITY_INVALID_OR_STALE,
+    DUPLICATE_ROUTE_IDENTITY
+}

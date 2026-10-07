@@ -77,6 +77,14 @@ class ModelOutboundRouteBoundaryTest {
             "ModelRouteKind",
             "ModelRoutePricingFacts");
 
+    private static final Set<String> RFC_0029_DEFINITION_FILES = Set.of(
+            "ModelRouteOption.java",
+            "ModelRouteOptionSet.java",
+            "ModelRouteSelectionDecision.java",
+            "ModelRouteSelectionRefusalReason.java",
+            "RemoteModelCandidateSuitability.java",
+            "SelectedModelRoute.java");
+
     @Test
     void definitionsDependOnlyOnPureValuesAndTheExactRfc0016AuthorityInputs()
             throws IOException {
@@ -132,6 +140,8 @@ class ModelOutboundRouteBoundaryTest {
         try (Stream<Path> files = Files.walk(PRODUCTION_ROOT)) {
             files.filter(path -> path.toString().endsWith(".java"))
                     .filter(path -> !DEFINITION_FILES.contains(
+                            path.getFileName().toString()))
+                    .filter(path -> !RFC_0029_DEFINITION_FILES.contains(
                             path.getFileName().toString()))
                     .forEach(path -> {
                         String source = read(path);

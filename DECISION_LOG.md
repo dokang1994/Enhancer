@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-10-07 into RFC-0029 pure ModelRouter implementation
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-10-07-implement-rfc-0029-pure-model-router.md)
+
 ### User continuation request on 2026-10-07 into pure provider-neutral ModelRouter specification
 
 Status: Accepted Decision
