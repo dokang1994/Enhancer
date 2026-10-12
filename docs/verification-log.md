@@ -8373,3 +8373,22 @@ Outcome:
 - The repository remains at Gate 9 `Specified - Next`; RFC-0030 is Accepted but not
   implemented. The required closure commit and checkpoint stabilization are the only
   remaining local session actions, and no push or external effect is authorized.
+
+## 2026-10-12 - RFC-0028 Through RFC-0030 Main Delivery Preflight
+
+- The user's explicit commit, push, and merge request was recorded as an Accepted
+  Decision and bounded delivery Active Task. The completed work is already linear on
+  local `main`, so the requested merge is an explicit non-force fast-forward
+  `main:main` push rather than a synthetic merge commit.
+- A fresh fetch observed local pre-authority head
+  `6f5663544f450e67da64f6fd00b4df5cf69f56ee` thirteen commits ahead of tracked
+  `origin/main` at `6568b2250bb5bf83adca2a8c5d476e280b64906b`, with zero
+  remote-only commits.
+- Fresh focused Java 17 governance verification passed all 31 tests across nine suites.
+  Fresh full Markdown-sensitive Java 17 regression then completed with `BUILD
+  SUCCESSFUL` in 1 minute 38 seconds. Generated JUnit XML contained 232 suites and
+  1,263 tests: 1,247 passed, 16 conditional platform tests skipped, and zero failed or
+  errored. `git diff --check` passed.
+- No force push, history rewrite, synthetic merge, release, deployment, product change,
+  capability promotion, provider invocation, credential access, spend, or unrelated
+  external effect was performed during preflight.

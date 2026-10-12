@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-10-12 - Deliver RFC-0028 Through RFC-0030 Work To Main
+
+- Accepted the user's bounded commit, push, and merge request for the thirteen verified
+  commits currently ahead of `origin/main`.
+- Because the completed work already lies linearly on local `main`, delivery uses
+  explicit non-force `main:main` fast-forward pushes rather than a synthetic merge
+  commit, with exact-ref and GitHub Actions verification before closure.
+- This delivery changes no product behavior, architecture, maturity, Roadmap, RFC,
+  schema, release, deployment, provider, network, credential, spend, or MCP capability.
+
 ## 2026-10-07 - Specify Governed Remote Model Candidate Suitability
 
 - Accepted RFC-0030 as the documentation-only evidence and pure-evaluation boundary
