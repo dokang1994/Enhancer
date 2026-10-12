@@ -11,6 +11,10 @@
   implementation, production fact acquisition, Router caller, providers, credentials,
   network, spend, route execution, persistence, retry, fallback, runtime, and MCP
   remain separate work.
+- Fresh focused governance passed all 31 tests across nine suites. Fresh full Java 17
+  regression passed 1,247 of 1,263 tests across 232 suites with 16 conditional skips
+  and zero failures or errors; `git diff --check` also passed. No push, merge, release,
+  or deployment was performed.
 
 ## 2026-10-07 - Implement Pure Provider-Neutral Model Router
 

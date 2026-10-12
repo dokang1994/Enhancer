@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -55,11 +55,11 @@ external effect.
   eligibility, RFC-0029 remote-suitability proof and Router, and the unchanged local
   deterministic-fake path.
 - The contract defines one immutable independently governed remote-candidate
-  suitability-facts value with exact candidate binding, provenance, revision,
+  capability-facts value with exact candidate binding, provenance, revision,
   freshness, token semantics, capacity, reasoning, timeout, cost, and classification
   evidence, without embedding a provider adapter or authority.
 - One field-free evaluator accepts only the exact profiled request, exact RFC-0028
-  `Eligible`, exact suitability facts, and explicit evaluation time; it returns a
+  `Eligible`, exact capability facts, and explicit evaluation time; it returns a
   closed suitable/refused decision and creates the existing opaque RFC-0029 proof only
   after complete ordered validation.
 - Exact-instance and content bindings, strict freshness, checked token-capacity
@@ -115,7 +115,7 @@ binding, newly required production or external authority, or unsafe recovery.
 
 ### Increment 1 - specify-remote-suitability-contract
 
-State: In Progress
+State: Completed
 Depends On: none
 Scope: Record the accepted continuation decision and RFC-0030 provider-neutral remote
 suitability evidence/evaluator contract, then synchronize Architecture, its mirror,
@@ -131,7 +131,7 @@ Next Action: Select Increment 2 only after reading fresh Increment 1 evidence.
 
 ### Increment 2 - verify-and-close-remote-suitability-specification
 
-State: Pending
+State: Completed
 Depends On: specify-remote-suitability-contract
 Scope: Run the full Markdown-sensitive Java 17 regression on the exact final tree,
 review the diff, synchronize task and handoff state, close the documentation-only task,
@@ -148,6 +148,7 @@ push.
 ## Next
 
 After this documentation-only task is completed, await separate user authority for a
-RED-first pure RFC-0030 suitability facts/evaluator implementation. Production fact
-acquisition, route-execution preparation, every provider, credential, network, spend,
-persistence, fallback, MCP, release, and deployment path remain separate later work.
+RED-first pure RFC-0030 capability facts/suitability evaluator implementation.
+Production fact acquisition, route-execution preparation, every provider, credential,
+network, spend, persistence, fallback, MCP, release, and deployment path remain
+separate later work.
