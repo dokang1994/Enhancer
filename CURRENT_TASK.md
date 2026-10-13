@@ -113,7 +113,7 @@ failed or unavailable required CI, new authority, or unsafe recovery.
 
 ### Increment 1 - authorize-and-verify-delivery
 
-State: In Progress
+State: Completed
 Depends On: none
 Scope: Record the accepted delivery decision and preflight evidence, run fresh focused
 governance and full regression, and commit the delivery authority locally.
@@ -126,7 +126,7 @@ Next Action: Select Increment 2 and fetch `origin`.
 
 ### Increment 2 - fast-forward-main-and-observe-ci
 
-State: Pending
+State: In Progress
 Depends On: authorize-and-verify-delivery
 Scope: Fetch remote state, prove ancestry, push explicit non-force `main:main`, verify
 local/fetched/advertised refs, observe the exact-head `verify` workflow, and record its
