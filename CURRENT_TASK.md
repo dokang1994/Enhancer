@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -139,7 +139,7 @@ Next Action: Commit the evidence closure and select Increment 3.
 
 ### Increment 3 - publish-and-close-delivery-evidence
 
-State: In Progress
+State: Completed
 Depends On: fast-forward-main-and-observe-ci
 Scope: Commit the verified evidence closure, re-fetch and prove fast-forward ancestry,
 push the explicit non-force `main:main` refspec, verify final refs and exact-head CI,
