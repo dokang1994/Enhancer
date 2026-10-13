@@ -126,7 +126,7 @@ Next Action: Select Increment 2 and fetch `origin`.
 
 ### Increment 2 - fast-forward-main-and-observe-ci
 
-State: In Progress
+State: Completed
 Depends On: authorize-and-verify-delivery
 Scope: Fetch remote state, prove ancestry, push explicit non-force `main:main`, verify
 local/fetched/advertised refs, observe the exact-head `verify` workflow, and record its
@@ -139,7 +139,7 @@ Next Action: Commit the evidence closure and select Increment 3.
 
 ### Increment 3 - publish-and-close-delivery-evidence
 
-State: Pending
+State: In Progress
 Depends On: fast-forward-main-and-observe-ci
 Scope: Commit the verified evidence closure, re-fetch and prove fast-forward ancestry,
 push the explicit non-force `main:main` refspec, verify final refs and exact-head CI,

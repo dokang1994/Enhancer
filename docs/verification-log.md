@@ -8392,3 +8392,22 @@ Outcome:
 - No force push, history rewrite, synthetic merge, release, deployment, product change,
   capability promotion, provider invocation, credential access, spend, or unrelated
   external effect was performed during preflight.
+
+## 2026-10-13 - RFC-0028 Through RFC-0030 Primary Main Delivery
+
+- A fresh fetch immediately before delivery showed tracked `origin/main` at
+  `6568b2250bb5bf83adca2a8c5d476e280b64906b`, exact merge-base equality, zero
+  remote-only commits, and local `main` fifteen linear commits ahead at
+  `f96d200c8ef81de59abaf13bc22a7d666261565a`.
+- The explicit non-force `git push origin main:main` fast-forwarded remote `main` from
+  `6568b225` to `f96d200c`. A post-push fetch plus `git rev-parse` and `git ls-remote`
+  proved local HEAD, fetched `origin/main`, and GitHub's advertised
+  `refs/heads/main` all exactly matched the delivered head.
+- GitHub Actions `verify` run `38355029797` for exact head
+  `f96d200c8ef81de59abaf13bc22a7d666261565a` reached terminal `success`:
+  `https://github.com/dokang1994/Enhancer/actions/runs/38355029797`.
+- Because the completed work already resided directly and linearly on local `main`,
+  this verified non-force fast-forward is the requested merge. No force, synthetic
+  merge, rebase, reset, amend, squash, cherry-pick, history rewrite, tag, release,
+  deployment, branch deletion, permission change, or unrelated external effect was
+  performed.

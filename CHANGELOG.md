@@ -9,6 +9,12 @@
   commit, with exact-ref and GitHub Actions verification before closure.
 - This delivery changes no product behavior, architecture, maturity, Roadmap, RFC,
   schema, release, deployment, provider, network, credential, spend, or MCP capability.
+- Primary delivery fast-forwarded `origin/main` from `6568b225` to `f96d200c` with the
+  explicit non-force `main:main` refspec. Local, fetched, and advertised refs matched,
+  and GitHub Actions `verify` run `38355029797` completed successfully for the exact
+  delivered head.
+- The remaining delivery step is the separately committed evidence closure followed by
+  the same non-force ancestry, ref, and exact-head CI verification.
 
 ## 2026-10-07 - Specify Governed Remote Model Candidate Suitability
 
