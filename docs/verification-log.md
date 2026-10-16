@@ -8438,3 +8438,27 @@ Outcome:
   provider, adapter, credential, network, spend, persistence, runtime, MCP, push, or
   other external effect was added. Increment 2 is selected for the field-free pure
   evaluator.
+
+## 2026-10-16 - RFC-0030 Pure Suitability Evaluator Increment
+
+- A missing-symbol RED run compiled production source and failed `compileTestJava`
+  with two diagnostics naming only the planned
+  `RemoteModelCandidateSuitabilityEvaluator`.
+- The minimum final, field-free evaluator now accepts exactly a profiled request,
+  RFC-0028 `Eligible`, capability facts, and explicit evaluation time. It derives the
+  candidate from the eligibility proposal, applies the eighteen refusal reasons in
+  RFC order, and creates the existing RFC-0029 proof only after every check passes.
+- Evaluator tests cover every refusal alone, every adjacent combined precedence pair,
+  inclusive observation and exclusive expiry for candidate/capability/pricing facts,
+  route/profile/pricing/token bindings, below/equal/above capacity and timeout cases,
+  reasoning and classification extremes, conservative currency/cost relations, null
+  programming errors, and exact request/eligibility/candidate identity retention.
+- The initial compatibility run found only the two expected source-guard collisions
+  caused by the new evaluator consuming RFC-0028 definitions and creating the RFC-0029
+  proof. Both guards were narrowed to the exact evaluator filename. The fresh corrected
+  Java 17 selection completed 14 suites and 101 tests with `BUILD SUCCESSFUL` in
+  1 minute 16 seconds, with zero failures, errors, or skips.
+- No production caller or fact source, Router behavior change, provider, adapter,
+  credential, network, spend, persistence, runtime, MCP, push, or external effect was
+  added. Increment 3 is selected for construction ownership and dedicated boundary
+  guards.

@@ -86,8 +86,9 @@ class ModelOutboundRouteBoundaryTest {
             "RemoteModelCandidateSuitability.java",
             "SelectedModelRoute.java");
 
-    private static final Set<String> RFC_0030_VALUE_FILES = Set.of(
-            "RemoteModelCandidateCapabilityFacts.java");
+    private static final Set<String> RFC_0030_DEFINITION_FILES = Set.of(
+            "RemoteModelCandidateCapabilityFacts.java",
+            "RemoteModelCandidateSuitabilityEvaluator.java");
 
     @Test
     void definitionsDependOnlyOnPureValuesAndTheExactRfc0016AuthorityInputs()
@@ -147,7 +148,7 @@ class ModelOutboundRouteBoundaryTest {
                             path.getFileName().toString()))
                     .filter(path -> !RFC_0029_DEFINITION_FILES.contains(
                             path.getFileName().toString()))
-                    .filter(path -> !RFC_0030_VALUE_FILES.contains(
+                    .filter(path -> !RFC_0030_DEFINITION_FILES.contains(
                             path.getFileName().toString()))
                     .forEach(path -> {
                         String source = read(path);

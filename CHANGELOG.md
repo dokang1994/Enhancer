@@ -11,6 +11,12 @@
 - Narrowed the existing RFC-0028 and RFC-0029 source guards only for the exact new
   RFC-0030 value-definition files; all focused value, boundary, and governance
   verification is GREEN.
+- Added the final field-free pure evaluator with the exact four-input surface, closed
+  first-match refusal order, strict freshness and binding checks, independent capacity
+  comparisons, conservative cost relationships, and exact-instance proof creation.
+- Verified every refusal alone and in adjacent combined precedence cases together with
+  boundary equality and below/above cases; RFC-0014, RFC-0016, RFC-0020, RFC-0028,
+  RFC-0029, and deterministic-fake compatibility remain GREEN.
 
 ## 2026-10-12 - Deliver RFC-0028 Through RFC-0030 Work To Main
 

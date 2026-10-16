@@ -132,7 +132,7 @@ Next Action: Completed after reading the fresh Increment 1 evidence recorded in
 
 ### Increment 2 - implement-field-free-suitability-evaluator
 
-State: In Progress
+State: Completed
 Depends On: define-governed-capability-values
 Scope: Add RED-first evaluator behavior tests and the minimal field-free evaluator for
 the closed eighteen-reason order, exact route/profile/pricing binding, strict
@@ -144,11 +144,12 @@ retained on success; focused model regressions pass; evidence is appended once; 
 increment is committed locally.
 Verification: Focused evaluator plus RFC-0014, RFC-0016, RFC-0020, RFC-0028, RFC-0029,
 and deterministic-fake tests and `git diff --check`.
-Next Action: Select Increment 3 only after reading fresh Increment 2 evidence.
+Next Action: Completed after reading the fresh Increment 2 evidence recorded in
+`docs/verification-log.md`; Increment 3 is now selected.
 
 ### Increment 3 - guard-governed-suitability-boundary
 
-State: Pending
+State: In Progress
 Depends On: implement-field-free-suitability-evaluator
 Scope: Restrict RFC-0029 proof construction to the evaluator success path; add safe-
 rendering, reflection, source, locality, dependency, construction, and no-production-
