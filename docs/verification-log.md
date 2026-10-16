@@ -8507,3 +8507,20 @@ Outcome:
 - The implementation consists of the verified local GREEN increment commits
   `e049dd5`, `afa7591`, and `fbad113`. No push, merge, release, deployment, permission
   change, destructive cleanup, or other external effect occurred.
+
+## 2026-10-16 - RFC-0030 Main Delivery Authority And Preflight
+
+- The user's explicit commit, push, and merge request was recorded as one Accepted
+  Decision and one bounded delivery Active Task. Because the four completed RFC-0030
+  commits already reside linearly on local `main`, the authorized merge mechanism is
+  an explicit non-force `main:main` fast-forward rather than a synthetic merge commit.
+- Fresh focused Java 17 governance verification completed with `BUILD SUCCESSFUL` in
+  41 seconds. After correcting one trailing blank line reported by `git diff --check`,
+  the exact document tree passed the same focused selection in 19 seconds.
+- Fresh exact-tree README-owned full Java 17 verification completed with
+  `BUILD SUCCESSFUL` in 9 minutes 16 seconds. Generated JUnit XML contained 235 suites
+  and 1,280 tests: 1,264 passed, 16 conditional platform tests skipped, and zero failed
+  or errored. Fresh `git diff --check` passed.
+- No product implementation, architecture, capability maturity, Roadmap, RFC, schema,
+  provider, credential, network invocation, spend, MCP, release, or deployment state
+  changed. Fresh remote ancestry inspection and delivery remain the next step.

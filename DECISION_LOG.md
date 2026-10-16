@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User request on 2026-10-16 to commit, push, and merge the RFC-0030 implementation to main
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-10-16-deliver-rfc-0030-implementation-to-main.md)
+
 ### User continuation request on 2026-10-16 into RFC-0030 governed remote candidate suitability implementation
 
 Status: Accepted Decision

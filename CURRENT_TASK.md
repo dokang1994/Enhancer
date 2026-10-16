@@ -2,88 +2,85 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Implement RFC-0030 RED-first as the pure governed remote model candidate capability-
-facts and suitability-evaluator boundary, without adding a production fact source,
-provider, adapter, credential, network, spend, persistence, runtime, or MCP path.
+Deliver the four completed and verified RFC-0030 implementation commits currently
+ahead of `origin/main` to remote `main` through explicit non-force fast-forward pushes,
+required CI observation, and one committed delivery-evidence closure.
 
 ## Task ID
 
-implement-rfc-0030-governed-remote-model-candidate-suitability
+deliver-rfc-0030-implementation-to-main
 
 ## Context
 
-RFC-0028, RFC-0029, and the pure RFC-0030 capability-facts and suitability-evaluator
-boundary are Contract Verified. The user's 2026-10-16 continuation request authorized
-the bounded implementation, which preserved exact RFC-0014, RFC-0016, RFC-0028, and
-RFC-0029 authority while keeping every production fact source, production caller, and
-external effect absent.
+The clean local `main` ends at `dda40a9` and is four linear commits ahead of the
+currently tracked `origin/main` at `a8cb053`. The completed work already resides
+directly on `main`; there is no feature branch requiring a synthetic merge commit. The
+user explicitly requested commit, push, and merge on 2026-10-16.
+
+This delivery task changes only delivery authority, history, and evidence. It does not
+authorize a governed production capability-fact source, Router caller, provider,
+credential, network, spend, persistence, runtime, or MCP path.
 
 ## Justified By
 
-- Select provider-neutral outbound model route admission before router or provider integration
-- User continuation request on 2026-10-16 into RFC-0030 governed remote candidate suitability implementation
+- User request on 2026-10-16 to commit, push, and merge the RFC-0030 implementation to main
 
 ## Approval
 
-The user's 2026-10-16 continuation request authorizes the RED-first pure RFC-0030 Java
-capability-facts value, refusal reasons, sealed decision, field-free evaluator, focused
-tests, the exact RFC-0029 proof-construction restriction needed for evaluator-only
-success, source/locality/dependency/reflection/no-caller guards, necessary Architecture/
-mirror/state/roadmap/task/evidence/Changelog/handoff synchronization, fresh README-owned
-verification, bounded read-only development-subagent analysis, and ordinary local
-commits at verified GREEN increment boundaries.
+The user's explicit 2026-10-16 request authorizes a bounded delivery task that commits
+the delivery authority and evidence cursor, runs fresh local verification, fetches and
+proves fast-forward ancestry, pushes local `main` to `origin/main` with the explicit
+non-force `main:main` refspec, verifies fetched and advertised refs, observes the push-
+triggered GitHub Actions `verify` workflow, commits the verified delivery evidence, and
+publishes that evidence commit under the same ancestry and ref checks.
 
-This approval does not authorize a production capability, candidate, destination-
-policy, inspection, redaction, pricing, availability, quality, latency, tokenizer, or
-suitability fact source; discovery or registry; provider or adapter construction;
-provider model, endpoint, protocol, credential, secret, network, transmission, spend,
-or paid use; Tool execution; Scheduler/runtime/RunRecord/schema integration;
-persistence, retry, fallback execution, MCP, push, merge, release, deployment,
-permission change, destructive cleanup, or another external effect.
+Because all completed work is already linear on local `main`, a successful non-force
+fast-forward push is the requested merge. No temporary branch or synthetic merge
+commit is required.
+
+This approval does not authorize force push, rebase, reset, amend, squash,
+cherry-pick, history rewrite, tag, release, deployment, branch deletion, permission
+or credential change, destructive cleanup, product implementation, schema change,
+capability promotion, provider/network invocation beyond Git/GitHub delivery, paid
+service, MCP, or unrelated external effect.
 
 ## Acceptance Criteria
 
-- One accepted decision records the bounded implementation authority, with an exact
-  matching `DECISION_LOG.md` entry.
-- Missing-symbol RED tests define the opaque immutable capability-facts value, all
-  intrinsic bounds and relationships, the closed eighteen-reason enum, and the sealed
-  two-shape suitability decision before their minimum implementation.
-- The final field-free evaluator accepts only the exact profiled request, exact RFC-0028
-  `Eligible`, capability facts, and explicit evaluation time; validates every binding,
-  freshness, capacity, timeout, classification, currency, pricing, and cost rule in the
-  RFC-0030 first-match order; and creates the existing RFC-0029 proof only on success.
-- Tests cover every refusal alone and in combined precedence cases; inclusive
-  observation and exclusive expiry; below/equal/above capacity, reasoning,
-  classification, timeout, and cost boundaries; checked token relationships; exact
-  identity retention; null programming errors; defensive immutability; and safe
-  rendering.
-- RFC-0029 proof construction is restricted to the evaluator success path, and source,
-  locality, dependency, reflection, construction, and zero-production-caller guards
-  prove no fact acquisition, infrastructure coupling, persistence, or external effect.
-- RFC-0016, RFC-0020 through RFC-0029, and the deterministic-fake local path remain
-  unchanged in behavior.
-- Fresh focused and full Java 17 verification passes, owned documents are synchronized,
-  the task is completed, required local GREEN commits exist, and no push occurs.
+- One Accepted Decision records the exact delivery authority and non-force linear-
+  merge interpretation with an exact matching `DECISION_LOG.md` entry.
+- Fresh focused governance and full README-owned Java 17 regression are GREEN after
+  the delivery-authority documents are written; `git diff --check` passes.
+- The delivery-authority increment is committed locally before remote mutation.
+- A fresh fetch proves `origin/main` is the merge base and ancestor of local `main`,
+  with no remote-only commits, before each push.
+- Each push uses the explicit non-force `git push origin main:main` refspec; no force,
+  synthetic merge, rebase, or history rewrite occurs.
+- After the primary push, local `HEAD`, fetched `origin/main`, and advertised remote
+  `refs/heads/main` match exactly, and the exact-head GitHub Actions `verify` workflow
+  reaches terminal success.
+- Delivery evidence is appended once to `docs/verification-log.md`, notable delivery
+  history is recorded in `CHANGELOG.md`, and the completed task retains the next
+  product boundary without authorizing it.
+- The evidence closure is committed and delivered by the same non-force ancestry
+  protocol; final local, fetched, and advertised remote refs match, the exact-head
+  `verify` workflow succeeds, Git is clean, and the checkpoint is stable and clear.
 
 ## Out Of Scope
 
-Changes to RFC-0013 through RFC-0029 behavior; production fact sources, registries,
-discovery, scanners/redactors, pricing or capacity acquisition, provider/adapter/model/
-endpoint/protocol/network/credential/secret/spend paths; request transmission, response
-validation, availability, quality, latency, fallback/cache execution, Tool, Scheduler,
-runtime, RunRecord, durable schema, migration, MCP, capability promotion, push, merge,
-release, deployment, permission change, destructive cleanup, and unrelated external
-effects.
+Product or test-source changes; architecture, capability maturity, Roadmap, RFC, or
+durable-schema changes; provider/network invocation beyond Git/GitHub delivery;
+credentials or paid services; MCP, Skill, Memory, plugin, interface, multi-agent,
+background, Cloud Sync, release, deployment, tag, branch deletion, permission change,
+destructive cleanup, force push, rebase, reset, amend, squash, cherry-pick, synthetic
+merge, history rewrite, and unrelated external effects.
 
 ## Allowed Tools
 
 - read-file
-- write-code
-- write-tests
 - write-docs
 - build-output
 - verify
@@ -91,100 +88,73 @@ effects.
 - git-inspect
 - git-stage
 - git-commit
-- development-subagents-read-only
+- git-fetch
+- git-push
+- GitHub-Actions-observe
 
 ## Verification
 
-Use the README-owned Java 17 wrapper. Run focused RFC-0030 value/evaluator tests and
-architecture/source/locality/dependency/reflection/construction/no-caller guards for
-each increment, plus relevant RFC-0014, RFC-0016, RFC-0020 through RFC-0029, and
-deterministic-fake regressions. Run the full Markdown-sensitive `powershell
--ExecutionPolicy Bypass -File .\scripts\gradle.ps1 test` command and `git diff
---check` before closure. Read fresh output before lifecycle claims. Subagent reports
-are recommendations and never verification evidence.
+Use the README-owned Java 17 Gradle command for focused governance and full regression.
+Before each push, fetch `origin`, prove exact merge-base ancestry and zero remote-only
+divergence, and inspect the explicit ref range. After each push, fetch again, compare
+local, tracking, and advertised remote refs, and observe the exact-head GitHub Actions
+`verify` workflow through terminal success. Subagent reports are not verification
+evidence.
 
 ## Dynamic Workflow
 
-Workflow ID: implement-rfc-0030-governed-remote-model-candidate-suitability
+Workflow ID: deliver-rfc-0030-implementation-to-main
 Mode: Sequential
-Increment Limit: 4
+Increment Limit: 3
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
-Stop Conditions: Stop on failed verification, task or checkpoint drift, an RFC-0014,
-RFC-0016, RFC-0020, RFC-0028, RFC-0029, or RFC-0030 compatibility conflict, a need for
-governed production facts or external authority, unsafe recovery, or scope expansion.
+Stop Conditions: Stop on a dirty or drifting worktree, failed verification, checkpoint
+drift, remote-only commits, failed ancestry, non-fast-forward refusal, ref mismatch,
+failed or unavailable required CI, new authority, or unsafe recovery.
 
-### Increment 1 - define-governed-capability-values
+### Increment 1 - authorize-and-verify-delivery
 
 State: Completed
 Depends On: none
-Scope: Record the accepted implementation decision, add missing-symbol RED tests for
-the RFC-0030 capability-facts, refusal, and decision values, and minimally implement
-those opaque immutable values without a production creator or caller.
-Exit Criteria: The decision/index pair exists; RED is classified against RFC-0030;
-value tests are GREEN; intrinsic bounds, exact retained values, immutability, and safe
-rendering are proven; focused regressions pass; evidence is appended once; and the
-increment is committed locally.
-Verification: Focused RFC-0030 value, RFC-0014, RFC-0028, RFC-0029 boundary,
-decision/index/document-governance, Architecture mirror, and `git diff --check` tests.
-Next Action: Completed after reading the fresh Increment 1 evidence recorded in
-`docs/verification-log.md`; Increment 2 is now selected.
+Scope: Record the accepted delivery decision and preflight evidence, run fresh focused
+governance and full regression, and commit the delivery authority locally.
+Exit Criteria: Decision/index, task, Changelog, and preflight evidence are synchronized;
+fresh verification is GREEN; the worktree is clean after the ordinary local commit.
+Verification: Decision/document governance, full `powershell -ExecutionPolicy Bypass
+-File .\scripts\gradle.ps1 test`, `git diff --check`, commit, status, and checkpoint
+reconciliation.
+Next Action: Completed after exact-tree focused governance, full README-owned Java 17
+regression, diff review, and delivery-authority synchronization; Increment 2 is now
+selected for a fresh `origin` fetch.
 
-### Increment 2 - implement-field-free-suitability-evaluator
+### Increment 2 - fast-forward-main-and-observe-ci
 
-State: Completed
-Depends On: define-governed-capability-values
-Scope: Add RED-first evaluator behavior tests and the minimal field-free evaluator for
-the closed eighteen-reason order, exact route/profile/pricing binding, strict
-freshness, capacity, timeout, classification, currency, cost, and successful proof
-creation.
-Exit Criteria: Every refusal reason is covered alone and in combined precedence cases;
-all boundary equalities and one-below/one-above cases are covered; exact instances are
-retained on success; focused model regressions pass; evidence is appended once; and the
-increment is committed locally.
-Verification: Focused evaluator plus RFC-0014, RFC-0016, RFC-0020, RFC-0028, RFC-0029,
-and deterministic-fake tests and `git diff --check`.
-Next Action: Completed after reading the fresh Increment 2 evidence recorded in
-`docs/verification-log.md`; Increment 3 is now selected.
+State: In Progress
+Depends On: authorize-and-verify-delivery
+Scope: Fetch remote state, prove ancestry, push explicit non-force `main:main`, verify
+local/fetched/advertised refs, observe the exact-head `verify` workflow, and record its
+delivery evidence.
+Exit Criteria: The primary delivery is a verified fast-forward, exact refs match, CI is
+successful, and the evidence closure is ready for a local commit.
+Verification: Fetch, merge-base/ancestor/divergence, explicit push, ref equality,
+GitHub Actions exact-head observation, diff, and checkpoint reconciliation.
+Next Action: Commit the evidence closure and select Increment 3.
 
-### Increment 3 - guard-governed-suitability-boundary
+### Increment 3 - publish-and-close-delivery-evidence
 
-State: Completed
-Depends On: implement-field-free-suitability-evaluator
-Scope: Restrict RFC-0029 proof construction to the evaluator success path; add safe-
-rendering, reflection, source, locality, dependency, construction, and no-production-
-caller guards; and reconcile Architecture/mirror wording with the implemented contract.
-Exit Criteria: Guards prove the evaluator is field-free and pure, capability facts and
-proof remain opaque and invocation-local, only the evaluator constructs the proof, no
-production source or caller exists, canonical architecture matches RFC-0030, focused
-governance tests pass, evidence is appended once, and the increment is committed
-locally.
-Verification: Focused architecture/source/locality/dependency/reflection/construction/
-document tests, relevant model regressions, and `git diff --check`.
-Next Action: Completed after reading the fresh Increment 3 evidence recorded in
-`docs/verification-log.md`; Increment 4 is now selected.
-
-### Increment 4 - verify-and-close-governed-suitability
-
-State: Completed
-Depends On: guard-governed-suitability-boundary
-Scope: Run the full Markdown-sensitive Java 17 regression on the exact final tree,
-review the diff, synchronize maturity/task/roadmap/handoff/delivery documents, close
-the task, and create the final required ordinary local GREEN commit if closure changes
-remain.
-Exit Criteria: Fresh full regression and diff checks are GREEN; owned documents are
-current; the task is Completed; required local commits exist; Git is clean; and the
-checkpoint is stable and clear.
-Verification: Full README-owned test command, generated JUnit XML counts, `git diff
---check`, diff/status/log review, commits, and checkpoint reconciliation.
-Next Action: Completed after fresh full final-tree regression, document synchronization,
-diff review, and the required local closure commit. Await separate authority for
-governed production fact acquisition or an RFC-0029 route-option construction consumer;
-do not add a provider, network path, persistence, or push.
+State: Pending
+Depends On: fast-forward-main-and-observe-ci
+Scope: Commit the verified evidence closure, re-fetch and prove fast-forward ancestry,
+push the explicit non-force `main:main` refspec, verify final refs and exact-head CI,
+then close the task and checkpoint.
+Exit Criteria: The evidence commit is on remote `main`; exact refs and CI are verified;
+Git is clean; the task is complete; and the checkpoint is stable and clear.
+Verification: Commit, fetch, merge-base/ancestor/divergence, explicit push, ref equality,
+GitHub Actions exact-head observation, status, and checkpoint reconciliation.
+Next Action: Await separate authority for a governed production capability-fact source,
+same-invocation Router option consumer, or another explicitly selected Gate 9 boundary.
 
 ## Next
 
-After this pure implementation task is completed, await separate user authority for a
-governed production capability-fact source, same-invocation Router option consumer, or
-another explicitly selected Gate 9 boundary. Every provider, credential, network,
-spend, persistence, fallback, MCP, release, and deployment path remains separate later
-work.
+Record and verify delivery authority, then deliver local `main` through explicit
+non-force fast-forward pushes and exact-head CI observation. After delivery closes,
+await separate authority for the next product boundary.
