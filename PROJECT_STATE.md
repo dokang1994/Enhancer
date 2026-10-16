@@ -1117,15 +1117,18 @@ it does not restate which commit published which increment.
   prefixes without authorizing a general orphan scanner or cleanup policy.
 - Delivery Gate 9: Specified - Next. Existing RFC-0013 through RFC-0027 deterministic-
   fake request, profile, budget, suitability, typed execution, direct submission, and
-  typed spool sub-paths range from Contract Verified to Operational, and RFC-0028 now
-  provides the Contract Verified pure outbound route-admission boundary while RFC-0029
-  provides its Contract Verified pure Router consumer without an execution caller. Their
-  accumulation does not establish whole-gate maturity. Real providers, MCP client/server
-  composition, outbound data policy, fallback/cache provenance, and fixed-fixture model
-  evaluation remain absent. Governed remote-suitability evaluation and fact acquisition
-  plus a route-execution preparation consumer are the next missing Gate-9-owned
-  boundaries before any second candidate, provider, credential, network, or paid
-  invocation is connected.
+  typed spool sub-paths range from Contract Verified to Operational. RFC-0028 provides
+  the Contract Verified pure outbound route-admission boundary, RFC-0029 provides its
+  Contract Verified pure Router without an execution caller, and RFC-0030 now provides
+  Contract Verified opaque remote capability facts plus the final field-free pure
+  suitability evaluator in a closed eighteen-reason order. Source guards prove zero
+  production capability-facts creators and zero evaluator callers. Their accumulation
+  does not establish whole-gate maturity. Real providers, MCP client/server composition,
+  outbound data policy, fallback/cache provenance, and fixed-fixture model evaluation
+  remain absent. Governed production capability-fact acquisition and a same-invocation
+  RFC-0029 route-option consumer are the next missing Gate-9-owned boundaries before
+  route-execution preparation or any second candidate, provider, credential, network,
+  or paid invocation is connected.
 - Gate 8 lease-expiry recovery now has one named worker-level fixture over the
   post-RunRecord-reference prefix. The first cycle persists exactly one reference,
   expires before execution acknowledgement, and leaves the AgentRun reclaimable at

@@ -23,6 +23,9 @@
   defensive RFC-0029 coverage.
 - Updated canonical Architecture and its compact mirror from the future contract to
   the implemented pure boundary without promoting a production route capability.
+- Fresh full Markdown-sensitive Java 17 verification completed 235 suites and 1,280
+  tests: 1,264 passed, 16 conditional platform tests skipped, and zero failed or
+  errored. Gate 9 remains `Specified - Next`; no production remote route was enabled.
 
 ## 2026-10-12 - Deliver RFC-0028 Through RFC-0030 Work To Main
 

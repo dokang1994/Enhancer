@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -16,12 +16,11 @@ implement-rfc-0030-governed-remote-model-candidate-suitability
 
 ## Context
 
-RFC-0028 and RFC-0029 are Contract Verified, and RFC-0030 is Accepted. The completed
-specification and delivery tasks record the pure RFC-0030 capability-facts and
-suitability-evaluator implementation as the singular next product task. The user
-requested continuation on 2026-10-16, which authorizes that bounded implementation.
-The implementation must preserve exact RFC-0014, RFC-0016, RFC-0028, and RFC-0029
-authority and keep every fact source, production caller, and external effect absent.
+RFC-0028, RFC-0029, and the pure RFC-0030 capability-facts and suitability-evaluator
+boundary are Contract Verified. The user's 2026-10-16 continuation request authorized
+the bounded implementation, which preserved exact RFC-0014, RFC-0016, RFC-0028, and
+RFC-0029 authority while keeping every production fact source, production caller, and
+external effect absent.
 
 ## Justified By
 
@@ -166,7 +165,7 @@ Next Action: Completed after reading the fresh Increment 3 evidence recorded in
 
 ### Increment 4 - verify-and-close-governed-suitability
 
-State: In Progress
+State: Completed
 Depends On: guard-governed-suitability-boundary
 Scope: Run the full Markdown-sensitive Java 17 regression on the exact final tree,
 review the diff, synchronize maturity/task/roadmap/handoff/delivery documents, close
@@ -177,9 +176,10 @@ current; the task is Completed; required local commits exist; Git is clean; and 
 checkpoint is stable and clear.
 Verification: Full README-owned test command, generated JUnit XML counts, `git diff
 --check`, diff/status/log review, commits, and checkpoint reconciliation.
-Next Action: Await separate authority for governed production fact acquisition or an
-RFC-0029 route-option construction consumer; do not add a provider, network path,
-persistence, or push.
+Next Action: Completed after fresh full final-tree regression, document synchronization,
+diff review, and the required local closure commit. Await separate authority for
+governed production fact acquisition or an RFC-0029 route-option construction consumer;
+do not add a provider, network path, persistence, or push.
 
 ## Next
 
