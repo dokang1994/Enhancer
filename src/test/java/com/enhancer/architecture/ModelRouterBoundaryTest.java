@@ -52,6 +52,10 @@ class ModelRouterBoundaryTest {
             "RemoteModelCandidateSuitability",
             "SelectedModelRoute");
 
+    private static final Set<String> RFC_0030_VALUE_FILES = Set.of(
+            "RemoteModelCandidateSuitabilityDecision.java",
+            "RemoteModelCandidateSuitabilityRefusalReason.java");
+
     @Test
     void definitionsDependOnlyOnPureModelValues() throws IOException {
         List<String> forbidden = List.of(
@@ -130,6 +134,8 @@ class ModelRouterBoundaryTest {
         try (Stream<Path> files = Files.walk(PRODUCTION_ROOT)) {
             files.filter(path -> path.toString().endsWith(".java"))
                     .filter(path -> !DEFINITION_FILES.contains(
+                            path.getFileName().toString()))
+                    .filter(path -> !RFC_0030_VALUE_FILES.contains(
                             path.getFileName().toString()))
                     .forEach(path -> {
                         String source = read(path);

@@ -86,6 +86,9 @@ class ModelOutboundRouteBoundaryTest {
             "RemoteModelCandidateSuitability.java",
             "SelectedModelRoute.java");
 
+    private static final Set<String> RFC_0030_VALUE_FILES = Set.of(
+            "RemoteModelCandidateCapabilityFacts.java");
+
     @Test
     void definitionsDependOnlyOnPureValuesAndTheExactRfc0016AuthorityInputs()
             throws IOException {
@@ -143,6 +146,8 @@ class ModelOutboundRouteBoundaryTest {
                     .filter(path -> !DEFINITION_FILES.contains(
                             path.getFileName().toString()))
                     .filter(path -> !RFC_0029_DEFINITION_FILES.contains(
+                            path.getFileName().toString()))
+                    .filter(path -> !RFC_0030_VALUE_FILES.contains(
                             path.getFileName().toString()))
                     .forEach(path -> {
                         String source = read(path);

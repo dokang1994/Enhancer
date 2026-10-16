@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-10-16 - Begin Pure Governed Remote Candidate Suitability Implementation
+
+- Added RFC-0030's opaque immutable remote candidate capability facts, closed
+  eighteen-reason refusal vocabulary, and sealed two-shape suitability decision under
+  missing-symbol RED tests.
+- Preserved provider-neutral bounds, exact immutable budget inputs, safe rendering,
+  and package-private test-owned fact construction without adding a production source,
+  caller, provider, credential, network, spend, persistence, runtime, or MCP path.
+- Narrowed the existing RFC-0028 and RFC-0029 source guards only for the exact new
+  RFC-0030 value-definition files; all focused value, boundary, and governance
+  verification is GREEN.
+
 ## 2026-10-12 - Deliver RFC-0028 Through RFC-0030 Work To Main
 
 - Accepted the user's bounded commit, push, and merge request for the thirteen verified

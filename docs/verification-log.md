@@ -8411,3 +8411,30 @@ Outcome:
   merge, rebase, reset, amend, squash, cherry-pick, history rewrite, tag, release,
   deployment, branch deletion, permission change, or unrelated external effect was
   performed.
+
+## 2026-10-16 - RFC-0030 Capability Values Increment
+
+- A missing-symbol RED run compiled production source and failed `compileTestJava`
+  only because `RemoteModelCandidateCapabilityFacts`,
+  `RemoteModelCandidateSuitabilityRefusalReason`, and
+  `RemoteModelCandidateSuitabilityDecision` did not yet exist. The 43 compiler
+  diagnostics were repeated references to exactly those three planned symbols.
+- The minimum implementation added the opaque immutable capability-facts value, exact
+  eighteen-reason enum order, and sealed `Suitable`/`Refused` decision. Construction
+  remains package-private and test-owned; safe rendering excludes raw prices,
+  capacities, times, content, endpoints, and credentials.
+- Fresh focused Java 17 verification of the new value contract together with RFC-0014,
+  RFC-0028, and RFC-0029 value compatibility completed with `BUILD SUCCESSFUL` in
+  2 minutes 21 seconds.
+- Fresh boundary and Markdown-governance verification initially exposed two aligned
+  substring guard collisions. The guards were narrowed only for the exact RFC-0030
+  value-definition filenames, and the corrected 12-suite selection completed 54 tests
+  with `BUILD SUCCESSFUL` in 2 minutes 15 seconds and no failures or skips.
+- Three bounded read-only subagents inspected the value contract, existing code seams,
+  and test/guard surface. The primary Agent reconciled their recommendations against
+  RFC-0030 and fresh repository evidence; their reports were not verification
+  evidence.
+- No production capability source or caller, evaluator, Router behavior change,
+  provider, adapter, credential, network, spend, persistence, runtime, MCP, push, or
+  other external effect was added. Increment 2 is selected for the field-free pure
+  evaluator.
