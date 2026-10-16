@@ -7,9 +7,10 @@ import java.util.Objects;
 /**
  * Opaque invocation-local proof that one exact remote candidate can satisfy one request.
  *
- * <p>Construction is package-private so only a separately governed pure evaluator, or
- * package-local contract fixture, can create a proof. This value grants no provider,
- * credential, network, transmission, persistence, or spend authority.
+ * <p>Production construction is package-private and source-guarded to the separately
+ * governed pure evaluator. One package-local malformed-proof contract fixture preserves
+ * Router fail-closed coverage. This value grants no provider, credential, network,
+ * transmission, persistence, or spend authority.
  */
 public final class RemoteModelCandidateSuitability {
 

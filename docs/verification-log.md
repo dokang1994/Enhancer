@@ -8462,3 +8462,29 @@ Outcome:
   credential, network, spend, persistence, runtime, MCP, push, or external effect was
   added. Increment 3 is selected for construction ownership and dedicated boundary
   guards.
+
+## 2026-10-16 - RFC-0030 Suitability Boundary Guards Increment
+
+- The new dedicated architecture guard first produced the expected construction-
+  ownership RED because the ordinary RFC-0029 value fixture still created suitability
+  directly. That fixture now obtains its proof through evaluator success.
+- Reflection and source checks prove the evaluator is final, field-free, and exposes
+  exactly the four-input evaluation method; capability facts remain final with private
+  construction and a package-private creator; and the decision remains exactly two
+  sealed record shapes.
+- Dependency and source checks prove the four RFC-0030 definitions have no application,
+  bus, CLI, evidence, run, runtime, Tool, filesystem, environment, process, network,
+  persistence, invocation, or deterministic-fake coupling. Production contains zero
+  capability-facts creators, zero evaluator callers, and exactly one proof creator:
+  `RemoteModelCandidateSuitabilityEvaluator`.
+- One dedicated `ModelRouterTest` malformed-proof fixture remains explicit so RFC-0029
+  can verify defensive states that a successful evaluator cannot emit. Every ordinary
+  value fixture uses evaluator success, and the guard rejects any additional direct
+  test proof creator.
+- Canonical `ARCHITECTURE.md` and `.ai/architecture.md` now describe the implemented
+  pure boundary and the still-absent production source/caller. Fresh focused Java 17
+  verification completed 16 suites and 80 tests with `BUILD SUCCESSFUL` in 37 seconds,
+  zero failures, errors, or skips; `git diff --check` passed.
+- No production route became reachable, and no provider, adapter, credential, network,
+  spend, persistence, runtime, MCP, push, or external effect was added. Increment 4 is
+  selected for full regression and closure.

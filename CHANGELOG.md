@@ -17,6 +17,12 @@
 - Verified every refusal alone and in adjacent combined precedence cases together with
   boundary equality and below/above cases; RFC-0014, RFC-0016, RFC-0020, RFC-0028,
   RFC-0029, and deterministic-fake compatibility remain GREEN.
+- Added dedicated reflection, dependency, external-effect, construction, source, and
+  zero-production-caller guards. Production proof construction is limited to the
+  evaluator, while one explicit malformed-proof Router test fixture preserves
+  defensive RFC-0029 coverage.
+- Updated canonical Architecture and its compact mirror from the future contract to
+  the implemented pure boundary without promoting a production route capability.
 
 ## 2026-10-12 - Deliver RFC-0028 Through RFC-0030 Work To Main
 

@@ -149,7 +149,7 @@ Next Action: Completed after reading the fresh Increment 2 evidence recorded in
 
 ### Increment 3 - guard-governed-suitability-boundary
 
-State: In Progress
+State: Completed
 Depends On: implement-field-free-suitability-evaluator
 Scope: Restrict RFC-0029 proof construction to the evaluator success path; add safe-
 rendering, reflection, source, locality, dependency, construction, and no-production-
@@ -161,11 +161,12 @@ governance tests pass, evidence is appended once, and the increment is committed
 locally.
 Verification: Focused architecture/source/locality/dependency/reflection/construction/
 document tests, relevant model regressions, and `git diff --check`.
-Next Action: Select Increment 4 only after reading fresh Increment 3 evidence.
+Next Action: Completed after reading the fresh Increment 3 evidence recorded in
+`docs/verification-log.md`; Increment 4 is now selected.
 
 ### Increment 4 - verify-and-close-governed-suitability
 
-State: Pending
+State: In Progress
 Depends On: guard-governed-suitability-boundary
 Scope: Run the full Markdown-sensitive Java 17 regression on the exact final tree,
 review the diff, synchronize maturity/task/roadmap/handoff/delivery documents, close

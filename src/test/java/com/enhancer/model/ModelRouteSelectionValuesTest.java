@@ -166,22 +166,21 @@ class ModelRouteSelectionValuesTest {
         private final ModelOutboundRouteAdmissionDecision.Eligible eligibility =
                 new ModelOutboundRouteAdmissionDecision.Eligible(
                         proposal(candidate), ModelDataClassification.INTERNAL);
-        private final RemoteModelCandidateSuitability suitability =
-                RemoteModelCandidateSuitability.create(
-                        RemoteModelCandidateSuitability.CONTRACT_VERSION,
-                        profiledRequest,
-                        eligibility,
-                        candidate,
+        private final RemoteModelCandidateCapabilityFacts capabilityFacts =
+                RemoteModelCandidateCapabilityFacts.create(
+                        RemoteModelCandidateCapabilityFacts.SCHEMA_VERSION,
                         "remote-suitability-source",
                         "suitability-r1",
+                        "capacity-evidence-a",
                         OBSERVED_AT,
                         EXPIRES_AT,
                         CANDIDATE,
                         DESTINATION,
-                        "profile-token-budget-v1",
-                        "capacity-evidence-a",
                         MODEL_CLASS,
                         CAPABILITY,
+                        ModelRoutePricingFacts.TOKEN_SEMANTICS_IDENTITY,
+                        "schedule-a",
+                        profiledRequest.executionProfile().tokenBudget(),
                         ModelReasoningRequirement.EXTENDED,
                         1_000,
                         new ModelTokenBudget(100, 50, 150),
@@ -189,6 +188,13 @@ class ModelRouteSelectionValuesTest {
                         "USD",
                         987_654_321,
                         ModelDataClassification.RESTRICTED);
+        private final RemoteModelCandidateSuitability suitability =
+                ((RemoteModelCandidateSuitabilityDecision.Suitable)
+                        new RemoteModelCandidateSuitabilityEvaluator().evaluate(
+                                profiledRequest,
+                                eligibility,
+                                capabilityFacts,
+                                OBSERVED_AT)).suitability();
         private final ModelRouteOption option =
                 new ModelRouteOption(profiledRequest, eligibility, suitability);
     }
