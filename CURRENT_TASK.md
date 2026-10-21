@@ -16,8 +16,11 @@ deliver-rfc-0030-implementation-to-main
 
 ## Context
 
-The clean local `main` ends at `dda40a9` and is four linear commits ahead of the
-currently tracked `origin/main` at `a8cb053`. The completed work already resides
+The primary delivery fast-forwarded remote `main` from `a8cb053` through the four
+completed RFC-0030 commits and the delivery-authority commit to `cd07569`. Local,
+fetched, and advertised refs match that exact head, and its GitHub Actions `verify`
+workflow succeeded. The delivery-evidence closure remains to be committed and
+published through the same non-force protocol. The completed work already resides
 directly on `main`; there is no feature branch requiring a synthetic merge commit. The
 user explicitly requested commit, push, and merge on 2026-10-16.
 
@@ -128,7 +131,7 @@ selected for a fresh `origin` fetch.
 
 ### Increment 2 - fast-forward-main-and-observe-ci
 
-State: In Progress
+State: Completed
 Depends On: authorize-and-verify-delivery
 Scope: Fetch remote state, prove ancestry, push explicit non-force `main:main`, verify
 local/fetched/advertised refs, observe the exact-head `verify` workflow, and record its
@@ -137,11 +140,13 @@ Exit Criteria: The primary delivery is a verified fast-forward, exact refs match
 successful, and the evidence closure is ready for a local commit.
 Verification: Fetch, merge-base/ancestor/divergence, explicit push, ref equality,
 GitHub Actions exact-head observation, diff, and checkpoint reconciliation.
-Next Action: Commit the evidence closure and select Increment 3.
+Next Action: Completed after the explicit non-force fast-forward, exact local/fetched/
+advertised ref equality, and exact-head successful GitHub Actions observation;
+Increment 3 is now selected for the committed evidence closure.
 
 ### Increment 3 - publish-and-close-delivery-evidence
 
-State: Pending
+State: In Progress
 Depends On: fast-forward-main-and-observe-ci
 Scope: Commit the verified evidence closure, re-fetch and prove fast-forward ancestry,
 push the explicit non-force `main:main` refspec, verify final refs and exact-head CI,
@@ -155,6 +160,7 @@ same-invocation Router option consumer, or another explicitly selected Gate 9 bo
 
 ## Next
 
-Record and verify delivery authority, then deliver local `main` through explicit
-non-force fast-forward pushes and exact-head CI observation. After delivery closes,
-await separate authority for the next product boundary.
+Commit the verified primary-delivery evidence, re-fetch and prove fast-forward
+ancestry, publish that evidence commit through the explicit non-force `main:main`
+refspec, and verify final exact refs and CI. After delivery closes, await separate
+authority for the next product boundary.
