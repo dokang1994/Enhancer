@@ -2086,6 +2086,23 @@ Router fail-closed coverage. Governed production acquisition, RFC-0029 option
 construction by a production caller, route-execution preparation, provider/network
 integration, and durable provenance remain separate accepted contracts.
 
+RFC-0031 defines the first provider-neutral production acquisition contract for those
+capability facts. Protected external composition supplies one absolute normalized
+catalog path and an independently provisioned lowercase whole-file SHA-256 pin; request,
+eligibility, provider labels, repository content, environment, working directory, CLI,
+and ambient state cannot supply or override either trust input or any capability value.
+The source reads one bounded exact-real no-link regular-file snapshot, verifies the pin,
+validates the complete strict UTF-8 canonical catalog, and resolves only an exact
+candidate/destination pair. It maps every RFC-0030 field from the pinned snapshot,
+derives source revision from the verified digest, and checks selected-record freshness
+at the explicit time that RFC-0030 must independently recheck. A matching pin proves
+the exact operator-approved bytes, not the truth of remote-world claims; truthful
+provisioning, installation, and rotation remain separately governed. The only planned
+connection is same-invocation RFC-0030 evaluation preparation followed by RFC-0029
+option construction. No source implementation, production caller, provider,
+credential, network, spend, execution, persistence, retry, fallback, or MCP authority
+follows from this contract.
+
 ## Agent Orchestration Contract
 
 ### Development-Time Adaptive Subagent Delegation
@@ -2591,7 +2608,9 @@ Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts bel
   decoding, its package-local receiver domain, post-admission acknowledgement, and the
   supported receive CLI/operator path. RFC-0028 now provides Contract Verified pure
   default-deny outbound route admission whose only production consumers are the exact
-  pure RFC-0029 definition surface; governed fact acquisition and every Router execution
-  consumer remain separately authorized before any second candidate or provider
-  integration.
+  pure RFC-0029 definition surface. RFC-0030 supplies the pure suitability evaluator,
+  and RFC-0031 defines a pinned canonical capability-catalog acquisition contract;
+  source implementation, its same-invocation RFC-0030-to-RFC-0029 consumer, and every
+  Router execution consumer remain separately authorized before any second candidate
+  or provider integration.
 - Future LLM-backed Planner input/output schema is not selected yet.

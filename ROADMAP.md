@@ -988,9 +988,16 @@ Scope:
   classification evidence. Its final field-free evaluator creates the existing
   invocation-local RFC-0029 proof only after a closed 18-reason validation order;
   source guards prove no production capability-facts creator or evaluator caller
-  exists. Governed production fact acquisition, the same-invocation RFC-0029 option
-  consumer, and route-execution preparation remain planned separately, and the
-  deterministic fake remains on its existing local-only path;
+  exists. The same-invocation RFC-0029 option consumer and route-execution preparation
+  remain planned separately, and the deterministic fake remains on its existing local-
+  only path;
+- an accepted RFC-0031 specification for the first provider-neutral production
+  capability-fact source: protected composition supplies an absolute canonical local
+  catalog path and independent whole-file SHA-256 pin, bounded canonical acquisition
+  performs exact candidate/destination lookup and complete RFC-0030 mapping, and only a
+  later same-invocation RFC-0030-to-RFC-0029 consumer may use success. Source
+  implementation, truthful provisioning and rotation, the consumer, providers,
+  credentials, network, spend, execution, and MCP remain planned separately;
 - timeout, cancellation, token, context, cost, redaction, and response-validation budgets;
 - versioned per-model quality evaluation, policy-scoped fallback and response caching, prompt-injection resistance, source attribution, and visible uncertainty;
 - secret/sensitive-data detection plus explicit outbound destination, purpose, retention, and data-classification policy before remote transmission;
@@ -1308,6 +1315,7 @@ Status: Accepted
 - RFC-0028: Provider-Neutral Outbound Model Route Admission
 - RFC-0029: Pure Provider-Neutral Model Router
 - RFC-0030: Governed Remote Model Candidate Suitability
+- RFC-0031: Pinned Governed Remote Capability Catalog Source
 
 RFC acceptance does not imply Contract Verified, Integrated, Operational, or Released capability maturity.
 

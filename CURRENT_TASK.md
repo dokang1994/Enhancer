@@ -129,7 +129,7 @@ delivery documentation in Increment 2.
 
 ### Increment 2 - reconcile-governed-source-context
 
-State: In Progress
+State: Completed
 Depends On: define-source-authority-and-snapshot-contract
 Scope: Synchronize Architecture and its compact mirror, Roadmap and RFC track, Project
 State only where current absence wording changes, Changelog, and task cursor without
@@ -144,7 +144,7 @@ commit the verified reconciliation boundary.
 
 ### Increment 3 - verify-and-close-source-specification
 
-State: Pending
+State: In Progress
 Depends On: reconcile-governed-source-context
 Scope: Run full Markdown-sensitive Java 17 regression, review the exact diff, synchronize
 the completed task and session-only handoff if needed, append closure evidence, and make
@@ -159,5 +159,5 @@ evaluator caller, Router option consumer, provider, credential, network, spend, 
 
 ## Next
 
-Reconcile RFC-0031 into Architecture, its compact mirror, Roadmap, current-state
-wording where needed, and delivery history without claiming implementation or maturity.
+Run the exact-tree full regression, inspect the final diff and repository state, and
+close the documentation-only RFC-0031 task without push.

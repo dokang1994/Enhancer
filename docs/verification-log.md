@@ -8579,3 +8579,18 @@ Outcome:
   Exact heading/reference inspection and fresh `git diff --check` also passed.
 - No provider, adapter, credential, network, spend, execution, persistence, retry,
   fallback, runtime, MCP, push, or other external-effect authority was added.
+
+## 2026-10-22 - RFC-0031 Context Reconciliation
+
+- Canonical Architecture and its compact mirror now connect the pinned capability-
+  catalog acquisition contract only to later same-invocation RFC-0030 evaluation
+  preparation and RFC-0029 option construction, without duplicating the RFC grammar.
+- The Gate 9 Roadmap and RFC track now include the accepted RFC-0031 specification while
+  retaining source implementation, truthful provisioning and rotation, the consumer,
+  provider, credential, network, spend, execution, and MCP work as planned separately.
+- `PROJECT_STATE.md` corrects stale absence wording now that the pure RFC-0030 evaluator
+  exists, while continuing to report that the production source and consumer remain
+  absent. No capability maturity changed; no session-only handoff fact was introduced.
+- Fresh focused Java 17 verification completed 13 suites and 55 tests: 54 passed, one
+  conditional platform test was skipped, and zero failed or errored. Architecture-
+  mirror/Roadmap reference inspection and fresh `git diff --check` also passed.

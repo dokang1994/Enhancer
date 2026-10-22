@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-10-22 - Specify The Pinned Governed Remote Capability Catalog Source
+
+- Accepted RFC-0031 as the documentation-only provider-neutral production acquisition
+  contract for `RemoteModelCandidateCapabilityFacts`.
+- Defined independently provisioned absolute-path and whole-file SHA-256 trust inputs,
+  one bounded canonical snapshot, complete-catalog validation, exact pair lookup,
+  complete RFC-0030 mapping, explicit-time freshness, rotation, closed refusals, and
+  safe rendering.
+- Limited the pin's meaning to exact operator-approved bytes and kept truthful
+  provisioning, implementation, the same-invocation RFC-0030-to-RFC-0029 consumer,
+  providers, credentials, network, spend, execution, persistence, runtime, and MCP
+  separate.
+- Reconciled Architecture and its compact mirror, the Gate 9 Roadmap and RFC track,
+  and stale current-state absence wording without promoting capability maturity.
+
 ## 2026-10-16 - Deliver RFC-0030 Implementation To Main
 
 - Accepted the user's bounded commit, push, and merge request for the four verified

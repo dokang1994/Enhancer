@@ -2,7 +2,7 @@
 
 ## Updated At
 
-2026-10-07
+2026-10-22
 
 ## Repository State
 
@@ -31,9 +31,9 @@ it does not restate which commit published which increment.
   preserves every exact input instance but grants no provider, credential,
   transmission, spend, persistence, retry, fallback, or execution authority. Source,
   locality, dependency, reflection, and no-caller guards keep the deterministic fake
-  outside this boundary. Governed remote-suitability evaluation and fact acquisition,
-  route-execution preparation, providers, networks, durable provenance, and MCP remain
-  absent.
+  outside this boundary. Governed capability-fact acquisition, same-invocation route-
+  option construction, route-execution preparation, providers, networks, durable
+  provenance, and MCP remain absent.
 
 - The RFC-0028 provider-neutral outbound model route-admission boundary under
   `com.enhancer.model` is Contract Verified. Nineteen
@@ -1125,10 +1125,10 @@ it does not restate which commit published which increment.
   production capability-facts creators and zero evaluator callers. Their accumulation
   does not establish whole-gate maturity. Real providers, MCP client/server composition,
   outbound data policy, fallback/cache provenance, and fixed-fixture model evaluation
-  remain absent. Governed production capability-fact acquisition and a same-invocation
-  RFC-0029 route-option consumer are the next missing Gate-9-owned boundaries before
-  route-execution preparation or any second candidate, provider, credential, network,
-  or paid invocation is connected.
+  remain absent. A production implementation of the governed capability-fact source
+  and a same-invocation RFC-0029 route-option consumer are the missing Gate-9-owned
+  boundaries before route-execution preparation or any second candidate, provider,
+  credential, network, or paid invocation is connected.
 - Gate 8 lease-expiry recovery now has one named worker-level fixture over the
   post-RunRecord-reference prefix. The first cycle persists exactly one reference,
   expires before execution acknowledgement, and leaves the AgentRun reclaimable at
