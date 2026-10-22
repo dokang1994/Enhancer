@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-10-22 into governed remote capability-fact source specification
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-10-22-specify-governed-remote-capability-fact-source.md)
+
 ### User request on 2026-10-16 to commit, push, and merge the RFC-0030 implementation to main
 
 Status: Accepted Decision

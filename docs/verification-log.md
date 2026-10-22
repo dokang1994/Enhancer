@@ -8558,3 +8558,24 @@ Outcome:
   `CHANGELOG.md`, and this append-only verification log; no product, test, architecture,
   maturity, Roadmap, RFC, schema, release, deployment, provider, credential, network,
   spend, or MCP state changed.
+
+## 2026-10-22 - RFC-0031 Source Authority And Snapshot Contract
+
+- The continuation authority is recorded by one exact Accepted Decision/index pair,
+  and RFC-0031 specifies the pinned provider-neutral capability-catalog source without
+  adding Java, test-source, a source instance, or a production caller.
+- Independent read-only security, schema, and governance reviews were reconciled into
+  the contract. The whole-file pin is limited to exact operator-approved bytes, every
+  catalog record is validated before exact pair lookup, the verified digest supplies
+  source revision, and all remote-world claims still depend on out-of-scope truthful
+  provisioning.
+- The contract defines the absolute normalized path and independent SHA-256 trust
+  inputs, one bounded no-link defensive snapshot, strict canonical grammar, complete
+  RFC-0030 field mapping, explicit-time freshness, rotation, closed refusal precedence,
+  safe rendering, failure behavior, and only the later same-invocation RFC-0030 to
+  RFC-0029 consumer connection.
+- Fresh focused Java 17 verification completed 10 suites and 36 tests with
+  `BUILD SUCCESSFUL` in 1 minute 8 seconds, with zero failures, errors, or skips.
+  Exact heading/reference inspection and fresh `git diff --check` also passed.
+- No provider, adapter, credential, network, spend, execution, persistence, retry,
+  fallback, runtime, MCP, push, or other external-effect authority was added.
