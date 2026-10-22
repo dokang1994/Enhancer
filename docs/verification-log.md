@@ -8594,3 +8594,21 @@ Outcome:
 - Fresh focused Java 17 verification completed 13 suites and 55 tests: 54 passed, one
   conditional platform test was skipped, and zero failed or errored. Architecture-
   mirror/Roadmap reference inspection and fresh `git diff --check` also passed.
+
+## 2026-10-22 - RFC-0031 Full Verification And Closure
+
+- Fresh README-owned full Markdown-sensitive Java 17 verification ran on the committed
+  specification and context-reconciliation increments and completed with
+  `BUILD SUCCESSFUL` in 9 minutes 27 seconds.
+- Generated JUnit XML contained 235 suites and 1,280 tests: 1,264 passed, 16 conditional
+  platform tests were skipped, and zero failed or errored. Fresh `git diff --check`
+  passed, and the worktree was clean before closure documentation was appended.
+- RFC-0031 is accepted as a documentation-only pinned capability-catalog acquisition
+  contract. No source implementation, production facts creator, evaluator caller,
+  Router option consumer, provider, credential, network, spend, execution, persistence,
+  runtime, MCP, capability promotion, push, or external effect was added.
+- `PROJECT_STATE.md`, `ROADMAP.md`, Architecture, its compact mirror, Changelog, and the
+  Active Task are current. `SESSION_HANDOFF.md` remains unchanged because no new host-
+  only fact would otherwise be lost.
+- The verified local GREEN increment commits are `251779a` and `711359f`. The closure
+  documentation remains a final local GREEN commit; no push is authorized.

@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -144,7 +144,7 @@ commit the verified reconciliation boundary.
 
 ### Increment 3 - verify-and-close-source-specification
 
-State: In Progress
+State: Completed
 Depends On: reconcile-governed-source-context
 Scope: Run full Markdown-sensitive Java 17 regression, review the exact diff, synchronize
 the completed task and session-only handoff if needed, append closure evidence, and make
@@ -159,5 +159,6 @@ evaluator caller, Router option consumer, provider, credential, network, spend, 
 
 ## Next
 
-Run the exact-tree full regression, inspect the final diff and repository state, and
-close the documentation-only RFC-0031 task without push.
+Await separate user authority to implement RFC-0031 RED-first. Do not connect an RFC-
+0030 evaluator caller, RFC-0029 route-option consumer, provider, credential, network,
+spend, execution, or MCP path.
