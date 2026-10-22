@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -17,12 +17,12 @@ deliver-rfc-0030-implementation-to-main
 ## Context
 
 The primary delivery fast-forwarded remote `main` from `a8cb053` through the four
-completed RFC-0030 commits and the delivery-authority commit to `cd07569`. Local,
-fetched, and advertised refs match that exact head, and its GitHub Actions `verify`
-workflow succeeded. The delivery-evidence closure remains to be committed and
-published through the same non-force protocol. The completed work already resides
-directly on `main`; there is no feature branch requiring a synthetic merge commit. The
-user explicitly requested commit, push, and merge on 2026-10-16.
+completed RFC-0030 commits and the delivery-authority commit to `cd07569`. The committed
+delivery-evidence closure then fast-forwarded remote `main` to `25555ea`. Final local,
+fetched, and advertised refs matched that exact head, and GitHub Actions `verify` run
+`39535612377` succeeded for it. The completed work already resides directly on `main`;
+there is no feature branch requiring a synthetic merge commit. The user explicitly
+requested commit, push, and merge on 2026-10-16.
 
 This delivery task changes only delivery authority, history, and evidence. It does not
 authorize a governed production capability-fact source, Router caller, provider,
@@ -146,7 +146,7 @@ Increment 3 is now selected for the committed evidence closure.
 
 ### Increment 3 - publish-and-close-delivery-evidence
 
-State: In Progress
+State: Completed
 Depends On: fast-forward-main-and-observe-ci
 Scope: Commit the verified evidence closure, re-fetch and prove fast-forward ancestry,
 push the explicit non-force `main:main` refspec, verify final refs and exact-head CI,
@@ -155,12 +155,13 @@ Exit Criteria: The evidence commit is on remote `main`; exact refs and CI are ve
 Git is clean; the task is complete; and the checkpoint is stable and clear.
 Verification: Commit, fetch, merge-base/ancestor/divergence, explicit push, ref equality,
 GitHub Actions exact-head observation, status, and checkpoint reconciliation.
-Next Action: Await separate authority for a governed production capability-fact source,
-same-invocation Router option consumer, or another explicitly selected Gate 9 boundary.
+Next Action: Completed after the evidence commit was published by explicit non-force
+fast-forward, final local/fetched/advertised refs matched, and the exact-head GitHub
+Actions workflow succeeded. Await separate authority for a governed production
+capability-fact source, same-invocation Router option consumer, or another explicitly
+selected Gate 9 boundary.
 
 ## Next
 
-Commit the verified primary-delivery evidence, re-fetch and prove fast-forward
-ancestry, publish that evidence commit through the explicit non-force `main:main`
-refspec, and verify final exact refs and CI. After delivery closes, await separate
-authority for the next product boundary.
+Await separate authority for a governed production capability-fact source,
+same-invocation Router option consumer, or another explicitly selected Gate 9 boundary.
