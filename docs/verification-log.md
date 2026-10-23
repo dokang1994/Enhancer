@@ -8628,3 +8628,18 @@ Outcome:
 - Fresh focused Java 17 verification then completed the same 53 tests with zero
   failures, and fresh `git diff --check` passed. Production source callers, RFC-0030
   evaluator callers, and RFC-0029 option consumers remain absent.
+
+## 2026-10-23 - RFC-0031 Defensive Snapshot And Catalog Parser Increment
+
+- Focused RED verification failed only because the planned package-private exact-read
+  helper was absent. The implementation then added exact-real/no-link validation, a
+  single bounded 1-byte-through-4-MiB channel snapshot, deterministic early-EOF/extra-
+  byte/size-drift detection, constant-time pin comparison, and strict UTF-8 decoding.
+- The complete fixed-order v1 catalog is consumed before lookup. Tests cover zero and
+  256 records, schema rejection, canonical text and numeric/instant forms, semantic
+  bounds and relationships, strict pair ordering/uniqueness, and invalid unselected
+  records. Facts construction, lookup mapping, and freshness remain deferred.
+- Fresh source/snapshot/catalog verification was GREEN. A broader 12-suite selection
+  including RFC-0030 values, existing pinned-file and bounded-read precedents, and
+  suitability/outbound/router/locality/document guards also completed with `BUILD
+  SUCCESSFUL`; fresh `git diff --check` passed.

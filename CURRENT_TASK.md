@@ -138,7 +138,7 @@ Increment 2.
 
 ### Increment 2 - implement-defensive-catalog-snapshot
 
-State: In Progress
+State: Completed
 Depends On: establish-source-result-contract
 Scope: Add RED tests and implement exact-real/no-link bounded single-snapshot reading,
 pin verification, strict UTF-8 decoding, the complete canonical v1 parser/re-encoder,
@@ -154,7 +154,7 @@ in Increment 3.
 
 ### Increment 3 - complete-lookup-mapping-and-guards
 
-State: Pending
+State: In Progress
 Depends On: implement-defensive-catalog-snapshot
 Scope: Add RED tests and implement exact pair lookup, complete facts mapping, explicit-
 time freshness, reread and rotation behavior, safe acquired rendering, and construction/
@@ -187,5 +187,5 @@ spend, execution, persistence, runtime, or MCP.
 
 ## Next
 
-Implement the exact-real, bounded, pinned catalog snapshot and complete canonical v1
-parser under RED tests for Increment 2.
+Implement exact lookup, complete RFC-0030 mapping, explicit-time freshness, reread and
+rotation behavior, and production boundary guards under RED tests for Increment 3.
