@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User request on 2026-10-23 to push completed RFC-0031 work to origin main
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-10-23-push-rfc-0031-work-to-origin-main.md)
+
 ### User continuation request on 2026-10-23 into RFC-0031 pinned capability catalog source implementation
 
 Status: Accepted Decision
