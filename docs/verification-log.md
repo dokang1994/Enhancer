@@ -8612,3 +8612,19 @@ Outcome:
   only fact would otherwise be lost.
 - The verified local GREEN increment commits are `251779a` and `711359f`. The closure
   documentation remains a final local GREEN commit; no push is authorized.
+
+## 2026-10-23 - RFC-0031 Source Result Contract Increment
+
+- Missing-symbol RED verification failed at `compileTestJava` with 46 errors limited
+  to the three planned RFC-0031 production types: the closed refusal reason, sealed
+  result, and final pinned-file source.
+- The minimum implementation added the exact ten-reason order, two non-serializable
+  result records, constructor trust-input validation, acquisition programming-input
+  validation, and fail-closed unavailable result without filesystem acquisition or
+  capability-facts creation.
+- The first focused GREEN attempt ran 53 tests and exposed one existing outbound-route
+  architecture guard violation. The source-local intrinsic syntax checks removed that
+  dependency without widening the guard allowlist.
+- Fresh focused Java 17 verification then completed the same 53 tests with zero
+  failures, and fresh `git diff --check` passed. Production source callers, RFC-0030
+  evaluator callers, and RFC-0029 option consumers remain absent.

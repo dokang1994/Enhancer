@@ -2,89 +2,96 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Specify RFC-0031 as the first pinned, provider-neutral governed production acquisition
-boundary for `RemoteModelCandidateCapabilityFacts`, without implementing a source or
-connecting a Router, provider, credential, network, spend, runtime, or MCP path.
+Implement RFC-0031 RED-first as the pinned, provider-neutral production acquisition
+source for `RemoteModelCandidateCapabilityFacts`, while retaining zero production
+source callers and zero RFC-0030 evaluator callers.
 
 ## Task ID
 
-specify-governed-remote-capability-fact-source
+implement-rfc-0031-pinned-capability-catalog-source
 
 ## Context
 
-RFC-0030 defines opaque capability facts and a pure evaluator, while source guards
-prove that production has zero capability-facts creators and zero evaluator callers.
-The dependency-ordered Gate 9 gap is therefore a governed fact source before the same-
-invocation RFC-0029 route-option consumer or route-execution preparation.
+RFC-0031 defines an independently provisioned absolute normalized catalog path and
+whole-file lowercase SHA-256 pin, one bounded exact-real no-link snapshot, strict
+canonical grammar, complete catalog validation, exact candidate/destination lookup,
+complete RFC-0030 field mapping, explicit-time freshness, closed refusal precedence,
+and safe rendering.
 
-The first source specification uses an independently provisioned absolute canonical
-catalog path and whole-file lowercase SHA-256 pin. It remains a read-only local
-acquisition boundary; provisioning, rotation, installation permissions, implementation,
-consumer composition, providers, credentials, network, spend, and execution remain
-separate.
+The dependency-ordered implementation boundary is the source alone. It may create
+RFC-0030 capability facts within `com.enhancer.model`, but it must not acquire
+eligibility, evaluate suitability, construct an RFC-0029 route option, or connect any
+provider, credential, network, spend, execution, persistence, runtime, or MCP path.
 
 ## Justified By
 
-- User continuation request on 2026-10-22 into governed remote capability-fact source specification
+- User continuation request on 2026-10-23 into RFC-0031 pinned capability catalog source implementation
 
 ## Approval
 
-The user's continuation request authorizes one documentation-only RFC-0031 task for the
-first governed production capability-fact acquisition boundary. It authorizes the
-Accepted Decision and index entry, RFC, Architecture and compact-mirror connection,
-Roadmap/RFC-track synchronization, current-state wording where needed, append-only
-verification evidence, Changelog entry, bounded read-only development-subagent review,
-fresh focused and full verification, and ordinary local GREEN commits required by
-repository policy.
+The user's continuation request authorizes the bounded RFC-0031 Java and test
+implementation, source and architecture guards, owned document synchronization,
+append-only verification evidence, bounded read-only development-subagent review,
+fresh focused and full Java 17 verification, and ordinary local GREEN commits required
+by repository policy.
 
-This approval does not authorize Java or test-source implementation, a production
-source instance or caller, discovery, registry, provider or adapter construction,
-endpoint or protocol access, credentials or secrets, network transmission, spend,
-Tool or external effects, persistence of invocation-local facts/proofs/routes, retry or
-fallback execution, runtime or Scheduler integration, durable schema or migration,
-MCP, plugin, interface, background work, capability promotion, push, merge, release,
-deployment, permission change, destructive cleanup, or unrelated external effects.
+This approval does not authorize an installed production catalog, catalog writer or
+provisioner, rotation command, installation layout or permission change, signature
+scheme, remote retrieval, production source caller, RFC-0030 evaluator caller,
+RFC-0029 option consumer, provider or adapter, endpoint or protocol, credential,
+secret, network, transmission, spend, billing, execution, Tool, persistence, retry,
+fallback, runtime, Scheduler, RunRecord, durable schema or migration, MCP, plugin,
+interface, background work, push, merge, release, deployment, destructive cleanup, or
+another external effect.
 
 ## Acceptance Criteria
 
-- One Accepted Decision records the continuation authority and pinned local catalog
-  direction with an exact matching `DECISION_LOG.md` entry.
-- RFC-0031 defines the source's trusted construction inputs, canonical bounded snapshot
-  and record grammar, independent authority and provenance, exact point lookup, complete
-  RFC-0030 field mapping, freshness/rotation behavior, closed acquisition outcome and
-  refusal order, safe rendering, and failure behavior.
-- The specification prohibits request, eligibility, provider, repository, environment,
-  working-directory, CLI, and ambient inputs from supplying or overriding trust roots
-  or capability values.
-- The source connects only to a later same-invocation RFC-0030 evaluation preparation
-  and RFC-0029 option-construction consumer; it adds no implementation or route-
-  execution authority.
-- Architecture, `.ai/architecture.md`, Roadmap, RFC track, Project State where current
-  absence wording changes, Changelog, task, and verification evidence are synchronized
-  without duplicating document ownership.
-- Fresh focused governance, full README-owned Java 17 regression, and `git diff
-  --check` pass; the task is Completed and the verified GREEN increment is committed
-  locally without push.
+- One Accepted Decision and exact index entry record the implementation authority.
+- A final pinned-file source exposes only an absolute normalized path and lowercase
+  whole-file SHA-256 pin at construction and exact candidate identity, destination
+  identity, and evaluation time at acquisition.
+- A sealed two-shape result and closed ten-reason refusal enum preserve RFC-0031 order,
+  programming-error boundaries, no-partial-facts behavior, and safe rendering.
+- Each acquisition reads one fresh 1-byte-through-4-MiB exact-real no-link regular-file
+  snapshot, detects size drift, verifies the pin before parsing, and uses the same bytes
+  for strict UTF-8 parsing, full validation, canonical re-encoding, lookup, and mapping.
+- The complete v1 catalog grammar, zero-through-256 contiguous records, canonical
+  integers and instants, fixed field order, exact enums/constants, record ordering and
+  uniqueness, every repository bound, and every cross-field relationship are enforced
+  before exact pair lookup.
+- Exact lookup, inclusive observation/exclusive expiry, source revision from the
+  verified pin, complete RFC-0030 field mapping, reread-on-every-acquisition, and
+  separately constructed rotation behavior are covered at boundaries.
+- Source, construction, dependency, locality, reflection, no-ambient-input, and zero-
+  production-caller guards prevent evaluator/Router/runtime/provider coupling and keep
+  the deterministic fake unchanged.
+- Fresh focused RED/GREEN evidence, applicable compatibility tests, the full README-
+  owned Java 17 regression, and `git diff --check` pass; owned documents are current;
+  and every verified GREEN increment is committed locally without push.
 
 ## Out Of Scope
 
-Java or test-source implementation; a source instance or consumer; catalog writer,
-provisioner, rotation command, installation layout, permissions, signature scheme, or
-remote retrieval; provider, adapter, model endpoint, protocol, credential, secret,
-network, transmission, spend, billing, availability, quality, latency, score, tokenizer,
-fallback, cache, retry execution, response handling, Tool, runtime, Scheduler,
-RunRecord, durable route provenance, schema, migration, MCP, plugin, interface,
-background work, capability promotion, push, merge, release, deployment, permission
-change, destructive cleanup, and unrelated external effects.
+An installed catalog, catalog writer, provisioner, rotation command, installation
+layout, permissions, signature verification, anti-rollback anchor, remote retrieval,
+discovery, registry, cache, fallback, production caller, evaluator composition, route-
+option construction, provider, adapter, provider model, endpoint, protocol, credential,
+secret, network, transmission, spend, billing, execution, response handling,
+availability, quality, latency, score, tokenizer, Tool, evidence, RunRecord, runtime
+event, Scheduler, finalization, recovery, persistence of invocation-local facts or
+proofs, retry execution, durable schema or migration, MCP, plugin, interface,
+background work, push, merge, release, deployment, permission change, destructive
+cleanup, and unrelated external effects.
 
 ## Allowed Tools
 
 - read-file
 - write-docs
+- write-code
+- write-tests
 - build-output
 - verify
 - checkpoint
@@ -95,70 +102,90 @@ change, destructive cleanup, and unrelated external effects.
 
 ## Verification
 
-Use the README-owned Java 17 Gradle command. Run focused RFC/decision/index/document-
-ownership/Architecture-mirror/Roadmap/Planner/Assisted-Loop/dynamic-workflow governance
-and `git diff --check`, followed by the full Markdown-sensitive regression on the exact
-final tree. Read fresh output before lifecycle claims. Subagent reports are
-recommendations and never verification evidence.
+Use the README-owned Java 17 Gradle command. Establish each observable boundary under
+focused RED tests, classify the failure against RFC-0031 and existing contracts, add
+the minimum implementation, and rerun focused GREEN verification. Cover RFC-0014,
+RFC-0016, RFC-0028 through RFC-0031, deterministic-fake compatibility, filesystem and
+architecture guards, then run the full Markdown-sensitive regression on the exact
+final tree. Read fresh output and generated JUnit XML before lifecycle claims.
+Subagent reports are recommendations and never verification evidence.
 
 ## Dynamic Workflow
 
-Workflow ID: specify-governed-remote-capability-fact-source
+Workflow ID: implement-rfc-0031-pinned-capability-catalog-source
 Mode: Sequential
-Increment Limit: 3
+Increment Limit: 4
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
 Stop Conditions: Stop on failed verification, task or checkpoint drift, conflict with
-RFC-0014/RFC-0016/RFC-0028/RFC-0029/RFC-0030, inability to define an independently
-trusted source, need for implementation or external authority, unsafe recovery, or
-scope expansion.
+RFC-0014/RFC-0016/RFC-0028/RFC-0029/RFC-0030/RFC-0031, inability to preserve the
+independent pin boundary, need for a production caller or external authority, unsafe
+recovery, or scope expansion.
 
-### Increment 1 - define-source-authority-and-snapshot-contract
+### Increment 1 - establish-source-result-contract
 
 State: Completed
 Depends On: none
-Scope: Record the continuation decision and define RFC-0031's source authority, pinned
-snapshot, canonical record grammar, exact lookup and mapping, trust/refresh behavior,
-closed outcomes, and explicit exclusions.
-Exit Criteria: The decision/index pair and complete RFC exist; bounded read-only reviews
-are reconciled; the contract names its later same-invocation consumer; focused document
-verification passes; evidence is appended once; and the increment is committed locally.
-Verification: RFC/decision/index/document-ownership and focused source/mirror guards,
-reference inspection, and `git diff --check`.
-Next Action: Reconcile Architecture, mirror, Roadmap, current-state absence wording, and
-delivery documentation in Increment 2.
+Scope: Add missing-symbol RED tests for the closed refusal enum, sealed acquisition
+result, and final source construction/acquisition surface; implement only those values
+and programming-input validation needed to turn that contract GREEN.
+Exit Criteria: Public shape, closed reasons/order, null and malformed programming
+inputs, safe rendering, finality, and field boundaries are GREEN; evidence is appended
+once; and the increment is committed locally.
+Verification: Focused value/reflection tests, decision/index/document ownership,
+dynamic-workflow governance, and `git diff --check`.
+Next Action: Implement the defensive snapshot and complete canonical parser in
+Increment 2.
 
-### Increment 2 - reconcile-governed-source-context
+### Increment 2 - implement-defensive-catalog-snapshot
 
-State: Completed
-Depends On: define-source-authority-and-snapshot-contract
-Scope: Synchronize Architecture and its compact mirror, Roadmap and RFC track, Project
-State only where current absence wording changes, Changelog, and task cursor without
-claiming implementation or maturity.
-Exit Criteria: Every fact is in its owning document, the RFC is connected to its later
-consumer, no capability maturity is promoted, focused governance passes, evidence is
-appended once, and the increment is committed locally.
-Verification: Architecture mirror, Roadmap/Planner, document ownership, decision/index,
-dynamic-workflow, references, and `git diff --check`.
-Next Action: Synchronize the owning context documents, then run focused governance and
-commit the verified reconciliation boundary.
+State: In Progress
+Depends On: establish-source-result-contract
+Scope: Add RED tests and implement exact-real/no-link bounded single-snapshot reading,
+pin verification, strict UTF-8 decoding, the complete canonical v1 parser/re-encoder,
+whole-catalog structural and semantic validation, and refusal reasons one through
+eight.
+Exit Criteria: Snapshot safety, drift, size, pin, UTF-8, schema, canonicality, content,
+record-count/order/uniqueness, and invalid-unselected-record cases are GREEN; evidence
+is appended once; and the increment is committed locally.
+Verification: Focused filesystem/parser/security tests, relevant pinned-file precedent
+tests, architecture guards, and `git diff --check`.
+Next Action: Implement exact lookup, mapping, freshness, rotation, and production guards
+in Increment 3.
 
-### Increment 3 - verify-and-close-source-specification
+### Increment 3 - complete-lookup-mapping-and-guards
 
-State: Completed
-Depends On: reconcile-governed-source-context
-Scope: Run full Markdown-sensitive Java 17 regression, review the exact diff, synchronize
-the completed task and session-only handoff if needed, append closure evidence, and make
-the required ordinary local GREEN closure commit.
-Exit Criteria: Fresh full regression and diff checks are GREEN; owned documents are
-current; the task is Completed; Git is clean; required commits exist; and the checkpoint
-is stable and clear.
+State: Pending
+Depends On: implement-defensive-catalog-snapshot
+Scope: Add RED tests and implement exact pair lookup, complete facts mapping, explicit-
+time freshness, reread and rotation behavior, safe acquired rendering, and construction/
+dependency/locality/no-ambient-input/zero-caller guards.
+Exit Criteria: Refusals nine and ten, all field/boundary mappings, freshness equality,
+reread/rotation, safe rendering, RFC-0030 compatibility, and zero production caller
+constraints are GREEN; evidence is appended once; and the increment is committed
+locally.
+Verification: Focused RFC-0031 behavior and boundary tests plus RFC-0014/RFC-0016/RFC-
+0028/RFC-0029/RFC-0030/deterministic-fake compatibility and `git diff --check`.
+Next Action: Synchronize owned documents and run full exact-tree regression in
+Increment 4.
+
+### Increment 4 - verify-and-close-source-implementation
+
+State: Pending
+Depends On: complete-lookup-mapping-and-guards
+Scope: Reconcile Architecture and compact mirror, current implementation state,
+Roadmap, Changelog, task and session-only handoff if needed; run the full Markdown-
+sensitive Java 17 regression; review the exact diff and Git state; and close with the
+required local GREEN commit.
+Exit Criteria: Fresh full regression and diff checks are GREEN; source implementation
+and known absences are recorded by their owning documents; the task is Completed; Git
+is clean; required commits exist; and the checkpoint is stable and clear.
 Verification: Full README-owned test command, generated JUnit XML counts, `git diff
 --check`, diff/status/log review, commits, and checkpoint reconciliation.
-Next Action: Await separate authority to implement RFC-0031; do not connect an RFC-0030
-evaluator caller, Router option consumer, provider, credential, network, spend, or MCP.
+Next Action: Await separate authority for the same-invocation RFC-0030 evaluator and
+RFC-0029 option-construction consumer; do not connect provider, credential, network,
+spend, execution, persistence, runtime, or MCP.
 
 ## Next
 
-Await separate user authority to implement RFC-0031 RED-first. Do not connect an RFC-
-0030 evaluator caller, RFC-0029 route-option consumer, provider, credential, network,
-spend, execution, or MCP path.
+Implement the exact-real, bounded, pinned catalog snapshot and complete canonical v1
+parser under RED tests for Increment 2.

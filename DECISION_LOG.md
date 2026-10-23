@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-10-23 into RFC-0031 pinned capability catalog source implementation
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-10-23-implement-rfc-0031-pinned-capability-catalog-source.md)
+
 ### User continuation request on 2026-10-22 into governed remote capability-fact source specification
 
 Status: Accepted Decision
