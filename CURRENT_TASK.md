@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -170,7 +170,7 @@ Increment 4.
 
 ### Increment 4 - verify-and-close-source-implementation
 
-State: In Progress
+State: Completed
 Depends On: complete-lookup-mapping-and-guards
 Scope: Reconcile Architecture and compact mirror, current implementation state,
 Roadmap, Changelog, task and session-only handoff if needed; run the full Markdown-
@@ -187,5 +187,7 @@ spend, execution, persistence, runtime, or MCP.
 
 ## Next
 
-Synchronize implementation state and delivery history, then run the full README-owned
-Markdown-sensitive regression and close Increment 4.
+Await separate authority for truthful installed-catalog provisioning and rotation or
+for the same-invocation RFC-0030 evaluator and RFC-0029 option-construction consumer;
+do not connect provider, credential, network, spend, execution, persistence, runtime,
+or MCP paths.

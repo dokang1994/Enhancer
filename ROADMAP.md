@@ -987,16 +987,17 @@ Scope:
   token/capacity, supported timeout, price schedule/cost basis, currency, and
   classification evidence. Its final field-free evaluator creates the existing
   invocation-local RFC-0029 proof only after a closed 18-reason validation order;
-  source guards prove no production capability-facts creator or evaluator caller
-  exists. The same-invocation RFC-0029 option consumer and route-execution preparation
+  source guards permit only the RFC-0031 pinned source to create capability facts and
+  prove that no production source caller or evaluator caller exists. The same-
+  invocation RFC-0029 option consumer and route-execution preparation
   remain planned separately, and the deterministic fake remains on its existing local-
   only path;
-- an accepted RFC-0031 specification for the first provider-neutral production
-  capability-fact source: protected composition supplies an absolute canonical local
+- a Contract Verified RFC-0031 implementation of the first provider-neutral production
+  capability-fact source: protected composition supplies an absolute normalized local
   catalog path and independent whole-file SHA-256 pin, bounded canonical acquisition
   performs exact candidate/destination lookup and complete RFC-0030 mapping, and only a
-  later same-invocation RFC-0030-to-RFC-0029 consumer may use success. Source
-  implementation, truthful provisioning and rotation, the consumer, providers,
+  later same-invocation RFC-0030-to-RFC-0029 consumer may use success. Truthful
+  provisioning and rotation, the consumer, providers,
   credentials, network, spend, execution, and MCP remain planned separately;
 - timeout, cancellation, token, context, cost, redaction, and response-validation budgets;
 - versioned per-model quality evaluation, policy-scoped fallback and response caching, prompt-injection resistance, source attribution, and visible uncertainty;

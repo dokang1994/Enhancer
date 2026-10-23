@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-10-23 - Implement The Pinned Remote Capability Catalog Source
+
+- Implemented RFC-0031 RED-first as the sole production creator of RFC-0030 remote
+  candidate capability facts, while retaining zero production source callers and zero
+  suitability-evaluator callers.
+- Added exact-real/no-link bounded single-snapshot reading, size and drift detection,
+  constant-time whole-file pin verification, strict UTF-8 and canonical v1 parsing,
+  complete-catalog validation, exact lookup, complete field mapping, explicit-time
+  freshness, reread/rotation behavior, and closed typed refusals.
+- Added behavior, filesystem, parser, mapping, and architecture guards without adding
+  a catalog installation, provisioner, provider, credential, network, spend,
+  execution, persistence, runtime, MCP, push, or other external effect.
+
 ## 2026-10-22 - Specify The Pinned Governed Remote Capability Catalog Source
 
 - Accepted RFC-0031 as the documentation-only provider-neutral production acquisition

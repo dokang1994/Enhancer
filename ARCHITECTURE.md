@@ -2079,8 +2079,9 @@ explicit evaluation time. It returns one closed 18-reason refusal or creates the
 existing RFC-0029 proof while preserving exact request, eligibility, and candidate-fact
 identities. Facts, proof, and decision remain invocation-local and grant no availability,
 provider, credential, transmission, spend, execution, persistence, retry, or fallback
-authority. Production source guards permit only the evaluator to create the proof and
-prove that no production capability-facts creator or evaluator caller exists; one
+authority. Production guards permit only the RFC-0031 pinned source to create
+capability facts, permit only the evaluator to create the proof, and prove that no
+production source caller or evaluator caller exists; one
 dedicated RFC-0029 test fixture retains package-local malformed-proof construction for
 Router fail-closed coverage. Governed production acquisition, RFC-0029 option
 construction by a production caller, route-execution preparation, provider/network
@@ -2097,11 +2098,13 @@ candidate/destination pair. It maps every RFC-0030 field from the pinned snapsho
 derives source revision from the verified digest, and checks selected-record freshness
 at the explicit time that RFC-0030 must independently recheck. A matching pin proves
 the exact operator-approved bytes, not the truth of remote-world claims; truthful
-provisioning, installation, and rotation remain separately governed. The only planned
+provisioning, installation, and rotation remain separately governed. The source is
+implemented with closed typed refusals, strict defensive acquisition, complete-catalog
+validation, exact lookup, complete facts mapping, and explicit-time freshness, while
+retaining zero production callers. The only planned
 connection is same-invocation RFC-0030 evaluation preparation followed by RFC-0029
-option construction. No source implementation, production caller, provider,
-credential, network, spend, execution, persistence, retry, fallback, or MCP authority
-follows from this contract.
+option construction. No production caller, provider, credential, network, spend,
+execution, persistence, retry, fallback, or MCP authority follows from this contract.
 
 ## Agent Orchestration Contract
 

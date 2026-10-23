@@ -1121,12 +1121,15 @@ it does not restate which commit published which increment.
   the Contract Verified pure outbound route-admission boundary, RFC-0029 provides its
   Contract Verified pure Router without an execution caller, and RFC-0030 now provides
   Contract Verified opaque remote capability facts plus the final field-free pure
-  suitability evaluator in a closed eighteen-reason order. Source guards prove zero
-  production capability-facts creators and zero evaluator callers. Their accumulation
+  suitability evaluator in a closed eighteen-reason order. RFC-0031 now provides the
+  Contract Verified pinned local capability-catalog source with closed refusals,
+  bounded defensive acquisition, complete validation, exact mapping, and explicit-time
+  freshness. Guards permit that source as the sole production capability-facts creator
+  while proving zero source callers and zero evaluator callers. Their accumulation
   does not establish whole-gate maturity. Real providers, MCP client/server composition,
   outbound data policy, fallback/cache provenance, and fixed-fixture model evaluation
-  remain absent. A production implementation of the governed capability-fact source
-  and a same-invocation RFC-0029 route-option consumer are the missing Gate-9-owned
+  remain absent. Truthful catalog provisioning and rotation plus a same-invocation
+  RFC-0029 route-option consumer are the missing Gate-9-owned
   boundaries before route-execution preparation or any second candidate, provider,
   credential, network, or paid invocation is connected.
 - Gate 8 lease-expiry recovery now has one named worker-level fixture over the
