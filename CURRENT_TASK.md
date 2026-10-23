@@ -98,7 +98,7 @@ mismatch, failed CI, task/checkpoint drift, insufficient authority, or unsafe re
 
 ### Increment 1 - publish-completed-rfc0031-history
 
-State: In Progress
+State: Completed
 Depends On: none
 Scope: Verify and commit delivery authority, query/fetch remote main, prove non-force
 fast-forward ancestry, push local main, verify exact refs, and observe exact-head CI.
@@ -110,7 +110,7 @@ Next Action: Record and publish the delivery-evidence closure.
 
 ### Increment 2 - publish-delivery-evidence-closure
 
-State: Pending
+State: In Progress
 Depends On: publish-completed-rfc0031-history
 Scope: Append delivery evidence once, update Changelog and task state, verify and commit
 the closure, repeat fresh ancestry checks, push non-force, verify exact final refs and
@@ -125,5 +125,5 @@ integration; do not connect provider, credential, spend, execution, runtime, or 
 
 ## Next
 
-Verify and commit the delivery authority, then publish local `main` by explicit
-non-force fast-forward to `origin/main`.
+Verify and commit the primary delivery evidence, publish the closure by explicit
+non-force fast-forward, verify its exact refs and CI, then close the delivery task.

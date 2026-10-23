@@ -8671,3 +8671,33 @@ Outcome:
 - Fresh `git diff --check` passed. The verified GREEN implementation commits are
   `f1c9589`, `8f7737e`, and `1d39a6b`; the closure documents remain the required final
   local GREEN commit. No push or external delivery was authorized.
+
+## 2026-10-23 - RFC-0031 Primary Main Delivery
+
+- The delivery authority was recorded by one exact Accepted Decision/index pair and a
+  bounded delivery Active Task. Fresh focused governance verification completed with
+  `BUILD SUCCESSFUL` in 45 seconds, and `git diff --check` passed before authority
+  commit `a34a611`.
+- A fresh advertised-ref query and successful fetch showed remote `main` at `ba88360`.
+  Local ancestry checks proved exact merge-base equality and zero remote-only versus
+  eight local-only commits before delivery.
+- The explicit non-force `git push origin main:main` fast-forwarded remote `main` from
+  `ba88360` to `a34a611`. A fresh fetch and advertised-ref query then proved local
+  `HEAD`, tracked `origin/main`, and GitHub `refs/heads/main` all exactly matched.
+- GitHub Actions `verify` run `39924475390` for exact head `a34a611` and the `push`
+  event reached terminal `success`. No force, synthetic merge, history rewrite,
+  release, deployment, permission change, product change, or unrelated external
+  effect occurred.
+
+## 2026-10-23 - RFC-0031 Delivery Evidence Closure Verification
+
+- Fresh focused Java 17 verification of the decision index, document ownership,
+  dynamic-workflow contract, and Active Task reader completed with `BUILD SUCCESSFUL`
+  in 42 seconds on the evidence-closure tree.
+- Fresh README-owned full Markdown-sensitive Java 17 regression completed with `BUILD
+  SUCCESSFUL` in 9 minutes 3 seconds. Generated JUnit XML contained 240 suites and
+  1,303 tests: 1,286 passed, 17 conditional tests skipped, and zero failed or errored.
+- Fresh `git diff --check` passed. The only changed artifacts are `CURRENT_TASK.md`,
+  `CHANGELOG.md`, and this append-only verification log; no product, test,
+  architecture, maturity, Roadmap, RFC, schema, provider, credential, spend, runtime,
+  MCP, release, or deployment state changed.
