@@ -15,8 +15,10 @@ import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HexFormat;
 import java.util.List;
@@ -114,14 +116,51 @@ public final class PinnedFileRemoteModelCandidateCapabilityFactSource {
         } catch (CharacterCodingException exception) {
             return refusal(Reason.UTF8);
         }
+        Catalog catalog;
         try {
-            parse(text);
+            catalog = parse(text);
         } catch (CatalogFailure failure) {
             return new RemoteModelCandidateCapabilityFactSourceResult.Refused(
                     failure.reason);
         }
-        return new RemoteModelCandidateCapabilityFactSourceResult.Refused(
-                RemoteModelCandidateCapabilityFactSourceRefusalReason.RECORD_NOT_FOUND);
+        CapabilityRecord selected = catalog.records.stream()
+                .filter(record -> record.candidate.equals(candidateIdentity)
+                        && record.destination.equals(destinationIdentity))
+                .findFirst().orElse(null);
+        if (selected == null) {
+            return new RemoteModelCandidateCapabilityFactSourceResult.Refused(
+                    RemoteModelCandidateCapabilityFactSourceRefusalReason.RECORD_NOT_FOUND);
+        }
+        if (evaluationTime.isBefore(selected.observed)
+                || !evaluationTime.isBefore(selected.expires)) {
+            return new RemoteModelCandidateCapabilityFactSourceResult.Refused(
+                    RemoteModelCandidateCapabilityFactSourceRefusalReason.RECORD_STALE);
+        }
+        RemoteModelCandidateCapabilityFacts facts =
+                RemoteModelCandidateCapabilityFacts.create(
+                        RemoteModelCandidateCapabilityFacts.SCHEMA_VERSION,
+                        catalog.identity,
+                        HexFormat.of().formatHex(expectedDigest),
+                        selected.evidence,
+                        selected.observed,
+                        selected.expires,
+                        selected.candidate,
+                        selected.destination,
+                        selected.modelClass,
+                        selected.capability,
+                        "profile-token-budget-v1",
+                        selected.schedule,
+                        new ModelTokenBudget(selected.basisInput, selected.basisOutput,
+                                selected.basisTotal),
+                        ModelReasoningRequirement.valueOf(selected.reasoning),
+                        selected.context,
+                        new ModelTokenBudget(selected.maximumInput,
+                                selected.maximumOutput, selected.maximumTotal),
+                        Duration.ofMillis(selected.millis),
+                        selected.currency,
+                        selected.cost,
+                        ModelDataClassification.valueOf(selected.classification));
+        return new RemoteModelCandidateCapabilityFactSourceResult.Acquired(facts);
     }
 
     static byte[] readDeclaredBytes(SeekableByteChannel channel, long size)
@@ -142,7 +181,7 @@ public final class PinnedFileRemoteModelCandidateCapabilityFactSource {
         return bytes;
     }
 
-    private static void parse(String text) throws CatalogFailure {
+    private static Catalog parse(String text) throws CatalogFailure {
         if (!text.endsWith("\n") || text.endsWith("\n\n")
                 || text.indexOf('\r') >= 0 || text.indexOf('\0') >= 0
                 || text.startsWith("\uFEFF")) {
@@ -162,43 +201,52 @@ public final class PinnedFileRemoteModelCandidateCapabilityFactSource {
         }
         Cursor cursor = new Cursor(lines);
         cursor.expect(HEADER);
-        contentLabel(cursor.value("catalogIdentity"), 256);
+        String catalogIdentity = cursor.value("catalogIdentity");
+        contentLabel(catalogIdentity, 256);
         BigInteger countValue = integer(cursor.value("recordCount"));
         if (countValue.compareTo(BigInteger.valueOf(256)) > 0) {
             throw content();
         }
         int count = countValue.intValue();
-        Pair previous = null;
+        List<CapabilityRecord> records = new ArrayList<>(count);
+        CapabilityRecord previous = null;
         for (int index = 0; index < count; index++) {
-            Pair current = record(cursor, index);
+            CapabilityRecord current = record(cursor, index);
             if (previous != null && previous.compareTo(current) >= 0) {
                 throw content();
             }
+            records.add(current);
             previous = current;
         }
         cursor.end();
+        return new Catalog(catalogIdentity, List.copyOf(records));
     }
 
-    private static Pair record(Cursor cursor, int index) throws CatalogFailure {
+    private static CapabilityRecord record(Cursor cursor, int index)
+            throws CatalogFailure {
         String prefix = "record." + index + ".";
         if (!RemoteModelCandidateCapabilityFacts.SCHEMA_VERSION.equals(
                 cursor.value(prefix + "schemaVersion"))) {
             throw schema();
         }
-        contentLabel(cursor.value(prefix + "capacityEvidenceIdentity"), 256);
+        String evidence = cursor.value(prefix + "capacityEvidenceIdentity");
+        contentLabel(evidence, 256);
         Instant observed = instant(cursor.value(prefix + "observedAt"));
         Instant expires = instant(cursor.value(prefix + "expiresAt"));
         String candidate = cursor.value(prefix + "candidateIdentity");
         String destination = cursor.value(prefix + "destinationIdentity");
         contentLabel(candidate, 256);
         contentLabel(destination, 256);
-        contentLabel(cursor.value(prefix + "modelClass"), 64);
-        contentLabel(cursor.value(prefix + "requiredCapability"), 256);
+        String modelClass = cursor.value(prefix + "modelClass");
+        String capability = cursor.value(prefix + "requiredCapability");
+        contentLabel(modelClass, 64);
+        contentLabel(capability, 256);
         if (!"profile-token-budget-v1".equals(
                 cursor.value(prefix + "tokenSemanticsIdentity"))) {
             throw content();
         }
-        contentLabel(cursor.value(prefix + "priceScheduleIdentity"), 256);
+        String schedule = cursor.value(prefix + "priceScheduleIdentity");
+        contentLabel(schedule, 256);
         long basisInput = longValue(cursor.value(
                 prefix + "tokenBudgetBasis.maxInputTokens"));
         long basisOutput = longValue(cursor.value(
@@ -238,7 +286,10 @@ public final class PinnedFileRemoteModelCandidateCapabilityFactSource {
                 || basisTotal > maximumTotal) {
             throw content();
         }
-        return new Pair(candidate, destination);
+        return new CapabilityRecord(evidence, observed, expires, candidate,
+                destination, modelClass, capability, schedule, basisInput,
+                basisOutput, basisTotal, reasoning, context, maximumInput,
+                maximumOutput, maximumTotal, millis, currency, cost, classification);
     }
 
     private static BigInteger integer(String value) throws CatalogFailure {
@@ -324,10 +375,17 @@ public final class PinnedFileRemoteModelCandidateCapabilityFactSource {
                 .CATALOG_CONTENT_INVALID);
     }
 
-    private record Pair(String candidate, String destination)
-            implements Comparable<Pair> {
+    private record Catalog(String identity, List<CapabilityRecord> records) {
+    }
+
+    private record CapabilityRecord(String evidence, Instant observed, Instant expires,
+            String candidate, String destination, String modelClass, String capability,
+            String schedule, long basisInput, long basisOutput, long basisTotal,
+            String reasoning, long context, long maximumInput, long maximumOutput,
+            long maximumTotal, long millis, String currency, long cost,
+            String classification) implements Comparable<CapabilityRecord> {
         @Override
-        public int compareTo(Pair other) {
+        public int compareTo(CapabilityRecord other) {
             int compared = candidate.compareTo(other.candidate);
             return compared != 0 ? compared : destination.compareTo(other.destination);
         }

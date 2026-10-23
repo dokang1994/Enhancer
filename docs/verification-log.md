@@ -8643,3 +8643,18 @@ Outcome:
   including RFC-0030 values, existing pinned-file and bounded-read precedents, and
   suitability/outbound/router/locality/document guards also completed with `BUILD
   SUCCESSFUL`; fresh `git diff --check` passed.
+
+## 2026-10-23 - RFC-0031 Lookup Mapping And Boundary Increment
+
+- Focused RED verification ran four lookup tests: the exact-miss case passed and the
+  three acquisition, mapping, freshness, reread, and rotation cases failed because the
+  parser intentionally still returned `Refused` for every valid nonempty catalog.
+- The source now performs exact candidate/destination lookup only after whole-catalog
+  validation, maps every RFC-0030 facts field, derives source revision from the verified
+  pin, and applies inclusive observation/exclusive expiry freshness using only the
+  caller-supplied evaluation time.
+- Source-specific guards make this source the sole production facts creator, retain
+  zero production source callers and zero evaluator callers, and reject runtime,
+  provider, ambient-input, Router, and execution dependencies.
+- Fresh focused verification completed ten behavior and architecture suites with
+  `BUILD SUCCESSFUL` in 44 seconds, and fresh `git diff --check` passed.

@@ -131,7 +131,7 @@ class RemoteModelCandidateSuitabilityBoundaryTest {
     void productionHasNoCapabilityFactsCreatorOrEvaluatorCallerAndOnlyEvaluatorCreatesProof()
             throws IOException {
         assertEquals(
-                List.of(),
+                List.of("PinnedFileRemoteModelCandidateCapabilityFactSource.java"),
                 productionFilesContaining(
                         "RemoteModelCandidateCapabilityFacts.create("));
         assertEquals(

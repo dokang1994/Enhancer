@@ -154,7 +154,7 @@ in Increment 3.
 
 ### Increment 3 - complete-lookup-mapping-and-guards
 
-State: In Progress
+State: Completed
 Depends On: implement-defensive-catalog-snapshot
 Scope: Add RED tests and implement exact pair lookup, complete facts mapping, explicit-
 time freshness, reread and rotation behavior, safe acquired rendering, and construction/
@@ -170,7 +170,7 @@ Increment 4.
 
 ### Increment 4 - verify-and-close-source-implementation
 
-State: Pending
+State: In Progress
 Depends On: complete-lookup-mapping-and-guards
 Scope: Reconcile Architecture and compact mirror, current implementation state,
 Roadmap, Changelog, task and session-only handoff if needed; run the full Markdown-
@@ -187,5 +187,5 @@ spend, execution, persistence, runtime, or MCP.
 
 ## Next
 
-Implement exact lookup, complete RFC-0030 mapping, explicit-time freshness, reread and
-rotation behavior, and production boundary guards under RED tests for Increment 3.
+Synchronize implementation state and delivery history, then run the full README-owned
+Markdown-sensitive regression and close Increment 4.
