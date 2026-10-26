@@ -8720,3 +8720,21 @@ Outcome:
 - No product/test source, installed catalog, provisioner, platform or permission effect,
   source/evaluator/Router consumer, provider, credential, network, spend, execution,
   runtime, persistence, MCP, push, release, or deployment was added.
+
+## 2026-10-26 - RFC-0032 Installation And Rotation Contract Increment
+
+- RFC-0032 advanced from Draft to Accepted after defining fixed protected installation
+  artifacts, strict canonical binding bytes, publisher-derived immutable catalog
+  identity, INSTALL and ROTATE, exact replay, lock and compare-and-swap, catalog-first/
+  binding-last publication, failure recovery, closed refusals, verification, and
+  exclusions.
+- The contract distinguishes cooperative concurrency and process-crash atomicity from
+  real platform permission enforcement, sudden-power-loss durability, and privileged
+  anti-rollback. It authorizes no implementation or real installation.
+- Fresh Java 17 verification covered the decision/index/document/dynamic-workflow/
+  Planner/Assisted-Loop task governance tests plus RFC-0028, RFC-0029, RFC-0030 and
+  RFC-0031 architecture boundaries, completing with `BUILD SUCCESSFUL` in 20 seconds.
+  Fresh `git diff --check` passed.
+- Production provisioning/rotation, installed artifacts, permission changes, catalog
+  consumers, providers, credentials, network, spend, execution, persistence, runtime,
+  MCP, push, release and deployment remain absent.

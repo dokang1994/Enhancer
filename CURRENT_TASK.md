@@ -114,7 +114,7 @@ Next Action: Define installation and rotation state transitions and failure beha
 
 ### Increment 2 - specify-installation-and-rotation-state-machine
 
-State: In Progress
+State: Completed
 Depends On: establish-provisioning-authority-and-threat-contract
 Scope: Specify canonical validation, immutable artifact and fixed binding publication,
 lock/CAS/replay semantics, crash recovery, observability, and explicit platform limits.
@@ -125,7 +125,7 @@ Next Action: Reconcile repository-owned architecture, state, roadmap, and lifecy
 
 ### Increment 3 - reconcile-and-verify-rfc0032
 
-State: Pending
+State: In Progress
 Depends On: specify-installation-and-rotation-state-machine
 Scope: Reconcile Architecture and its compact mirror, Project State, Roadmap and RFC
 track, Changelog, verification evidence, Active Task, and session handoff; run complete
@@ -139,6 +139,6 @@ Next Action: Await separate authority for implementation or the same-invocation 
 
 ## Next
 
-Complete Increment 2 by closing RFC-0032's fixed artifact identities, canonical binding
-grammar, installation and rotation state transitions, failures, and recovery behavior.
-Do not begin implementation or any external effect.
+Complete Increment 3 by reconciling the accepted RFC-0032 contract into its owning
+architecture, state, roadmap, lifecycle, and delivery documents, then run the complete
+fresh regression. Do not begin implementation or any external effect.
