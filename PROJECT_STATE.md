@@ -1128,10 +1128,14 @@ it does not restate which commit published which increment.
   while proving zero source callers and zero evaluator callers. Their accumulation
   does not establish whole-gate maturity. Real providers, MCP client/server composition,
   outbound data policy, fallback/cache provenance, and fixed-fixture model evaluation
-  remain absent. Truthful catalog provisioning and rotation plus a same-invocation
-  RFC-0029 route-option consumer are the missing Gate-9-owned
-  boundaries before route-execution preparation or any second candidate, provider,
-  credential, network, or paid invocation is connected.
+  remain absent. RFC-0032 is now the Accepted specification for truthful catalog
+  evidence ownership, protected immutable-catalog and fixed-binding publication,
+  INSTALL/ROTATE, lock/CAS, exact replay, and failure recovery, but no production
+  provisioner, installed catalog, permission enforcement, runtime binding composition,
+  or privileged anti-rollback exists. That implementation and a same-invocation
+  RFC-0029 route-option consumer are the missing Gate-9-owned boundaries before route-
+  execution preparation or any second candidate, provider, credential, network, or paid
+  invocation is connected. The specification alone does not change whole-gate maturity.
 - Gate 8 lease-expiry recovery now has one named worker-level fixture over the
   post-RunRecord-reference prefix. The first cycle persists exactly one reference,
   expires before execution acknowledgement, and leaves the AgentRun reclaimable at

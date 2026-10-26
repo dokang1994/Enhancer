@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -125,7 +125,7 @@ Next Action: Reconcile repository-owned architecture, state, roadmap, and lifecy
 
 ### Increment 3 - reconcile-and-verify-rfc0032
 
-State: In Progress
+State: Completed
 Depends On: specify-installation-and-rotation-state-machine
 Scope: Reconcile Architecture and its compact mirror, Project State, Roadmap and RFC
 track, Changelog, verification evidence, Active Task, and session handoff; run complete
@@ -139,6 +139,7 @@ Next Action: Await separate authority for implementation or the same-invocation 
 
 ## Next
 
-Complete Increment 3 by reconciling the accepted RFC-0032 contract into its owning
-architecture, state, roadmap, lifecycle, and delivery documents, then run the complete
-fresh regression. Do not begin implementation or any external effect.
+Await separate authority for RFC-0032 implementation or the same-invocation RFC-0031
+source, RFC-0030 evaluator and RFC-0029 route-option consumer. Do not install a catalog,
+mutate permissions, connect a provider, credential, network, spend, execution,
+persistence, runtime, or MCP path, or push these local commits without explicit request.

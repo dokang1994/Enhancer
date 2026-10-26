@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-10-26 - Specify Governed Capability Catalog Provisioning And Rotation
+
+- Accepted RFC-0032 as the documentation-only contract for independently evidenced,
+  protected provisioning and rotation of RFC-0031's catalog path and whole-file pin.
+- Separated evidence author, operator intent, privileged allowlisted publisher, and
+  read-only runtime authority; defined fixed protected artifacts, canonical binding,
+  publisher-derived digest, INSTALL/ROTATE, lock/CAS, exact replay, immutable-catalog-
+  first/binding-last publication, closed refusals, and authority-preserving recovery.
+- Kept implementation, installed artifacts, platform permission enforcement, sudden-
+  power-loss durability, privileged anti-rollback, authenticated transport, runtime
+  composition, catalog consumers, providers, credentials, network, spend, execution,
+  persistence, MCP, push, release, and deployment separate.
+
 ## 2026-10-23 - Deliver RFC-0031 Work To Origin Main
 
 - Accepted the user's bounded request to push the completed RFC-0031 specification and

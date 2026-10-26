@@ -996,9 +996,14 @@ Scope:
   capability-fact source: protected composition supplies an absolute normalized local
   catalog path and independent whole-file SHA-256 pin, bounded canonical acquisition
   performs exact candidate/destination lookup and complete RFC-0030 mapping, and only a
-  later same-invocation RFC-0030-to-RFC-0029 consumer may use success. Truthful
-  provisioning and rotation, the consumer, providers,
-  credentials, network, spend, execution, and MCP remain planned separately;
+  later same-invocation RFC-0030-to-RFC-0029 consumer may use success;
+- an Accepted RFC-0032 specification for truthful catalog evidence ownership and
+  protected provisioning/rotation: a privileged allowlisted publisher derives the pin
+  from one complete canonical snapshot, publishes an immutable catalog before a fixed
+  path-plus-pin binding, and defines INSTALL/ROTATE, lock/CAS, exact replay and fail-
+  closed recovery without claiming platform permissions or anti-rollback. Its
+  implementation, runtime binding composition, the consumer, providers, credentials,
+  network, spend, execution, and MCP remain planned separately;
 - timeout, cancellation, token, context, cost, redaction, and response-validation budgets;
 - versioned per-model quality evaluation, policy-scoped fallback and response caching, prompt-injection resistance, source attribution, and visible uncertainty;
 - secret/sensitive-data detection plus explicit outbound destination, purpose, retention, and data-classification policy before remote transmission;
@@ -1317,6 +1322,7 @@ Status: Accepted
 - RFC-0029: Pure Provider-Neutral Model Router
 - RFC-0030: Governed Remote Model Candidate Suitability
 - RFC-0031: Pinned Governed Remote Capability Catalog Source
+- RFC-0032: Governed Remote Capability Catalog Provisioning And Rotation
 
 RFC acceptance does not imply Contract Verified, Integrated, Operational, or Released capability maturity.
 

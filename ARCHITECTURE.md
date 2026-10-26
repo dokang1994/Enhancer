@@ -2097,14 +2097,31 @@ validates the complete strict UTF-8 canonical catalog, and resolves only an exac
 candidate/destination pair. It maps every RFC-0030 field from the pinned snapshot,
 derives source revision from the verified digest, and checks selected-record freshness
 at the explicit time that RFC-0030 must independently recheck. A matching pin proves
-the exact operator-approved bytes, not the truth of remote-world claims; truthful
-provisioning, installation, and rotation remain separately governed. The source is
+the exact operator-approved bytes, not the truth of remote-world claims; RFC-0032 now
+governs provisioning, installation, and rotation while their implementation remains
+separate. The source is
 implemented with closed typed refusals, strict defensive acquisition, complete-catalog
 validation, exact lookup, complete facts mapping, and explicit-time freshness, while
 retaining zero production callers. The only planned
 connection is same-invocation RFC-0030 evaluation preparation followed by RFC-0029
 option construction. No production caller, provider, credential, network, spend,
 execution, persistence, retry, fallback, or MCP authority follows from this contract.
+
+RFC-0032 defines the provider-neutral contract that may later provision RFC-0031's
+protected path and pin. Independent evidence authors own every remote-world claim;
+operator intent names one approved evidence/candidate scope and operation; only an
+allowlisted privileged publisher derives the digest from the complete canonical
+candidate snapshot and may mutate protected installation artifacts; the runtime reader
+is read-only. One fixed stateless lock, immutable content-addressed catalog directory,
+and strict fixed canonical path-plus-pin binding support INSTALL and compare-and-swap
+ROTATE. Publication is catalog first and binding last, exact replay recovers a lost
+success response, stale intent and unsafe current state refuse without mutation, and no
+failure triggers rollback, fallback, repair, permission broadening, or cleanup. Lock and
+CAS address cooperating concurrency only; platform permissions, sudden-power-loss
+durability, privileged anti-rollback, authenticated operator transport, evidence
+storage, publisher implementation, real installation, runtime binding composition, and
+the same-invocation RFC-0030-to-RFC-0029 consumer remain separately authorized. RFC-0032
+is an Accepted specification and adds no implemented or Operational capability.
 
 ## Agent Orchestration Contract
 
@@ -2612,8 +2629,9 @@ Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts bel
   supported receive CLI/operator path. RFC-0028 now provides Contract Verified pure
   default-deny outbound route admission whose only production consumers are the exact
   pure RFC-0029 definition surface. RFC-0030 supplies the pure suitability evaluator,
-  and RFC-0031 defines a pinned canonical capability-catalog acquisition contract;
-  source implementation, its same-invocation RFC-0030-to-RFC-0029 consumer, and every
-  Router execution consumer remain separately authorized before any second candidate
-  or provider integration.
+  RFC-0031 implements its pinned canonical capability-catalog acquisition source, and
+  RFC-0032 specifies protected publisher-owned catalog provisioning and rotation;
+  provisioning/rotation implementation, runtime binding composition, the same-
+  invocation RFC-0030-to-RFC-0029 consumer, and every Router execution consumer remain
+  separately authorized before any second candidate or provider integration.
 - Future LLM-backed Planner input/output schema is not selected yet.
