@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -17,10 +17,12 @@ deliver-rfc-0031-work-to-origin-main
 
 ## Context
 
-The clean local `main` ended at `0bb67c2` before this delivery authority was recorded
-and was seven commits ahead of the tracked `origin/main` at `ba88360`. The work already
-resides directly on `main`; no synthetic merge commit is required. The user explicitly
-requested a push to `origin/main` on 2026-10-23.
+The primary non-force push delivered the completed RFC-0031 history and authority
+commit from remote `ba88360` to `a34a611`; exact-head GitHub Actions run `39924475390`
+succeeded. The verified evidence closure then fast-forwarded remote main to `9614487`;
+local, fetched, and advertised refs matched with zero divergence, and exact-head run
+`39935327343` succeeded. The work resided directly on `main`, so no synthetic merge
+commit was required.
 
 This delivery changes only authority, Git history, and delivery evidence. It does not
 authorize catalog provisioning, production source or evaluator callers, providers,
@@ -110,7 +112,7 @@ Next Action: Record and publish the delivery-evidence closure.
 
 ### Increment 2 - publish-delivery-evidence-closure
 
-State: In Progress
+State: Completed
 Depends On: publish-completed-rfc0031-history
 Scope: Append delivery evidence once, update Changelog and task state, verify and commit
 the closure, repeat fresh ancestry checks, push non-force, verify exact final refs and
@@ -125,5 +127,6 @@ integration; do not connect provider, credential, spend, execution, runtime, or 
 
 ## Next
 
-Verify and commit the primary delivery evidence, publish the closure by explicit
-non-force fast-forward, verify its exact refs and CI, then close the delivery task.
+Await separate authority for catalog provisioning/rotation or the same-invocation
+RFC-0030 evaluator and RFC-0029 option-construction consumer; do not connect provider,
+credential, spend, execution, persistence, runtime, or MCP paths.

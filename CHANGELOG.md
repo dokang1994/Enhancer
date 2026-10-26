@@ -8,6 +8,9 @@
 - The primary explicit `main:main` push fast-forwarded remote `main` from `ba88360` to
   `a34a611`. Local, fetched, and advertised refs matched the exact delivered head, and
   GitHub Actions `verify` run `39924475390` completed successfully.
+- Verified evidence closure `9614487` then fast-forwarded remote `main` from `a34a611`
+  through the same non-force protocol. Local, fetched, and advertised refs matched with
+  zero divergence, and exact-head `verify` run `39935327343` completed successfully.
 - This delivery changes only Git history and evidence. It adds no catalog provisioning,
   production consumer, provider, credential, network use beyond Git/GitHub delivery,
   spend, execution, persistence, runtime, MCP, release, or deployment capability.
