@@ -8701,3 +8701,22 @@ Outcome:
   `CHANGELOG.md`, and this append-only verification log; no product, test,
   architecture, maturity, Roadmap, RFC, schema, provider, credential, spend, runtime,
   MCP, release, or deployment state changed.
+
+## 2026-10-26 - RFC-0032 Authority And Threat Contract Increment
+
+- Three bounded read-only reviews independently examined the security boundary,
+  publication state machine, and repository-governance surface. The primary Agent
+  reconciled their recommendations against RFC-0031, Architecture, the Active Task,
+  and the accepted cancellation-trust installation precedents; no authority conflict
+  remained.
+- RFC-0032 is Draft with separated evidence-author, operator-intent, privileged-
+  publisher, and runtime-reader authorities; independently governed evidence,
+  publisher-derived digest, exact candidate snapshot, permission assumptions, threat
+  boundary, safe observability, and rejected trust shortcuts are explicit.
+- Fresh Java 17 verification of `DecisionLogIndexTest`, `DocumentOwnershipTest`,
+  `DynamicWorkflowDocumentTest`, `RepositoryTaskPlannerTest`,
+  `AssistedDevelopmentLoopTest`, and `ApprovedTaskReaderTest` completed with `BUILD
+  SUCCESSFUL` in 19 seconds. Fresh `git diff --check` passed.
+- No product/test source, installed catalog, provisioner, platform or permission effect,
+  source/evaluator/Router consumer, provider, credential, network, spend, execution,
+  runtime, persistence, MCP, push, release, or deployment was added.

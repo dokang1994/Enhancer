@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-10-26 into governed capability catalog provisioning and rotation specification
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-10-26-specify-governed-capability-catalog-provisioning-and-rotation.md)
+
 ### User request on 2026-10-23 to push completed RFC-0031 work to origin main
 
 Status: Accepted Decision

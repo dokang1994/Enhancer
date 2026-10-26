@@ -2,70 +2,75 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Deliver the completed RFC-0031 specification and implementation commits currently
-ahead of `origin/main` through explicit non-force fast-forward pushes, exact-ref
-verification, required GitHub Actions observation, and one committed delivery-evidence
-closure.
+Specify RFC-0032 as the governed, provider-neutral provisioning and rotation contract
+for the protected catalog path and independently derived whole-file SHA-256 pin consumed
+by RFC-0031.
 
 ## Task ID
 
-deliver-rfc-0031-work-to-origin-main
+specify-rfc-0032-governed-capability-catalog-provisioning-and-rotation
 
 ## Context
 
-The primary non-force push delivered the completed RFC-0031 history and authority
-commit from remote `ba88360` to `a34a611`; exact-head GitHub Actions run `39924475390`
-succeeded. The verified evidence closure then fast-forwarded remote main to `9614487`;
-local, fetched, and advertised refs matched with zero divergence, and exact-head run
-`39935327343` succeeded. The work resided directly on `main`, so no synthetic merge
-commit was required.
+RFC-0031 is Contract Verified but cannot truthfully produce production capability facts
+until separately governed actors establish canonical catalog values from independent
+evidence and publish a protected path-and-pin binding. The digest proves exact bytes;
+it does not prove the truth, freshness beyond the declared interval, or provider
+attestation of those bytes.
 
-This delivery changes only authority, Git history, and delivery evidence. It does not
-authorize catalog provisioning, production source or evaluator callers, providers,
-credentials, network use beyond Git/GitHub delivery, spend, execution, persistence,
-runtime, MCP, release, or deployment.
+This task defines only that missing contract. It does not implement a provisioner,
+install a catalog, mutate operating-system permissions, connect the source to RFC-0030
+or RFC-0029, or authorize any provider, credential, network, spend, execution,
+persistence, runtime, MCP, release, deployment, or push path.
 
 ## Justified By
 
-- User request on 2026-10-23 to push completed RFC-0031 work to origin main
+- User continuation request on 2026-10-26 into governed capability catalog provisioning and rotation specification
 
 ## Approval
 
-The user's explicit request authorizes committing the delivery authority, fresh local
-verification, remote inspection and fetch, non-force `git push origin main:main`, exact
-local/tracking/advertised-ref comparison, observation of the push-triggered GitHub
-Actions `verify` workflow, and a second non-force push of the committed delivery-
-evidence closure.
+The user's continuation authorizes repository-local documentation changes, checkpoint
+state, fresh verification, and the ordinary local commits required for verified GREEN
+increments of this Active Task.
 
-No force push, history rewrite, synthetic merge, rebase, reset, amend, squash,
-cherry-pick, tag, release, deployment, branch deletion, permission or credential
-change, destructive cleanup, product change, schema change, capability promotion,
-paid service, MCP, or unrelated external effect is authorized.
+It does not authorize product or test-source changes; a provisioner, writer, command,
+launcher, platform adapter, installed catalog, permission mutation, credential or
+secret access, provider or network access, paid service, source/evaluator/Router
+consumer, route execution, runtime or durable-state integration, MCP, destructive
+action, push, merge, tag, release, or deployment.
 
 ## Acceptance Criteria
 
-- The exact Accepted Decision and index entry record delivery authority.
-- Fresh governance verification and `git diff --check` pass before the authority
-  commit; the already completed implementation retains its fresh full regression.
-- Fresh remote inspection and fetch prove zero remote-only divergence and that
-  `origin/main` is an ancestor of local `main` before each push.
-- Each push uses explicit non-force `git push origin main:main`.
-- After each push, local HEAD, fetched `origin/main`, and advertised remote main match,
-  and the exact-head GitHub Actions `verify` workflow reaches terminal success.
-- Delivery evidence is appended once, Changelog and this task are current, the closure
-  commit is delivered, Git is clean, and the checkpoint is stable and clear.
+- One accepted RFC-0032 defines distinct evidence-author, operator-intent,
+  installer/publisher, and runtime-reader authorities without granting any of them
+  remote execution authority.
+- Canonical candidate validation and internally derived digest bind the exact bytes,
+  path, and pin without accepting a caller-supplied resulting pin or catalog
+  self-approval.
+- Installation and rotation have closed preconditions, cooperative locking,
+  compare-and-swap, immutable artifact publication, fixed binding publication,
+  exact-replay, stale-intent, failure, crash-recovery, and no-automatic-rollback
+  semantics.
+- Permission, durability, truthful evidence, audit, cleanup, revocation, and privileged
+  anti-rollback claims are bounded explicitly and do not exceed documentation evidence.
+- Architecture, Project State, Roadmap, RFC track, Changelog, verification log, Active
+  Task, and session handoff remain consistent with their document ownership.
+- Focused governance checks, `git diff --check`, and the full README-owned Java 17
+  regression pass freshly before completion.
 
 ## Out Of Scope
 
-Product/test-source changes, architecture, maturity, Roadmap, RFC or schema changes;
-catalog provisioning; production consumers; provider/network invocation beyond Git
-and GitHub delivery; credentials, spend, execution, persistence, runtime, MCP, release,
-deployment, tag, branch deletion, permission change, destructive cleanup, force push,
-history rewrite, synthetic merge, and unrelated external effects.
+Java or test-source changes; production provisioner/writer; installed catalog or source
+composition; operator CLI/launcher; broker; platform adapter; real filesystem layout,
+identity, ACL, ownership, mode, permission, durability, deployment, cleanup, uninstall,
+or privileged anti-rollback enforcement; signed catalogs, keys, credentials, secrets,
+remote retrieval or provider attestation; provider, endpoint, network, spend,
+same-invocation RFC-0030/RFC-0029 consumer, route execution, persistence, runtime, MCP,
+push, merge, tag, release, and unrelated external effects.
 
 ## Allowed Tools
 
@@ -77,56 +82,63 @@ history rewrite, synthetic merge, and unrelated external effects.
 - git-inspect
 - git-stage
 - git-commit
-- git-fetch
-- git-push
-- GitHub-Actions-observe
 
 ## Verification
 
-Run focused decision/index/document/dynamic-workflow governance tests after authority
-documents change and read fresh output. Before each push, query and fetch remote main,
-prove fast-forward ancestry and zero remote-only commits, and inspect the exact range.
-After each push, compare local, fetched, and advertised refs and observe exact-head CI
-to terminal success. Run `git diff --check` before commits and pushes.
+Run focused RFC/decision/index/document-ownership/Architecture-mirror/Roadmap/Planner/
+Assisted-Loop/dynamic-workflow governance checks after documentation changes. Run
+`git diff --check` and the complete README-owned Java 17 test task before completion,
+then inspect generated test evidence and the final diff.
 
 ## Dynamic Workflow
 
-Workflow ID: deliver-rfc-0031-work-to-origin-main
+Workflow ID: specify-rfc-0032-governed-capability-catalog-provisioning-and-rotation
 Mode: Sequential
-Increment Limit: 2
+Increment Limit: 3
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
-Stop Conditions: Stop on failed verification, remote-only divergence, ancestry or ref
-mismatch, failed CI, task/checkpoint drift, insufficient authority, or unsafe recovery.
+Stop Conditions: Stop on failed verification, authority conflict, task/checkpoint drift,
+scope expansion into implementation or external effects, exhausted workflow bounds, or
+unsafe recovery.
 
-### Increment 1 - publish-completed-rfc0031-history
+### Increment 1 - establish-provisioning-authority-and-threat-contract
 
 State: Completed
 Depends On: none
-Scope: Verify and commit delivery authority, query/fetch remote main, prove non-force
-fast-forward ancestry, push local main, verify exact refs, and observe exact-head CI.
-Exit Criteria: Authority commit is present remotely, exact refs match, CI succeeds,
-and primary delivery evidence is ready for the closure.
-Verification: Focused governance tests, diff/status/log review, remote ref and ancestry
-checks, explicit non-force push, exact-ref comparison, and GitHub Actions observation.
-Next Action: Record and publish the delivery-evidence closure.
+Scope: Reconcile RFC-0031 and installation precedents, obtain bounded read-only security,
+state-machine, and governance reviews, and define RFC-0032's authorities, trusted inputs,
+threat boundary, and rejected trust shortcuts.
+Exit Criteria: The accepted RFC draft closes authority ownership and truthfulness without
+granting implementation or remote execution authority.
+Verification: Focused governance tests and `git diff --check`.
+Next Action: Define installation and rotation state transitions and failure behavior.
 
-### Increment 2 - publish-delivery-evidence-closure
+### Increment 2 - specify-installation-and-rotation-state-machine
 
-State: Completed
-Depends On: publish-completed-rfc0031-history
-Scope: Append delivery evidence once, update Changelog and task state, verify and commit
-the closure, repeat fresh ancestry checks, push non-force, verify exact final refs and
-CI, and clear the stable checkpoint.
-Exit Criteria: Closure commit is remotely present, exact refs and CI are verified, Git
-is clean, task is Completed, and checkpoint is empty.
-Verification: Focused governance tests, `git diff --check`, commit/status/log review,
-remote ref and ancestry checks, explicit non-force push, exact-ref comparison, and
-GitHub Actions observation.
-Next Action: Await separate authority for catalog provisioning/rotation or consumer
-integration; do not connect provider, credential, spend, execution, runtime, or MCP.
+State: In Progress
+Depends On: establish-provisioning-authority-and-threat-contract
+Scope: Specify canonical validation, immutable artifact and fixed binding publication,
+lock/CAS/replay semantics, crash recovery, observability, and explicit platform limits.
+Exit Criteria: Every admitted operation and failure has deterministic authority-preserving
+behavior, with cleanup, permission enforcement, and anti-rollback kept separate.
+Verification: Focused governance tests and `git diff --check`.
+Next Action: Reconcile repository-owned architecture, state, roadmap, and lifecycle docs.
+
+### Increment 3 - reconcile-and-verify-rfc0032
+
+State: Pending
+Depends On: specify-installation-and-rotation-state-machine
+Scope: Reconcile Architecture and its compact mirror, Project State, Roadmap and RFC
+track, Changelog, verification evidence, Active Task, and session handoff; run complete
+fresh verification and commit the closure.
+Exit Criteria: RFC-0032 is accepted, all owning documents are current, the full
+Markdown-sensitive regression is GREEN, Git is clean after required local commits, and
+the stable checkpoint is cleared.
+Verification: Focused governance tests, full README-owned Java 17 regression, generated
+JUnit evidence inspection, `git diff --check`, and Git status/log review.
+Next Action: Await separate authority for implementation or the same-invocation consumer.
 
 ## Next
 
-Await separate authority for catalog provisioning/rotation or the same-invocation
-RFC-0030 evaluator and RFC-0029 option-construction consumer; do not connect provider,
-credential, spend, execution, persistence, runtime, or MCP paths.
+Complete Increment 2 by closing RFC-0032's fixed artifact identities, canonical binding
+grammar, installation and rotation state transitions, failures, and recovery behavior.
+Do not begin implementation or any external effect.
