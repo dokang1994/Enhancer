@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-10-27 - Begin RFC-0032 Capability Catalog Publisher Implementation
+
+- Added the closed RFC-0032 INSTALL/ROTATE, success, refusal, intent, and result value
+  contract with bounded stable identities, operation-specific compare-and-swap input,
+  digest validation, and safe rendering.
+- Added one package-private publisher port with zero production callers and architecture
+  guards that exclude runtime, provider, credential, network, spend, execution, generic
+  installer, and filesystem dependencies from the pure slice.
+- Kept shared catalog/binding validation, filesystem publication, evidence verification,
+  real installation, platform permissions, runtime composition, route consumers,
+  providers, credentials, network, spend, execution, MCP, and external delivery separate.
+
 ## 2026-10-26 - Specify Governed Capability Catalog Provisioning And Rotation
 
 - Accepted RFC-0032 as the documentation-only contract for independently evidenced,

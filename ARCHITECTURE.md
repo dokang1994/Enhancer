@@ -2119,9 +2119,14 @@ success response, stale intent and unsafe current state refuse without mutation,
 failure triggers rollback, fallback, repair, permission broadening, or cleanup. Lock and
 CAS address cooperating concurrency only; platform permissions, sudden-power-loss
 durability, privileged anti-rollback, authenticated operator transport, evidence
-storage, publisher implementation, real installation, runtime binding composition, and
-the same-invocation RFC-0030-to-RFC-0029 consumer remain separately authorized. RFC-0032
-is an Accepted specification and adds no implemented or Operational capability.
+storage, real installation, runtime binding composition, and the same-invocation RFC-
+0030-to-RFC-0029 consumer remain separately authorized. The first implemented slice is
+the closed immutable publication operation, success, refusal, intent, and result
+contract with bounded identities, operation-specific compare-and-swap input, safe
+rendering, and one package-private zero-caller publisher port. It performs no filesystem
+publication and grants no provider, execution, installation, or Operational authority;
+the shared catalog/binding validation and publisher implementation remain its next
+consumers.
 
 ## Agent Orchestration Contract
 

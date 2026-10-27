@@ -2,15 +2,15 @@
 
 ## Updated At
 
-2026-10-22
+2026-10-27
 
 ## Repository State
 
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 509 Java files.
-- Test source: 238 Java files.
+- Production source: 523 Java files.
+- Test source: 249 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -1124,18 +1124,23 @@ it does not restate which commit published which increment.
   suitability evaluator in a closed eighteen-reason order. RFC-0031 now provides the
   Contract Verified pinned local capability-catalog source with closed refusals,
   bounded defensive acquisition, complete validation, exact mapping, and explicit-time
-  freshness. Guards permit that source as the sole production capability-facts creator
-  while proving zero source callers and zero evaluator callers. Their accumulation
+  freshness. RFC-0032's first pure publication-contract slice is Contract Verified:
+  its immutable operation, success, refusal, intent, and result vocabulary enforces
+  bounded identities, INSTALL/ROTATE compare-and-swap input, safe rendering, and one
+  package-private zero-caller publisher port without filesystem mutation. Guards permit
+  the RFC-0031 source as the sole production capability-facts creator while proving zero
+  source callers, evaluator callers, and publisher callers. Their accumulation
   does not establish whole-gate maturity. Real providers, MCP client/server composition,
   outbound data policy, fallback/cache provenance, and fixed-fixture model evaluation
   remain absent. RFC-0032 is now the Accepted specification for truthful catalog
   evidence ownership, protected immutable-catalog and fixed-binding publication,
-  INSTALL/ROTATE, lock/CAS, exact replay, and failure recovery, but no production
-  provisioner, installed catalog, permission enforcement, runtime binding composition,
-  or privileged anti-rollback exists. That implementation and a same-invocation
+  INSTALL/ROTATE, lock/CAS, exact replay, and failure recovery, but shared catalog and
+  binding validation, a filesystem publisher, production provisioner, installed
+  catalog, permission enforcement, runtime binding composition, and privileged anti-
+  rollback remain absent. That implementation and a same-invocation
   RFC-0029 route-option consumer are the missing Gate-9-owned boundaries before route-
   execution preparation or any second candidate, provider, credential, network, or paid
-  invocation is connected. The specification alone does not change whole-gate maturity.
+  invocation is connected. The pure contract does not change whole-gate maturity.
 - Gate 8 lease-expiry recovery now has one named worker-level fixture over the
   post-RunRecord-reference prefix. The first cycle persists exactly one reference,
   expires before execution acknowledgement, and leaves the AgentRun reclaimable at

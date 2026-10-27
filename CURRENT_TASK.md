@@ -2,79 +2,91 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Specify RFC-0032 as the governed, provider-neutral provisioning and rotation contract
-for the protected catalog path and independently derived whole-file SHA-256 pin consumed
-by RFC-0031.
+Implement RFC-0032 RED-first as the unexposed provider-neutral publisher boundary for
+governed remote capability catalog installation and rotation, without composing a real
+installer, operator surface, runtime reader, or remote route.
 
 ## Task ID
 
-specify-rfc-0032-governed-capability-catalog-provisioning-and-rotation
+implement-rfc-0032-governed-capability-catalog-publisher
 
 ## Context
 
-RFC-0031 is Contract Verified but cannot truthfully produce production capability facts
-until separately governed actors establish canonical catalog values from independent
-evidence and publish a protected path-and-pin binding. The digest proves exact bytes;
-it does not prove the truth, freshness beyond the declared interval, or provider
-attestation of those bytes.
+RFC-0032 is Accepted and names RFC-0031's protected catalog path and independently
+derived whole-file SHA-256 pin as its real Gate 9 consumer. That narrow consumer
+satisfies the accepted exception to the installation-subsystem freeze, but the
+implementation must remain in the model-catalog boundary and must not extend the
+generic Gate 16 installation subsystem.
 
-This task defines only that missing contract. It does not implement a provisioner,
-install a catalog, mutate operating-system permissions, connect the source to RFC-0030
-or RFC-0029, or authorize any provider, credential, network, spend, execution,
-persistence, runtime, MCP, release, deployment, or push path.
+The implementation begins with pure publication values and an uncomposed publisher
+port. Later increments may share RFC-0031 canonical catalog validation and implement a
+test-composed filesystem publisher with injected evidence approval, fixed artifacts,
+lock/CAS/replay, and catalog-first/binding-last publication. No production composition
+or platform permission claim follows.
 
 ## Justified By
 
-- User continuation request on 2026-10-26 into governed capability catalog provisioning and rotation specification
+- User continuation request on 2026-10-27 into RFC-0032 governed capability catalog publisher implementation
 
 ## Approval
 
-The user's continuation authorizes repository-local documentation changes, checkpoint
-state, fresh verification, and the ordinary local commits required for verified GREEN
-increments of this Active Task.
+The user's continuation authorizes bounded repository-local Java and test changes for
+RFC-0032, behavior-preserving RFC-0031 parser extraction where required, architecture
+guards, documentation synchronization, checkpoint state, fresh verification, and the
+ordinary local commits required for verified GREEN increments of this Active Task.
 
-It does not authorize product or test-source changes; a provisioner, writer, command,
-launcher, platform adapter, installed catalog, permission mutation, credential or
-secret access, provider or network access, paid service, source/evaluator/Router
-consumer, route execution, runtime or durable-state integration, MCP, destructive
-action, push, merge, tag, release, or deployment.
+It does not authorize extending the generic Gate 16 installation subsystem; a real
+installer, operator command or launcher, authenticated transport, evidence store or
+schema, installed production catalog, runtime binding composition, operating-system
+permission mutation, deployment, cleanup, credential or secret access, provider or
+network access, paid service, source/evaluator/Router consumer, route execution,
+runtime or durable-state integration, MCP, destructive action, push, merge, tag,
+release, or deployment.
 
 ## Acceptance Criteria
 
-- One accepted RFC-0032 defines distinct evidence-author, operator-intent,
-  installer/publisher, and runtime-reader authorities without granting any of them
-  remote execution authority.
-- Canonical candidate validation and internally derived digest bind the exact bytes,
-  path, and pin without accepting a caller-supplied resulting pin or catalog
-  self-approval.
-- Installation and rotation have closed preconditions, cooperative locking,
-  compare-and-swap, immutable artifact publication, fixed binding publication,
-  exact-replay, stale-intent, failure, crash-recovery, and no-automatic-rollback
-  semantics.
-- Permission, durability, truthful evidence, audit, cleanup, revocation, and privileged
-  anti-rollback claims are bounded explicitly and do not exceed documentation evidence.
-- Architecture, Project State, Roadmap, RFC track, Changelog, verification log, Active
-  Task, and session handoff remain consistent with their document ownership.
-- Focused governance checks, `git diff --check`, and the full README-owned Java 17
-  regression pass freshly before completion.
+- Pure immutable publication intent, operation, success, refusal, and result contracts
+  preserve RFC-0032's exact field restrictions, invariants, safe rendering, and closed
+  refusal order behind an uncomposed publisher port.
+- RFC-0031 and RFC-0032 share one package-private complete canonical catalog
+  validation boundary without changing source behavior or widening capability-facts
+  creation.
+- A test-composed provider-neutral filesystem publisher validates one bounded candidate
+  snapshot and injected independent evidence approval, derives the digest internally,
+  uses the fixed artifacts and canonical binding, and implements INSTALL/ROTATE,
+  nonblocking lock, immutable-catalog-first/fixed-binding-last publication, CAS, exact
+  replay, closed refusal precedence, and fail-closed recovery.
+- Architecture guards prove zero production composition and no CLI, runtime, Router,
+  evaluator, provider, credential, network, spend, execution, MCP, generic installer,
+  permission-adapter, cleanup, rollback, or anti-rollback authority.
+- Architecture, Project State, Roadmap, compact mirror, Changelog, verification log,
+  Active Task, decision index, and session handoff remain consistent with document
+  ownership and make no platform-support or Operational claim.
+- Focused RED/GREEN tests, architecture/governance checks, `git diff --check`, and the
+  full README-owned Java 17 regression pass freshly before completion.
 
 ## Out Of Scope
 
-Java or test-source changes; production provisioner/writer; installed catalog or source
-composition; operator CLI/launcher; broker; platform adapter; real filesystem layout,
-identity, ACL, ownership, mode, permission, durability, deployment, cleanup, uninstall,
-or privileged anti-rollback enforcement; signed catalogs, keys, credentials, secrets,
-remote retrieval or provider attestation; provider, endpoint, network, spend,
-same-invocation RFC-0030/RFC-0029 consumer, route execution, persistence, runtime, MCP,
-push, merge, tag, release, and unrelated external effects.
+Generic Gate 16 installation framework changes; production composition; real installer,
+operator CLI/launcher, broker, authenticated transport, evidence schema/store/authoring,
+installed production catalog or binding, runtime binding reader/composition, platform
+identity or permission adapter, ACL/DACL/mode/ownership mutation, deployment, durability
+beyond the implemented process-crash contract, cleanup, retention, uninstall,
+revocation, audit persistence, rollback, privileged anti-rollback, signed catalogs,
+keys, credentials, secrets, provider endpoint or adapter, network, transmission, spend,
+RFC-0031 source caller, RFC-0030 evaluator caller, RFC-0029 route-option consumer, route
+execution, Tool/Evidence/RunRecord/Scheduler/runtime integration, durable schema,
+migration, MCP, plugin, background work, push, merge, tag, release, and unrelated
+external effects.
 
 ## Allowed Tools
 
 - read-file
+- write-code
 - write-docs
 - build-output
 - verify
@@ -85,61 +97,75 @@ push, merge, tag, release, and unrelated external effects.
 
 ## Verification
 
-Run focused RFC/decision/index/document-ownership/Architecture-mirror/Roadmap/Planner/
-Assisted-Loop/dynamic-workflow governance checks after documentation changes. Run
-`git diff --check` and the complete README-owned Java 17 test task before completion,
-then inspect generated test evidence and the final diff.
+Use RED-first focused contract tests for each observable increment. Run relevant model
+and architecture tests plus `git diff --check` at every GREEN boundary. Before task
+completion run the complete README-owned Java 17 test task, inspect generated JUnit
+evidence, and review final Git status and diff.
 
 ## Dynamic Workflow
 
-Workflow ID: specify-rfc-0032-governed-capability-catalog-provisioning-and-rotation
+Workflow ID: implement-rfc-0032-governed-capability-catalog-publisher
 Mode: Sequential
-Increment Limit: 3
+Increment Limit: 4
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
 Stop Conditions: Stop on failed verification, authority conflict, task/checkpoint drift,
-scope expansion into implementation or external effects, exhausted workflow bounds, or
-unsafe recovery.
+scope expansion into production composition or external effects, exhausted workflow
+bounds, or unsafe recovery.
 
-### Increment 1 - establish-provisioning-authority-and-threat-contract
+### Increment 1 - establish-pure-publication-contract
 
 State: Completed
 Depends On: none
-Scope: Reconcile RFC-0031 and installation precedents, obtain bounded read-only security,
-state-machine, and governance reviews, and define RFC-0032's authorities, trusted inputs,
-threat boundary, and rejected trust shortcuts.
-Exit Criteria: The accepted RFC draft closes authority ownership and truthfulness without
-granting implementation or remote execution authority.
-Verification: Focused governance tests and `git diff --check`.
-Next Action: Define installation and rotation state transitions and failure behavior.
+Scope: Add RED-first immutable operation, status, refusal, intent, result and safe-
+rendering contracts plus an uncomposed publisher port and source/dependency guards.
+Exit Criteria: The exact RFC-0032 public vocabulary and intent invariants are executable
+without filesystem mutation or a production caller.
+Verification: Focused contract and architecture tests plus `git diff --check`.
+Next Action: Extract one shared package-private canonical catalog codec with parity tests.
 
-### Increment 2 - specify-installation-and-rotation-state-machine
+### Increment 2 - share-canonical-catalog-and-binding-validation
 
-State: Completed
-Depends On: establish-provisioning-authority-and-threat-contract
-Scope: Specify canonical validation, immutable artifact and fixed binding publication,
-lock/CAS/replay semantics, crash recovery, observability, and explicit platform limits.
-Exit Criteria: Every admitted operation and failure has deterministic authority-preserving
-behavior, with cleanup, permission enforcement, and anti-rollback kept separate.
-Verification: Focused governance tests and `git diff --check`.
-Next Action: Reconcile repository-owned architecture, state, roadmap, and lifecycle docs.
+State: In Progress
+Depends On: establish-pure-publication-contract
+Scope: Extract RFC-0031's complete canonical catalog parsing into one package-private
+pure codec, preserve source behavior, and add canonical RFC-0032 binding values/codec,
+bounded snapshot facts, and the injected evidence-approval port.
+Exit Criteria: Source parity and complete catalog/binding validation are GREEN without
+filesystem publication or production composition.
+Verification: Focused source, catalog, binding, and architecture tests plus
+`git diff --check`.
+Next Action: Implement the test-composed filesystem publication state machine.
 
-### Increment 3 - reconcile-and-verify-rfc0032
+### Increment 3 - implement-filesystem-publication-state-machine
 
-State: Completed
-Depends On: specify-installation-and-rotation-state-machine
-Scope: Reconcile Architecture and its compact mirror, Project State, Roadmap and RFC
-track, Changelog, verification evidence, Active Task, and session handoff; run complete
+State: Pending
+Depends On: share-canonical-catalog-and-binding-validation
+Scope: Implement bounded exact candidate acquisition, fixed installation artifacts,
+nonblocking lock, immutable catalog publication, binding publication, INSTALL/ROTATE,
+CAS, exact replay, refusal precedence, failure injection, and post-publication unknown
+handling behind the uncomposed publisher boundary.
+Exit Criteria: Isolated filesystem tests cover success, replay, contention, conflicts,
+drift, atomic-publication failure regions, retained artifacts, and no rollback/cleanup.
+Verification: Focused model/filesystem/security/architecture tests and
+`git diff --check`.
+Next Action: Reconcile owning documents and run full verification.
+
+### Increment 4 - reconcile-and-verify-rfc0032-implementation
+
+State: Pending
+Depends On: implement-filesystem-publication-state-machine
+Scope: Reconcile Architecture and compact mirror, Project State, Roadmap, Changelog,
+verification evidence, Active Task, decision index, and session handoff; run complete
 fresh verification and commit the closure.
-Exit Criteria: RFC-0032 is accepted, all owning documents are current, the full
-Markdown-sensitive regression is GREEN, Git is clean after required local commits, and
-the stable checkpoint is cleared.
+Exit Criteria: RFC-0032 is Contract Verified only to the implemented boundary, all
+owning documents are current, the full Markdown-sensitive regression is GREEN, Git is
+clean after required local commits, and the stable checkpoint is cleared.
 Verification: Focused governance tests, full README-owned Java 17 regression, generated
 JUnit evidence inspection, `git diff --check`, and Git status/log review.
-Next Action: Await separate authority for implementation or the same-invocation consumer.
+Next Action: Await separate authority for runtime binding composition or the same-
+invocation RFC-0031/RFC-0030/RFC-0029 consumer.
 
 ## Next
 
-Await separate authority for RFC-0032 implementation or the same-invocation RFC-0031
-source, RFC-0030 evaluator and RFC-0029 route-option consumer. Do not install a catalog,
-mutate permissions, connect a provider, credential, network, spend, execution,
-persistence, runtime, or MCP path, or push these local commits without explicit request.
+Complete the active dynamic workflow sequentially. Do not compose a real installation
+or remote route, mutate permissions, or push without explicit authority.

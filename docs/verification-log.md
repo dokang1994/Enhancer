@@ -8760,3 +8760,20 @@ Outcome:
 - No production publisher, writer, installed catalog or binding, permission mutation,
   runtime binding composition, catalog consumer, provider, credential, network, spend,
   execution, persistence, runtime, MCP, push, merge, release or deployment was added.
+
+## 2026-10-27 - RFC-0032 Pure Publication Contract Increment
+
+- Focused RED verification failed at `compileTestJava` with 92 missing-symbol errors for
+  the intentionally absent RFC-0032 publication operation, status, refusal, intent,
+  result, and publisher-port types. The failure matched the Active Task, accepted RFC,
+  and first dynamic increment; no unrelated failure was absorbed.
+- The minimum implementation adds the exact closed vocabularies, immutable bounded
+  intent and result shapes, INSTALL/ROTATE expected-binding-digest invariants, safe
+  rendering, and one package-private publisher port without a filesystem writer or
+  production caller.
+- Fresh focused Java 17 verification completed six publication-contract tests and three
+  architecture-boundary tests with zero failures, errors, or skips. Generated JUnit XML
+  records 9 tests total, and fresh `git diff --check` passed.
+- No catalog or binding was written; no evidence schema, installer, platform permission,
+  runtime composition, source/evaluator/Router caller, provider, credential, network,
+  spend, execution, persistence, MCP, push, release, or deployment was added.
