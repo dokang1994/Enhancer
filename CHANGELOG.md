@@ -11,6 +11,13 @@
 - Kept shared catalog/binding validation, filesystem publication, evidence verification,
   real installation, platform permissions, runtime composition, route consumers,
   providers, credentials, network, spend, execution, MCP, and external delivery separate.
+- Extracted RFC-0031's complete strict UTF-8 canonical catalog parser into one shared
+  package-private decode/re-encode codec while preserving its pin-first refusal order,
+  exact lookup, freshness, field mapping, sole facts creation, and zero callers.
+- Added a defensive same-byte candidate snapshot with an internally derived digest, a
+  pure strict fixed-binding codec, and an injected zero-implementation evidence-verifier
+  contract. Filesystem reads or writes, locks, publication, platform permissions, and
+  production composition remain absent.
 
 ## 2026-10-26 - Specify Governed Capability Catalog Provisioning And Rotation
 

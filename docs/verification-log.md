@@ -8777,3 +8777,26 @@ Outcome:
 - No catalog or binding was written; no evidence schema, installer, platform permission,
   runtime composition, source/evaluator/Router caller, provider, credential, network,
   spend, execution, persistence, MCP, push, release, or deployment was added.
+
+## 2026-10-27 - RFC-0032 Shared Catalog And Binding Validation Increment
+
+- Focused RED verification failed at `compileTestJava` with 54 missing-symbol errors for
+  the intentionally absent shared catalog codec, canonical binding codec, defensive
+  candidate snapshot, and evidence-verifier contract. The failure matched the selected
+  increment and no unrelated behavior was absorbed.
+- One package-private field-free codec now performs RFC-0031's strict UTF-8 complete-
+  catalog validation and exact re-encoding. The pinned source retains filesystem, pin,
+  lookup, freshness, and capability-facts creation ownership while the RFC-0032 snapshot
+  reuses the exact pure validation boundary and derives its digest from the same bytes.
+- The separate pure binding codec derives the fixed immediate-child catalog path,
+  canonical three-line binding bytes, catalog digest relationship and binding digest;
+  the injected evidence-verifier contract retains the exact snapshot instance and has
+  zero implementations or callers.
+- Fresh Java 17 verification completed 10 focused codec, binding, snapshot, evidence,
+  RFC-0031 regression and architecture suites with 38 tests, zero failures or errors,
+  and one existing Windows privilege-dependent conditional skip. Fresh
+  `git diff --check` passed.
+- No filesystem publication, current-binding read, lock, evidence implementation,
+  permission claim, real installation, runtime composition, source/evaluator/Router
+  caller, provider, credential, network, spend, execution, persistence, MCP, push,
+  release, or deployment was added.

@@ -2124,9 +2124,16 @@ storage, real installation, runtime binding composition, and the same-invocation
 the closed immutable publication operation, success, refusal, intent, and result
 contract with bounded identities, operation-specific compare-and-swap input, safe
 rendering, and one package-private zero-caller publisher port. It performs no filesystem
-publication and grants no provider, execution, installation, or Operational authority;
-the shared catalog/binding validation and publisher implementation remain its next
-consumers.
+publication and grants no provider, execution, installation, or Operational authority.
+One package-private field-free codec now owns RFC-0031's strict UTF-8 complete canonical
+catalog decoding and exact re-encoding; the pinned source preserves its pin-first,
+lookup, freshness and sole-facts-creator behavior while a defensive same-byte candidate
+snapshot supplies the RFC-0032 validation consumer. A separate pure binding codec
+derives the fixed immediate-child catalog path, strict three-line binding bytes and both
+digests, and one zero-implementation evidence-verifier port binds the exact snapshot to
+the three bounded intent identities. No filesystem mutation, current-state reading,
+lock, evidence implementation, publisher implementation or production caller exists;
+those are the next consumers.
 
 ## Agent Orchestration Contract
 

@@ -125,7 +125,7 @@ Next Action: Extract one shared package-private canonical catalog codec with par
 
 ### Increment 2 - share-canonical-catalog-and-binding-validation
 
-State: In Progress
+State: Completed
 Depends On: establish-pure-publication-contract
 Scope: Extract RFC-0031's complete canonical catalog parsing into one package-private
 pure codec, preserve source behavior, and add canonical RFC-0032 binding values/codec,
@@ -138,7 +138,7 @@ Next Action: Implement the test-composed filesystem publication state machine.
 
 ### Increment 3 - implement-filesystem-publication-state-machine
 
-State: Pending
+State: In Progress
 Depends On: share-canonical-catalog-and-binding-validation
 Scope: Implement bounded exact candidate acquisition, fixed installation artifacts,
 nonblocking lock, immutable catalog publication, binding publication, INSTALL/ROTATE,
