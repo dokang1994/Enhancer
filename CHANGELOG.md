@@ -1,6 +1,6 @@
 # Changelog
 
-## 2026-10-27 - Begin RFC-0032 Capability Catalog Publisher Implementation
+## 2026-10-27 - Implement RFC-0032 Capability Catalog Publisher
 
 - Added the closed RFC-0032 INSTALL/ROTATE, success, refusal, intent, and result value
   contract with bounded stable identities, operation-specific compare-and-swap input,

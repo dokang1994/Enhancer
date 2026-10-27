@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -152,7 +152,7 @@ Next Action: Reconcile owning documents and run full verification.
 
 ### Increment 4 - reconcile-and-verify-rfc0032-implementation
 
-State: In Progress
+State: Completed
 Depends On: implement-filesystem-publication-state-machine
 Scope: Reconcile Architecture and compact mirror, Project State, Roadmap, Changelog,
 verification evidence, Active Task, decision index, and session handoff; run complete
@@ -167,6 +167,8 @@ invocation RFC-0031/RFC-0030/RFC-0029 consumer.
 
 ## Next
 
-Reconcile the final owning documents and run the complete README-owned Java 17
-regression. Do not compose a real installation or remote route, mutate permissions, or
-push without explicit authority.
+Await separate authority for production publisher or runtime binding composition, or
+for the same-invocation RFC-0031 source, RFC-0030 evaluator and RFC-0029 route-option
+consumer. Do not install a catalog, mutate permissions, connect a provider, credential,
+network, spend, execution, persistence, runtime or MCP path, or push these local commits
+without explicit authority.

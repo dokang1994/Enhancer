@@ -1144,10 +1144,10 @@ it does not restate which commit published which increment.
   Their accumulation
   does not establish whole-gate maturity. Real providers, MCP client/server composition,
   outbound data policy, fallback/cache provenance, and fixed-fixture model evaluation
-  remain absent. RFC-0032 is now the Accepted specification for truthful catalog
-  evidence ownership, protected immutable-catalog and fixed-binding publication,
-  INSTALL/ROTATE, lock/CAS, exact replay, and failure recovery. The filesystem boundary
-  is now implemented only behind the uncomposed package-private port; a production
+  remain absent. RFC-0032 now has a Contract Verified uncomposed publisher boundary for
+  truthful catalog evidence ownership, protected immutable-catalog and fixed-binding
+  publication, INSTALL/ROTATE, lock/CAS, exact replay, and failure recovery. The
+  filesystem implementation remains behind the package-private port; a production
   provisioner, evidence implementation, installed catalog, permission enforcement,
   runtime binding composition, and privileged anti-rollback remain absent. Production
   composition and a same-invocation
