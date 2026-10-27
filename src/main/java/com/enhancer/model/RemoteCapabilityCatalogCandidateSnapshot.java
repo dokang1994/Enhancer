@@ -78,7 +78,7 @@ final class RemoteCapabilityCatalogCandidateSnapshot {
         private static final long serialVersionUID = 1L;
         private final Failure failure;
 
-        private Exception(Failure failure) {
+        Exception(Failure failure) {
             this.failure = failure;
         }
 

@@ -16,8 +16,18 @@
   exact lookup, freshness, field mapping, sole facts creation, and zero callers.
 - Added a defensive same-byte candidate snapshot with an internally derived digest, a
   pure strict fixed-binding codec, and an injected zero-implementation evidence-verifier
-  contract. Filesystem reads or writes, locks, publication, platform permissions, and
-  production composition remain absent.
+  contract. At that pure-validation increment, filesystem reads or writes, locks,
+  publication, platform permissions, and production composition remained absent.
+- Added one package-private, test-composed filesystem publisher behind the existing
+  port. It validates the fixed exact-real layout, bounded candidate and injected
+  evidence decision, current binding and selected catalog; publishes the immutable
+  catalog before the fixed binding; and enforces INSTALL/ROTATE, nonblocking lock,
+  immediate binding-digest CAS, exact replay, typed collision/drift/failure handling,
+  retained artifacts, and post-switch revalidation without rollback or cleanup.
+- Kept the filesystem implementation and evidence verifier uncomposed in production;
+  no real installer, installed artifact, permission mutation, platform-support claim,
+  runtime reader, provider, credential, network, spend, execution, MCP, push, release,
+  or deployment was added.
 
 ## 2026-10-26 - Specify Governed Capability Catalog Provisioning And Rotation
 

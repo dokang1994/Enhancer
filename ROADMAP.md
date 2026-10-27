@@ -1000,14 +1000,16 @@ Scope:
 - an Accepted RFC-0032 specification for truthful catalog evidence ownership and
   protected provisioning/rotation, with a Contract Verified first pure slice containing
   the closed immutable operation, result and refusal vocabulary, bounded publication
-  intent, safe rendering, and one package-private zero-caller publisher port. A second
+  intent, safe rendering, and one package-private publisher port. A second
   Contract Verified pure slice shares RFC-0031's complete canonical catalog codec,
   derives a defensive same-byte candidate snapshot and digest, validates and re-encodes
   the strict fixed binding, and defines one zero-implementation evidence-verifier port.
-  A future privileged allowlisted publisher publishes an immutable catalog before that
-  fixed path-plus-pin binding and applies INSTALL/ROTATE, lock/CAS, exact replay and
-  fail-closed recovery without claiming platform permissions or anti-rollback.
-  Filesystem publication, runtime binding composition, the consumer, providers,
+  A third Contract Verified slice implements one package-private test-composed
+  filesystem publisher with complete current authority validation, immutable-catalog-
+  first/fixed-binding-last atomic publication, INSTALL/ROTATE, nonblocking lock,
+  immediate CAS, exact replay, typed fail-closed recovery, retained artifacts and no
+  rollback or cleanup. Production publisher composition, a real provisioner, platform
+  permission/durability support, runtime binding composition, the consumer, providers,
   credentials,
   network, spend, execution, and MCP remain planned separately;
 - timeout, cancellation, token, context, cost, redaction, and response-validation budgets;

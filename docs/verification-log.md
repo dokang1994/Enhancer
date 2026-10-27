@@ -8800,3 +8800,31 @@ Outcome:
   permission claim, real installation, runtime composition, source/evaluator/Router
   caller, provider, credential, network, spend, execution, persistence, MCP, push,
   release, or deployment was added.
+
+## 2026-10-27 - RFC-0032 Filesystem Publication State Machine Increment
+
+- The first focused GREEN attempt stopped at `compileTestJava` because strict
+  `-Xlint:all -Werror` rejected an unused held-lock test resource. After that fixture
+  correction, an intentional recovery-contract RED completed 12 tests with six aligned
+  failures: five absent state-machine behaviors plus one effect dependency in the
+  test-only fault seam. A later isolated RED proved that an evidence-verifier exception
+  escaped before the fail-closed mapping was implemented. No unrelated failure was
+  absorbed.
+- The minimum package-private filesystem implementation now acquires the fixed
+  nonblocking lock; reads one bounded exact candidate snapshot; validates injected
+  evidence, current canonical binding and selected catalog; publishes and revalidates
+  the immutable catalog before the fixed binding; and applies INSTALL absence or ROTATE
+  digest CAS immediately before the switch. Exact replay, candidate/current drift,
+  immutable collision, pre/post-publication failures and post-switch uncertainty map to
+  the closed RFC-0032 result vocabulary. Candidates and unselected catalogs are retained
+  without rollback or cleanup.
+- Fresh Java 17 verification of the filesystem publisher, publication values, binding,
+  candidate snapshot, RFC-0031 source regression and two architecture boundaries
+  completed 10 suites and 48 tests with zero failures or errors and one existing
+  privilege-dependent conditional skip. Generated JUnit XML was inspected directly,
+  the build completed successfully in 22 seconds, and fresh `git diff --check` passed.
+- Architecture guards prove that the package-private publisher has no production
+  composition and that source/evaluator callers, providers, credentials, network,
+  spend, execution, MCP, generic installer and permission-adapter authority remain
+  absent. No real installation, installed artifact, runtime binding composition,
+  platform-support claim, push, release or deployment was added.

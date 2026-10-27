@@ -138,7 +138,7 @@ Next Action: Implement the test-composed filesystem publication state machine.
 
 ### Increment 3 - implement-filesystem-publication-state-machine
 
-State: In Progress
+State: Completed
 Depends On: share-canonical-catalog-and-binding-validation
 Scope: Implement bounded exact candidate acquisition, fixed installation artifacts,
 nonblocking lock, immutable catalog publication, binding publication, INSTALL/ROTATE,
@@ -152,7 +152,7 @@ Next Action: Reconcile owning documents and run full verification.
 
 ### Increment 4 - reconcile-and-verify-rfc0032-implementation
 
-State: Pending
+State: In Progress
 Depends On: implement-filesystem-publication-state-machine
 Scope: Reconcile Architecture and compact mirror, Project State, Roadmap, Changelog,
 verification evidence, Active Task, decision index, and session handoff; run complete
@@ -167,5 +167,6 @@ invocation RFC-0031/RFC-0030/RFC-0029 consumer.
 
 ## Next
 
-Complete the active dynamic workflow sequentially. Do not compose a real installation
-or remote route, mutate permissions, or push without explicit authority.
+Reconcile the final owning documents and run the complete README-owned Java 17
+regression. Do not compose a real installation or remote route, mutate permissions, or
+push without explicit authority.

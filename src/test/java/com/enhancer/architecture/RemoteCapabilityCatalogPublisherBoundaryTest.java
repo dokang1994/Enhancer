@@ -19,8 +19,13 @@ class RemoteCapabilityCatalogPublisherBoundaryTest {
             "RemoteCapabilityCatalogPublisher.java");
 
     @Test
-    void publisherPortIsUncomposedAndHasNoProductionCaller() throws IOException {
-        assertEquals(List.of(PORT), filesContaining("RemoteCapabilityCatalogPublisher"));
+    void publisherPortHasOnlyFilesystemImplementationAndNoProductionComposition()
+            throws IOException {
+        assertEquals(List.of(
+                        MODEL_ROOT.resolve(
+                                "FileSystemRemoteCapabilityCatalogPublisher.java"),
+                        PORT),
+                filesContaining("RemoteCapabilityCatalogPublisher"));
     }
 
     @Test

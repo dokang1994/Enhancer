@@ -9,8 +9,8 @@
 - Repository root: `C:/Enhancer`.
 - Current branch: `main` tracking `origin/main`.
 - Build system: Gradle 8.4 Wrapper with Java 17.
-- Production source: 530 Java files.
-- Test source: 253 Java files.
+- Production source: 533 Java files.
+- Test source: 254 Java files.
 
 Delivery history is `git log`, and per-increment delivery is described in
 `CHANGELOG.md`. This section states only what is true of the working tree now;
@@ -1127,25 +1127,34 @@ it does not restate which commit published which increment.
   freshness. RFC-0032's first pure publication-contract slice is Contract Verified:
   its immutable operation, success, refusal, intent, and result vocabulary enforces
   bounded identities, INSTALL/ROTATE compare-and-swap input, safe rendering, and one
-  package-private zero-caller publisher port without filesystem mutation. Its second
+  package-private publisher port without production composition. Its second
   pure validation slice is also Contract Verified: one shared package-private codec now
   preserves RFC-0031 complete-catalog behavior and exact re-encoding; a defensive
   candidate snapshot derives the same-byte digest; a pure strict binding codec derives
   the fixed immediate-child path and canonical bytes; and an evidence-verifier port has
-  zero implementations. Guards permit the RFC-0031 source as the sole production
-  capability-facts creator while proving zero source, evaluator, and publisher callers.
+  zero implementations. A third Contract Verified slice now provides one
+  package-private test-composed filesystem publisher with bounded exact candidate
+  acquisition, complete current binding and selected-catalog validation, injected
+  fail-closed evidence approval, a nonblocking stateless lock, immutable-catalog-first/
+  fixed-binding-last publication, INSTALL/ROTATE, immediate binding-digest CAS, exact
+  replay, collision and drift classification, retained failure artifacts, and
+  post-switch binding/catalog revalidation. Guards permit the RFC-0031 source as the
+  sole production capability-facts creator while proving zero source, evaluator, and
+  publisher composition callers.
   Their accumulation
   does not establish whole-gate maturity. Real providers, MCP client/server composition,
   outbound data policy, fallback/cache provenance, and fixed-fixture model evaluation
   remain absent. RFC-0032 is now the Accepted specification for truthful catalog
   evidence ownership, protected immutable-catalog and fixed-binding publication,
-  INSTALL/ROTATE, lock/CAS, exact replay, and failure recovery, but a filesystem
-  publisher, production provisioner, installed catalog, permission enforcement,
-  runtime binding composition, and privileged anti-rollback remain absent. That
-  implementation and a same-invocation
+  INSTALL/ROTATE, lock/CAS, exact replay, and failure recovery. The filesystem boundary
+  is now implemented only behind the uncomposed package-private port; a production
+  provisioner, evidence implementation, installed catalog, permission enforcement,
+  runtime binding composition, and privileged anti-rollback remain absent. Production
+  composition and a same-invocation
   RFC-0029 route-option consumer are the missing Gate-9-owned boundaries before route-
   execution preparation or any second candidate, provider, credential, network, or paid
-  invocation is connected. The pure contract does not change whole-gate maturity.
+  invocation is connected. These Contract Verified slices do not change whole-gate
+  maturity.
 - Gate 8 lease-expiry recovery now has one named worker-level fixture over the
   post-RunRecord-reference prefix. The first cycle persists exactly one reference,
   expires before execution acknowledgement, and leaves the AgentRun reclaimable at

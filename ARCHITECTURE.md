@@ -2098,8 +2098,8 @@ candidate/destination pair. It maps every RFC-0030 field from the pinned snapsho
 derives source revision from the verified digest, and checks selected-record freshness
 at the explicit time that RFC-0030 must independently recheck. A matching pin proves
 the exact operator-approved bytes, not the truth of remote-world claims; RFC-0032 now
-governs provisioning, installation, and rotation while their implementation remains
-separate. The source is
+governs provisioning, installation, and rotation while production publisher composition
+remains separate. The source is
 implemented with closed typed refusals, strict defensive acquisition, complete-catalog
 validation, exact lookup, complete facts mapping, and explicit-time freshness, while
 retaining zero production callers. The only planned
@@ -2123,17 +2123,27 @@ storage, real installation, runtime binding composition, and the same-invocation
 0030-to-RFC-0029 consumer remain separately authorized. The first implemented slice is
 the closed immutable publication operation, success, refusal, intent, and result
 contract with bounded identities, operation-specific compare-and-swap input, safe
-rendering, and one package-private zero-caller publisher port. It performs no filesystem
-publication and grants no provider, execution, installation, or Operational authority.
+rendering, and one package-private publisher port.
 One package-private field-free codec now owns RFC-0031's strict UTF-8 complete canonical
 catalog decoding and exact re-encoding; the pinned source preserves its pin-first,
 lookup, freshness and sole-facts-creator behavior while a defensive same-byte candidate
 snapshot supplies the RFC-0032 validation consumer. A separate pure binding codec
 derives the fixed immediate-child catalog path, strict three-line binding bytes and both
 digests, and one zero-implementation evidence-verifier port binds the exact snapshot to
-the three bounded intent identities. No filesystem mutation, current-state reading,
-lock, evidence implementation, publisher implementation or production caller exists;
-those are the next consumers.
+the three bounded intent identities. A package-private filesystem publisher now
+implements the port for isolated composition only: it resolves the fixed exact-real
+installation artifacts, acquires the nonblocking stateless lock, validates one bounded
+candidate snapshot and injected evidence decision, validates the complete current
+binding and selected immutable catalog, publishes a revalidated content-addressed
+catalog before the fixed binding, and applies INSTALL absence or ROTATE binding-digest
+compare-and-swap again immediately before the atomic switch. Exact replay occurs only
+after current state, candidate and evidence validation; typed drift, collision and
+failure-region refusals retain unselected candidates and catalogs without rollback or
+cleanup, and post-switch uncertainty re-reads both binding and selected catalog. The
+implementation and evidence verifier have zero production composition. No real
+installer, permission enforcement, platform durability or anti-rollback claim,
+installed artifact, runtime reader, provider, execution path, or Operational authority
+follows.
 
 ## Agent Orchestration Contract
 
