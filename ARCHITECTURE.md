@@ -2145,6 +2145,23 @@ installer, permission enforcement, platform durability or anti-rollback claim,
 installed artifact, runtime reader, provider, execution path, or Operational authority
 follows.
 
+RFC-0033 specifies the read-only protected runtime bridge from that fixed binding to
+RFC-0031 without adding an implementation or production caller. Protected deployment
+composition supplies one immutable absolute normalized fixed binding path outside every
+request, Router option, provider, CLI, environment, repository and working directory.
+Each future acquisition derives the fixed sibling catalog directory, performs one
+bounded no-follow canonical binding sample through RFC-0032's existing codec, delegates
+the exact selected path and pin once to a fresh RFC-0031 source, and exposes the
+delegated result only after a second complete binding sample proves the same canonical
+bytes and digest remained selected. RFC-0031 stays the sole capability-facts creator;
+every second-sample failure or change outranks and hides the earlier delegated result.
+This is a stable sequential observation, not a publisher lock, atomic deployment
+snapshot, platform-permission proof, installed configuration, truth or anti-rollback
+claim. The only named next consumer is a separately accepted same-invocation
+RFC-0030 evaluation and RFC-0029 option-construction boundary. Java implementation,
+production construction, publisher/evidence composition, providers, credentials,
+network, spend, execution, persistence, runtime and MCP remain separate.
+
 ## Agent Orchestration Contract
 
 ### Development-Time Adaptive Subagent Delegation

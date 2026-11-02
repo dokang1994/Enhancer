@@ -8847,3 +8847,26 @@ Outcome:
   implementation, platform permission or durability support, runtime binding reader,
   source/evaluator/Router consumer, provider, credential, network, spend, execution,
   persistence, MCP, merge, release or deployment was added.
+
+## 2026-11-02 - RFC-0033 Protected Runtime Binding Composition Specification Increment
+
+- The accepted RFC-0033 specification defines one read-only protected bridge from
+  RFC-0032's fixed canonical binding to a fresh RFC-0031 acquisition. Protected
+  composition alone owns the immutable binding point; requests, Router options,
+  providers, CLI/environment/repository inputs, discovery, fallback and caches cannot
+  select or override it.
+- One future call must take a bounded no-follow canonical binding sample, delegate its
+  exact selected path and pin once to RFC-0031, and return only after a second complete
+  sample proves the same canonical bytes and digest remained selected. Second-sample
+  failure or change hides the earlier delegated result. RFC-0031 remains the sole
+  production capability-facts creator, and the only named next consumer is a separately
+  accepted same-invocation RFC-0030/RFC-0029 boundary.
+- Fresh Java 17 focused verification completed 15 governance, planning, Gate 9
+  architecture and RFC-0031 regression suites with 62 tests: 61 passed, one existing
+  privilege-dependent test was skipped, and zero failed or errored. The build completed
+  successfully in 1 minute 16 seconds, generated JUnit XML was inspected directly, and
+  fresh `git diff --check` passed.
+- This increment adds specification only. No Java implementation, production caller,
+  installed binding/catalog, publisher/evidence composition, permission mutation,
+  provider, credential, network, spend, execution, persistence, runtime, MCP, push,
+  release or deployment was added.
