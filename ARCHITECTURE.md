@@ -2670,7 +2670,9 @@ Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts bel
   pure RFC-0029 definition surface. RFC-0030 supplies the pure suitability evaluator,
   RFC-0031 implements its pinned canonical capability-catalog acquisition source, and
   RFC-0032 specifies protected publisher-owned catalog provisioning and rotation;
-  provisioning/rotation implementation, runtime binding composition, the same-
-  invocation RFC-0030-to-RFC-0029 consumer, and every Router execution consumer remain
-  separately authorized before any second candidate or provider integration.
+  RFC-0033 now specifies the protected read-only runtime binding bridge and its stable
+  before/after acquisition rule. RFC-0033 implementation, production publisher
+  composition, the same-invocation RFC-0030-to-RFC-0029 consumer, and every Router
+  execution consumer remain separately authorized before any second candidate or
+  provider integration.
 - Future LLM-backed Planner input/output schema is not selected yet.

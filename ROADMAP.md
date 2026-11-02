@@ -1012,6 +1012,15 @@ Scope:
   permission/durability support, runtime binding composition, the consumer, providers,
   credentials,
   network, spend, execution, and MCP remain planned separately;
+- an Accepted RFC-0033 specification for the read-only protected runtime bridge from
+  RFC-0032's sole fixed binding to RFC-0031. Protected composition alone owns the
+  immutable binding point; each future call performs one bounded canonical first
+  sample, delegates its exact path and pin once to a fresh RFC-0031 source, and exposes
+  the result only after an unchanged second complete sample. RFC-0031 remains the sole
+  capability-facts creator. Java implementation, production construction, publisher or
+  evidence composition, the same-invocation RFC-0030/RFC-0029 consumer, providers,
+  credentials, network, spend, execution, persistence, runtime, MCP, platform support,
+  and anti-rollback remain separate;
 - timeout, cancellation, token, context, cost, redaction, and response-validation budgets;
 - versioned per-model quality evaluation, policy-scoped fallback and response caching, prompt-injection resistance, source attribution, and visible uncertainty;
 - secret/sensitive-data detection plus explicit outbound destination, purpose, retention, and data-classification policy before remote transmission;
@@ -1331,6 +1340,7 @@ Status: Accepted
 - RFC-0030: Governed Remote Model Candidate Suitability
 - RFC-0031: Pinned Governed Remote Capability Catalog Source
 - RFC-0032: Governed Remote Capability Catalog Provisioning And Rotation
+- RFC-0033: Protected Remote Capability Catalog Runtime Binding Composition
 
 RFC acceptance does not imply Contract Verified, Integrated, Operational, or Released capability maturity.
 

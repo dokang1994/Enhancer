@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-11-02 - Specify Protected Runtime Catalog Binding Composition
+
+- Accepted RFC-0033 as the documentation-only read bridge from RFC-0032's fixed
+  canonical binding to one fresh RFC-0031 capability-fact acquisition.
+- Required protected composition to own the immutable binding point, derive only fixed
+  sibling artifacts, delegate the exact selected path and pin to RFC-0031, and expose a
+  result only after a second complete binding sample proves stable canonical selection.
+- Kept RFC-0031 as the sole capability-facts creator and named the later same-invocation
+  RFC-0030/RFC-0029 option consumer as separate work.
+- Added no Java implementation, production caller, installed catalog, publisher or
+  evidence composition, permission mutation, provider, credential, network, spend,
+  execution, persistence, runtime, MCP, push, release, or deployment path.
+
 ## 2026-10-27 - Implement RFC-0032 Capability Catalog Publisher
 
 - Added the closed RFC-0032 INSTALL/ROTATE, success, refusal, intent, and result value

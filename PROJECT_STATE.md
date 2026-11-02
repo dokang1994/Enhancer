@@ -2,7 +2,7 @@
 
 ## Updated At
 
-2026-10-27
+2026-11-02
 
 ## Repository State
 
@@ -1149,11 +1149,16 @@ it does not restate which commit published which increment.
   publication, INSTALL/ROTATE, lock/CAS, exact replay, and failure recovery. The
   filesystem implementation remains behind the package-private port; a production
   provisioner, evidence implementation, installed catalog, permission enforcement,
-  runtime binding composition, and privileged anti-rollback remain absent. Production
-  composition and a same-invocation
-  RFC-0029 route-option consumer are the missing Gate-9-owned boundaries before route-
-  execution preparation or any second candidate, provider, credential, network, or paid
-  invocation is connected. These Contract Verified slices do not change whole-gate
+  runtime binding implementation, and privileged anti-rollback remain absent. RFC-0033
+  is now the Accepted specification for that read-only runtime bridge: protected
+  composition owns one immutable fixed binding point, a future call delegates the exact
+  selected path/pin once to RFC-0031, and only an unchanged second canonical binding
+  sample may expose the delegated result. It has no Java implementation or production
+  caller and makes only a stable sequential-observation claim. Production publisher
+  composition, RFC-0033 implementation, and a same-invocation RFC-0030/RFC-0029 route-
+  option consumer remain the missing Gate-9-owned boundaries before route-execution
+  preparation or any second candidate, provider, credential, network, or paid invocation
+  is connected. These accepted and Contract Verified slices do not change whole-gate
   maturity.
 - Gate 8 lease-expiry recovery now has one named worker-level fixture over the
   post-RunRecord-reference prefix. The first cycle persists exactly one reference,
