@@ -8913,3 +8913,30 @@ Outcome:
   publisher/evidence composition, permission or platform-support claim, Router/evaluator
   consumer, provider, credential, network, spend, execution, persistence, runtime, MCP,
   push, release or deployment was added.
+
+## 2026-11-03 - RFC-0033 Stable Acquisition And Rotation Increment
+
+- Focused RED verification stopped at compileTestJava with two missing-constructor
+  errors for the intentionally absent deterministic binding-read observer seam. The
+  failure matched the selected drift/rotation increment and required no public API or
+  authority expansion.
+- The package-private observer runs after each bounded channel read and before post-read
+  attribute validation, allowing deterministic same-call replacement tests without
+  changing the sole public Path constructor. First-sample replacement refuses as
+  BINDING_CHANGED_DURING_READ and skips delegation; second-sample replacement collapses
+  to BINDING_CHANGED_DURING_ACQUISITION and hides the delegated outcome.
+- Focused verification first exposed one test-fixture time outside the canonical
+  RFC-0031 record's freshness window. After moving that fixture time inside the declared
+  window, the complete focused Java 17 selection completed with BUILD SUCCESSFUL in 47
+  seconds. Generated JUnit XML recorded 13 suites and 57 tests: 55 passed, two
+  privilege-dependent symbolic-link tests were skipped, and zero failed or errored.
+  The Windows fixed-catalog-directory junction regression ran and passed.
+- Coverage now includes a real fresh RFC-0031 acquisition, every delegated refusal,
+  rotation during delegation, missing and invalid second samples, deterministic drift
+  in both samples, repeated calls across rotation without cached path/pin/source,
+  symbolic and junction indirection, non-regular binding state, exact size limits,
+  foreign-directory and path/digest mismatch, and fresh git diff --check.
+- No cache, scan, fallback, write, repair, maintenance-lock use, installed binding,
+  production construction, publisher/evidence composition, platform-support claim,
+  Router/evaluator consumer, provider, credential, network, spend, execution,
+  persistence, runtime, MCP, push, release or deployment was added.

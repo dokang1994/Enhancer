@@ -141,7 +141,7 @@ Next Action: Completed; stable second-sample, rotation, and drift behavior is se
 
 ### Increment 2 - enforce-stable-acquisition-and-rotation
 
-State: In Progress
+State: Completed
 Depends On: define-rfc0033-result-and-first-sample-boundary
 Scope: Add RED-first second-sample dominance, complete before/during/after rotation and
 read-drift coverage, repeated fresh acquisition, and no-cache/no-fallback behavior.
@@ -149,11 +149,11 @@ Exit Criteria: The same canonical binding selection is required around exactly o
 delegation, and all second-sample failure or change hides the delegated outcome.
 Verification: Focused filesystem, rotation, delegation, source-guard, and architecture
 tests plus `git diff --check`.
-Next Action: Reconcile owning documents and run full verification.
+Next Action: Completed; owning-document reconciliation and full verification is selected.
 
 ### Increment 3 - reconcile-and-verify-rfc0033-implementation
 
-State: Pending
+State: In Progress
 Depends On: enforce-stable-acquisition-and-rotation
 Scope: Reconcile Architecture, Project State, Roadmap, compact mirror, Changelog,
 verification log, Active Task, decision index, and session handoff; run complete fresh

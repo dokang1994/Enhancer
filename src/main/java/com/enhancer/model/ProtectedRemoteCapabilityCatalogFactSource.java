@@ -25,6 +25,7 @@ public final class ProtectedRemoteCapabilityCatalogFactSource {
 
     private final Path bindingPath;
     private final Delegate delegate;
+    private final BindingReadObserver bindingReadObserver;
 
     /** Creates a read-only source from one protected absolute fixed binding path. */
     public ProtectedRemoteCapabilityCatalogFactSource(Path bindingPath) {
@@ -32,12 +33,22 @@ public final class ProtectedRemoteCapabilityCatalogFactSource {
                 destinationIdentity, evaluationTime) ->
                 new PinnedFileRemoteModelCandidateCapabilityFactSource(
                         catalogPath, catalogSha256)
-                        .acquire(candidateIdentity, destinationIdentity, evaluationTime));
+                        .acquire(candidateIdentity, destinationIdentity, evaluationTime),
+                (path, sampleOrdinal) -> {
+                });
     }
 
     ProtectedRemoteCapabilityCatalogFactSource(
             Path bindingPath,
             Delegate delegate) {
+        this(bindingPath, delegate, (path, sampleOrdinal) -> {
+        });
+    }
+
+    ProtectedRemoteCapabilityCatalogFactSource(
+            Path bindingPath,
+            Delegate delegate,
+            BindingReadObserver bindingReadObserver) {
         Path checked = Objects.requireNonNull(
                 bindingPath, "bindingPath must not be null");
         if (!checked.isAbsolute() || !checked.equals(checked.normalize())
@@ -49,6 +60,8 @@ public final class ProtectedRemoteCapabilityCatalogFactSource {
         }
         this.bindingPath = checked;
         this.delegate = Objects.requireNonNull(delegate, "delegate must not be null");
+        this.bindingReadObserver = Objects.requireNonNull(
+                bindingReadObserver, "bindingReadObserver must not be null");
     }
 
     /** Performs one stable sequential binding observation around one RFC-0031 call. */
@@ -60,7 +73,7 @@ public final class ProtectedRemoteCapabilityCatalogFactSource {
         programmingLabel(destinationIdentity, "destinationIdentity");
         Objects.requireNonNull(evaluationTime, "evaluationTime must not be null");
 
-        BindingSample first = sampleBinding();
+        BindingSample first = sampleBinding(1);
         if (first.refusal != null) {
             return refused(first.refusal);
         }
@@ -72,7 +85,7 @@ public final class ProtectedRemoteCapabilityCatalogFactSource {
                 destinationIdentity,
                 evaluationTime);
 
-        BindingSample second = sampleBinding();
+        BindingSample second = sampleBinding(2);
         if (second.refusal != null || !first.binding.equals(second.binding)) {
             return refused(ProtectedRemoteCapabilityCatalogFactSourceRefusalReason
                     .BINDING_CHANGED_DURING_ACQUISITION);
@@ -89,7 +102,7 @@ public final class ProtectedRemoteCapabilityCatalogFactSource {
                 Optional.of(sourceRefused.reason()));
     }
 
-    private BindingSample sampleBinding() {
+    private BindingSample sampleBinding(int sampleOrdinal) {
         Path installationRoot = bindingPath.getParent();
         Path catalogDirectory = installationRoot.resolve(
                 RemoteCapabilityCatalogBindingCodec.CATALOG_DIRECTORY_NAME);
@@ -133,6 +146,14 @@ public final class ProtectedRemoteCapabilityCatalogFactSource {
             }
             bytes = PinnedFileRemoteModelCandidateCapabilityFactSource
                     .readDeclaredBytes(channel, before.size());
+        } catch (IOException | SecurityException exception) {
+            return BindingSample.refused(
+                    ProtectedRemoteCapabilityCatalogFactSourceRefusalReason
+                            .BINDING_CHANGED_DURING_READ);
+        }
+        try {
+            bindingReadObserver.afterBindingBytesRead(
+                    bindingPath, sampleOrdinal);
         } catch (IOException | SecurityException exception) {
             return BindingSample.refused(
                     ProtectedRemoteCapabilityCatalogFactSourceRefusalReason
@@ -220,6 +241,11 @@ public final class ProtectedRemoteCapabilityCatalogFactSource {
                 String candidateIdentity,
                 String destinationIdentity,
                 Instant evaluationTime);
+    }
+
+    @FunctionalInterface
+    interface BindingReadObserver {
+        void afterBindingBytesRead(Path path, int sampleOrdinal) throws IOException;
     }
 
     private static final class BindingSample {
