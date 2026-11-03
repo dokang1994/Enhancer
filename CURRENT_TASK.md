@@ -2,88 +2,105 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Specify RFC-0033 as the protected runtime composition that reads RFC-0032's sole fixed
-catalog binding and supplies its exact catalog path and pin to RFC-0031 for one stable
-acquisition, without composing a Router consumer, provider, network path, or writer.
+Implement RFC-0033 RED-first as one read-only protected fixed-binding capability-catalog
+source that reuses RFC-0032's canonical binding codec, delegates exact selected path and
+pin acquisition once to a fresh RFC-0031 source, and exposes the result only after an
+unchanged second complete binding sample.
 
 ## Task ID
 
-specify-protected-remote-capability-catalog-runtime-binding-composition
+implement-rfc-0033-protected-runtime-binding-composition
 
 ## Context
 
-RFC-0032 is Contract Verified through an uncomposed package-private publisher and fixed
-canonical binding. RFC-0031 is the sole production creator of RFC-0030 capability facts,
-but today its protected absolute catalog path and independent pin have no runtime
-composition source. The completed task records runtime binding composition and the
-later same-invocation RFC-0031/RFC-0030/RFC-0029 consumer as separate continuations.
+RFC-0033 is Accepted and the preceding specification task is Completed. RFC-0032
+provides the fixed canonical binding grammar and an uncomposed package-private
+publisher. RFC-0031 is the sole production creator of RFC-0030 capability facts and has
+no production caller. This task implements only the read-only bridge between those two
+contracts.
 
-The runtime binding composition is selected first because the later consumer must not
-invent or accept catalog trust inputs from a request, Router option, provider, CLI,
-environment, repository, or working directory. This task specifies only the read-only
-trust-input bridge and leaves production publisher composition and remote route
-selection or execution separate.
+The implementation must retain the fixed binding path as protected construction input,
+perform a fresh bounded no-follow canonical sample for every acquisition, create one
+fresh RFC-0031 source from the exact selected catalog path and pin, delegate once, then
+collapse every failed or changed second sample to the RFC-0033 acquisition-drift
+refusal before exposing the delegated result.
 
 ## Justified By
 
-- User continuation request on 2026-11-02 into protected remote capability catalog runtime binding composition specification
+- User continuation request on 2026-11-03 into RFC-0033 protected runtime binding implementation
 
 ## Approval
 
-The user's continuation authorizes repository-local RFC, decision, architecture,
-roadmap, project-state, compact-mirror, task, changelog, verification-log, handoff, and
-related documentation changes needed to specify the protected runtime binding
-composition; checkpoint state; fresh repository verification; and the ordinary local
-commits required for verified GREEN increments of this Active Task.
+The user's continuation authorizes repository-local Java production and test changes,
+architecture/source guards, decision and owning project-document updates, checkpoint
+state, fresh repository verification, and ordinary local commits required for verified
+GREEN increments of this Active Task.
 
-It does not authorize Java production or test implementation, production publisher
-composition, an installed catalog or binding, permission mutation, a real installer or
-operator, evidence authoring or storage, runtime deployment configuration, a
-source/evaluator/Router caller, route execution, provider, endpoint, credential,
-network transmission, spend, Tool/Evidence/RunRecord/Scheduler/runtime integration,
-MCP, destructive action, push, merge, tag, release, or deployment.
+It does not authorize production construction or an installed binding/catalog,
+publisher or evidence composition, deployment configuration, permission mutation,
+platform-support claims, a same-invocation RFC-0030/RFC-0029 consumer, route selection
+or execution, provider, endpoint, credential, network transmission, spend, fallback,
+retry, durable provenance, Tool/Evidence/RunRecord/Scheduler/runtime integration, MCP,
+destructive action, push, merge, tag, release, or deployment.
 
 ## Acceptance Criteria
 
-- RFC-0033 defines one read-only protected composition source for RFC-0032's fixed
-  binding, including exact trust-input ownership, bounded no-follow acquisition,
-  canonical binding and selected-catalog validation, stable observation around one
-  RFC-0031 acquisition, and closed fail-closed outcomes.
-- The specification preserves RFC-0031 as the sole production capability-facts creator
-  and names the later same-invocation RFC-0031/RFC-0030/RFC-0029 option-construction
-  boundary as its only next consumer.
-- Requests, Router options, providers, catalogs, CLI arguments, environment/JVM
-  properties, repositories, working directories, filenames, fallback, scans, caches,
-  logs, and publisher results cannot select or override the binding trust root.
-- The contract makes no writer, permission, installation, anti-rollback, provider,
-  network, spend, execution, persistence, runtime, MCP, Operational, or platform-support
-  claim.
+- Immutable closed RFC-0033 acquired/refused results retain only the exact RFC-0031
+  facts, stable binding digest, top-level refusal, and nested RFC-0031 refusal where the
+  accepted specification permits it; rendering is path-, byte-, value-, and
+  exception-safe.
+- One read-only source accepts only protected construction-time fixed binding path plus
+  candidate, destination, and evaluation-time acquisition input, performs a fresh
+  1-byte-through-4-KiB no-follow canonical binding read on every sample, and enforces
+  the RFC-0033 first-applicable refusal order.
+- Installation root, fixed catalog directory, binding point, and selected path are
+  exact-real and link/junction/reparse-safe within the bounded Java filesystem claim;
+  the canonical RFC-0032 binding codec remains the sole binding grammar.
+- Every valid first sample constructs one fresh RFC-0031 source from the exact selected
+  path and pin and delegates exactly once without mapping capability values or adding a
+  second facts creator.
+- Every second-sample failure or unequal canonical binding becomes
+  `BINDING_CHANGED_DURING_ACQUISITION` and hides both an earlier acquisition and an
+  earlier delegated refusal; repeated calls do not cache, scan, fall back, write,
+  repair, or use the publisher lock.
+- Focused tests cover programming input, refusal precedence, fixed derivation, missing
+  and unsafe filesystem state, bounds, malformed/noncanonical/foreign binding state,
+  before/after drift, exact delegation, acquired and delegated refusal results,
+  rotation before/during/after delegation, second-sample failure, safe rendering, and
+  fresh repeated acquisition.
+- Architecture and source guards preserve RFC-0031 as the sole production facts
+  creator, allow only the RFC-0033 internal delegation caller, prove no external
+  production caller, and exclude forbidden provider, Router/evaluator, credential,
+  network, spend, execution, persistence, runtime, CLI/configuration, publisher,
+  permission, cleanup, rollback, and anti-rollback dependencies.
 - Architecture, Project State, Roadmap, compact mirror, Changelog, verification log,
-  Active Task, decision index, RFC index, and session handoff remain consistent with
-  document ownership.
-- Focused governance/reference checks, `git diff --check`, and the full README-owned
-  Java 17 regression pass freshly before completion.
+  Active Task, decision index, and session handoff remain consistent with document
+  ownership; focused checks and the complete README-owned Java 17 regression are fresh
+  before completion.
 
 ## Out Of Scope
 
-Java production or test implementation; publisher/evidence implementation or
-composition; real installation, installed artifacts, operator CLI/launcher, broker,
-authenticated transport, permission or ownership mutation, ACL/DACL/mode enforcement,
-platform identity, deployment configuration, cleanup, retention, uninstall, rollback,
-privileged anti-rollback, catalog signing, keys, credentials, secrets, provider
-endpoint or adapter, network, transmission, spend, source/evaluator/Router caller,
-route selection or execution, fallback, retry, durable route provenance,
-Tool/Evidence/RunRecord/Scheduler/runtime-event integration, durable schema or
-migration, MCP, plugin, background work, push, merge, tag, release, deployment, and
+Production construction, installed artifacts, publisher/evidence implementation or
+composition, real installation, deployment configuration, operator CLI/launcher,
+broker, authenticated transport, permission/ownership mutation, ACL/DACL/mode or
+platform-identity enforcement, cleanup, retention, uninstall, rollback, privileged
+anti-rollback, catalog signing, key or secret handling, source/evaluator/Router caller
+beyond RFC-0033's internal RFC-0031 delegation, route selection or execution, provider,
+endpoint, credential, network, transmission, spend, billing, retry, fallback, cache,
+durable route provenance, Tool/Evidence/RunRecord/Scheduler/runtime-event integration,
+durable schema or migration, MCP, plugin, interface, background work, capability
+promotion beyond the implemented contract, push, merge, tag, release, deployment, and
 unrelated external effects.
 
 ## Allowed Tools
 
 - read-file
+- write-code
+- write-tests
 - write-docs
 - build-output
 - verify
@@ -94,53 +111,64 @@ unrelated external effects.
 
 ## Verification
 
-Use structural and reference checks appropriate to a documentation-only specification.
-Run focused decision/index/document-ownership/dynamic-workflow/Planner/Assisted-Loop and
-Gate 9 architecture tests plus `git diff --check` at each GREEN boundary. Before task
-completion run the complete README-owned Java 17 test task, inspect generated JUnit
-evidence, and review final Git status and diff.
+Use RED-first focused JUnit tests for observable behavior. Run focused RFC-0031 through
+RFC-0033 model tests and architecture/source/governance guards at each GREEN increment,
+plus `git diff --check`. Before task completion run the complete README-owned Java 17
+test task, inspect generated JUnit evidence, and review final Git status and diff.
 
 ## Dynamic Workflow
 
-Workflow ID: specify-protected-remote-capability-catalog-runtime-binding-composition
+Workflow ID: implement-rfc-0033-protected-runtime-binding-composition
 Mode: Sequential
-Increment Limit: 2
+Increment Limit: 3
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
 Stop Conditions: Stop on failed verification, authority conflict, task/checkpoint drift,
-scope expansion into implementation or external effects, exhausted workflow bounds, or
+scope expansion into a consumer/provider/external effect, exhausted workflow bounds, or
 unsafe recovery.
 
-### Increment 1 - specify-protected-runtime-binding-composition
+### Increment 1 - define-rfc0033-result-and-first-sample-boundary
 
 State: Completed
 Depends On: none
-Scope: Record the accepted continuation decision and RFC-0033; define protected
-binding-root ownership, bounded canonical acquisition, RFC-0031 delegation, stable
-observation, closed outcomes, and the exact next consumer; update architectural owners.
-Exit Criteria: The read-only trust-input bridge is fully specified without a writer,
-production caller, route consumer, provider, or external effect.
-Verification: Focused governance, RFC/reference, Gate 9 architecture tests, and
+Scope: Record the accepted implementation continuation; add RED-first immutable result,
+refusal, protected source, and bounded first binding-sample behavior; establish exact
+RFC-0031 delegation without capability-value mapping; add focused source guards.
+Exit Criteria: The contract and first-sample/delegation behavior are GREEN with closed
+safe outcomes and no forbidden caller or dependency.
+Verification: Focused RFC-0031/RFC-0032/RFC-0033 unit and architecture tests plus
 `git diff --check`.
-Next Action: Reconcile remaining owning documents and run full verification.
+Next Action: Completed; stable second-sample, rotation, and drift behavior is selected.
 
-### Increment 2 - reconcile-and-verify-rfc0033-specification
+### Increment 2 - enforce-stable-acquisition-and-rotation
 
-State: Completed
-Depends On: specify-protected-runtime-binding-composition
-Scope: Reconcile Project State, Roadmap, compact mirror, Changelog, verification log,
-Active Task, decision/RFC indexes, and session handoff; run complete fresh verification
-and commit the closure.
-Exit Criteria: RFC-0033 is Accepted only as a specification, all owning documents are
-current, the full Markdown-sensitive regression is GREEN, Git is clean after required
-local commits, and the stable checkpoint is cleared.
+State: In Progress
+Depends On: define-rfc0033-result-and-first-sample-boundary
+Scope: Add RED-first second-sample dominance, complete before/during/after rotation and
+read-drift coverage, repeated fresh acquisition, and no-cache/no-fallback behavior.
+Exit Criteria: The same canonical binding selection is required around exactly one
+delegation, and all second-sample failure or change hides the delegated outcome.
+Verification: Focused filesystem, rotation, delegation, source-guard, and architecture
+tests plus `git diff --check`.
+Next Action: Reconcile owning documents and run full verification.
+
+### Increment 3 - reconcile-and-verify-rfc0033-implementation
+
+State: Pending
+Depends On: enforce-stable-acquisition-and-rotation
+Scope: Reconcile Architecture, Project State, Roadmap, compact mirror, Changelog,
+verification log, Active Task, decision index, and session handoff; run complete fresh
+verification and commit the closure.
+Exit Criteria: RFC-0033 is Contract Verified only at its read-only uncomposed boundary,
+all owning documents are current, full Markdown-sensitive regression is GREEN, Git is
+clean after required local commits, and the stable checkpoint is cleared.
 Verification: Focused governance tests, full README-owned Java 17 regression, generated
 JUnit evidence inspection, `git diff --check`, and Git status/log review.
-Next Action: Await separate authority to implement RFC-0033 RED-first.
+Next Action: Await separate authority for the same-invocation RFC-0030/RFC-0029 consumer
+or another explicitly approved Gate 9 continuation.
 
 ## Next
 
-After this specification is Completed, implement RFC-0033 RED-first only under a
-separate continuation. Do not compose the RFC-0031/RFC-0030/RFC-0029 consumer, a
-publisher, installed artifact, provider, credential, network, spend, execution,
-runtime, persistence or MCP path, and do not push local commits without explicit
-authority.
+After this implementation is Completed, do not compose the RFC-0030/RFC-0029 consumer,
+a production publisher or deployment source, installed artifact, provider, credential,
+network, spend, execution, persistence, runtime, or MCP path, and do not push local
+commits without explicit authority.

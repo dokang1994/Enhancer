@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-11-03 into RFC-0033 protected runtime binding implementation
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-11-03-implement-rfc-0033-protected-runtime-binding-composition.md)
+
 ### User continuation request on 2026-11-02 into protected remote capability catalog runtime binding composition specification
 
 Status: Accepted Decision

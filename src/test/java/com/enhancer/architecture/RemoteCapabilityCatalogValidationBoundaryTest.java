@@ -72,8 +72,12 @@ class RemoteCapabilityCatalogValidationBoundaryTest {
         assertEquals(List.of(MODEL_ROOT.resolve(
                         "PinnedFileRemoteModelCandidateCapabilityFactSource.java")),
                 filesContaining("RemoteModelCandidateCapabilityFacts.create("));
+        assertEquals(List.of(MODEL_ROOT.resolve(
+                        "ProtectedRemoteCapabilityCatalogFactSource.java")),
+                filesContaining(
+                        "new PinnedFileRemoteModelCandidateCapabilityFactSource("));
         assertEquals(List.of(), filesContaining(
-                "new PinnedFileRemoteModelCandidateCapabilityFactSource("));
+                "new ProtectedRemoteCapabilityCatalogFactSource("));
         assertEquals(List.of(), filesContaining(
                 "new RemoteModelCandidateSuitabilityEvaluator("));
     }

@@ -8889,3 +8889,27 @@ Outcome:
   be lost. No publisher/evidence composition, real installation, installed artifact,
   permission or platform support, provider, credential, network, spend, execution,
   persistence, runtime, MCP, merge, release or deployment was added.
+
+## 2026-11-03 - RFC-0033 Result, First Sample, And Delegation Increment
+
+- Focused RED verification stopped at compileTestJava with 58 missing-symbol errors
+  for the intentionally absent RFC-0033 protected source, result, and refusal types.
+  The failure matched the Accepted RFC and selected dynamic increment; no unrelated
+  failure was absorbed.
+- The minimum implementation adds the closed seven-reason refusal vocabulary, safe
+  immutable acquired/refused results, and one final read-only source whose only public
+  construction input is RFC-0032's fixed binding path. Every call validates programming
+  input, derives the fixed catalog sibling, takes bounded exact-real no-follow canonical
+  binding samples, delegates exact selected path and pin once through a fresh RFC-0031
+  source, and exposes the delegated result only after an unchanged second sample.
+- Fresh focused Java 17 verification completed the RFC-0033 contract and architecture
+  suites plus RFC-0031/RFC-0032 regressions with BUILD SUCCESSFUL in 36 seconds.
+  Generated JUnit XML for the new behavior recorded 8 contract tests and 2 boundary
+  tests; the three updated legacy boundaries recorded 9 tests. All 19 passed with zero
+  skips, failures, or errors.
+- Architecture guards preserve RFC-0031 as the sole production capability-facts
+  creator, allow its constructor only inside RFC-0033's internal fresh delegation, and
+  prove there is no production RFC-0033 construction caller. No installed binding,
+  publisher/evidence composition, permission or platform-support claim, Router/evaluator
+  consumer, provider, credential, network, spend, execution, persistence, runtime, MCP,
+  push, release or deployment was added.

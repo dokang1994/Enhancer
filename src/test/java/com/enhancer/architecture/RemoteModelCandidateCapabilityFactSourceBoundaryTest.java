@@ -34,11 +34,17 @@ class RemoteModelCandidateCapabilityFactSourceBoundaryTest {
     }
 
     @Test
-    void sourceIsTheOnlyFactsCreatorAndHasNoProductionCaller() throws IOException {
+    void sourceIsTheOnlyFactsCreatorAndOnlyProtectedSourceCallsIt()
+            throws IOException {
         assertEquals(List.of(SOURCE), filesContaining(
                 "RemoteModelCandidateCapabilityFacts.create("));
+        assertEquals(List.of(PRODUCTION_ROOT.resolve(
+                        "com/enhancer/model/"
+                                + "ProtectedRemoteCapabilityCatalogFactSource.java")),
+                filesContaining(
+                        "new PinnedFileRemoteModelCandidateCapabilityFactSource("));
         assertEquals(List.of(), filesContaining(
-                "new PinnedFileRemoteModelCandidateCapabilityFactSource("));
+                "new ProtectedRemoteCapabilityCatalogFactSource("));
     }
 
     @Test
