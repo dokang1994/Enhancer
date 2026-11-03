@@ -160,7 +160,8 @@ class ProtectedRemoteCapabilityCatalogFactSourceStabilityTest {
                         },
                         (path, sampleOrdinal) -> {
                             if (sampleOrdinal == 1) {
-                                replaceBinding(temporaryRoot, SECOND_DIGEST);
+                                replaceBindingBytes(
+                                        temporaryRoot, new byte[] {1});
                             }
                         });
 
@@ -192,7 +193,8 @@ class ProtectedRemoteCapabilityCatalogFactSourceStabilityTest {
                         },
                         (path, sampleOrdinal) -> {
                             if (sampleOrdinal == 2) {
-                                replaceBinding(temporaryRoot, SECOND_DIGEST);
+                                replaceBindingBytes(
+                                        temporaryRoot, new byte[] {1});
                             }
                         });
 
@@ -278,13 +280,18 @@ class ProtectedRemoteCapabilityCatalogFactSourceStabilityTest {
         RemoteCapabilityCatalogBinding binding =
                 RemoteCapabilityCatalogBindingCodec.create(
                         catalogDirectory(root), digest);
+        replaceBindingBytes(root, binding.canonicalBytes());
+        return binding;
+    }
+
+    private static void replaceBindingBytes(
+            Path root, byte[] bytes) throws IOException {
         Path replacement = root.resolve("binding-replacement");
-        Files.write(replacement, binding.canonicalBytes());
+        Files.write(replacement, bytes);
         Files.move(
                 replacement,
                 bindingPath(root),
                 StandardCopyOption.REPLACE_EXISTING);
-        return binding;
     }
 
     private static RemoteCapabilityCatalogBinding replaceBindingUnchecked(

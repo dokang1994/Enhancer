@@ -2145,22 +2145,24 @@ installer, permission enforcement, platform durability or anti-rollback claim,
 installed artifact, runtime reader, provider, execution path, or Operational authority
 follows.
 
-RFC-0033 specifies the read-only protected runtime bridge from that fixed binding to
-RFC-0031 without adding an implementation or production caller. Protected deployment
+RFC-0033 implements the read-only protected runtime bridge from that fixed binding to
+RFC-0031 without adding a production construction caller. Protected deployment
 composition supplies one immutable absolute normalized fixed binding path outside every
 request, Router option, provider, CLI, environment, repository and working directory.
-Each future acquisition derives the fixed sibling catalog directory, performs one
+Each acquisition derives the fixed sibling catalog directory, performs one
 bounded no-follow canonical binding sample through RFC-0032's existing codec, delegates
 the exact selected path and pin once to a fresh RFC-0031 source, and exposes the
 delegated result only after a second complete binding sample proves the same canonical
-bytes and digest remained selected. RFC-0031 stays the sole capability-facts creator;
-every second-sample failure or change outranks and hides the earlier delegated result.
+bytes and digest remained selected. Closed immutable results retain exact acquired facts
+plus binding digest or one seven-reason refusal with the exact nested RFC-0031 reason
+only for source refusal. RFC-0031 stays the sole capability-facts creator; every
+second-sample failure or change outranks and hides the earlier delegated result.
 This is a stable sequential observation, not a publisher lock, atomic deployment
 snapshot, platform-permission proof, installed configuration, truth or anti-rollback
 claim. The only named next consumer is a separately accepted same-invocation
-RFC-0030 evaluation and RFC-0029 option-construction boundary. Java implementation,
-production construction, publisher/evidence composition, providers, credentials,
-network, spend, execution, persistence, runtime and MCP remain separate.
+RFC-0030 evaluation and RFC-0029 option-construction boundary. Production construction,
+publisher/evidence composition, providers, credentials, network, spend, execution,
+persistence, runtime and MCP remain separate.
 
 ## Agent Orchestration Contract
 
@@ -2670,9 +2672,9 @@ Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts bel
   pure RFC-0029 definition surface. RFC-0030 supplies the pure suitability evaluator,
   RFC-0031 implements its pinned canonical capability-catalog acquisition source, and
   RFC-0032 specifies protected publisher-owned catalog provisioning and rotation;
-  RFC-0033 now specifies the protected read-only runtime binding bridge and its stable
-  before/after acquisition rule. RFC-0033 implementation, production publisher
-  composition, the same-invocation RFC-0030-to-RFC-0029 consumer, and every Router
-  execution consumer remain separately authorized before any second candidate or
-  provider integration.
+  RFC-0033 implements the protected read-only runtime binding bridge and its stable
+  before/after acquisition rule without a production construction caller. Production
+  publisher composition, the same-invocation RFC-0030-to-RFC-0029 consumer, and every
+  Router execution consumer remain separately authorized before any second candidate
+  or provider integration.
 - Future LLM-backed Planner input/output schema is not selected yet.

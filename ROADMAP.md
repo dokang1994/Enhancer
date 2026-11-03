@@ -1009,18 +1009,19 @@ Scope:
   first/fixed-binding-last atomic publication, INSTALL/ROTATE, nonblocking lock,
   immediate CAS, exact replay, typed fail-closed recovery, retained artifacts and no
   rollback or cleanup. Production publisher composition, a real provisioner, platform
-  permission/durability support, runtime binding composition, the consumer, providers,
+  permission/durability support, production runtime binding construction, the consumer, providers,
   credentials,
   network, spend, execution, and MCP remain planned separately;
-- an Accepted RFC-0033 specification for the read-only protected runtime bridge from
-  RFC-0032's sole fixed binding to RFC-0031. Protected composition alone owns the
-  immutable binding point; each future call performs one bounded canonical first
-  sample, delegates its exact path and pin once to a fresh RFC-0031 source, and exposes
-  the result only after an unchanged second complete sample. RFC-0031 remains the sole
-  capability-facts creator. Java implementation, production construction, publisher or
-  evidence composition, the same-invocation RFC-0030/RFC-0029 consumer, providers,
-  credentials, network, spend, execution, persistence, runtime, MCP, platform support,
-  and anti-rollback remain separate;
+- a Contract Verified RFC-0033 read-only protected runtime bridge from RFC-0032's sole
+  fixed binding to RFC-0031. Protected composition alone owns the immutable binding
+  point; each call performs bounded exact-real canonical samples around one exact fresh
+  RFC-0031 delegation and exposes exact acquired facts plus binding digest or the exact
+  delegated refusal only when the selection remains unchanged. Every second-sample
+  failure or change hides that result, RFC-0031 remains the sole capability-facts
+  creator, and no production RFC-0033 construction caller exists. Production
+  construction, publisher or evidence composition, the same-invocation RFC-0030/
+  RFC-0029 consumer, providers, credentials, network, spend, execution, persistence,
+  runtime, MCP, platform support, and anti-rollback remain separate;
 - timeout, cancellation, token, context, cost, redaction, and response-validation budgets;
 - versioned per-model quality evaluation, policy-scoped fallback and response caching, prompt-injection resistance, source attribution, and visible uncertainty;
 - secret/sensitive-data detection plus explicit outbound destination, purpose, retention, and data-classification policy before remote transmission;

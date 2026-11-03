@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -153,7 +153,7 @@ Next Action: Completed; owning-document reconciliation and full verification is 
 
 ### Increment 3 - reconcile-and-verify-rfc0033-implementation
 
-State: In Progress
+State: Completed
 Depends On: enforce-stable-acquisition-and-rotation
 Scope: Reconcile Architecture, Project State, Roadmap, compact mirror, Changelog,
 verification log, Active Task, decision index, and session handoff; run complete fresh
@@ -163,8 +163,8 @@ all owning documents are current, full Markdown-sensitive regression is GREEN, G
 clean after required local commits, and the stable checkpoint is cleared.
 Verification: Focused governance tests, full README-owned Java 17 regression, generated
 JUnit evidence inspection, `git diff --check`, and Git status/log review.
-Next Action: Await separate authority for the same-invocation RFC-0030/RFC-0029 consumer
-or another explicitly approved Gate 9 continuation.
+Next Action: Completed; await separate authority for the same-invocation RFC-0030/
+RFC-0029 consumer or another explicitly approved Gate 9 continuation.
 
 ## Next
 

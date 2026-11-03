@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-11-03 - Implement Protected Runtime Catalog Binding Composition
+
+- Added closed safe RFC-0033 acquired/refused outcomes and one final read-only source
+  whose sole public construction input is the protected RFC-0032 fixed binding path.
+- Reused RFC-0032's canonical binding codec, delegated the exact selected path and pin
+  once through a fresh RFC-0031 source, and required an unchanged second complete sample
+  before exposing acquired facts or a delegated refusal.
+- Added deterministic drift and rotation coverage, repeated fresh acquisition, real
+  RFC-0031 delegation, every nested refusal, fixed path and size boundaries, symbolic
+  and Windows-junction rejection, safe rendering, and architecture guards preserving
+  RFC-0031 as the sole facts creator.
+- Added no production construction caller, installed catalog, publisher/evidence
+  composition, permission or platform-support claim, Router/evaluator consumer,
+  provider, credential, network, spend, execution, persistence, runtime, MCP, push,
+  release, or deployment path.
+
 ## 2026-11-02 - Specify Protected Runtime Catalog Binding Composition
 
 - Accepted RFC-0033 as the documentation-only read bridge from RFC-0032's fixed
