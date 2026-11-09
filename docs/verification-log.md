@@ -9067,3 +9067,22 @@ Outcome:
   inputs, final focused and README-owned full regression, the closure commit, a final
   non-force push and direct remote-ref confirmation remain required. No document
   mutation may follow that final verification and delivery sequence.
+
+## 2026-11-09 - RFC-0034 Result Contract Increment
+
+- The user's continuation was recorded as an Accepted Decision and activated the
+  bounded RED-first RFC-0034 implementation task. Focused Decision Log, document
+  ownership, Dynamic Workflow and assisted-development governance verification passed
+  before Java implementation began.
+- The first result-contract RED compile exposed the intended missing
+  `ProtectedRemoteModelRouteOptionPreparationResult` plus one incorrect existing
+  RFC-0031 refusal-enum name in the new test. The test error was corrected and the
+  clean rerun failed only on the missing RFC-0034 result type.
+- The new sealed result now has exactly `Prepared`, `AcquisitionRefused` and
+  `SuitabilityRefused` record shapes. Focused verification passed 19 tests with zero
+  skips, failures or errors, covering exact upstream value identity, lowercase binding
+  SHA-256 validation, closed reasons and redacted option/digest rendering alongside
+  the existing RFC-0033 source and governance checks.
+- No preparer, production construction caller, option aggregation, Router invocation,
+  provider, credential, network, spend, execution, persistence, runtime, MCP or
+  external effect was added in this increment.
