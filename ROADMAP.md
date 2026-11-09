@@ -1022,6 +1022,14 @@ Scope:
   construction, publisher or evidence composition, the same-invocation RFC-0030/
   RFC-0029 consumer, providers, credentials, network, spend, execution, persistence,
   runtime, MCP, platform support, and anti-rollback remain separate;
+- an Accepted RFC-0034 specification for that same-invocation consumer. Protected
+  construction owns the RFC-0033 fixed binding path; one future preparer derives the
+  exact candidate and destination only from RFC-0028 eligibility, invokes RFC-0033 once,
+  evaluates the exact acquired facts through RFC-0030 once, and constructs one RFC-0029
+  route option only on success. It preserves closed acquisition/suitability refusals and
+  safe binding provenance while stopping before option-set aggregation, Router
+  selection, provider, credential, network, spend, execution, persistence, retry,
+  fallback, runtime, or MCP. Java implementation and every consumer remain separate;
 - timeout, cancellation, token, context, cost, redaction, and response-validation budgets;
 - versioned per-model quality evaluation, policy-scoped fallback and response caching, prompt-injection resistance, source attribution, and visible uncertainty;
 - secret/sensitive-data detection plus explicit outbound destination, purpose, retention, and data-classification policy before remote transmission;
@@ -1342,6 +1350,7 @@ Status: Accepted
 - RFC-0031: Pinned Governed Remote Capability Catalog Source
 - RFC-0032: Governed Remote Capability Catalog Provisioning And Rotation
 - RFC-0033: Protected Remote Capability Catalog Runtime Binding Composition
+- RFC-0034: Protected Remote Model Route Option Preparation
 
 RFC acceptance does not imply Contract Verified, Integrated, Operational, or Released capability maturity.
 

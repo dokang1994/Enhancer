@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-11-09 - Specify Protected Remote Model Route Option Preparation
+
+- Accepted RFC-0034 as the documentation-only same-invocation bridge from one protected
+  RFC-0033 acquisition through RFC-0030 suitability to one RFC-0029 route option.
+- Required candidate and destination derivation from exact RFC-0028 eligibility, exact
+  once-only upstream delegation, unchanged request/eligibility/time identities, closed
+  acquisition and suitability refusals, and safe binding-digest provenance.
+- Stopped the boundary before option-set aggregation and Router selection, and added no
+  Java implementation, production caller, provider, credential, network, spend,
+  execution, persistence, retry, fallback, runtime, MCP, push, release, or deployment.
+
 ## 2026-11-03 - Implement Protected Runtime Catalog Binding Composition
 
 - Added closed safe RFC-0033 acquired/refused outcomes and one final read-only source

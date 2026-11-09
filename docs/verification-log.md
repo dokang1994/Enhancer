@@ -8980,3 +8980,22 @@ Outcome:
 - Because this append is itself a Markdown input, one final post-append README-owned
   regression remains required before the closure commit; no further document mutation
   may follow that verification.
+
+## 2026-11-09 - RFC-0034 Route-Option Preparation Specification Increment
+
+- Accepted RFC-0034 fixes one uncomposed same-invocation sequence from an exact
+  RFC-0028 eligible request through one RFC-0033 acquisition and at most one RFC-0030
+  evaluation to one RFC-0029 route option. It stops before option-set aggregation or
+  Router selection and grants no Java implementation or production construction
+  authority.
+- Fresh focused Java 17 governance verification completed Decision Log indexing,
+  document ownership, Dynamic Workflow, repository planning and assisted-development
+  loop suites with BUILD SUCCESSFUL in 38 seconds. Generated JUnit XML recorded five
+  suites and 18 tests; all passed with zero skips, failures or errors.
+- Fresh `git diff --check` completed without output. Candidate and destination
+  selectors remain eligibility-derived, exact request/facts/time identity is retained,
+  acquisition and suitability refusals remain distinct, and only the permitted binding
+  digest reaches prepared or suitability-refused results.
+- No Java production or test implementation, installed artifact, publisher/evidence
+  composition, option-set aggregation, Router call, provider, credential, network,
+  spend, execution, persistence, runtime, MCP, push, release or deployment was added.

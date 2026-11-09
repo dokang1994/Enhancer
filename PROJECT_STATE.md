@@ -1163,6 +1163,12 @@ it does not restate which commit published which increment.
   before route-execution preparation or any second candidate, provider, credential,
   network, or paid invocation is connected. These Contract Verified slices do not
   change whole-gate maturity.
+  RFC-0034 now specifies that next same-invocation route-option preparation boundary
+  without implementing it: one future uncomposed preparer preserves the protected
+  RFC-0033 path, exact RFC-0028 eligibility, exact RFC-0030 facts/proof identities, and
+  one explicit evaluation time through construction of one RFC-0029 option, then stops
+  before option aggregation or Router selection. No Java implementation or production
+  caller exists, so this accepted specification changes no capability maturity.
 - Gate 8 lease-expiry recovery now has one named worker-level fixture over the
   post-RunRecord-reference prefix. The first cycle persists exactly one reference,
   expires before execution acknowledgement, and leaves the AgentRun reclaimable at

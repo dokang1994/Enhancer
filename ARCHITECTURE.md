@@ -2164,6 +2164,17 @@ RFC-0030 evaluation and RFC-0029 option-construction boundary. Production constr
 publisher/evidence composition, providers, credentials, network, spend, execution,
 persistence, runtime and MCP remain separate.
 
+RFC-0034 specifies that same-invocation consumer without implementing it. One future
+uncomposed preparer receives the exact profiled request, exact RFC-0028 `Eligible`, and
+explicit evaluation time while protected construction owns the RFC-0033 fixed binding
+path. It derives candidate and destination only from the eligibility, invokes RFC-0033
+once, passes the exact acquired facts and unchanged inputs once to RFC-0030, and creates
+one RFC-0029 `ModelRouteOption` only after suitability success. Closed results preserve
+exact acquisition or suitability refusal and safe binding-digest provenance. The
+boundary stops before option-set aggregation, `ModelRouter`, production construction,
+provider, credential, network, spend, execution, persistence, retry, fallback, runtime,
+or MCP; Java implementation and every downstream consumer remain separately accepted.
+
 ## Agent Orchestration Contract
 
 ### Development-Time Adaptive Subagent Delegation
@@ -2673,8 +2684,9 @@ Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts bel
   RFC-0031 implements its pinned canonical capability-catalog acquisition source, and
   RFC-0032 specifies protected publisher-owned catalog provisioning and rotation;
   RFC-0033 implements the protected read-only runtime binding bridge and its stable
-  before/after acquisition rule without a production construction caller. Production
-  publisher composition, the same-invocation RFC-0030-to-RFC-0029 consumer, and every
-  Router execution consumer remain separately authorized before any second candidate
-  or provider integration.
+  before/after acquisition rule without a production construction caller. RFC-0034 now
+  specifies the single same-invocation RFC-0033-to-RFC-0030-to-RFC-0029 option
+  preparation boundary. Its Java implementation, production construction, publisher
+  composition, option-set aggregation, Router selection or execution consumer, and
+  every provider integration remain separately authorized.
 - Future LLM-backed Planner input/output schema is not selected yet.
