@@ -17,6 +17,8 @@ class RemoteCapabilityCatalogPublisherBoundaryTest {
     private static final Path MODEL_ROOT = PRODUCTION_ROOT.resolve("com/enhancer/model");
     private static final Path PORT = MODEL_ROOT.resolve(
             "RemoteCapabilityCatalogPublisher.java");
+    private static final Path PREPARER = MODEL_ROOT.resolve(
+            "ProtectedRemoteModelRouteOptionPreparer.java");
 
     @Test
     void publisherPortHasOnlyFilesystemImplementationAndNoProductionComposition()
@@ -67,9 +69,9 @@ class RemoteCapabilityCatalogPublisherBoundaryTest {
                         "ProtectedRemoteCapabilityCatalogFactSource.java")),
                 filesContaining(
                         "new PinnedFileRemoteModelCandidateCapabilityFactSource("));
-        assertEquals(List.of(), filesContaining(
+        assertEquals(List.of(PREPARER), filesContaining(
                 "new ProtectedRemoteCapabilityCatalogFactSource("));
-        assertEquals(List.of(), filesContaining(
+        assertEquals(List.of(PREPARER), filesContaining(
                 "new RemoteModelCandidateSuitabilityEvaluator("));
     }
 

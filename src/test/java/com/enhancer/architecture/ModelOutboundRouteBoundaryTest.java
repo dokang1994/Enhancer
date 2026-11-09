@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
@@ -90,6 +91,9 @@ class ModelOutboundRouteBoundaryTest {
             "RemoteModelCandidateCapabilityFacts.java",
             "RemoteModelCandidateSuitabilityEvaluator.java");
 
+    private static final String RFC_0034_PREPARER =
+            "ProtectedRemoteModelRouteOptionPreparer.java";
+
     @Test
     void definitionsDependOnlyOnPureValuesAndTheExactRfc0016AuthorityInputs()
             throws IOException {
@@ -152,10 +156,17 @@ class ModelOutboundRouteBoundaryTest {
                             path.getFileName().toString()))
                     .forEach(path -> {
                         String source = read(path);
+                        Set<String> allowed = path.getFileName().toString()
+                                .equals(RFC_0034_PREPARER)
+                                ? Set.of("ModelOutboundRouteAdmissionDecision")
+                                : Set.of();
                         for (String typeName : BOUNDARY_TYPE_NAMES) {
-                            assertFalse(
-                                    source.contains(typeName),
-                                    () -> path + " must not consume " + typeName);
+                            assertEquals(
+                                    allowed.contains(typeName),
+                                    containsIdentifier(source, typeName),
+                                    () -> path
+                                            + " outbound-boundary dependency drifted for "
+                                            + typeName);
                         }
                     });
         }
@@ -225,6 +236,12 @@ class ModelOutboundRouteBoundaryTest {
 
     private static String readModelSource(String fileName) throws IOException {
         return Files.readString(MODEL_ROOT.resolve(fileName), StandardCharsets.UTF_8);
+    }
+
+    private static boolean containsIdentifier(String source, String identifier) {
+        return Pattern.compile("\\b" + Pattern.quote(identifier) + "\\b")
+                .matcher(source)
+                .find();
     }
 
     private static String read(Path path) {

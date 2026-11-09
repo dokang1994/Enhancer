@@ -17,6 +17,8 @@ class RemoteCapabilityCatalogValidationBoundaryTest {
     private static final Path PRODUCTION_ROOT = Path.of("").toAbsolutePath().normalize()
             .resolve("src/main/java");
     private static final Path MODEL_ROOT = PRODUCTION_ROOT.resolve("com/enhancer/model");
+    private static final Path PREPARER = MODEL_ROOT.resolve(
+            "ProtectedRemoteModelRouteOptionPreparer.java");
 
     @Test
     void sharedCatalogCodecIsPackagePrivatePureAndHasOnlyTwoValidationCallers()
@@ -76,9 +78,9 @@ class RemoteCapabilityCatalogValidationBoundaryTest {
                         "ProtectedRemoteCapabilityCatalogFactSource.java")),
                 filesContaining(
                         "new PinnedFileRemoteModelCandidateCapabilityFactSource("));
-        assertEquals(List.of(), filesContaining(
+        assertEquals(List.of(PREPARER), filesContaining(
                 "new ProtectedRemoteCapabilityCatalogFactSource("));
-        assertEquals(List.of(), filesContaining(
+        assertEquals(List.of(PREPARER), filesContaining(
                 "new RemoteModelCandidateSuitabilityEvaluator("));
     }
 

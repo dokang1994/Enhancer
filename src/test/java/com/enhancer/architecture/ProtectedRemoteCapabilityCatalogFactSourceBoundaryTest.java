@@ -18,6 +18,8 @@ class ProtectedRemoteCapabilityCatalogFactSourceBoundaryTest {
             PRODUCTION_ROOT.resolve("com/enhancer/model");
     private static final Path SOURCE = MODEL_ROOT.resolve(
             "ProtectedRemoteCapabilityCatalogFactSource.java");
+    private static final Path PREPARER = MODEL_ROOT.resolve(
+            "ProtectedRemoteModelRouteOptionPreparer.java");
 
     @Test
     void sourceHasOnlyTheRequiredPinnedSourceCallerAndNoHigherAuthorityDependency()
@@ -37,7 +39,7 @@ class ProtectedRemoteCapabilityCatalogFactSourceBoundaryTest {
         }
         assertEquals(List.of(SOURCE), filesContaining(
                 "new PinnedFileRemoteModelCandidateCapabilityFactSource("));
-        assertEquals(List.of(), filesContaining(
+        assertEquals(List.of(PREPARER), filesContaining(
                 "new ProtectedRemoteCapabilityCatalogFactSource("));
     }
 

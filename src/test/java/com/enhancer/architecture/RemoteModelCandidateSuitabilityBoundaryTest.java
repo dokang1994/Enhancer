@@ -135,7 +135,7 @@ class RemoteModelCandidateSuitabilityBoundaryTest {
                 productionFilesContaining(
                         "RemoteModelCandidateCapabilityFacts.create("));
         assertEquals(
-                List.of(),
+                List.of("ProtectedRemoteModelRouteOptionPreparer.java"),
                 productionFilesContaining(
                         "new RemoteModelCandidateSuitabilityEvaluator("));
         assertEquals(

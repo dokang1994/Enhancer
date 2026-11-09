@@ -18,6 +18,8 @@ class RemoteModelCandidateCapabilityFactSourceBoundaryTest {
             .resolve("src/main/java");
     private static final Path SOURCE = PRODUCTION_ROOT.resolve(
             "com/enhancer/model/PinnedFileRemoteModelCandidateCapabilityFactSource.java");
+    private static final Path PREPARER = PRODUCTION_ROOT.resolve(
+            "com/enhancer/model/ProtectedRemoteModelRouteOptionPreparer.java");
 
     @Test
     void sourceHasNoRuntimeProviderAmbientOrRoutingDependency() throws IOException {
@@ -43,7 +45,7 @@ class RemoteModelCandidateCapabilityFactSourceBoundaryTest {
                                 + "ProtectedRemoteCapabilityCatalogFactSource.java")),
                 filesContaining(
                         "new PinnedFileRemoteModelCandidateCapabilityFactSource("));
-        assertEquals(List.of(), filesContaining(
+        assertEquals(List.of(PREPARER), filesContaining(
                 "new ProtectedRemoteCapabilityCatalogFactSource("));
     }
 

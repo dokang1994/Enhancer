@@ -9086,3 +9086,23 @@ Outcome:
 - No preparer, production construction caller, option aggregation, Router invocation,
   provider, credential, network, spend, execution, persistence, runtime, MCP or
   external effect was added in this increment.
+
+## 2026-11-09 - RFC-0034 Same-Invocation Preparer Increment
+
+- Missing-symbol RED verification proved that no RFC-0034 preparer existed before this
+  increment. The new final preparer exposes one path-only public constructor, keeps two
+  package-private interaction seams, and derives candidate and destination only from
+  the exact RFC-0028 eligibility.
+- Focused Java 17 verification completed 70 tests across 14 RFC-0028 through RFC-0034
+  model and architecture suites with zero skips, failures or errors. The tests cover
+  every RFC-0033 top-level refusal, every RFC-0030 refusal, exact request/eligibility/
+  facts/time identity, acquisition dominance, one-option success, exception
+  propagation and repeated fresh acquisition and evaluation.
+- Source guards now allow exactly one RFC-0033 source construction, one RFC-0030
+  evaluator construction and one `ModelRouteOption` construction, all in the exact
+  preparer. RFC-0031 remains the sole capability-facts creator, RFC-0030 remains the
+  sole suitability-proof creator, and production preparer and Router callers remain
+  zero. Fresh `git diff --check` completed without output.
+- No option set, ordering policy, Router call, selected route, provider, credential,
+  network, spend, execution, persistence, retry, fallback, cache, runtime, MCP or
+  external effect was added.

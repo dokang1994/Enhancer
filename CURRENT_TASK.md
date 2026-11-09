@@ -129,7 +129,7 @@ behavior are selected.
 
 ### Increment 2 - implement-rfc0034-preparer-and-guards
 
-State: In Progress
+State: Completed
 Depends On: define-rfc0034-result-contract
 Scope: Add RED-first path-only construction, exact RFC-0033/RFC-0030 orchestration,
 refusal dominance, one-option success, fresh repeated-call behavior, and narrowly
@@ -138,11 +138,12 @@ Exit Criteria: The exact same-invocation sequence is GREEN with no Router, optio
 production caller, deterministic-fake reuse, or external-effect surface.
 Verification: Focused RFC-0028 through RFC-0034 model, source, locality, dependency,
 architecture, and governance tests plus `git diff --check`.
-Next Action: Reconcile owning documents and run complete verification.
+Next Action: Completed; owning-document reconciliation and complete verification are
+selected.
 
 ### Increment 3 - reconcile-and-verify-rfc0034-implementation
 
-State: Pending
+State: In Progress
 Depends On: implement-rfc0034-preparer-and-guards
 Scope: Reconcile Architecture, Project State, Roadmap, compact mirror, Changelog,
 verification log, Active Task, decision index, and session handoff; run complete fresh

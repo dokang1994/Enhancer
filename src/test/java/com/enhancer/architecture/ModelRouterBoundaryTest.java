@@ -24,6 +24,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
@@ -56,6 +57,11 @@ class ModelRouterBoundaryTest {
             "RemoteModelCandidateSuitabilityDecision.java",
             "RemoteModelCandidateSuitabilityEvaluator.java",
             "RemoteModelCandidateSuitabilityRefusalReason.java");
+
+    private static final String RFC_0034_PREPARER =
+            "ProtectedRemoteModelRouteOptionPreparer.java";
+    private static final String RFC_0034_RESULT =
+            "ProtectedRemoteModelRouteOptionPreparationResult.java";
 
     @Test
     void definitionsDependOnlyOnPureModelValues() throws IOException {
@@ -140,10 +146,17 @@ class ModelRouterBoundaryTest {
                             path.getFileName().toString()))
                     .forEach(path -> {
                         String source = read(path);
+                        Set<String> allowed = switch (path.getFileName().toString()) {
+                            case RFC_0034_PREPARER, RFC_0034_RESULT ->
+                                    Set.of("ModelRouteOption");
+                            default -> Set.of();
+                        };
                         for (String typeName : BOUNDARY_TYPE_NAMES) {
-                            assertFalse(
-                                    source.contains(typeName),
-                                    () -> path + " must not consume " + typeName);
+                            assertEquals(
+                                    allowed.contains(typeName),
+                                    containsIdentifier(source, typeName),
+                                    () -> path + " Router-value dependency drifted for "
+                                            + typeName);
                         }
                     });
         }
@@ -240,6 +253,12 @@ class ModelRouterBoundaryTest {
 
     private static String readModelSource(String fileName) throws IOException {
         return Files.readString(MODEL_ROOT.resolve(fileName), StandardCharsets.UTF_8);
+    }
+
+    private static boolean containsIdentifier(String source, String identifier) {
+        return Pattern.compile("\\b" + Pattern.quote(identifier) + "\\b")
+                .matcher(source)
+                .find();
     }
 
     private static String read(Path path) {
