@@ -19,12 +19,13 @@ before Java implementation changes existing no-caller guards.
 ## Decision
 
 Specify RFC-0034 as one provider-neutral, uncomposed, same-invocation route-option
-preparation boundary. Protected construction supplies the fixed RFC-0033 binding path
-or source. Each prepare call accepts only the exact `ProfiledModelRequest`, exact
-RFC-0028 `Eligible`, and explicit evaluation time; derives candidate and destination
-selectors only from that eligibility; invokes RFC-0033 exactly once; invokes RFC-0030
-at most once with the exact acquired facts and unchanged inputs; and constructs exactly
-one RFC-0029 `ModelRouteOption` only after suitability success.
+preparation boundary. Protected production construction supplies only the fixed
+RFC-0033 binding path; a package-private seam may inject the exact source only for
+interaction tests. Each prepare call accepts only the exact `ProfiledModelRequest`,
+exact RFC-0028 `Eligible`, and explicit evaluation time; derives candidate and
+destination selectors only from that eligibility; invokes RFC-0033 exactly once;
+invokes RFC-0030 at most once with the exact acquired facts and unchanged inputs; and
+constructs exactly one RFC-0029 `ModelRouteOption` only after suitability success.
 
 The closed result will distinguish exact acquisition refusal, exact suitability
 refusal, and prepared option while retaining only safe invocation-local binding-digest

@@ -8999,3 +8999,29 @@ Outcome:
 - No Java production or test implementation, installed artifact, publisher/evidence
   composition, option-set aggregation, Router call, provider, credential, network,
   spend, execution, persistence, runtime, MCP, push, release or deployment was added.
+
+## 2026-11-09 - RFC-0034 Specification Full Verification And Closure
+
+- The first README-owned full Java 17 regression completed 1,354 tests in 26 minutes
+  47 seconds with eight failures and 18 conditional skips. Every failure was confined
+  to six scheduler CLI integration suites and reported the same isolated-worker
+  `PT30S` timeout with exit code 70; the documentation-only RFC-0034 surfaces did not
+  fail.
+- The six affected suites were rerun without source or document changes and completed
+  with BUILD SUCCESSFUL in 2 minutes 25 seconds. Generated JUnit XML recorded 19 tests:
+  18 passed, one platform-conditional test was skipped, and zero failed or errored.
+  This classified the first run as an unrelated transient host-load failure rather
+  than an RFC-0034 regression.
+- The complete README-owned Markdown-sensitive Java 17 regression was then rerun and
+  completed with BUILD SUCCESSFUL in 10 minutes 54 seconds. Direct aggregation of 251
+  generated JUnit suites recorded 1,354 tests: 1,336 passed, 18 conditional tests were
+  skipped, and zero failed or errored. The existing JVM class-sharing warning about an
+  appended bootstrap classpath remained non-failing.
+- RFC-0034 is Accepted as documentation only. Gate 9 remains Specified - Next; no Java
+  implementation, production construction, option-set aggregation, Router selection,
+  provider, credential, network, spend, execution, persistence, runtime, MCP, push,
+  merge, release or deployment was added. `SESSION_HANDOFF.md` remains unchanged
+  because no new host-only fact would otherwise be lost.
+- Because this append and the completed task state are Markdown inputs, one final
+  post-append README-owned regression and fresh `git diff --check` remain required
+  before the closure commit; no further document mutation may follow that verification.
