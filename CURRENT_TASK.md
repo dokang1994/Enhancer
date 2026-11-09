@@ -2,79 +2,64 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Specify RFC-0034 as the uncomposed same-invocation boundary that connects one protected
-RFC-0033 capability-fact acquisition to one RFC-0030 suitability evaluation and one
-RFC-0029 route option, then stops before option-set aggregation or Router selection.
+Deliver the already verified RFC-0034 specification commits from the current local
+`main` branch to `origin/main`, performing a normal merge only if a fresh remote query
+shows that one is actually required.
 
 ## Task ID
 
-specify-protected-remote-model-route-option-preparation
+deliver-rfc0034-specification-to-main
 
 ## Context
 
-RFC-0033 is Contract Verified without a production construction caller. RFC-0030 is the
-sole creator of remote suitability proofs and RFC-0029 consumes those proofs through an
-immutable route option, but their exact same-invocation composition is not specified.
-
-The new contract must preserve protected binding authority, derive candidate and
-destination selectors only from the exact RFC-0028 eligibility, retain exact instances
-and one explicit evaluation time across the chain, and keep acquisition refusal,
-suitability refusal, option preparation, and later Router selection distinct.
+The RFC-0034 specification task is Completed and committed locally as `5fdc694` and
+`5a8a4cf`. The working tree was clean, `HEAD` was already on `main`, and the last local
+tracking state showed `main` ahead of `origin/main`. Remote state must be fetched before
+delivery, so a separate branch-to-main merge may be unnecessary.
 
 ## Justified By
 
-- User continuation request on 2026-11-09 into protected remote model route-option preparation specification
+- User request on 2026-11-09 to commit, push, and complete the main-branch merge
 
 ## Approval
 
-The user's continuation authorizes this documentation-only RFC, accepted decision and
-index entry, Architecture, Roadmap, compact mirror, Current Task, Changelog, verification
-log and session-handoff reconciliation, checkpoint state, fresh repository verification,
-and ordinary local commits required for verified GREEN increments of this Active Task.
+The user's request authorizes the repository-local task document and verification-log
+updates needed to govern delivery, ordinary local commits for those verified document
+increments, a fresh fetch of `origin`, a normal non-force merge into local `main` only
+if fresh remote state requires it, and pushes of the verified local `main` commits to
+`origin/main`.
 
-It does not authorize Java production or test implementation, production construction,
-installed binding/catalog artifacts, publisher/evidence composition, option-set
-aggregation, Router selection, route execution preparation, provider or adapter
-construction, endpoint, credential, network transmission, spend, billing, retry,
-fallback, cache, durable provenance, Tool/Evidence/RunRecord/Scheduler/runtime/MCP
-integration, permission change, destructive action, push, merge, tag, release, or
-deployment.
+It does not authorize force push, history rewrite, deletion, reset, rebase, tag,
+release, deployment, branch deletion, pull-request mutation, unrelated remote changes,
+provider or network runtime integration, paid service use, or RFC-0034 Java
+implementation.
 
 ## Acceptance Criteria
 
-- RFC-0034 defines one exact sequence from protected RFC-0033 acquisition through
-  RFC-0030 evaluation to one RFC-0029 `ModelRouteOption`, with explicit inputs,
-  construction authority, identity retention, refusal precedence, and stopping point.
-- Candidate and destination selectors come only from the exact RFC-0028 `Eligible`;
-  callers cannot provide or override path, pin, selector, facts, proof, or route option.
-- The source is invoked exactly once and the evaluator at most once with the exact
-  request, eligibility, acquired facts instance, and unchanged evaluation time.
-- Closed safe results distinguish prepared option, exact acquisition refusal, and exact
-  suitability refusal while retaining only permitted binding-digest provenance.
-- The contract forbids option-set aggregation, Router evaluation, provider/credential/
-  network/spend/execution authority, retry/fallback/cache, persistence, runtime, and MCP.
-- Future RED-first behavior and architecture/source-guard tests are specified without
-  adding Java implementation or weakening current no-caller guards.
-- RFC, decision/index, Architecture, Project State where current facts change, Roadmap,
-  compact mirror, Changelog, verification log, Current Task, and session handoff remain
-  consistent with document ownership; focused governance checks and the full README-
-  owned Java 17 regression are fresh before completion.
+- A fresh fetch establishes the authoritative `origin/main` relationship before any
+  merge or push.
+- Delivery begins from a clean local `main` containing the verified RFC-0034 commits.
+- If `origin/main` is already an ancestor of local `main`, no unnecessary merge commit
+  is created; otherwise only a normal non-force merge authorized by this task is used.
+- The README-owned Java 17 regression is fresh after this Markdown task activation and
+  before external delivery.
+- The final push is non-force, a fresh remote query proves `origin/main` resolves to the
+  delivered local `HEAD`, Git is clean, and delivery evidence is recorded once.
+- The checkpoint remains active through every external delivery step and is cleared
+  only after the repository is synchronized, verified, committed, and remotely
+  confirmed.
 
 ## Out Of Scope
 
-Java production or test implementation, source/evaluator/Router caller changes,
-production construction, installed artifacts, publisher/evidence composition, real
-installation, deployment configuration, permission enforcement, cleanup, retention,
-rollback, anti-rollback, option-set aggregation, scoring, ordering, Router selection,
-route execution preparation, provider, adapter, endpoint, protocol, credential, secret,
-network, transmission, spend, billing, response handling, retry, fallback, cache,
-durable provenance, Tool/Evidence/RunRecord/Scheduler/runtime-event integration, schema
-or migration, MCP, plugin, interface, background work, capability promotion, push,
-merge, tag, release, deployment, or unrelated external effects.
+Java production or test implementation, RFC contract change, Architecture, Project
+State, Roadmap or capability-maturity change, force push, history rewrite, reset,
+rebase, destructive cleanup, tag, release, deployment, branch deletion, pull-request
+mutation, unrelated remote change, provider, credential, runtime network integration,
+spend, execution, persistence, runtime, MCP, or another external effect.
 
 ## Allowed Tools
 
@@ -84,56 +69,58 @@ merge, tag, release, deployment, or unrelated external effects.
 - verify
 - checkpoint
 - git-inspect
+- git-fetch
+- git-merge
 - git-stage
 - git-commit
+- git-push
 
 ## Verification
 
-Run focused RFC/decision/index/document-ownership/Architecture-mirror/Roadmap/Planner/
-Assisted-Loop/dynamic-workflow governance tests plus `git diff --check`. Before task
-completion run the complete README-owned Java 17 test task, inspect generated JUnit
-evidence, and review final Git status and diff.
+Run focused current-task/document-ownership/planner governance tests and
+`git diff --check`, then the complete README-owned Java 17 test task. Inspect generated
+JUnit evidence, fetch `origin`, inspect the exact merge-base and ahead/behind counts,
+perform no merge when local `main` already contains `origin/main`, push without force,
+and verify the remote `refs/heads/main` object ID equals local `HEAD`.
 
 ## Dynamic Workflow
 
-Workflow ID: specify-protected-remote-model-route-option-preparation
+Workflow ID: deliver-rfc0034-specification-to-main
 Mode: Sequential
 Increment Limit: 2
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
 Stop Conditions: Stop on failed verification, authority conflict, task/checkpoint drift,
-scope expansion into implementation/selection/provider/external effect, exhausted
-workflow bounds, or unsafe recovery.
+remote divergence requiring conflict resolution, force-push requirement, unexpected
+remote identity, scope expansion, exhausted workflow bounds, or unsafe recovery.
 
-### Increment 1 - specify-rfc0034-route-option-preparation
+### Increment 1 - prepare-rfc0034-main-delivery
 
 State: Completed
 Depends On: none
-Scope: Accept and write the exact same-invocation RFC-0033 -> RFC-0030 -> one RFC-0029
-option preparation contract, closed results, refusal order, provenance, safety boundary,
-future RED-first verification, and exclusions.
-Exit Criteria: RFC-0034 is Accepted, internally consistent with RFC-0028 through
-RFC-0033, and grants no implementation, selection, provider, or external-effect
-authority.
-Verification: Focused RFC/decision/reference/Architecture governance tests plus
-`git diff --check`.
-Next Action: Reconcile owning documents and run full verification.
-
-### Increment 2 - reconcile-and-verify-rfc0034-specification
-
-State: Completed
-Depends On: specify-rfc0034-route-option-preparation
-Scope: Reconcile owning documents, run complete fresh verification, inspect generated
-evidence and final diff, commit the verified specification, and close the checkpoint.
-Exit Criteria: The specification task is Completed, all owning documents are current,
-the full Markdown-sensitive regression is GREEN, Git is clean after the required local
-commit, and the stable checkpoint is cleared.
+Scope: Activate and verify the bounded delivery task, run focused and full regression,
+inspect generated evidence, and commit the verified delivery contract locally.
+Exit Criteria: The task document satisfies governance and ownership checks, the full
+Markdown-sensitive regression is GREEN, and the delivery contract is committed on a
+clean local `main`.
 Verification: Focused governance tests, full README-owned Java 17 regression, generated
-JUnit evidence inspection, `git diff --check`, and Git status/log review.
+JUnit evidence inspection, `git diff --check`, and local Git status/log review.
+Next Action: Fetch, reconcile and deliver local `main` to `origin/main`.
+
+### Increment 2 - deliver-rfc0034-to-origin-main
+
+State: In Progress
+Depends On: prepare-rfc0034-main-delivery
+Scope: Fetch and reconcile `origin/main`, preserve a clean non-force history, push
+local `main`, confirm remote identity, record evidence, and close the delivery
+checkpoint.
+Exit Criteria: All delivery commits are on `origin/main`, remote and local `main`
+resolve to the same object ID, Git is clean, and the stable checkpoint is cleared.
+Verification: Merge-base/ahead-behind inspection, non-force push output, remote-ref
+confirmation, and final Git status/log review.
 Next Action: Await separate authority for RED-first RFC-0034 implementation.
 
 ## Next
 
-After this specification is Completed, do not implement RFC-0034, weaken no-caller
-guards, construct a Router option set, call `ModelRouter`, or add a production
-construction, provider, credential, network, spend, execution, persistence, runtime, or
-MCP path without separate explicit authority.
+After delivery is remotely verified, mark this task Completed, record delivery evidence
+without duplicating it into architecture or maturity documents, commit and push the
+closure, then await separate authority for RED-first RFC-0034 implementation.

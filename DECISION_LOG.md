@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User request on 2026-11-09 to commit, push, and complete the main-branch merge
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-11-09-deliver-rfc0034-specification-to-main.md)
+
 ### User continuation request on 2026-11-09 into protected remote model route-option preparation specification
 
 Status: Accepted Decision

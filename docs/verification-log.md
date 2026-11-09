@@ -9025,3 +9025,26 @@ Outcome:
 - Because this append and the completed task state are Markdown inputs, one final
   post-append README-owned regression and fresh `git diff --check` remain required
   before the closure commit; no further document mutation may follow that verification.
+
+## 2026-11-09 - RFC-0034 Main Delivery Preparation Increment
+
+- The user's explicit commit, push and main-merge request is now an Accepted Decision
+  authorizing only fresh remote inspection, a normal merge when required, non-force
+  delivery to `origin/main`, and exact remote-ref confirmation. Force push, reset,
+  rebase, branch deletion, release and deployment remain excluded.
+- The first focused governance run exposed a one-increment Dynamic Workflow, which is
+  outside the repository's two-through-sixteen bound. The task was corrected to two
+  sequential preparation and external-delivery increments; the next focused run passed
+  13 tests with zero skips, failures or errors.
+- The first full regression then exposed an unresolved `Justified By` heading. The
+  checkpoint rejected an attempted active-contract rewrite, the task contract was
+  restored, and the exact matching delivery decision plus Decision Log index entry were
+  added instead. Focused decision, ownership, workflow, planner and assisted-loop
+  verification then passed 18 tests with zero skips, failures or errors.
+- The complete README-owned Markdown-sensitive Java 17 regression completed with BUILD
+  SUCCESSFUL in 9 minutes 20 seconds. Direct aggregation of 251 generated JUnit suites
+  recorded 1,354 tests: 1,336 passed, 18 conditional tests were skipped, and zero failed
+  or errored. Fresh `git diff --check` completed without output.
+- No fetch, merge or push had occurred at this preparation boundary, and no Java,
+  Architecture, Project State, Roadmap, capability maturity, runtime, release or
+  deployment change was added.
