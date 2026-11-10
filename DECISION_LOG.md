@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User request on 2026-11-10 to commit, push, and complete verified Gate 9 delivery to main
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-11-10-deliver-verified-gate9-work-to-main.md)
+
 ### User continuation request on 2026-11-10 into protected remote model route aggregation and selection specification
 
 Status: Accepted Decision

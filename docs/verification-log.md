@@ -9169,3 +9169,25 @@ Outcome:
 - Because this append and completed task state are Markdown test inputs, one final post-
   append README-owned regression and fresh diff/status review remain required before
   the closure commit; no further document mutation may follow that verification.
+
+## 2026-11-10 - Verified Gate 9 Main Delivery Preparation Increment
+
+- The user's explicit commit, push and main-merge request is an Accepted Decision
+  authorizing fresh remote inspection, a normal merge only when required, non-force
+  delivery of the five verified commits from `602a5f1` through `12eb384`, and exact
+  remote-ref confirmation. Force push, reset, rebase, branch deletion, release and
+  deployment remain excluded.
+- Fresh focused Java 17 governance verification completed Decision Log indexing,
+  document ownership, Dynamic Workflow, Project Context, approved-task reading,
+  Assisted Development Loop and Repository Task Planner suites with BUILD SUCCESSFUL
+  in 43 seconds. Generated JUnit XML recorded seven suites and 29 tests: 28 passed, one
+  skipped, and zero failures or errors.
+- The complete README-owned Java 17 regression then completed BUILD SUCCESSFUL in 9
+  minutes 28 seconds. Generated JUnit XML recorded 254 suites and 1,367 tests: 1,349
+  passed, 18 existing conditional tests were skipped, and zero failed or errored.
+- Fresh `git diff --check` completed without output. No fetch, merge or push occurred at
+  this preparation boundary, and no Java, RFC contract, Architecture, Project State,
+  Roadmap, capability-maturity, runtime, release or deployment change was added.
+- Because this append and workflow-cursor change are Markdown inputs, one final post-
+  append README-owned regression remains required before the delivery-governance commit
+  and first external effect.
