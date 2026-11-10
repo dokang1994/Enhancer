@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -135,7 +135,7 @@ selected.
 
 ### Increment 2 - reconcile-and-verify-rfc0035-specification
 
-State: In Progress
+State: Completed
 Depends On: specify-rfc0035-route-aggregation-and-selection
 Scope: Reconcile owning documents, run complete fresh verification, inspect generated
 evidence and final diff, commit the verified specification, and close the checkpoint.
@@ -144,13 +144,13 @@ the full Markdown-sensitive regression is GREEN, Git is clean after the required
 commit, and the stable checkpoint is cleared.
 Verification: Focused governance tests, full README-owned Java 17 regression, generated
 JUnit evidence inspection, `git diff --check`, and Git status/log review.
-Next Action: Run complete fresh verification, inspect generated evidence and the final
-diff, then close the specification task and checkpoint.
+Next Action: Completed; await separate authority for RED-first RFC-0035 implementation
+or another explicitly approved Gate 9 continuation.
 
 ## Next
 
-After this specification is Completed, do not implement RFC-0035, construct or call the
-new composition in production, call the RFC-0034 preparer from production, prepare route
-execution, construct a provider or credential, transmit content, authorize spend,
-persist route provenance, add retry/fallback/cache/runtime/MCP behavior, or push local
-commits without separate explicit authority.
+No next task is authorized. Await explicit user approval before implementing RFC-0035,
+constructing or calling the new composition in production, calling the RFC-0034 preparer
+from production, preparing route execution, constructing a provider or credential,
+transmitting content, authorizing spend, persisting route provenance, adding retry/
+fallback/cache/runtime/MCP behavior, or pushing local commits.

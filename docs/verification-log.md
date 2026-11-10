@@ -9150,3 +9150,22 @@ Outcome:
   delegation, exact Router decision and selector-owned selected-preparation binding.
 - Because this append and workflow-cursor change are Markdown inputs, complete fresh
   README-owned regression remains required before closure.
+
+## 2026-11-10 - RFC-0035 Specification Complete Regression
+
+- Fresh README-owned Java 17 regression ran with `--no-daemon --max-workers=1` and
+  completed BUILD SUCCESSFUL in 9 minutes 49 seconds after the RFC, accepted decision,
+  architecture mirrors, Gate 9 state, Roadmap, changelog and Increment 1 evidence were
+  committed.
+- Generated JUnit XML recorded 254 suites and 1,367 tests: 1,349 passed, 18 existing
+  conditional tests were skipped, and zero failed or errored.
+- Fresh `git diff --check` completed without output. Git was clean on `main`, four local
+  commits ahead of `origin/main`; the RFC-0035 specification increment is local commit
+  `8edb93b` and no push was authorized or performed.
+- RFC-0035 is Accepted only as a documentation contract. No Java RFC-0035 result or
+  composition, production preparer/selection caller, route execution, provider,
+  credential, network, spend, persistence, retry, fallback, runtime, MCP, push, release
+  or deployment was added, and Gate 9 remains Specified - Next.
+- Because this append and completed task state are Markdown test inputs, one final post-
+  append README-owned regression and fresh diff/status review remain required before
+  the closure commit; no further document mutation may follow that verification.
