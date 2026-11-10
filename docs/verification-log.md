@@ -9106,3 +9106,25 @@ Outcome:
 - No option set, ordering policy, Router call, selected route, provider, credential,
   network, spend, execution, persistence, retry, fallback, cache, runtime, MCP or
   external effect was added.
+
+## 2026-11-10 - RFC-0034 Implementation Reconciliation And Closure
+
+- Architecture, Project State, Roadmap, the compact architecture mirror and Changelog
+  were reconciled to the implemented uncomposed RFC-0034 boundary. The decision index
+  already matched its accepted decision, and `SESSION_HANDOFF.md` required no change
+  because no new host-only continuation fact would otherwise be lost.
+- The README-owned Java 17 regression completed with BUILD SUCCESSFUL in 9 minutes 48
+  seconds after the owning-document draft. Direct aggregation of 254 generated JUnit
+  suites recorded 1,367 tests: 1,349 passed, 18 existing conditional tests were
+  skipped, and zero failed or errored.
+- Fresh inspection confirmed RFC-0031 remains the sole capability-facts creator,
+  RFC-0030 remains the sole suitability-proof creator, and both the RFC-0034 preparer
+  and `ModelRouter` retain zero production callers. Fresh `git diff --check` completed
+  without output.
+- RFC-0034 is Contract Verified only at its uncomposed one-option preparation boundary;
+  Gate 9 remains Specified - Next. No option aggregation, Router selection, provider,
+  credential, network, spend, execution, persistence, retry, fallback, cache, runtime,
+  MCP, push, release or deployment was added.
+- Because this append and the completed task state are Markdown test inputs, one final
+  post-append README-owned regression and fresh diff/status review remain required
+  before the closure commit; no further document mutation may follow that verification.

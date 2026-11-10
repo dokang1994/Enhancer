@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-11-09 - Implement Protected Remote Model Route Option Preparation
+
+- Added the sealed RFC-0034 prepared, acquisition-refused and suitability-refused
+  result with exact upstream retention, lowercase binding-digest validation and safe
+  redacted rendering.
+- Added one final path-only preparer that derives selectors solely from RFC-0028
+  eligibility, invokes RFC-0033 exactly once, evaluates acquired facts through RFC-0030
+  at most once and creates one exact RFC-0029 route option only on success.
+- Added full staged-refusal, identity, repeated-fresh-call and exception-propagation
+  coverage plus narrow architecture guards preserving sole facts/proof creators and
+  zero production preparer or Router callers.
+- Added no option aggregation, Router selection, provider, credential, network, spend,
+  execution, persistence, retry, fallback, cache, runtime, MCP, push, release or
+  deployment path.
+
 ## 2026-11-09 - Deliver RFC-0034 Specification To Main
 
 - Accepted bounded non-force delivery authority, fetched the remote before delivery,

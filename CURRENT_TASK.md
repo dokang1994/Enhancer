@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -143,7 +143,7 @@ selected.
 
 ### Increment 3 - reconcile-and-verify-rfc0034-implementation
 
-State: In Progress
+State: Completed
 Depends On: implement-rfc0034-preparer-and-guards
 Scope: Reconcile Architecture, Project State, Roadmap, compact mirror, Changelog,
 verification log, Active Task, decision index, and session handoff; run complete fresh
@@ -153,12 +153,12 @@ all owning documents are current, full Markdown-sensitive regression is GREEN, G
 clean after required local commits, and the stable checkpoint is cleared.
 Verification: Focused governance tests, full README-owned Java 17 regression, generated
 JUnit evidence inspection, `git diff --check`, and Git status/log review.
-Next Action: Await separate authority for option aggregation and Router selection or
-another explicitly approved Gate 9 continuation.
+Next Action: Completed; await separate authority for option aggregation and Router
+selection or another explicitly approved Gate 9 continuation.
 
 ## Next
 
-After this implementation is Completed, do not add a production caller, aggregate or
-order options, invoke `ModelRouter`, construct a provider or credential, transmit
-content, authorize spend, execute or persist a route, add retry/fallback/cache/runtime
-or MCP behavior, and do not push local commits without explicit authority.
+No next task is authorized. Await explicit user approval before adding a production
+caller, aggregating or ordering options, invoking `ModelRouter`, constructing a provider
+or credential, transmitting content, authorizing spend, executing or persisting a
+route, adding retry/fallback/cache/runtime or MCP behavior, or pushing local commits.

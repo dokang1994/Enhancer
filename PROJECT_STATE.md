@@ -2,7 +2,7 @@
 
 ## Updated At
 
-2026-11-03
+2026-11-10
 
 ## Repository State
 
@@ -1157,18 +1157,21 @@ it does not restate which commit published which increment.
   refusal; and every second-sample failure or change hides that result. Closed outcomes,
   link/junction and size boundaries, deterministic drift, rotation, repeated fresh
   acquisition, safe rendering, and architecture guards are covered while RFC-0031
-  remains the sole production capability-facts creator. There is no production RFC-0033
-  construction caller. Production publisher composition and a same-invocation
-  RFC-0030/RFC-0029 route-option consumer remain the missing Gate-9-owned boundaries
-  before route-execution preparation or any second candidate, provider, credential,
-  network, or paid invocation is connected. These Contract Verified slices do not
-  change whole-gate maturity.
-  RFC-0034 now specifies that next same-invocation route-option preparation boundary
-  without implementing it: one future uncomposed preparer preserves the protected
-  RFC-0033 path, exact RFC-0028 eligibility, exact RFC-0030 facts/proof identities, and
-  one explicit evaluation time through construction of one RFC-0029 option, then stops
-  before option aggregation or Router selection. No Java implementation or production
-  caller exists, so this accepted specification changes no capability maturity.
+  remains the sole production capability-facts creator. RFC-0034 is the sole production
+  RFC-0033 construction site, and its preparer has no production caller. Production
+  publisher composition, option aggregation and Router selection remain the missing
+  Gate-9-owned boundaries before route-execution preparation or any second candidate,
+  provider, credential, network, or paid invocation is connected. These Contract
+  Verified slices do not change whole-gate maturity.
+  RFC-0034 is now Contract Verified as an uncomposed same-invocation route-option
+  preparer: its path-only public construction owns one RFC-0033 source and field-free
+  RFC-0030 evaluator; each call derives selectors only from the exact RFC-0028
+  eligibility, preserves exact request/facts/proof/time identities, and creates one
+  RFC-0029 option only after acquisition and suitability succeed. Closed staged
+  refusals, binding-digest validation and redacted rendering are covered. There is no
+  production preparer or Router caller, option aggregation, provider, credential,
+  network, spend, execution, persistence, retry, fallback, runtime or MCP connection,
+  so Gate 9 remains Specified - Next.
 - Gate 8 lease-expiry recovery now has one named worker-level fixture over the
   post-RunRecord-reference prefix. The first cycle persists exactly one reference,
   expires before execution acknowledgement, and leaves the AgentRun reclaimable at

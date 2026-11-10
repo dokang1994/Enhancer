@@ -2101,11 +2101,11 @@ the exact operator-approved bytes, not the truth of remote-world claims; RFC-003
 governs provisioning, installation, and rotation while production publisher composition
 remains separate. The source is
 implemented with closed typed refusals, strict defensive acquisition, complete-catalog
-validation, exact lookup, complete facts mapping, and explicit-time freshness, while
-retaining zero production callers. The only planned
-connection is same-invocation RFC-0030 evaluation preparation followed by RFC-0029
-option construction. No production caller, provider, credential, network, spend,
-execution, persistence, retry, fallback, or MCP authority follows from this contract.
+validation, exact lookup, complete facts mapping, and explicit-time freshness. RFC-0034
+now consumes this source only through the RFC-0033 protected binding bridge for same-
+invocation RFC-0030 evaluation and RFC-0029 option construction. No option aggregation,
+Router caller, provider, credential, network, spend, execution, persistence, retry,
+fallback, or MCP authority follows from this contract.
 
 RFC-0032 defines the provider-neutral contract that may later provision RFC-0031's
 protected path and pin. Independent evidence authors own every remote-world claim;
@@ -2146,9 +2146,10 @@ installed artifact, runtime reader, provider, execution path, or Operational aut
 follows.
 
 RFC-0033 implements the read-only protected runtime bridge from that fixed binding to
-RFC-0031 without adding a production construction caller. Protected deployment
-composition supplies one immutable absolute normalized fixed binding path outside every
-request, Router option, provider, CLI, environment, repository and working directory.
+RFC-0031. Its sole production construction site is the uncomposed RFC-0034 preparer,
+which has no production caller. Protected deployment composition supplies one immutable
+absolute normalized fixed binding path outside every request, Router option, provider,
+CLI, environment, repository and working directory.
 Each acquisition derives the fixed sibling catalog directory, performs one
 bounded no-follow canonical binding sample through RFC-0032's existing codec, delegates
 the exact selected path and pin once to a fresh RFC-0031 source, and exposes the
@@ -2159,21 +2160,25 @@ only for source refusal. RFC-0031 stays the sole capability-facts creator; every
 second-sample failure or change outranks and hides the earlier delegated result.
 This is a stable sequential observation, not a publisher lock, atomic deployment
 snapshot, platform-permission proof, installed configuration, truth or anti-rollback
-claim. The only named next consumer is a separately accepted same-invocation
-RFC-0030 evaluation and RFC-0029 option-construction boundary. Production construction,
-publisher/evidence composition, providers, credentials, network, spend, execution,
+claim. RFC-0034 is its sole same-invocation consumer; publisher/evidence composition,
+installed production composition, providers, credentials, network, spend, execution,
 persistence, runtime and MCP remain separate.
 
-RFC-0034 specifies that same-invocation consumer without implementing it. One future
-uncomposed preparer receives the exact profiled request, exact RFC-0028 `Eligible`, and
-explicit evaluation time while protected construction owns the RFC-0033 fixed binding
-path. It derives candidate and destination only from the eligibility, invokes RFC-0033
-once, passes the exact acquired facts and unchanged inputs once to RFC-0030, and creates
-one RFC-0029 `ModelRouteOption` only after suitability success. Closed results preserve
-exact acquisition or suitability refusal and safe binding-digest provenance. The
-boundary stops before option-set aggregation, `ModelRouter`, production construction,
-provider, credential, network, spend, execution, persistence, retry, fallback, runtime,
-or MCP; Java implementation and every downstream consumer remain separately accepted.
+RFC-0034 implements that same-invocation consumer as one final uncomposed preparer.
+Its path-only public construction creates one RFC-0033 source and one field-free
+RFC-0030 evaluator; package-private interaction seams add no second public construction
+or fact source. Each call receives the exact profiled request, exact RFC-0028
+`Eligible`, and explicit evaluation time, derives candidate and destination only from
+the eligibility, invokes RFC-0033 once, passes the exact acquired facts and unchanged
+inputs once to RFC-0030, and creates one RFC-0029 `ModelRouteOption` only after
+suitability success. Sealed prepared, acquisition-refused, and suitability-refused
+results retain exact upstream values and validated safe binding-digest provenance while
+redacting option and digest rendering. Source guards preserve RFC-0031 as the sole
+capability-facts creator, RFC-0030 as the sole proof creator, and zero production caller
+for both the preparer and `ModelRouter`. The boundary stops before option-set
+aggregation, routing, provider, credential, network, spend, execution, persistence,
+retry, fallback, runtime, or MCP; every downstream consumer remains separately
+accepted.
 
 ## Agent Orchestration Contract
 
@@ -2684,9 +2689,9 @@ Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts bel
   RFC-0031 implements its pinned canonical capability-catalog acquisition source, and
   RFC-0032 specifies protected publisher-owned catalog provisioning and rotation;
   RFC-0033 implements the protected read-only runtime binding bridge and its stable
-  before/after acquisition rule without a production construction caller. RFC-0034 now
-  specifies the single same-invocation RFC-0033-to-RFC-0030-to-RFC-0029 option
-  preparation boundary. Its Java implementation, production construction, publisher
-  composition, option-set aggregation, Router selection or execution consumer, and
-  every provider integration remain separately authorized.
+  before/after acquisition rule. RFC-0034 now implements the sole production
+  construction site and single same-invocation RFC-0033-to-RFC-0030-to-RFC-0029 option
+  preparer, while the preparer itself has no production caller. Installed production
+  composition, publisher composition, option-set aggregation, Router selection or
+  execution consumers, and every provider integration remain separately authorized.
 - Future LLM-backed Planner input/output schema is not selected yet.

@@ -1018,18 +1018,20 @@ Scope:
   RFC-0031 delegation and exposes exact acquired facts plus binding digest or the exact
   delegated refusal only when the selection remains unchanged. Every second-sample
   failure or change hides that result, RFC-0031 remains the sole capability-facts
-  creator, and no production RFC-0033 construction caller exists. Production
-  construction, publisher or evidence composition, the same-invocation RFC-0030/
-  RFC-0029 consumer, providers, credentials, network, spend, execution, persistence,
+  creator. Only the uncomposed RFC-0034 preparer constructs RFC-0033, and that preparer
+  has no production caller. Installed production construction, publisher or evidence
+  composition, providers, credentials, network, spend, execution, persistence,
   runtime, MCP, platform support, and anti-rollback remain separate;
-- an Accepted RFC-0034 specification for that same-invocation consumer. Protected
-  construction owns the RFC-0033 fixed binding path; one future preparer derives the
+- a Contract Verified RFC-0034 same-invocation consumer. Its path-only public
+  construction owns one RFC-0033 source and one RFC-0030 evaluator; every call derives
   exact candidate and destination only from RFC-0028 eligibility, invokes RFC-0033 once,
   evaluates the exact acquired facts through RFC-0030 once, and constructs one RFC-0029
-  route option only on success. It preserves closed acquisition/suitability refusals and
-  safe binding provenance while stopping before option-set aggregation, Router
-  selection, provider, credential, network, spend, execution, persistence, retry,
-  fallback, runtime, or MCP. Java implementation and every consumer remain separate;
+  route option only on success. Closed acquisition/suitability refusals retain exact
+  upstream values and validated redacted binding provenance. Guards preserve the sole
+  RFC-0031 facts creator and RFC-0030 proof creator plus zero production preparer or
+  Router caller. Option-set aggregation, Router selection, provider, credential,
+  network, spend, execution, persistence, retry, fallback, runtime, MCP and every
+  downstream consumer remain separate;
 - timeout, cancellation, token, context, cost, redaction, and response-validation budgets;
 - versioned per-model quality evaluation, policy-scoped fallback and response caching, prompt-injection resistance, source attribution, and visible uncertainty;
 - secret/sensitive-data detection plus explicit outbound destination, purpose, retention, and data-classification policy before remote transmission;
