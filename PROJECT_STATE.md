@@ -1158,11 +1158,14 @@ it does not restate which commit published which increment.
   link/junction and size boundaries, deterministic drift, rotation, repeated fresh
   acquisition, safe rendering, and architecture guards are covered while RFC-0031
   remains the sole production capability-facts creator. RFC-0034 is the sole production
-  RFC-0033 construction site, and its preparer has no production caller. Production
-  publisher composition, option aggregation and Router selection remain the missing
-  Gate-9-owned boundaries before route-execution preparation or any second candidate,
-  provider, credential, network, or paid invocation is connected. These Contract
-  Verified slices do not change whole-gate maturity.
+  RFC-0033 construction site, and its preparer has no production caller. RFC-0035 now
+  specifies, without implementing, the missing ordered preparation-result aggregation
+  and pure Router delegation: a preparation refusal suppresses partial selection, while
+  an all-prepared collection preserves exact option order and identity through one
+  Router decision. Production publisher composition, RFC-0035 Java implementation and
+  caller, route execution, and any second candidate, provider, credential, network, or
+  paid invocation remain absent. These Contract Verified slices and the accepted
+  RFC-0035 specification do not change whole-gate maturity.
   RFC-0034 is now Contract Verified as an uncomposed same-invocation route-option
   preparer: its path-only public construction owns one RFC-0033 source and field-free
   RFC-0030 evaluator; each call derives selectors only from the exact RFC-0028
@@ -1172,6 +1175,11 @@ it does not restate which commit published which increment.
   production preparer or Router caller, option aggregation, provider, credential,
   network, spend, execution, persistence, retry, fallback, runtime or MCP connection,
   so Gate 9 remains Specified - Next.
+  RFC-0035 is Accepted as a documentation-only contract for zero through 256 exact
+  RFC-0034 results, lowest-ordinal preparation-refusal dominance, exact ordered
+  `ModelRouteOptionSet` construction, one unchanged-request/time Router call, and exact
+  selected-preparation provenance association. No RFC-0035 Java type, composition or
+  production caller exists, so Gate 9 remains Specified - Next.
 - Gate 8 lease-expiry recovery now has one named worker-level fixture over the
   post-RunRecord-reference prefix. The first cycle persists exactly one reference,
   expires before execution acknowledgement, and leaves the AgentRun reclaimable at

@@ -9128,3 +9128,25 @@ Outcome:
 - Because this append and the completed task state are Markdown test inputs, one final
   post-append README-owned regression and fresh diff/status review remain required
   before the closure commit; no further document mutation may follow that verification.
+
+## 2026-11-10 - RFC-0035 Aggregation And Selection Specification Increment
+
+- Accepted RFC-0035 fixes one field-free same-invocation composition from zero through
+  256 exact caller-ordered RFC-0034 preparation results to one existing RFC-0029 option
+  set and exact pure Router decision. It stops before Java implementation, production
+  callers, preparer invocation, route execution, providers, credentials, network,
+  spend, persistence, retry, fallback, runtime, or MCP.
+- Two bounded read-only development-subagent reviews independently found no blocking
+  contract or governance conflict. The primary Agent reconciled their recommendations
+  against RFC-0029, RFC-0034, current Java contracts, document ownership and Gate 9.
+- Fresh focused Java 17 governance verification completed Decision Log indexing,
+  document ownership, Dynamic Workflow, Project Context, approved-task reading,
+  Assisted Development Loop and Repository Task Planner suites with BUILD SUCCESSFUL
+  in 39 seconds. Generated JUnit XML recorded seven suites and 29 tests: 28 passed, one
+  skipped, and zero failures or errors.
+- Fresh `git diff --check` completed without output. The contract retains one defensive
+  ordered snapshot, programming-error precedence, lowest-ordinal exact preparation
+  refusal, all-prepared exact option identities, unchanged request/time Router
+  delegation, exact Router decision and selector-owned selected-preparation binding.
+- Because this append and workflow-cursor change are Markdown inputs, complete fresh
+  README-owned regression remains required before closure.

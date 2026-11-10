@@ -1032,6 +1032,15 @@ Scope:
   Router caller. Option-set aggregation, Router selection, provider, credential,
   network, spend, execution, persistence, retry, fallback, runtime, MCP and every
   downstream consumer remain separate;
+- an Accepted RFC-0035 specification for the next same-invocation composition. One
+  future field-free boundary accepts the exact request, zero through 256 exact RFC-0034
+  results in caller order, and one explicit time; the lowest-ordinal preparation
+  refusal suppresses aggregation, while an all-prepared collection contributes exact
+  option instances in unchanged order to one RFC-0029 set and one pure Router call.
+  Empty input retains RFC-0029 `NO_ROUTE_OPTIONS`, and an exact selection stays paired
+  with the exact ordinal-zero prepared result and redacted binding provenance. Java
+  implementation, production callers, route execution, providers, credentials,
+  network, spend, persistence, retry, fallback, runtime, and MCP remain separate;
 - timeout, cancellation, token, context, cost, redaction, and response-validation budgets;
 - versioned per-model quality evaluation, policy-scoped fallback and response caching, prompt-injection resistance, source attribution, and visible uncertainty;
 - secret/sensitive-data detection plus explicit outbound destination, purpose, retention, and data-classification policy before remote transmission;
@@ -1353,6 +1362,7 @@ Status: Accepted
 - RFC-0032: Governed Remote Capability Catalog Provisioning And Rotation
 - RFC-0033: Protected Remote Capability Catalog Runtime Binding Composition
 - RFC-0034: Protected Remote Model Route Option Preparation
+- RFC-0035: Protected Remote Model Route Aggregation And Selection
 
 RFC acceptance does not imply Contract Verified, Integrated, Operational, or Released capability maturity.
 

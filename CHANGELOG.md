@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-11-10 - Specify Protected Remote Model Route Aggregation And Selection
+
+- Accepted RFC-0035 as the documentation-only same-invocation composition from one
+  bounded caller-ordered collection of exact RFC-0034 results to one existing RFC-0029
+  option set and pure Router decision.
+- Required a defensive ordered snapshot, lowest-ordinal preparation-refusal dominance,
+  exact option identity and order, unchanged request and evaluation time, exact Router
+  decision retention, and exact selected-preparation binding provenance association.
+- Stopped before Java implementation, production preparer or selection callers, route
+  execution, providers, credentials, network, spend, persistence, retry, fallback,
+  runtime, MCP, push, release, or deployment.
+
 ## 2026-11-09 - Implement Protected Remote Model Route Option Preparation
 
 - Added the sealed RFC-0034 prepared, acquisition-refused and suitability-refused

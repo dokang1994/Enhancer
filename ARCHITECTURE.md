@@ -2180,6 +2180,21 @@ aggregation, routing, provider, credential, network, spend, execution, persisten
 retry, fallback, runtime, or MCP; every downstream consumer remains separately
 accepted.
 
+RFC-0035 specifies the next same-invocation composition without implementing it. One
+future field-free boundary receives the exact profiled request, zero through 256 exact
+RFC-0034 preparation results in caller order, and one explicit evaluation time. It
+takes one defensive ordered snapshot and returns the lowest-ordinal exact acquisition
+or suitability refusal without constructing an option set. Only an all-prepared
+collection contributes the exact option instances in unchanged order to one RFC-0029
+`ModelRouteOptionSet`; the existing pure `ModelRouter` then receives the exact request
+and unchanged time once. The closed result preserves the exact Router refusal or the
+exact Router selection with the exact ordinal-zero prepared result, keeping redacted
+binding provenance associated by identity. Empty input delegates to RFC-0029's existing
+`NO_ROUTE_OPTIONS`; every binding, freshness, duplicate and selection rule stays Router-
+owned. The boundary stops before production callers, preparer invocation, route
+execution, provider, credential, network, spend, persistence, retry, fallback, runtime,
+or MCP; Java implementation remains separately accepted.
+
 ## Agent Orchestration Contract
 
 ### Development-Time Adaptive Subagent Delegation
@@ -2689,9 +2704,11 @@ Operational procedures belong in `AGENTS.md` and `.ai/`; component contracts bel
   RFC-0031 implements its pinned canonical capability-catalog acquisition source, and
   RFC-0032 specifies protected publisher-owned catalog provisioning and rotation;
   RFC-0033 implements the protected read-only runtime binding bridge and its stable
-  before/after acquisition rule. RFC-0034 now implements the sole production
-  construction site and single same-invocation RFC-0033-to-RFC-0030-to-RFC-0029 option
-  preparer, while the preparer itself has no production caller. Installed production
-  composition, publisher composition, option-set aggregation, Router selection or
-  execution consumers, and every provider integration remain separately authorized.
+  before/after acquisition rule. RFC-0034 implements the sole production construction
+  site and single same-invocation RFC-0033-to-RFC-0030-to-RFC-0029 option preparer,
+  while RFC-0035 now specifies ordered preparation-result aggregation and exact pure
+  Router delegation without implementing it. The preparer and future composition have
+  no production callers. Installed production composition, publisher composition,
+  RFC-0035 Java implementation, route-execution consumers, and every provider
+  integration remain separately authorized.
 - Future LLM-backed Planner input/output schema is not selected yet.

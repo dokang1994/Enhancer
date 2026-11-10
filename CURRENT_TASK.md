@@ -2,92 +2,96 @@
 
 ## Status
 
-Completed
+In Progress
 
 ## Task
 
-Implement RFC-0034 RED-first as one uncomposed same-invocation preparer that connects
-the exact RFC-0033 acquisition, RFC-0030 suitability, and RFC-0029 route-option value
-boundaries without aggregating options or calling the Router.
+Specify RFC-0035 as the provider-neutral same-invocation boundary that consumes one
+bounded caller-ordered collection of exact RFC-0034 preparation results, fails closed
+without dropping a refused preparation, constructs the exact RFC-0029 option set, and
+invokes the existing pure `ModelRouter` once before any route execution.
 
 ## Task ID
 
-implement-rfc-0034-protected-remote-model-route-option-preparation
+specify-protected-remote-model-route-aggregation-and-selection
 
 ## Context
 
-RFC-0034 is Accepted and delivered. RFC-0033 can acquire exact RFC-0030 capability
-facts through one protected fixed binding, RFC-0030 can create an invocation-local
-suitability proof, and RFC-0029 defines a pure route option. All remain uncomposed and
-have no production consumer.
+RFC-0034 is Contract Verified as an uncomposed one-option preparer with no production
+caller. RFC-0029 is Contract Verified as a pure Router over a bounded ordered option
+set, also with no production caller. No accepted contract currently owns how multiple
+exact preparation outcomes retain caller order, how a refused preparation suppresses
+selection, how prepared options enter `ModelRouteOptionSet`, or how the Router decision
+and selected binding provenance remain associated.
 
-This task adds only the same-invocation preparation boundary. It retains protected path
-ownership at construction, derives route selectors only from the exact RFC-0028
-eligibility, preserves exact instances and evaluation time, and stops after one
-prepared option or one closed staged refusal.
+The new contract must keep ordering explicit but non-authoritative, preserve every
+exact prepared option and the same request and evaluation time, reject silent filtering
+or reconstruction, and stop after the exact pure Router decision.
 
 ## Justified By
 
-- User continuation request on 2026-11-09 into RFC-0034 protected remote model route-option preparation implementation
+- User continuation request on 2026-11-10 into protected remote model route aggregation and selection specification
 
 ## Approval
 
-The user's continuation authorizes repository-local Java production and test changes,
-architecture/source guards, decision and owning project-document updates, checkpoint
-state, fresh verification, bounded read-only development-subagent review, and ordinary
-local commits required for verified GREEN increments of this Active Task.
+The user's continuation authorizes this documentation-only RFC, accepted decision and
+index entry, Architecture, Roadmap, compact mirror, Current Task, Changelog,
+verification log and session-handoff reconciliation, checkpoint state, fresh repository
+verification, bounded read-only development-subagent review, and ordinary local commits
+required for verified GREEN increments of this Active Task.
 
-It does not authorize option-set aggregation or ordering, `ModelRouter` invocation, a
-production preparer caller, provider or adapter construction, endpoint, credential,
-network transmission, spend, execution, retry, fallback, cache, durable provenance,
-Tool/Evidence/RunRecord/Scheduler/runtime integration, MCP, destructive action, push,
-merge, tag, release, deployment, permission change, or another external effect.
+It does not authorize Java production or test implementation, construction or calling
+of the RFC-0034 preparer in production, installed binding/catalog artifacts,
+publisher/evidence composition, production selection callers, route execution
+preparation, provider or adapter construction, endpoint, credential, network
+transmission, spend, billing, retry, fallback, cache, durable provenance,
+Tool/Evidence/RunRecord/Scheduler/runtime/MCP integration, permission change,
+destructive action, push, merge, tag, release, or deployment.
 
 ## Acceptance Criteria
 
-- A sealed immutable three-shape result retains the exact prepared option or exact
-  upstream refusal, validates lowercase binding SHA-256 provenance where present, and
-  renders no option, digest, path, fact, prompt, content, price, capacity, time, secret,
-  or exception value.
-- One final preparer has exactly one path-only public construction boundary; protected
-  construction creates one RFC-0033 source and one field-free RFC-0030 evaluator, while
-  package-private interaction seams add no second public or production fact source.
-- Every call requires the exact profiled request, RFC-0028 `Eligible`, and explicit
-  evaluation time; derives candidate and destination only from the eligibility; and
-  calls RFC-0033 exactly once with those exact derived identities and time.
-- Acquisition refusal preserves the exact RFC-0033 refusal and suppresses evaluation;
-  acquired facts enter RFC-0030 exactly once by identity with unchanged request,
-  eligibility, and time; suitability refusal preserves its exact reason and binding
-  digest while suppressing option construction.
-- Success creates exactly one `ModelRouteOption` from the exact request, eligibility,
-  and RFC-0030 proof, returns it with the exact binding digest, and repeated calls
-  reacquire and reevaluate without cache, retry, fallback, scan, write, repair, lock, or
-  clock behavior.
-- Architecture and source guards allow only the exact preparer to construct RFC-0033
-  and RFC-0030 boundaries and one existing option, preserve zero production caller for
-  the preparer and Router, preserve RFC-0031 as sole facts creator and RFC-0030 as sole
-  proof creator, and keep the deterministic fake isolated.
-- Architecture, Project State, Roadmap, compact mirror, Changelog, verification log,
-  Active Task, decision index, and session handoff remain consistent with document
-  ownership; focused checks and the complete README-owned Java 17 regression are fresh
-  before completion.
+- RFC-0035 defines one field-free composition receiving the exact profiled request, an
+  ordered zero-through-256 collection of exact RFC-0034 preparation results, and one
+  explicit evaluation time, with no ambient lookup, clock, or policy input.
+- The collection order is caller-declared data and is preserved exactly. Null or
+  oversized input is a programming error; the first acquisition or suitability refusal
+  by lowest ordinal is returned exactly and suppresses option-set construction and
+  Router evaluation, so no result is silently dropped, retried, replaced, or reordered.
+- Only an all-`Prepared` collection yields a `ModelRouteOptionSet`, containing the exact
+  option instances in the same order. Empty input reaches the existing Router and its
+  exact `NO_ROUTE_OPTIONS` refusal; duplicate and malformed routes remain Router-owned.
+- The existing field-free `ModelRouter` is invoked exactly once with the exact request,
+  option set, and unchanged evaluation time. A Router refusal is preserved exactly; a
+  selection retains the exact `SelectedModelRoute` and the exact ordinal-zero RFC-0034
+  `Prepared` result so its redacted binding provenance remains associated by identity.
+- The contract stops before preparer construction or invocation, route-execution
+  preparation, provider/credential/network/spend authority, retry/fallback/cache,
+  persistence, runtime, or MCP, and grants no authority through order, option, digest,
+  or selection possession.
+- Future RED-first result, composition, interaction, safe-rendering, and
+  architecture/source-guard tests are specified without adding Java implementation or
+  weakening current sole-creator and no-execution-consumer guards.
+- RFC, decision/index, Architecture, Project State where current facts change, Roadmap,
+  compact mirror, Changelog, verification log, Current Task, and session handoff remain
+  consistent with document ownership; focused governance checks and the full README-
+  owned Java 17 regression are fresh before completion.
 
 ## Out Of Scope
 
-Production preparer construction or calling, installed binding or catalog, publisher
-or evidence composition, option-set aggregation, caller ordering, Router selection,
-selected route, provider, adapter, endpoint, credential, network, transmission, spend,
-billing, execution, response handling, retry, fallback, cache, durable route or binding
-provenance, Tool/Evidence/RunRecord/Scheduler/runtime-event integration, durable schema
-or migration, MCP, plugin, interface, background work, capability promotion beyond the
-implemented contract, destructive cleanup, push, merge, tag, release, deployment,
-permission change, and unrelated external effects.
+Java production or test implementation, preparer/source/evaluator behavior changes,
+production preparer or selector construction or calling, installed artifacts,
+publisher/evidence composition, candidate discovery, scoring, sorting, filtering,
+preference derivation, dynamic priority, load balancing, retry, fallback, cache,
+availability policy, route execution preparation, provider, adapter, endpoint,
+protocol, credential, secret, network, transmission, spend, billing, response handling,
+durable route or binding provenance, Tool/Evidence/RunRecord/Scheduler/runtime-event
+integration, schema or migration, MCP, plugin, interface, background work, capability
+promotion, destructive cleanup, push, merge, tag, release, deployment, permission
+change, or unrelated external effects.
 
 ## Allowed Tools
 
 - read-file
-- write-code
-- write-tests
 - write-docs
 - build-output
 - verify
@@ -98,67 +102,55 @@ permission change, and unrelated external effects.
 
 ## Verification
 
-Use RED-first focused JUnit tests for observable behavior. Run focused RFC-0028 through
-RFC-0034 model tests and architecture/source/governance guards at each GREEN increment,
-plus `git diff --check`. Before task completion run the complete README-owned Java 17
-test task, inspect generated JUnit evidence, and review final Git status and diff.
+Run focused RFC/decision/index/document-ownership/Architecture-mirror/Roadmap/Planner/
+Assisted-Loop/dynamic-workflow governance tests plus `git diff --check`. Before task
+completion run the complete README-owned Java 17 test task, inspect generated JUnit
+evidence, and review final Git status and diff.
 
 ## Dynamic Workflow
 
-Workflow ID: implement-rfc-0034-protected-remote-model-route-option-preparation
+Workflow ID: specify-protected-remote-model-route-aggregation-and-selection
 Mode: Sequential
-Increment Limit: 3
+Increment Limit: 2
 Selection Rule: Select the first dependency-ready Pending increment in numeric order.
 Stop Conditions: Stop on failed verification, authority conflict, task/checkpoint drift,
-scope expansion into routing/provider/execution/external effects, exhausted workflow
-bounds, or unsafe recovery.
+scope expansion into implementation/execution/provider/external effects, exhausted
+workflow bounds, or unsafe recovery.
 
-### Increment 1 - define-rfc0034-result-contract
+### Increment 1 - specify-rfc0035-route-aggregation-and-selection
 
 State: Completed
 Depends On: none
-Scope: Record the accepted implementation continuation and add the sealed three-shape
-result under missing-symbol RED tests for exact value retention, digest validation, and
-safe rendering.
-Exit Criteria: The result contract is GREEN, closed, immutable, safe to render, and
-contains only the exact RFC-0034 values.
-Verification: Focused RFC-0033/RFC-0034 result tests, applicable architecture and
-governance tests, and `git diff --check`.
-Next Action: Completed; the final same-invocation preparer and exact interaction
-behavior are selected.
-
-### Increment 2 - implement-rfc0034-preparer-and-guards
-
-State: Completed
-Depends On: define-rfc0034-result-contract
-Scope: Add RED-first path-only construction, exact RFC-0033/RFC-0030 orchestration,
-refusal dominance, one-option success, fresh repeated-call behavior, and narrowly
-updated source/architecture guards.
-Exit Criteria: The exact same-invocation sequence is GREEN with no Router, option-set,
-production caller, deterministic-fake reuse, or external-effect surface.
-Verification: Focused RFC-0028 through RFC-0034 model, source, locality, dependency,
-architecture, and governance tests plus `git diff --check`.
+Scope: Accept and write the exact ordered RFC-0034 result aggregation, fail-closed
+preparation-refusal handling, RFC-0029 option-set construction and one-call Router
+selection contract, closed results, provenance, safety boundary, future RED-first
+verification, and exclusions.
+Exit Criteria: RFC-0035 is Accepted, internally consistent with RFC-0028 through
+RFC-0034, and grants no implementation, execution, provider, or external-effect
+authority.
+Verification: Focused RFC/decision/reference/Architecture governance tests plus
+`git diff --check`.
 Next Action: Completed; owning-document reconciliation and complete verification are
 selected.
 
-### Increment 3 - reconcile-and-verify-rfc0034-implementation
+### Increment 2 - reconcile-and-verify-rfc0035-specification
 
-State: Completed
-Depends On: implement-rfc0034-preparer-and-guards
-Scope: Reconcile Architecture, Project State, Roadmap, compact mirror, Changelog,
-verification log, Active Task, decision index, and session handoff; run complete fresh
-verification and commit the closure.
-Exit Criteria: RFC-0034 is Contract Verified only at its uncomposed one-option boundary,
-all owning documents are current, full Markdown-sensitive regression is GREEN, Git is
-clean after required local commits, and the stable checkpoint is cleared.
+State: In Progress
+Depends On: specify-rfc0035-route-aggregation-and-selection
+Scope: Reconcile owning documents, run complete fresh verification, inspect generated
+evidence and final diff, commit the verified specification, and close the checkpoint.
+Exit Criteria: The specification task is Completed, all owning documents are current,
+the full Markdown-sensitive regression is GREEN, Git is clean after the required local
+commit, and the stable checkpoint is cleared.
 Verification: Focused governance tests, full README-owned Java 17 regression, generated
 JUnit evidence inspection, `git diff --check`, and Git status/log review.
-Next Action: Completed; await separate authority for option aggregation and Router
-selection or another explicitly approved Gate 9 continuation.
+Next Action: Run complete fresh verification, inspect generated evidence and the final
+diff, then close the specification task and checkpoint.
 
 ## Next
 
-No next task is authorized. Await explicit user approval before adding a production
-caller, aggregating or ordering options, invoking `ModelRouter`, constructing a provider
-or credential, transmitting content, authorizing spend, executing or persisting a
-route, adding retry/fallback/cache/runtime or MCP behavior, or pushing local commits.
+After this specification is Completed, do not implement RFC-0035, construct or call the
+new composition in production, call the RFC-0034 preparer from production, prepare route
+execution, construct a provider or credential, transmit content, authorize spend,
+persist route provenance, add retry/fallback/cache/runtime/MCP behavior, or push local
+commits without separate explicit authority.

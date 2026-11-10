@@ -11,6 +11,12 @@ its file and an entry here; `DecisionLogIndexTest` fails the build if the two dr
 
 ## Accepted Decisions
 
+### User continuation request on 2026-11-10 into protected remote model route aggregation and selection specification
+
+Status: Accepted Decision
+
+[Full decision](docs/decisions/2026-11-10-specify-protected-remote-model-route-aggregation-and-selection.md)
+
 ### User continuation request on 2026-11-09 into RFC-0034 protected remote model route-option preparation implementation
 
 Status: Accepted Decision
