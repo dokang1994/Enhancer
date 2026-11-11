@@ -2,7 +2,7 @@
 
 ## Status
 
-In Progress
+Completed
 
 ## Task
 
@@ -16,11 +16,11 @@ deliver-rfc0034-implementation-and-rfc0035-specification-to-main
 
 ## Context
 
-The RFC-0034 implementation and RFC-0035 specification tasks are Completed and
-committed locally as `602a5f1`, `1ca35ce`, `48be962`, `8edb93b`, and `12eb384`. The
-working tree is clean, `HEAD` is already on `main`, and the last local tracking state
-showed `main` five commits ahead of `origin/main` at `e4fda0f`. Remote state must be
-fetched before delivery, so a branch merge may be unnecessary.
+The RFC-0034 implementation and RFC-0035 specification tasks are Completed. A fresh
+fetch proved `origin/main` at `e4fda0f` was the merge base and an ancestor of local
+`main`, so no merge commit was required. The authorized non-force initial push advanced
+the remote through delivery-governance commit `96824aa`, and a separate remote query
+confirmed that exact object identity before this closure.
 
 ## Justified By
 
@@ -114,7 +114,7 @@ selected after the final post-append preparation regression and commit.
 
 ### Increment 2 - deliver-verified-gate9-work-to-origin-main
 
-State: In Progress
+State: Completed
 Depends On: prepare-verified-gate9-main-delivery
 Scope: Fetch and reconcile `origin/main`, preserve a clean non-force history, push the
 verified work, confirm remote identity, record delivery evidence, verify and commit the
@@ -125,12 +125,10 @@ zero ahead/behind, Git is clean, and the stable checkpoint is cleared.
 Verification: Merge-base/ahead-behind inspection, non-force push output, direct remote-
 ref confirmation after each push, post-closure full regression, and final Git status/
 log review.
-Next Action: Run the final post-append preparation regression, commit the delivery
-contract, then fetch and inspect `origin/main` before any merge or push.
+Next Action: Completed; the closure commit is verified locally and delivered non-force
+before the checkpoint is made stable and cleared.
 
 ## Next
 
-After delivery is remotely verified, mark this task Completed, record delivery evidence
-without duplicating it into architecture or maturity documents, commit and push the
-closure, then await separate explicit authority for RFC-0035 implementation or another
-Gate 9 continuation.
+No next task is authorized. Await separate explicit authority for RFC-0035
+implementation or another Gate 9 continuation.
